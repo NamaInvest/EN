@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getTenantPrisma, resolveTenant } from '@/lib/prisma';
-import { IdempotencyStatus } from '@prisma/client';
 
 export async function withIdempotency(
-    req: NextRequest,
+    req: any,
     endpoint: string,
     handler: () => Promise<NextResponse>
 ): Promise<NextResponse> {
     try {
         const tenantId = resolveTenant(req);
-        const prisma = getTenantPrisma(req);
+        const prisma = getTenantPrisma(req) as any;
 
         // 1. Read key from header or body
         let idempotencyKey = req.headers.get('Idempotency-Key') || req.headers.get('idempotency-key');
@@ -19,8 +18,12 @@ export async function withIdempotency(
         let bodyJson: any = null;
         
         try {
-            bodyText = await req.clone().text();
+            // Read body ONCE and override req methods so the handler doesn't fail
+            bodyText = await req.text();
             bodyJson = bodyText ? JSON.parse(bodyText) : null;
+            
+            req.json = async () => bodyJson;
+            req.text = async () => bodyText;
         } catch (e) {
             // Ignore parse errors, body might be empty
         }

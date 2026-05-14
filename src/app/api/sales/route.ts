@@ -46,6 +46,7 @@ const SalesInvoiceSchema = z.object({
     items: z.array(SalesItemSchema).min(1, 'يجب إضافة منتج واحد على الأقل'),
     docType: z.string().optional().default('invoice'),
     originalInvoiceId: z.union([z.string(), z.number()]).optional().nullable(),
+    idempotencyKey: z.string().optional().nullable(),
 });
 
 async function _GET(request: NextRequest) {
@@ -91,7 +92,7 @@ async function _GET(request: NextRequest) {
     }
 }
 
-async function _POST(request: Request) {
+export async function _POST(request: Request) {
 
     const prisma = getPrisma(request);
     try {

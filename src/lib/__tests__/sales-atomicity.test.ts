@@ -2,7 +2,7 @@ import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
 jest.mock('@/lib/prisma', () => {
-    const mPrisma = {
+    const mPrisma: any = {
         $transaction: jest.fn(async (cb) => {
             return cb(mPrisma);
         }),

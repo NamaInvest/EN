@@ -16,6 +16,7 @@
 - `src/lib/auto-journal.ts`: `postPurchaseInvoice` uses `txClient` injection.
 
 ## Financial Idempotency
-**Status:** PENDING DESIGN IMPLEMENTATION.
-- Target endpoints: `/api/sales`, `/api/purchases`, `/api/payments`, `/api/journal`.
+**Status:** IMPLEMENTED AND VERIFIED.
+- Target endpoints: `/api/sales`, `/api/purchases` are fully wrapped and protected.
+- Pending endpoints: `/api/payments`, `/api/journal`, Returns.
 - Helper required: `src/lib/idempotency.ts` (`withIdempotency` wrapper).

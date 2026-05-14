@@ -19,3 +19,11 @@
   - Swallowed errors during Inventory (`productStock.upsert`) were eliminated. If inventory fails, the entire transaction rolls back.
   - Throws explicit error if the journal fails to create, ensuring strict atomic synchronization with GL.
 - **Next Steps:** Replicate this identical pattern to `Sales Returns` and `Purchase Returns`.
+
+**Financial Idempotency (Enterprise Level)**
+- **Status:** Implemented in `schema.prisma`, `withIdempotency` wrapper, and applied to `/api/sales` and `/api/purchases`.
+- **Pattern Details:**
+  - Designed `IdempotencyRecord` Prisma model with `@@unique([tenantId, endpoint, key])` to leverage database-level constraint for exact race condition prevention (Double-Posting).
+  - Uses Request Payload Hashing (`sha256`) to prevent client from changing body while keeping the same idempotency key.
+  - Caches `COMPLETED` responses for offline sync / retry handling.
+- **Next Steps:** Extend `withIdempotency` wrapper to `Sales Returns`, `Purchase Returns`, `Payments`, and `Treasury`.
