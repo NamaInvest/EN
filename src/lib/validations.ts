@@ -28,7 +28,10 @@ export const treasuryCreateSchema = z.object({
   referenceId: z.union([z.number(), z.string()]).optional().nullable(),
   userId: optionalId,
   branchId: optionalId,
-});
+  treasuryAccountId: optionalId,
+  counterpartyAccountId: optionalId,
+  paymentType: z.enum(['cash', 'bank', 'transfer']).optional(),
+}).strip();
 
 // ── Expenses ──
 export const expenseCreateSchema = z.object({

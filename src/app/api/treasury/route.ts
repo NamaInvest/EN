@@ -9,6 +9,8 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
+import { createJournalEntry } from '@/lib/auto-journal';
+import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'treasury' });
 async function _GET(request: NextRequest) {
@@ -41,7 +43,7 @@ async function _GET(request: NextRequest) {
     }
 }
 
-async function _POST(request: Request) {
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
@@ -57,9 +59,22 @@ async function _POST(request: Request) {
             branchId = user?.branchId || null;
         }
 
-        // Transactions inside Treasury purely to align with architecture constraints
+        // Strict Validation for Manual Entries
+        if (body.referenceType === 'manual') {
+            if (!body.counterpartyAccountId) {
+                return NextResponse.json({ error: 'Manual treasury entry requires counterpartyAccountId' }, { status: 400 });
+            }
+            if (!body.treasuryAccountId) {
+                return NextResponse.json({ error: 'Manual treasury entry requires treasuryAccountId' }, { status: 400 });
+            }
+        }
+
+        const treasuryAccountId = body.treasuryAccountId;
+        const counterpartyAccountId = body.counterpartyAccountId;
+
+        // Transactions inside Treasury to align with architecture constraints
         const entry = await prisma.$transaction(async (tx) => {
-            return await tx.treasury.create({
+            const newTreasury = await tx.treasury.create({
                 data: { 
                     type: body.type, 
                     amount: body.amount, 
@@ -70,16 +85,54 @@ async function _POST(request: Request) {
                     branchId: branchId ? Number(branchId) : null 
                 },
             });
+
+            // Journal Entry Binding if Accounts are Explicit
+            if (treasuryAccountId && counterpartyAccountId) {
+                const treasuryAccount = await tx.account.findUnique({ where: { id: Number(treasuryAccountId) }, select: { code: true } });
+                const counterpartyAccount = await tx.account.findUnique({ where: { id: Number(counterpartyAccountId) }, select: { code: true } });
+
+                if (!treasuryAccount || !counterpartyAccount) {
+                    throw new Error("Invalid account IDs provided for treasury or counterparty.");
+                }
+
+                const journalLines = [];
+                const amountNum = typeof body.amount === 'number' ? body.amount : parseFloat(body.amount as string);
+
+                if (body.type === 'in') {
+                    // Receipt: Debit Treasury, Credit Counterparty
+                    journalLines.push({ accountCode: treasuryAccount.code, debit: amountNum, credit: 0, description: body.description || 'Treasury Receipt' });
+                    journalLines.push({ accountCode: counterpartyAccount.code, debit: 0, credit: amountNum, description: body.description || 'Treasury Receipt' });
+                } else if (body.type === 'out') {
+                    // Payment: Debit Counterparty, Credit Treasury
+                    journalLines.push({ accountCode: counterpartyAccount.code, debit: amountNum, credit: 0, description: body.description || 'Treasury Payment' });
+                    journalLines.push({ accountCode: treasuryAccount.code, debit: 0, credit: amountNum, description: body.description || 'Treasury Payment' });
+                }
+
+                await createJournalEntry({
+                    description: body.description || `Treasury ${body.type === 'in' ? 'Receipt' : 'Payment'}`,
+                    reference: `TREAS-${newTreasury.id}`,
+                    lines: journalLines,
+                    userId: userId ? Number(userId) : undefined,
+                    branchId: branchId ? Number(branchId) : undefined,
+                    date: new Date(),
+                    txClient: tx,
+                });
+            } else if (body.referenceType === 'manual') {
+                 throw new Error("Manual treasury entries strictly require both treasury and counterparty accounts.");
+            }
+
+            return newTreasury;
         });
         
         return NextResponse.json(entry, { status: 201 });
     } catch (error: any) {
         log.error('src/app/api/treasury/route.ts', { error: error instanceof Error ? error.message : error });
- 
         return handleApiError(error); 
     }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => {
+  return withIdempotency(req as NextRequest, 'POST /api/treasury', async () => _POST(req as any));
+}, { rateLimit: 'FINANCIAL' });
