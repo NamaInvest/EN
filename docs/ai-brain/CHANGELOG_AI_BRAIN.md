@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.22
+- **Manufacturing Idempotency & Replay Protection (Phase 2.2.3):** Implemented strict Redis-backed Idempotency on `api/manufacturing/work-orders` and `api/manufacturing/orders` (`POST` and `PUT` methods). Prevents critical double-clicks during manufacturing completion that could duplicate material backflushing, WIP-to-FG stock transfers, and financial auto-journals.
+
 ## Version 1.1.21
 - **Idempotency Protection Expansion (Phase 2.2):** Expanded Redis-backed `x-idempotency-key` protection to `api/manufacturing` (Issue materials & Completion), `api/treasury` (Receipts/Payments), `api/sales/delivery-notes` (Issuance), and `api/sales` (Invoice generation). This completely hardens all core financial and inventory operations from accidental double submissions across the ERP.
 
