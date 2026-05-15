@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.13
+- **Products Import Phantom Stock Guard (Phase 1.6.2A):** Hardened the `api/products/import` endpoint to prevent users from injecting "phantom stock" via Excel bulk import. If an imported product has `currentStock > 0`, the system automatically zeroes it out during creation and appends a warning message instructing the user to use the Stocktake module. This prevents untracked stock from bypassing `ProductStock` allocation, `StockMovement` logging, and opening balance journal generation.
+
 ## Version 1.1.12
 - **Stocktake Atomic Inventory Correction (Phase 1.6.1):** Hardened the `api/stocktake` endpoint by enclosing the inventory correction loop within a `prisma.$transaction`. Fixed a severe bug where `currentStock` was updated but warehouse-specific `ProductStock` was ignored, `StockMovement` logs were not created, and the `postInventoryAdjustment` accounting journal was never generated. Now, all four operations execute atomically, preventing inventory and general ledger desynchronization.
 

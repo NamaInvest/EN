@@ -87,6 +87,7 @@ async function _POST(request: NextRequest) {
         let skipped = 0;
         let failed = 0;
         let firstError = '';
+        let hadPhantomStock = false;
         const toCreate: any[] = [];
         const toUpdate: { id: number; data: any }[] = [];
         const categoriesToCreate = new Set<string>();
@@ -142,6 +143,10 @@ async function _POST(request: NextRequest) {
                 sellPrice = parseFloat(sellPrice || 0);
                 taxRate = parseFloat(taxRate || 15);
                 currentStock = parseFloat(currentStock || 0);
+                if (currentStock > 0) {
+                    hadPhantomStock = true;
+                    currentStock = 0; // Phase 1.6.2A: Prevent phantom stock
+                }
                 minQuantity = parseFloat(minQuantity || 0);
                 categoryId = parseInt(categoryId || 0);
                 categoryName = (categoryName || '').toString().trim();
@@ -339,11 +344,14 @@ async function _POST(request: NextRequest) {
         if (failed > 0 && firstError) {
             rMsg += ` (أول خطأ: ${firstError})`;
         }
+        if (hadPhantomStock) {
+            rMsg += ` ⚠️ تم تصفير المخزون المبدئي لبعض المنتجات (Phantom Stock). يرجى استخدام شاشة 'تسوية الجرد' لإدخال الأرصدة الافتتاحية بشكل مالي ومخزني صحيح.`;
+        }
 
         return NextResponse.json({ 
             success: true, 
             message: rMsg,
-            stats: { total: data.length, added, updated, failed, skipped, timeSeconds: parseFloat(totalTime) }
+            stats: { total: data.length, added, updated, failed, skipped, timeSeconds: parseFloat(totalTime), phantomStockZeroed: hadPhantomStock }
         });
 
     } catch (error: any) {
