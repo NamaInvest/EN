@@ -134,5 +134,19 @@ async function _POST(request: NextRequest) {
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 
 export const POST = withRoute(async ({ req }) => {
-  return withIdempotency(req as NextRequest, 'POST /api/treasury', async () => _POST(req as any));
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = req.headers.get('x-tenant') || 'default';
+    const idempotencyKey = req.headers.get('x-idempotency-key');
+    if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
+    const isUnique = await lockIdempotencyKey(tenantString, 'treasury_post', idempotencyKey);
+    if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    try {
+        const response = await _POST(req as any);
+        if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'treasury_post', idempotencyKey);
+        else await unlockIdempotencyKey(tenantString, 'treasury_post', idempotencyKey);
+        return response;
+    } catch (e) {
+        await unlockIdempotencyKey(tenantString, 'treasury_post', idempotencyKey);
+        throw e;
+    }
 }, { rateLimit: 'FINANCIAL' });

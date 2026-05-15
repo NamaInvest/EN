@@ -232,12 +232,38 @@ export const GET = withRoute(
   { rateLimit: 'DEFAULT' }
 );
 
-export const POST = withRoute(
-  async ({ req, auth }) => _POST(req as any, auth),
-  { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production'] }
-);
+export const POST = withRoute(async ({ req, auth }) => {
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = req.headers.get('x-tenant') || 'default';
+    const idempotencyKey = req.headers.get('x-idempotency-key');
+    if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
+    const isUnique = await lockIdempotencyKey(tenantString, 'mfg_post', idempotencyKey);
+    if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    try {
+        const response = await _POST(req as any, auth);
+        if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'mfg_post', idempotencyKey);
+        else await unlockIdempotencyKey(tenantString, 'mfg_post', idempotencyKey);
+        return response;
+    } catch (e) {
+        await unlockIdempotencyKey(tenantString, 'mfg_post', idempotencyKey);
+        throw e;
+    }
+}, { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production'] });
 
-export const PUT = withRoute(
-  async ({ req, auth }) => _PUT(req as any, auth),
-  { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production', 'warehouse'] }
-);
+export const PUT = withRoute(async ({ req, auth }) => {
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = req.headers.get('x-tenant') || 'default';
+    const idempotencyKey = req.headers.get('x-idempotency-key');
+    if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
+    const isUnique = await lockIdempotencyKey(tenantString, 'mfg_put', idempotencyKey);
+    if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    try {
+        const response = await _PUT(req as any, auth);
+        if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'mfg_put', idempotencyKey);
+        else await unlockIdempotencyKey(tenantString, 'mfg_put', idempotencyKey);
+        return response;
+    } catch (e) {
+        await unlockIdempotencyKey(tenantString, 'mfg_put', idempotencyKey);
+        throw e;
+    }
+}, { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production', 'warehouse'] });

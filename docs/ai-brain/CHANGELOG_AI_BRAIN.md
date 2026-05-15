@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.21
+- **Idempotency Protection Expansion (Phase 2.2):** Expanded Redis-backed `x-idempotency-key` protection to `api/manufacturing` (Issue materials & Completion), `api/treasury` (Receipts/Payments), `api/sales/delivery-notes` (Issuance), and `api/sales` (Invoice generation). This completely hardens all core financial and inventory operations from accidental double submissions across the ERP.
+
 ## Version 1.1.20
 - **Purchases Idempotency Protection (Phase 2.2.2):** Implemented strict Fail-Fast Idempotency via Redis on `api/purchases`, `api/purchases/[id]/receive`, and `api/purchases/grn`. The API enforces `x-idempotency-key` on all three crucial stock/financial mutating endpoints, totally eliminating race-condition double-receipts and duplicated GRN accounting entries.
 
