@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases/grn' });
 
@@ -68,7 +68,7 @@ async function _POST(req: Request) {
             ? await prisma.customer.findUnique({ where: { id: parseInt(supplierId) }, select: { name: true } })
             : null;
 
-        const grn = await prisma.$transaction(async (tx: any) => {
+        const grn = await runFinancialTx(prisma, async (tx: any) => {
             // P5: Status starts as 'pending_qc' — QC must approve before closing
             const newGrn = await tx.goodsReceiptNote.create({
                 data: {
@@ -166,6 +166,7 @@ async function _POST(req: Request) {
                         totalCost: totalGrnCost,
                         supplierName: supplierRecord?.name || 'مورد',
                         userId: decoded.userId,
+                        txClient: tx,
                     });
                 } catch (je: unknown) {
                     log.error('Auto Journal Error (GRN):', je);
