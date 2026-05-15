@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } from '@/lib/idempotency';
 
@@ -72,7 +72,7 @@ async function _POST(req: NextRequest) {
 
         // 2. Perform POS Transaction (Invoice, Details, ZATCA Record, and Stock)
         // Using Prisma $transaction to ensure atomicity
-        const result = await prisma.$transaction(async (tx: any) => {
+        const result = await runFinancialTx(prisma, async (tx: any) => {
             // A. Create the Main Invoice Header
             const invoice = await tx.salesInvoice.create({
                 data: {
@@ -149,28 +149,24 @@ async function _POST(req: NextRequest) {
             
             // D. Treasury Atomicity (Cash/Bank collection)
             if (paymentType === "cash" || paymentType === "bank") {
-                await tx.treasury.create({
-                    data: {
-                        type: 'in',
-                        amount: total,
-                        description: `تحصيل ${paymentType === 'cash' ? 'نقدي' : 'شبكة'} - فاتورة POS #${invoice.invoiceNo}`,
-                        referenceType: 'sale',
-                        referenceId: invoice.id,
-                        userId: userId || null,
-                    }
-                });
+                const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                await TreasuryPostingService.createTreasuryEntry(tx, {
+                    type: 'in',
+                    amount: total,
+                    description: `تحصيل ${paymentType === 'cash' ? 'نقدي' : 'شبكة'} - فاتورة POS #${invoice.invoiceNo}`,
+                    referenceType: 'sale',
+                    referenceId: invoice.id,
+                }, userId || null, null);
             } else if (paymentType === "split") {
                 const sCash = Number(body.splitCash) || 0;
                 const sCard = Number(body.splitCard) || 0;
                 if (sCash > 0) {
-                    await tx.treasury.create({
-                        data: { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id, userId: userId || null },
-                    });
+                    const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                    await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id }, userId || null, null);
                 }
                 if (sCard > 0) {
-                    await tx.treasury.create({
-                        data: { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id, userId: userId || null },
-                    });
+                    const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                    await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id }, userId || null, null);
                 }
             }
 

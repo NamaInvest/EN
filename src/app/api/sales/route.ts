@@ -15,7 +15,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ route: 'sales' });
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -191,7 +191,7 @@ export async function _POST(request: Request) {
         );
 
         
-        const invoice = await prisma.$transaction(async (tx: any) => {
+        const invoice = await runFinancialTx(prisma, async (tx: any) => {
             // [ZATCA ICV RACE CONDITION FIX] Lock the zatca counter rows exclusively in this transaction
             await tx.$executeRaw`SELECT id FROM "settings" WHERE "key" IN ('zatca_invoice_counter', 'zatca_last_pih') FOR UPDATE`;
 
@@ -358,27 +358,22 @@ export async function _POST(request: Request) {
                     const sCash = Number(body.splitCash) || 0;
                     const sCard = Number(body.splitCard) || 0;
                     if (sCash > 0) {
-                        await tx.treasury.create({
-                            data: { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id, userId, branchId },
-                        });
+                        const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
                     }
                     if (sCard > 0) {
-                        await tx.treasury.create({
-                            data: { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id, userId, branchId },
-                        });
+                        const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
                     }
                 } else {
-                    await tx.treasury.create({
-                        data: {
+                    const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                    await TreasuryPostingService.createTreasuryEntry(tx, {
                             type: 'in',
                             amount: paid,
                             description: `فاتورة مبيعات #${invoiceNo}`,
                             referenceType: 'sale',
                             referenceId: createdInvoice.id,
-                            userId,
-                            branchId,
-                        },
-                    });
+                        }, userId, branchId);
                 }
             }
 
@@ -449,7 +444,7 @@ export async function _POST(request: Request) {
             }
 
             return { createdInvoice, zatcaQRStr };
-        }, { isolationLevel: 'Serializable' });
+        }, 'sales-create');
 
         return NextResponse.json({ success: true, ...invoice.createdInvoice, zatcaQR: invoice.zatcaQRStr }, { status: 201 });
 
@@ -487,7 +482,7 @@ async function _PUT(request: Request) {
         const newPaid = n(invoice.paid) + payAmount;
         const newRemaining = n(invoice.total) - newPaid;
 
-        const updated = await prisma.$transaction(async (tx: any) => {
+        const updated = await runFinancialTx(prisma, async (tx: any) => {
             const updatedInvoice = await tx.salesInvoice.update({
                 where: { id: Number(invoiceId) },
                 data: {
@@ -500,17 +495,14 @@ async function _PUT(request: Request) {
             const parsedUserId = userId ? Number(userId) : null;
             const branchId = invoice.branchId;
 
-            const treasuryRec = await tx.treasury.create({
-                data: {
+            const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+            const treasuryRec = await TreasuryPostingService.createTreasuryEntry(tx, {
                     type: 'in',
                     amount: payAmount,
                     description: `تحصيل دفعة - فاتورة مبيعات #${invoice.invoiceNo}`,
                     referenceType: 'sale_payment',
                     referenceId: invoice.id,
-                    userId: parsedUserId,
-                    branchId,
-                },
-            });
+                }, parsedUserId, branchId);
 
             const { postSalesPayment } = await import('@/lib/auto-journal');
             await postSalesPayment({
@@ -558,7 +550,7 @@ async function _DELETE(request: NextRequest) {
             // Reverse stock for ALL items before deleting
             const allSales = await prisma.salesInvoice.findMany({ take: 100, include: { details: true } });
             
-            const result = await prisma.$transaction(async (tx: any) => {
+            const result = await runFinancialTx(prisma, async (tx: any) => {
                 // Reverse stock
                 for (const inv of allSales) {
                     for (const detail of inv.details) {
@@ -616,7 +608,7 @@ async function _DELETE(request: NextRequest) {
         const invoice = await prisma.salesInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        await prisma.$transaction(async (tx: any) => {
+        await runFinancialTx(prisma, async (tx: any) => {
             // Reverse stock (re-increment what was sold) safely for both global and warehouse stock
             for (const detail of invoice.details) {
                 await tx.product.update({

@@ -10,7 +10,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'pos.checkout' });
 
@@ -52,7 +52,7 @@ async function _POST(req: NextRequest) {
         const finalTotal = round2(vTotal + vTax - vDiscount);
 
         // 2. Transaction to ensure atomicity: Create Invoice + Deduct Stock
-        const invoice = await prisma.$transaction(async (tx) => {
+        const invoice = await runFinancialTx(prisma, async (tx: any) => {
             
             // Generate Invoice Number inside transaction to prevent race conditions
             const seqResult = await getNextNumber(tx, 'INV');
@@ -172,28 +172,29 @@ async function _POST(req: NextRequest) {
                 }
             }
 
+            // 5. Automated Global Dual-Entry Accounting (POS to Master Journal)
+            try {
+                await postSalesInvoice({
+                    invoiceNo: newInvoice.invoiceNo,
+                    subtotal: total,
+                    taxValue: tax,
+                    total: finalTotal,
+                    paymentType: paymentMethod || 'cash',
+                    splitCash: paymentMethod === 'split' ? (splitCash || 0) : 0,
+                    splitCard: paymentMethod === 'split' ? (splitCard || 0) : 0,
+                    userId: auth.userId,
+                    branchId: undefined, 
+                    discountValue: discount || 0,
+                    totalCost: totalCost,
+                    date: new Date().toISOString().split('T')[0],
+                    txClient: tx
+                });
+            } catch (journalErr: unknown) {
+                log.warn('Auto-journal for POS sale skipped/failed:', journalErr);
+            }
+
             return { newInvoice, totalCost, formattedInvoiceNo };
         });
-
-        // 5. Automated Global Dual-Entry Accounting (POS to Master Journal)
-        try {
-            await postSalesInvoice({
-                invoiceNo: invoice.newInvoice.invoiceNo,
-                subtotal: total,
-                taxValue: tax,
-                total: finalTotal,
-                paymentType: paymentMethod || 'cash',
-                splitCash: paymentMethod === 'split' ? (splitCash || 0) : 0,
-                splitCard: paymentMethod === 'split' ? (splitCard || 0) : 0,
-                userId: auth.userId,
-                branchId: undefined, 
-                discountValue: discount || 0,
-                totalCost: invoice.totalCost,
-                date: new Date().toISOString().split('T')[0],
-            });
-        } catch (journalErr: unknown) {
-            log.warn('Auto-journal for POS sale skipped/failed:', journalErr);
-        }
 
         // Generate ZATCA Barcode for Receipt
         let zatcaQr = '';

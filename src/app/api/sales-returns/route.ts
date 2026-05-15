@@ -11,7 +11,7 @@ import { z }                     from 'zod';
 import { postSalesReturn }       from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'sales-returns' });
@@ -110,7 +110,7 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
   const returnNo   = (lastReturn?.returnNo || 0) + 1;
 
   // Transaction: create return + restore stock + financial entry
-  const salesReturn = await prisma.$transaction(async (tx) => {
+  const salesReturn = await runFinancialTx(prisma, async (tx: any) => {
     const ret = await tx.salesReturn.create({
       data: {
         returnNo,
@@ -168,17 +168,14 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
 
     // Treasury entry — cash refund
     if (total > 0) {
-      await tx.treasury.create({
-        data: {
-          type:          'out',
-          amount:        total,
-          description:   `مرتجع مبيعات رقم ${returnNo}`,
+      const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+      await TreasuryPostingService.createTreasuryEntry(tx, {
+          type: 'out',
+          amount: total,
+          description: `مرتجع مبيعات رقم ${returnNo}`,
           referenceType: 'salesReturn',
-          referenceId:   ret.id,
-          userId:        auth?.userId || null,
-          branchId:      body.branchId || null,
-        },
-      });
+          referenceId: ret.id,
+      }, auth?.userId || null, body.branchId || null);
     }
 
     // Auto-Journal: عكس المبيعات

@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'sales.delivery-notes' });
 
@@ -63,7 +63,7 @@ async function _POST(req: NextRequest) {
         const agg = await prisma.deliveryNote.aggregate({ _max: { noteNo: true } });
         const nextNo = (agg._max.noteNo || 5000) + 1;
 
-        const note = await prisma.$transaction(async (tx) => {
+        const note = await runFinancialTx(prisma, async (tx: any) => {
             const newNote = await tx.deliveryNote.create({
                 data: {
                     noteNo: nextNo,
