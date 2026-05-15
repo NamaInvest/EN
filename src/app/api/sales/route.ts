@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { round2, validateMoney } from '@/lib/money';
-import { postSalesInvoice } from '@/lib/auto-journal';
+import { postSalesInvoice, reverseJournalByReference } from '@/lib/auto-journal';
 import { initializeZatca, generateZatcaQR, getQrCodeContent, generateZATCAXml, generateZatcaQRContent, InvoiceData, InvoiceLine } from '@/lib/zatca';
 import { ZatcaJavaAdapter } from '@/lib/zatca-java';
 import { apiError, validateAmount, requireFields } from '@/lib/api-error';
@@ -580,9 +580,25 @@ async function _DELETE(request: NextRequest) {
                     }
                 }
                 
-                await tx.journalEntry.deleteMany({
-                    where: { reference: { startsWith: 'SALE-' } }
+                // Reverse all Sales and Sales Payment Journals
+                const allJournals = await tx.journalEntry.findMany({
+                    where: { 
+                        OR: [
+                            { reference: { startsWith: 'SALE-' } },
+                            { reference: { startsWith: 'SAL-PAY-' } }
+                        ]
+                    },
+                    select: { reference: true }
                 });
+                
+                const distinctRefs = Array.from(new Set(allJournals.map((j: any) => j.reference)));
+                for (const ref of distinctRefs) {
+                    await reverseJournalByReference({
+                        originalReference: ref as string,
+                        userId: auth.userId,
+                        txClient: tx
+                    });
+                }
 
                 await tx.salesInvoiceDetail.deleteMany({});
                 await tx.treasury.deleteMany({ where: { referenceType: 'sale' } });
@@ -615,12 +631,29 @@ async function _DELETE(request: NextRequest) {
                 });
             }
 
+            // Reverse Original Sale Journal
+            await reverseJournalByReference({
+                originalReference: `SALE-${invoice.invoiceNo}`,
+                userId: auth.userId,
+                txClient: tx
+            });
+
+            // Reverse Sales Payment Journals
+            const paymentJournals = await tx.journalEntry.findMany({
+                where: { reference: { startsWith: `SAL-PAY-${invoice.invoiceNo}-` } },
+                select: { reference: true }
+            });
+            const distinctPayRefs = Array.from(new Set(paymentJournals.map((j: any) => j.reference)));
+            for (const ref of distinctPayRefs) {
+                await reverseJournalByReference({
+                    originalReference: ref as string,
+                    userId: auth.userId,
+                    txClient: tx
+                });
+            }
+
             // Remove related treasury entries
             await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
-
-            await tx.journalEntry.deleteMany({
-                where: { reference: `SALE-${invoice.invoiceNo}` }
-            });
 
             // Write to AuditLog for AI Fraud Engine
             await tx.auditLog.create({

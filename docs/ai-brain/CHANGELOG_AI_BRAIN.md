@@ -1,6 +1,7 @@
 
 # Changelog: AI Brain
-**Generated At:** 2026-05-14T11:46:55.234Z
+## Version 1.1.2
+- **Sales DELETE Atomicity (Phase 1.3.2):** Refactored `DELETE /api/sales` to completely eliminate the usage of `journalEntry.deleteMany`. Migrated to using `reverseJournalByReference` to safely generate contra-entries for both the primary sales journal (`SALE-`) and any partial payment journals (`SAL-PAY-`). All reversals, along with the standard stock un-reservation and treasury record deletions, are securely bound within the single `prisma.$transaction`.
 
 ## Version 1.1.1
 - **Auto-Journal Reversal Engine (Phase 1.3.1):** Implemented `reverseJournalByReference` in `auto-journal.ts` to provide a standardized, idempotent, and atomic mechanism for reversing GL entries. Instead of hard-deleting records, the engine generates opposing contra-entries (Reversal Journals) ensuring absolute GL consistency. Included robust idempotency checks to prevent duplicate reversals of the same reference.
