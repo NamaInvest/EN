@@ -3,7 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'inventory.abc-analysis' });
 
@@ -112,16 +112,17 @@ async function _POST(req: Request) {
         const { items } = body; // [{ id, recommendedClass }]
 
         // Update abcClass for all items
-        const updatePromises = items.map((item: any) => 
-            (prisma.product as any).update({
-                where: { id: item.id },
-                data: { abcClass: item.recommendedClass }
-            })
-        );
+        await runInventoryTx(prisma, async (tx: any) => {
+            const promises = items.map((item: any) => 
+                tx.product.update({
+                    where: { id: item.id },
+                    data: { abcClass: item.recommendedClass }
+                })
+            );
+            await Promise.all(promises);
+        });
 
-        await prisma.$transaction(updatePromises);
-
-        return NextResponse.json({ success: true, updatedCount: updatePromises.length });
+        return NextResponse.json({ success: true, updatedCount: items.length });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

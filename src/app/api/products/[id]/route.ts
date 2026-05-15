@@ -8,7 +8,7 @@ import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'products/id' });
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -105,10 +105,12 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
                 if (!existingWarehouse) {
                     await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
                 }
-                await prisma.productStock.upsert({
-                    where: { productId_stockId: { productId: product.id, stockId: defaultStockId } },
-                    update: { quantity: product.currentStock },
-                    create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock },
+                await runInventoryTx(prisma, async (tx: any) => {
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId: product.id, stockId: defaultStockId } },
+                        update: { quantity: product.currentStock },
+                        create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock },
+                    });
                 });
             }
         } catch (e: any) {
@@ -164,7 +166,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
             if (beforeDel) await logDelete(prisma, 'Product', productId, beforeDel as any, auditContextFromRequest(request, auth));
         } catch (e: any) { log.error('[audit] Product delete audit failed:', e); }
 
-        await prisma.$transaction(async (tx) => {
+        await runInventoryTx(prisma, async (tx: any) => {
             await tx.productStock.deleteMany({ where: { productId } });
             await tx.product.delete({ where: { id: productId } });
         });

@@ -7,6 +7,7 @@ import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { runInventoryTx } from '@/lib/db/transaction';
 const log = logger.child({ route: 'products' });
 async function hasPermission(prisma: any, userId: number, module: string): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { permissions: true } });
@@ -174,27 +175,29 @@ async function _POST(request: Request) {
                 await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
             }
             if (product.currentStock > 0) {
-                await prisma.productStock.create({
-                    data: {
-                        productId: product.id,
-                        stockId: defaultStockId,
-                        quantity: product.currentStock,
-                    }
-                });
-                
-                // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
-                const auth = getUserFromRequest(request as any);
-                await prisma.stockMovement.create({
-                    data: {
-                        productId: product.id,
-                        stockId: defaultStockId,
-                        type: 'adjustment_in',
-                        quantity: product.currentStock,
-                        referenceType: 'initial_stock',
-                        referenceId: product.id,
-                        userId: auth?.userId || null,
-                        notes: 'رصيد افتتاحي عند الإنشاء'
-                    }
+                await runInventoryTx(prisma, async (tx: any) => {
+                    await tx.productStock.create({
+                        data: {
+                            productId: product.id,
+                            stockId: defaultStockId,
+                            quantity: product.currentStock,
+                        }
+                    });
+                    
+                    // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
+                    const auth = getUserFromRequest(request as any);
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: product.id,
+                            stockId: defaultStockId,
+                            type: 'adjustment_in',
+                            quantity: product.currentStock,
+                            referenceType: 'initial_stock',
+                            referenceId: product.id,
+                            userId: auth?.userId || null,
+                            notes: 'رصيد افتتاحي عند الإنشاء'
+                        }
+                    });
                 });
             }
         } catch (e: any) {
@@ -225,9 +228,11 @@ async function _DELETE(request: NextRequest) {
             const allowed = await hasPermission(prisma, auth.userId, 'delete_products');
             if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف المنتجات' }, { status: 403 });
 
-            await prisma.productStock.deleteMany({});
             try {
-                const result = await prisma.product.deleteMany({});
+                const result = await runInventoryTx(prisma, async (tx: any) => {
+                    await tx.productStock.deleteMany({});
+                    return await tx.product.deleteMany({});
+                });
                 return NextResponse.json({ success: true, message: `تم حذف ${result.count} منتج نهائياً` });
             } catch (e: any) {
                 log.error('src/app/api/products/route.ts', { error: e instanceof Error ? e.message : e });
