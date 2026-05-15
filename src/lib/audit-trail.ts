@@ -40,9 +40,9 @@ export async function logAuditEvent(
         entityType: payload.entityType,
         entityId: entityIdStr,
         route: payload.route || null,
-        oldData: payload.oldData ? (payload.oldData as Prisma.InputJsonValue) : null,
-        newData: payload.newData ? (payload.newData as Prisma.InputJsonValue) : null,
-        metadata: payload.metadata ? (payload.metadata as Prisma.InputJsonValue) : null,
+        oldData: payload.oldData ? (payload.oldData as Prisma.InputJsonValue) : undefined,
+        newData: payload.newData ? (payload.newData as Prisma.InputJsonValue) : undefined,
+        metadata: payload.metadata ? (payload.metadata as Prisma.InputJsonValue) : undefined,
         ipAddress: payload.ipAddress || null,
       },
     });
