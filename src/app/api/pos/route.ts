@@ -5,6 +5,7 @@ import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
+import { postSalesInvoice } from '@/lib/auto-journal';
 
 const log = logger.child({ service: 'pos' });
 
@@ -135,9 +136,48 @@ async function _POST(req: NextRequest) {
                 });
             }
             
-            // Note: totalCost is now correctly calculated and ready for postSalesInvoice in Phase 1.9.2
+            // D. Treasury Atomicity (Cash/Bank collection)
+            if (paymentType === "cash" || paymentType === "bank") {
+                await tx.treasury.create({
+                    data: {
+                        type: 'in',
+                        amount: total,
+                        description: `تحصيل ${paymentType === 'cash' ? 'نقدي' : 'شبكة'} - فاتورة POS #${invoice.invoiceNo}`,
+                        referenceType: 'sale',
+                        referenceId: invoice.id,
+                        userId: userId || null,
+                    }
+                });
+            } else if (paymentType === "split") {
+                const sCash = Number(body.splitCash) || 0;
+                const sCard = Number(body.splitCard) || 0;
+                if (sCash > 0) {
+                    await tx.treasury.create({
+                        data: { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id, userId: userId || null },
+                    });
+                }
+                if (sCard > 0) {
+                    await tx.treasury.create({
+                        data: { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة POS #${invoice.invoiceNo}`, referenceType: 'sale', referenceId: invoice.id, userId: userId || null },
+                    });
+                }
+            }
 
-            // D. Create ZATCARecord for the electronic invoicing integration
+            // E. Financial Journal Atomicity (postSalesInvoice)
+            await postSalesInvoice({
+                invoiceNo: invoice.invoiceNo,
+                subtotal: invoice.subtotal,
+                taxValue: invoice.taxValue,
+                total: invoice.total,
+                paymentType: invoice.paymentType,
+                splitCash: Number(body.splitCash) || 0,
+                splitCard: Number(body.splitCard) || 0,
+                userId: invoice.userId || undefined,
+                totalCost: totalCost,
+                txClient: tx
+            });
+
+            // F. Create ZATCARecord for the electronic invoicing integration
             const zatcaRecord = await tx.zATCARecord.create({
                 data: {
                     invoiceId: invoice.id,

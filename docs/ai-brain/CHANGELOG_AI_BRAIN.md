@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.17
+- **POS Atomicity & Accounting Fix (Phase 1.9):** Completely overhauled the `api/pos/route.ts` point-of-sale endpoint to integrate it fully with the accounting and inventory engines. Addressed the "Financial Blackhole" by generating automatic `Treasury` receipts for cash/bank payments and invoking `postSalesInvoice` to record Revenue, COGS, and VAT into the General Ledger. Addressed the "Inverse Split-Brain" by enforcing synchronous deductions of both global `currentStock` and `ProductStock` within a strict `prisma.$transaction`.
+
 ## Version 1.1.16
 - **Delivery Notes Stock Consistency (Phase 1.8):** Refactored `api/sales/delivery-notes` to extract the `stockId` from the request payload and fully synchronize physical stock deductions. The endpoint now atomically applies the quantity decrement to both global `currentStock` and warehouse-specific `ProductStock`, while recording a `StockMovement` explicitly linked to the chosen `stockId`. This completely eliminates the hardcoded `stockId: 1` split-brain vulnerability during outbound delivery processing.
 
