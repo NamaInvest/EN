@@ -79,134 +79,141 @@ async function _POST(request: NextRequest) {
 
 // دالة معالجة الطلب وتحويله إلى فاتورة مبيعات
 async function processOrder(order: Record<string, any>, prisma: any) {
-    // التحقق مما إذا كان الطلب مسجل مسبقاً لتجنب التكرار
-    const existingInvoice = await prisma.salesInvoice.findFirst({
-        where: { notes: { contains: `ZID_ORDER_ID:${order.id}` } }
-    });
+    const { runFinancialTx } = await import('@/lib/db/transaction');
+    const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
 
-    if (existingInvoice) {
-        log.info(`Zid Order ${order.id} already processed.`);
-        return;
-    }
-
-    // جلب المنتجات من الطلب وربطها بالـ الباركود أو الرمز التعريفي في النظام المحلي
-    const invoiceItems = [];
-    let subtotal = 0;
-    let taxValue = 0;
-
-    for (const item of order.products) {
-        // البحث عن المنتج محلياً
-        const localProduct = await prisma.product.findFirst({
-            where: {
-                OR: [
-                    { barcode: item.sku }, // Zid uses SKU too
-                    { name: item.name } // محاولة أخيرة بالاسم
-                ]
-            }
+    await runFinancialTx(prisma, async (tx) => {
+        // التحقق مما إذا كان الطلب مسجل مسبقاً لتجنب التكرار
+        const existingInvoice = await tx.salesInvoice.findFirst({
+            where: { notes: { contains: `ZID_ORDER_ID:${order.id}` } }
         });
 
-        const qty = item.quantity;
-        const price = item.price;
-        const itemTax = (item.tax || 0) * qty;
-        
-        subtotal += (price * qty);
-        taxValue += itemTax;
-
-        if (localProduct) {
-             invoiceItems.push({
-                 productId: localProduct.id,
-                 productName: localProduct.name,
-                 quantity: qty,
-                 price: price,
-                 discountRate: 0,
-                 discountValue: 0,
-                 taxRate: 15,
-                 taxValue: itemTax,
-                 total: (price * qty) + itemTax
-             });
-
-             // تحديث كمية المخزون
-             await prisma.product.update({
-                 where: { id: localProduct.id },
-                 data: { currentStock: { decrement: qty } }
-             });
+        if (existingInvoice) {
+            log.info(`Zid Order ${order.id} already processed.`);
+            return;
         }
-    }
 
-    if (invoiceItems.length === 0) {
-        log.warn(`لم يتم العثور على أي منتجات مطابقة لطلب زد رقم ${order.id}`);
-        return; // لا نستطيع إنشاء الفاتورة بدون منتجات معروفة
-    }
+        // جلب المنتجات من الطلب وربطها بالـ الباركود أو الرمز التعريفي في النظام المحلي
+        const invoiceItems = [];
+        let subtotal = 0;
+        let taxValue = 0;
 
-    // استخراج رقم عميل عام أو إنشائه
-    let customerId = null;
-    if (order.customer) {
-        const customerPhone = order.customer.mobile?.toString() || '';
-        let customer = await prisma.customer.findFirst({ where: { phone: customerPhone }});
-        if (!customer && customerPhone) {
-            customer = await prisma.customer.create({
-                data: {
-                    name: `${order.customer.name || ''}`.trim() || 'عميل زد',
-                    phone: customerPhone,
+        for (const item of order.products) {
+            // البحث عن المنتج محلياً
+            const localProduct = await tx.product.findFirst({
+                where: {
+                    OR: [
+                        { barcode: item.sku }, // Zid uses SKU too
+                        { name: item.name } // محاولة أخيرة بالاسم
+                    ]
                 }
             });
-        }
-        customerId = customer?.id;
-    }
 
-    // إنشاء فاتورة المبيعات
-    const lastInvoice = await prisma.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
-    const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
-    const total = subtotal + taxValue; // أو نستخدم order.total مباشرة
+            const qty = item.quantity;
+            const price = item.price;
+            const itemTax = (item.tax || 0) * qty;
+            
+            subtotal += (price * qty);
+            taxValue += itemTax;
 
-    const invoice = await prisma.salesInvoice.create({
-        data: {
-            invoiceNo,
-            customerId: customerId,
-            stockId: 1, // المتجر الرئيسي افتراضياً
-            subtotal,
-            taxValue,
-            total,
-            paid: total,
-            remaining: 0,
-            paymentType: 'bank', // عادة تحويل بنكي أو إلكتروني
-            status: 'completed',
-            userId: 1, // مسؤول النظام
-            notes: `طلب زد رقم: ${order.id} | ZID_ORDER_ID:${order.id}`,
-            details: {
-                create: invoiceItems
+            if (localProduct) {
+                 invoiceItems.push({
+                     productId: localProduct.id,
+                     productName: localProduct.name,
+                     quantity: qty,
+                     price: price,
+                     discountRate: 0,
+                     discountValue: 0,
+                     taxRate: 15,
+                     taxValue: itemTax,
+                     total: (price * qty) + itemTax
+                 });
+
+                 // تحديث كمية المخزون
+                 await tx.product.update({
+                     where: { id: localProduct.id },
+                     data: { currentStock: { decrement: qty } }
+                 });
             }
         }
-    });
 
-    // تسجيل الدفعة في الخزينة/البنك
-    await prisma.treasury.create({
-        data: {
-            type: 'in',
-            amount: total,
-            description: `تحصيل طلب زد رقم ${order.id}`,
-            referenceType: 'sale',
-            referenceId: invoice.id,
-            userId: 1,
-            branchId: 1
+        if (invoiceItems.length === 0) {
+            log.warn(`لم يتم العثور على أي منتجات مطابقة لطلب زد رقم ${order.id}`);
+            return; // لا نستطيع إنشاء الفاتورة بدون منتجات معروفة
         }
-    });
 
-    // إنشاء القيد المحاسبي المزدوج الآلي
-    try {
-        await postSalesInvoice({
-            invoiceNo: invoice.invoiceNo,
-            subtotal: invoice.subtotal,
-            taxValue: invoice.taxValue,
-            total: invoice.total,
-            paymentType: invoice.paymentType,
-            date: new Date().toISOString().split('T')[0],
+        // استخراج رقم عميل عام أو إنشائه
+        let customerId = null;
+        if (order.customer) {
+            const customerPhone = order.customer.mobile?.toString() || '';
+            let customer = await tx.customer.findFirst({ where: { phone: customerPhone }});
+            if (!customer && customerPhone) {
+                customer = await tx.customer.create({
+                    data: {
+                        name: `${order.customer.name || ''}`.trim() || 'عميل زد',
+                        phone: customerPhone,
+                    }
+                });
+            }
+            customerId = customer?.id;
+        }
+
+        // إنشاء فاتورة المبيعات
+        const lastInvoice = await tx.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+        const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
+        const total = subtotal + taxValue; // أو نستخدم order.total مباشرة
+
+        const invoice = await tx.salesInvoice.create({
+            data: {
+                invoiceNo,
+                customerId: customerId,
+                stockId: 1, // المتجر الرئيسي افتراضياً
+                subtotal,
+                taxValue,
+                total,
+                paid: total,
+                remaining: 0,
+                paymentType: 'bank', // عادة تحويل بنكي أو إلكتروني
+                status: 'completed',
+                userId: 1, // مسؤول النظام
+                notes: `طلب زد رقم: ${order.id} | ZID_ORDER_ID:${order.id}`,
+                details: {
+                    create: invoiceItems
+                }
+            }
         });
-    } catch (journalErr: unknown) {
-        log.warn('Auto-journal for Zid order skipped:', journalErr);
-    }
 
-    log.info(`تم استيراد طلب زد رقم ${order.id} بنجاح كفاتورة #${invoice.invoiceNo}`);
+        // تسجيل الدفعة في الخزينة/البنك
+        await TreasuryPostingService.createTreasuryEntry(
+            tx,
+            {
+                type: 'in',
+                amount: total,
+                description: `تحصيل طلب زد رقم ${order.id}`,
+                referenceType: 'sale',
+                referenceId: invoice.id,
+            },
+            1, // userId
+            1  // branchId
+        );
+
+        // إنشاء القيد المحاسبي المزدوج الآلي
+        try {
+            await postSalesInvoice({
+                invoiceNo: invoice.invoiceNo,
+                subtotal: Number(invoice.subtotal),
+                taxValue: Number(invoice.taxValue),
+                total: Number(invoice.total),
+                paymentType: invoice.paymentType,
+                date: new Date().toISOString().split('T')[0],
+                txClient: tx, // تمرير tx لضمان الارتباط
+            });
+        } catch (journalErr: unknown) {
+            log.warn('Auto-journal for Zid order skipped:', journalErr);
+        }
+
+        log.info(`تم استيراد طلب زد رقم ${order.id} بنجاح كفاتورة #${invoice.invoiceNo}`);
+    }, `zid-order-${order.id}`);
 }
 
 export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });

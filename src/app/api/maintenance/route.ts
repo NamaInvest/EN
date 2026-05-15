@@ -66,15 +66,33 @@ async function _PUT(request: Request) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
-        const item = await prisma.maintenance.update({
-            where: { id: body.id },
-            data: { status: body.status, cost: body.cost ? parseFloat(body.cost) : undefined, notes: body.notes },
-        });
+        
+        const { runFinancialTx } = await import('@/lib/db/transaction');
+        const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
 
-        // Treasury entry when completed
-        if (body.status === 'completed' && n(item.cost) > 0) {
-            await prisma.treasury.create({ data: { type: 'in', amount: n(item.cost), description: `صيانة - ${item.deviceType || 'جهاز'}`, referenceType: 'maintenance', referenceId: item.id, userId: body.userId || null } });
-        }
+        const item = await runFinancialTx(prisma, async (tx) => {
+            const updated = await tx.maintenance.update({
+                where: { id: body.id },
+                data: { status: body.status, cost: body.cost ? parseFloat(body.cost) : undefined, notes: body.notes },
+            });
+
+            // Treasury entry when completed
+            if (body.status === 'completed' && n(updated.cost) > 0) {
+                await TreasuryPostingService.createTreasuryEntry(
+                    tx,
+                    {
+                        type: 'in',
+                        amount: n(updated.cost),
+                        description: `صيانة - ${updated.deviceType || 'جهاز'}`,
+                        referenceType: 'maintenance',
+                        referenceId: updated.id,
+                    },
+                    body.userId ? Number(body.userId) : null,
+                    null
+                );
+            }
+            return updated;
+        });
 
         return NextResponse.json(item);
     } catch (e: any) { log.error(e); return NextResponse.json({ error: 'فشل' }, { status: 500 }); }

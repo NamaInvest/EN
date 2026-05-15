@@ -75,65 +75,58 @@ async function _POST(req: Request) {
     }
 
     // 4. Update the Product's actual `buyPrice` in the Central Database
-    const updates = [];
+    const { runFinancialTx } = await import('@/lib/db/transaction');
+    const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+
     let totalAdjustment = 0;
     const cogsAccountId = 5; // Example COGS Account ID
     // We take the first landed cost account as the primary clearing account, or default to 10
     const clearingAccountId = order.landedCosts[0]?.expenseAccountId || 10; 
 
-    for (const d of order.details) {
-      updates.push(prisma.product.update({
-        where: { id: d.productId },
-        data: { buyPrice: d.price } // New precise Landed Cost
-      }));
+    await runFinancialTx(prisma, async (tx) => {
+      for (const d of order.details) {
+        await tx.product.update({
+          where: { id: d.productId },
+          data: { buyPrice: d.price } // New precise Landed Cost
+        });
 
-      // 5. Retroactive COGS Adjustment Logic (Batch Tracking / Date Tracking)
-      // Get all outbound stock movements (Sales) for this product AFTER the PO was received
-      const outboundMovements = await prisma.stockMovement.aggregate({
-        _sum: { quantity: true },
-        where: {
-          productId: d.productId,
-          type: 'out',
-          date: { gte: order.date } // Assuming sold after PO creation
-        }
-      });
-
-      const soldQuantity = Math.abs(n(outboundMovements._sum.quantity));
-      
-      // Calculate total variance for sold items
-      // (New Cost - Old Cost) * Sold Quantity
-      const unitVariance = n(d.price) - n(d.product.buyPrice);
-      if (unitVariance > 0 && soldQuantity > 0) {
-        const adjustmentValue = unitVariance * soldQuantity;
-        totalAdjustment += adjustmentValue;
-      }
-    }
-
-    await prisma.$transaction(updates);
-
-    // 6. Create the Automatic Adjustment Journal
-    if (totalAdjustment > 0) {
-      await prisma.journalEntry.create({
-        data: {
-          entryNumber: `LC-${order.orderNo}-${Date.now()}`,
-          entryDate: new Date().toISOString().split('T')[0],
-          description: `تسوية أثر رجعي لتكلفة المبيعات (Landed Cost) للطلب #${order.orderNo}`,
-          reference: `PO-${order.orderNo}`,
-          totalDebit: totalAdjustment,
-          totalCredit: totalAdjustment,
-          status: 'posted',
-          lines: {
-            create: [
-              // Debit COGS (زيادة تكلفة البضاعة المباعة)
-              { accountId: cogsAccountId, debit: totalAdjustment, credit: 0, description: 'Landed Cost Retroactive COGS' },
-              // Credit Clearing Account (تخفيض الحساب الوسيط للتكاليف)
-              { accountId: clearingAccountId, debit: 0, credit: totalAdjustment, description: 'Landed Cost Clearing' }
-            ]
+        // 5. Retroactive COGS Adjustment Logic (Batch Tracking / Date Tracking)
+        // Get all outbound stock movements (Sales) for this product AFTER the PO was received
+        const outboundMovements = await tx.stockMovement.aggregate({
+          _sum: { quantity: true },
+          where: {
+            productId: d.productId,
+            type: 'out',
+            date: { gte: order.date } // Assuming sold after PO creation
           }
+        });
+
+        const soldQuantity = Math.abs(n(outboundMovements._sum.quantity));
+        
+        // Calculate total variance for sold items
+        // (New Cost - Old Cost) * Sold Quantity
+        const unitVariance = n(d.price) - n(d.product.buyPrice);
+        if (unitVariance > 0 && soldQuantity > 0) {
+          const adjustmentValue = unitVariance * soldQuantity;
+          totalAdjustment += adjustmentValue;
         }
-      });
-      log.info(`[Landed Cost Engine] Created Retroactive COGS Journal for ${totalAdjustment} SAR`);
-    }
+      }
+
+      // 6. Create the Automatic Adjustment Journal
+      if (totalAdjustment > 0) {
+        await AccountingJournalService.createEntry(tx, {
+          reference: `PO-${order.orderNo}`,
+          description: `تسوية أثر رجعي لتكلفة المبيعات (Landed Cost) للطلب #${order.orderNo}`,
+          lines: [
+            // Debit COGS (زيادة تكلفة البضاعة المباعة)
+            { accountId: cogsAccountId, debit: totalAdjustment, credit: 0, description: 'Landed Cost Retroactive COGS' },
+            // Credit Clearing Account (تخفيض الحساب الوسيط للتكاليف)
+            { accountId: clearingAccountId, debit: 0, credit: totalAdjustment, description: 'Landed Cost Clearing' }
+          ]
+        });
+        log.info(`[Landed Cost Engine] Created Retroactive COGS Journal for ${totalAdjustment} SAR`);
+      }
+    }, `landed-costs-alloc-${orderId}`);
 
     log.info(`[Landed Cost Engine] Fully distributed ${totalAdditionalCost} SAR across ${order.details.length} SKUs for PO #${order.orderNo}`);
 

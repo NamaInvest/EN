@@ -103,62 +103,59 @@ async function _POST(req: Request) {
             select: { id: true, name: true, salary: true },
         });
 
+        const { runFinancialTx } = await import('@/lib/db/transaction');
+        const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+
         let totalEmployerContrib = 0;
 
-        // Update each employee's salary record with GOSI deductions
-        for (const emp of employees) {
-            const isSaudi = true; // default — add nationality field to schema when needed
-            const baseSalary = n(emp.salary);
-            const empDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
-            const empContrib = isSaudi
-                ? baseSalary * (GOSI_RATES.saudiEmployer + GOSI_RATES.hazardSaudi)
-                : baseSalary * GOSI_RATES.expat;
+        await runFinancialTx(prisma, async (tx) => {
+            // Update each employee's salary record with GOSI deductions
+            for (const emp of employees) {
+                const isSaudi = true; // default — add nationality field to schema when needed
+                const baseSalary = n(emp.salary);
+                const empDeduction = isSaudi ? baseSalary * GOSI_RATES.saudiEmployee : 0;
+                const empContrib = isSaudi
+                    ? baseSalary * (GOSI_RATES.saudiEmployer + GOSI_RATES.hazardSaudi)
+                    : baseSalary * GOSI_RATES.expat;
 
-            totalEmployerContrib += empContrib;
+                totalEmployerContrib += empContrib;
 
-            // Update salary record if exists
-            const salaryRecord = await prisma.salary.findFirst({
-                where: { employeeId: emp.id, month, year },
-            });
-            if (salaryRecord) {
-                await prisma.salary.update({
-                    where: { id: salaryRecord.id },
-                    data: {
-                        deductions: { increment: Math.round(empDeduction * 100) / 100 },
-                    },
+                // Update salary record if exists
+                const salaryRecord = await tx.salary.findFirst({
+                    where: { employeeId: emp.id, month, year },
                 });
+                if (salaryRecord) {
+                    await tx.salary.update({
+                        where: { id: salaryRecord.id },
+                        data: {
+                            deductions: { increment: Math.round(empDeduction * 100) / 100 },
+                        },
+                    });
+                }
             }
-        }
 
-        // Post GOSI journal entry (employer contribution = expense)
-        const entryNo = `GOSI-${year}-${String(month).padStart(2,'0')}`;
-        await prisma.journalEntry.create({
-            data: {
-                entryNumber: entryNo,
-                entryDate: new Date().toISOString().split('T')[0],
-                reference: entryNo,
+            // Post GOSI journal entry (employer contribution = expense)
+            const entryNo = `GOSI-${year}-${String(month).padStart(2,'0')}`;
+            await AccountingJournalService.createEntry(tx, {
                 description: `اشتراكات التأمينات الاجتماعية GOSI — ${month}/${year}`,
-                createdBy: user.userId,
-                totalDebit: Math.round(totalEmployerContrib * 100) / 100,
-                totalCredit: Math.round(totalEmployerContrib * 100) / 100,
-                lines: {
-                    create: [
-                        {
-                            accountId: 1, // مصروف التأمينات — عدّل الـ ID حسب دليل الحسابات
-                            description: `GOSI صاحب العمل ${month}/${year}`,
-                            debit: Math.round(totalEmployerContrib * 100) / 100,
-                            credit: 0,
-                        },
-                        {
-                            accountId: 2, // التأمينات المستحقة — عدّل الـ ID حسب دليل الحسابات
-                            description: `GOSI مستحق ${month}/${year}`,
-                            debit: 0,
-                            credit: Math.round(totalEmployerContrib * 100) / 100,
-                        },
-                    ],
-                },
-            },
-        });
+                reference: entryNo,
+                userId: user.userId,
+                lines: [
+                    {
+                        accountId: 1, // مصروف التأمينات
+                        description: `GOSI صاحب العمل ${month}/${year}`,
+                        debit: Math.round(totalEmployerContrib * 100) / 100,
+                        credit: 0,
+                    },
+                    {
+                        accountId: 2, // التأمينات المستحقة
+                        description: `GOSI مستحق ${month}/${year}`,
+                        debit: 0,
+                        credit: Math.round(totalEmployerContrib * 100) / 100,
+                    },
+                ],
+            });
+        }, `gosi-payroll-${month}-${year}`);
 
         return NextResponse.json({
             success: true,
