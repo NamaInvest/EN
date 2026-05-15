@@ -195,4 +195,23 @@ async function _POST(req: Request) {
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => {
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = req.headers.get('x-tenant') || 'default';
+    const idempotencyKey = req.headers.get('x-idempotency-key');
+    
+    if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header. Required for Purchases operations." }, { status: 400 });
+    
+    const isUnique = await lockIdempotencyKey(tenantString, 'purchase_grn', idempotencyKey);
+    if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    
+    try {
+        const response = await _POST(req as any);
+        if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'purchase_grn', idempotencyKey);
+        else await unlockIdempotencyKey(tenantString, 'purchase_grn', idempotencyKey);
+        return response;
+    } catch (e) {
+        await unlockIdempotencyKey(tenantString, 'purchase_grn', idempotencyKey);
+        throw e;
+    }
+}, { rateLimit: 'FINANCIAL' });

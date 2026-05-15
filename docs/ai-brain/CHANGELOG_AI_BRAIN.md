@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.20
+- **Purchases Idempotency Protection (Phase 2.2.2):** Implemented strict Fail-Fast Idempotency via Redis on `api/purchases`, `api/purchases/[id]/receive`, and `api/purchases/grn`. The API enforces `x-idempotency-key` on all three crucial stock/financial mutating endpoints, totally eliminating race-condition double-receipts and duplicated GRN accounting entries.
+
 ## Version 1.1.19
 - **POS Idempotency & Replay Protection (Phase 2.2.1):** Built a Redis-backed Distributed Lock utility (`src/lib/idempotency.ts`) using `SET NX` to enforce Exactly-Once delivery. Integrated this protection deeply into `api/pos/route.ts`. The API now rejects identical duplicate requests (Double Clicks, Webhook Replays, Network Retries) with `409 Conflict`, entirely mitigating duplicated accounting journals and phantom stock deductions.
 

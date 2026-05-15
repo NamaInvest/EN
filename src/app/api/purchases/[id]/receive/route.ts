@@ -78,4 +78,25 @@ async function _PUT(
     }
 }
 
-export const PUT = withRoute(async ({ req }, context) => _PUT(req as any, context), { rateLimit: 'FINANCIAL' });
+export const PUT = withRoute(async ({ req }, context) => {
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = req.headers.get('x-tenant') || 'default';
+    const idempotencyKey = req.headers.get('x-idempotency-key');
+    const purchaseId = (await context.params).id;
+    
+    if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header. Required for Purchases operations." }, { status: 400 });
+    
+    const scope = `purchase_receive:${purchaseId}`;
+    const isUnique = await lockIdempotencyKey(tenantString, scope, idempotencyKey);
+    if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    
+    try {
+        const response = await _PUT(req as any, context);
+        if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, scope, idempotencyKey);
+        else await unlockIdempotencyKey(tenantString, scope, idempotencyKey);
+        return response;
+    } catch (e) {
+        await unlockIdempotencyKey(tenantString, scope, idempotencyKey);
+        throw e;
+    }
+}, { rateLimit: 'FINANCIAL' });
