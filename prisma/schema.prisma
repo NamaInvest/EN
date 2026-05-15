@@ -967,12 +967,22 @@ model AuditLog {
   tenantId   String   @default("default") @map("tenant_id")
   userId     Int?     @map("user_id")
   action     String   @db.VarChar(50)
-  entityType String   @map("entity_type") @db.VarChar(100)
-  entityId   String   @map("entity_id") @db.VarChar(100)
+  
+  // New Audit Trail fields
+  entityType String   @default("Unknown") @map("entity_type") @db.VarChar(100)
+  entityId   String   @default("0") @map("entity_id") @db.VarChar(100)
   route      String?  @db.VarChar(255)
   oldData    Json?    @map("old_data")
   newData    Json?    @map("new_data")
   metadata   Json?
+  
+  // Old fields maintained for backward compatibility
+  tableName  String?  @map("table_name")
+  recordId   String?  @map("record_id")
+  details    String?
+  diff       Json?    @map("diff")
+  userAgent  String?  @map("user_agent")
+  
   ipAddress  String?  @map("ip_address") @db.VarChar(45)
   createdAt  DateTime @default(now()) @map("created_at")
 
