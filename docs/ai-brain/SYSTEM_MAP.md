@@ -1,24 +1,21 @@
+# SYSTEM MAP
 
-# System Map
-**Generated At:** 2026-05-14T11:46:55.234Z
-
-## Full Folder Structure
-- `/src/app`: Next.js App Router UI and API.
-- `/src/components`: Shared React UI.
-- `/src/lib`: Core utilities, Prisma client, Idempotency logic, ZATCA SDK.
-- `/prisma`: Database schema and migrations.
-- `/docs/ai-brain`: This memory system.
-- `/.agent`: Workflow and agent rules.
+## Folder Structure
+- `src/app/(dashboard)`: Main UI pages for all ERP modules.
+- `src/app/api`: Backend API endpoints.
+- `src/lib/services`: Core business logic (Accounting Engine, Inventory Service, etc.).
+- `src/middleware.ts`: Authentication and tenant subdomain resolution guard.
+- `prisma/schema.prisma`: Database schema definition.
 
 ## Entry Points
-- `src/app/page.tsx`: Landing page.
-- `src/app/(dashboard)`: Main ERP Tenant UI.
-- `src/app/ice`: Master Control Panel.
-- `src/app/api`: Backend microservices.
+- Web Application: `src/app/page.tsx`
+- Desktop App: Electron/Qt bootstrappers (via APIs).
+- API Gateway: `src/middleware.ts` intercepts all API requests.
+
+## Runtime Flow
+Request -> Middleware (Subdomain/Tenant logic, Clerk/API Auth) -> Next.js Route Handler -> Prisma Client (wrapped in Tx) -> PostgreSQL.
 
 ## Shared Libraries
-- `src/lib/prisma.ts`: DB connection and Tenant Guards.
-- `src/lib/idempotency.ts`: Request deduplication.
-
-## Deprecated Areas
-- `src/app/(dashboard)/_ice_archive`: Old route safely archived to avoid collisions.
+- `runFinancialTx`: Core atomic wrapper for financial mutations.
+- `runInventoryTx`: Core atomic wrapper for stock mutations.
+- `ZatcaService`: KSA e-invoicing compliance logic.

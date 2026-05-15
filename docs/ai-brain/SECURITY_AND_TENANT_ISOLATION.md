@@ -1,13 +1,14 @@
+# SECURITY AND TENANT ISOLATION
 
-# Security & Tenant Isolation
-**Generated At:** 2026-05-14T11:46:55.234Z
+## Authentication Architecture
+- Relies on Clerk for identity.
+- Local SSO mappings route users to the correct `tenantId`.
 
-## Tenant Isolation
-- Implemented primarily via Prisma Extension/Middleware in `src/lib/prisma.ts`.
-- `tenant-guard`: Automatically appends `tenantId: currentTenant` to `where` clauses.
-- **Risk:** Raw queries (`$queryRaw`) bypass this guard. Must manually append `tenantId`.
+## Tenant Context Flow
+1. Middleware reads Host header or Token.
+2. Injects `x-tenant-id` and `x-tenant-subdomain` to Headers.
+3. API routes extract `x-tenant-id`.
+4. Prisma queries MUST include `where: { tenantId }`.
 
-## Authentication
-- Handled by Clerk SSO.
-- Middleware (`middleware.ts`) protects `/(dashboard)` routes and injects tenant session.
-- `/sso-callback` handles infinite redirect loops safely.
+## Risks
+- Missing `tenantId` in any Prisma query leads to severe cross-tenant data leakage.

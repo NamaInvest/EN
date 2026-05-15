@@ -1,32 +1,27 @@
-
-# Project Brain: Executive Overview
-**Generated At:** 2026-05-14T11:46:55.234Z
+# PROJECT BRAIN: Nama Invest ERP
 
 ## Executive Overview
-Nama Invest ERP (formerly NamaSoft) is a highly complex, multi-tenant enterprise resource planning (ERP) system encompassing Web (Next.js), Desktop (Electron/Qt6), and Mobile interfaces.
+Nama Invest ERP is a multi-tenant Enterprise Resource Planning (ERP) and Point of Sale (POS) system built on Next.js, Prisma, and PostgreSQL. It unifies operations across accounting, sales, purchasing, inventory, HR, and manufacturing.
 
 ## System Purpose
-To provide comprehensive business management including Sales, POS, Purchasing, Inventory, Accounting, ZATCA Phase 1/2 E-Invoicing, HR/Payroll, and specialized modules (Medical, Construction, School) in a multi-tenant SaaS environment.
+To provide a reliable, ACID-compliant, ZATCA-ready financial and operational backend for businesses. The system uses strict tenant isolation (`tenantId`), enforcing data integrity across highly concurrent environments.
 
 ## Architecture Summary
-- **Frontend:** Next.js 16 (App Router), React 19, TailwindCSS, shadcn/ui.
-- **Backend:** Next.js Route Handlers + Express Monolith integration.
-- **Database:** PostgreSQL (via Prisma ORM 5.22+).
-- **Authentication:** Clerk + Custom JWT MFA.
-- **Architecture Pattern:** Multi-tenant isolated tables, atomic financial transactions, asynchronous ZATCA queuing.
+- **Frontend:** Next.js App Router, React, Tailwind, shadcn/ui.
+- **Backend:** Next.js Edge/Node API Routes.
+- **Database:** PostgreSQL (Prisma ORM).
+- **Authentication:** Clerk & Custom API Keys with rigorous JWT and middleware guards.
+- **Transactions:** Centralized `runFinancialTx` and `runInventoryTx` wrappers for atomicity.
 
 ## Main Modules
-- Accounting & Finance (Double-entry, Auto-Journals)
-- Sales & POS (KDS, Mada integration)
-- Purchases (PR, PO, GRN)
-- Inventory Management (FIFO, Valuations)
-- ZATCA Integration (Phase 1 & 2)
+- Accounting & Treasury (GL, AR, AP, Recon)
+- Sales & POS (Web & Desktop offline sync)
+- Purchases & Inventory (WMS, Procurement)
+- HR & Payroll (WPS, GOSI)
+- Manufacturing (MRP, Shopfloor)
+- CRM & Specialized Verticals (Clinics, Schools, Real Estate)
 
 ## Critical Risks
-- **Financial Integrity:** Split-brain between invoices and journals. (Mitigated via strict `txClient` usage).
-- **Tenant Isolation:** Cross-tenant data leakage. (Mitigated via `tenantId` guards).
-- **Schema Migrations:** Modifying historic migrations breaks shadow DB.
-
-## Important Notes
-- Always check `FINANCIAL_INTEGRITY.md` before touching financial operations.
-- ZATCA operations must use the Outbox pattern (`EventLog`).
+- **Financial Integrity:** Split-brain accounting if non-atomic writes occur. Always use `runFinancialTx`.
+- **Tenant Leakage:** Missing `tenantId` in WHERE clauses can expose cross-tenant data.
+- **ZATCA Compliance:** Phase 2 requires strict cryptographic sequencing. Do not delete posted journals or ZATCA cleared invoices.

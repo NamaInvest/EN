@@ -1,12 +1,12 @@
+# INTEGRATIONS
 
-# Integrations
-**Generated At:** 2026-05-14T11:46:55.234Z
+## 1. ZATCA
+- KSA E-Invoicing. Phase 2 (Clearance & Reporting).
+- Extreme caution: Cryptographic signatures require strict order.
 
-## ZATCA (FATOORA)
-- **Purpose:** KSA Phase 2 E-Invoicing.
-- **Flow:** Outbox pattern. XML generated asynchronously.
-- **Failure Handling:** Dead-letter queues for retries.
+## 2. Payment Gateways
+- Mada / Local Gateways for POS.
+- Webhooks must be wrapped in Idempotency & `runFinancialTx`.
 
-## Clerk
-- **Purpose:** Auth & SSO.
-- **Flow:** JWT validation via JWKS.
+## 3. E-commerce Sync (Salla, etc.)
+- Webhooks incoming must deduct stock and update treasury atomically.
