@@ -1,5 +1,7 @@
-
 # Changelog: AI Brain
+## Version 1.1.27
+- **ESLint Architecture Guardrails (Phase 2.5.1):** Enforced architectural boundaries by updating `eslint.config.mjs` to issue warnings for dangerous direct API manipulations in critical financial routes. Added `no-restricted-imports` rules restricting direct `prisma` usage, and `no-restricted-syntax` rules explicitly forbidding manual creation of `treasury` or `journalEntry` records, as well as direct modifications of `productStock`. This transitions developer instructions from markdown guidelines to actionable compile-time guardrails, securing the codebase without introducing regressions.
+
 ## Version 1.1.26
 - **Background Reconciliation Jobs Foundation (Phase 2.4.1):** Decoupled the financial integrity scanning logic from `api/admin/system-audit` into a dedicated service module `src/lib/system-audit.ts` (`runSystemReconciliation`). The API now acts as a thin wrapper. This enables the exact same integrity rules (Orphaned Invoices, Split-Brain Inventory, POS Financial Blackholes) to be safely executed by a background BullMQ worker in upcoming phases without code duplication or schema changes.
 

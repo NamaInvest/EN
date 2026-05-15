@@ -13,6 +13,56 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    files: [
+      "src/app/api/pos/**/*.ts",
+      "src/app/api/pos/**/*.tsx",
+      "src/app/api/purchases/**/*.ts",
+      "src/app/api/purchases/**/*.tsx",
+      "src/app/api/manufacturing/**/*.ts",
+      "src/app/api/manufacturing/**/*.tsx",
+      "src/app/api/finance/**/*.ts",
+      "src/app/api/finance/**/*.tsx",
+      "src/app/api/treasury/**/*.ts",
+      "src/app/api/treasury/**/*.tsx",
+      "src/app/api/sales/delivery-notes/**/*.ts",
+      "src/app/api/sales/delivery-notes/**/*.tsx",
+      "src/app/api/inventory/stocktake/**/*.ts",
+      "src/app/api/inventory/stocktake/**/*.tsx"
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "warn",
+        {
+          paths: [
+            {
+              name: "@/lib/prisma",
+              message: "Direct Prisma import is discouraged in financial routes. Use Service/Repository layer instead to enforce transaction boundaries."
+            },
+            {
+              name: "@prisma/client",
+              message: "Direct PrismaClient import is discouraged. Use Service/Repository layer."
+            }
+          ]
+        }
+      ],
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "CallExpression[callee.object.property.name='productStock'][callee.property.name=/^(update|upsert|create|delete|updateMany|deleteMany)$/]",
+          message: "Direct modification of productStock in API routes is dangerous. Use Inventory Engine/Service to ensure StockMovement atomicity."
+        },
+        {
+          selector: "CallExpression[callee.object.property.name='treasury'][callee.property.name=/^(create|update|upsert|delete|createMany)$/]",
+          message: "Direct modification of treasury records in API routes is dangerous. Use Treasury Engine to ensure JournalEntry is recorded atomically."
+        },
+        {
+          selector: "CallExpression[callee.object.property.name='journalEntry'][callee.property.name=/^(create|update|upsert|delete|createMany)$/]",
+          message: "Direct creation of journal entries is discouraged. Use accounting/auto-journal engines to guarantee compliance."
+        }
+      ]
+    }
+  }
 ]);
 
 export default eslintConfig;
