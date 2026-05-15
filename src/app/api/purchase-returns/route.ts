@@ -10,7 +10,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'purchase-returns' });
@@ -64,7 +64,7 @@ async function _POST(request: NextRequest, auth: any, tenantId: string) {
         const total = subtotal + taxValue;
 
         // Atomic transaction: create return AND treasury entry together
-        const ret = await prisma.$transaction(async (tx) => {
+        const ret = await runFinancialTx(prisma, async (tx: any) => {
             const newReturn = await tx.purchaseReturn.create({
                 data: {
                     returnNo,
@@ -115,14 +115,12 @@ async function _POST(request: NextRequest, auth: any, tenantId: string) {
             }
 
             if (n(newReturn.total) > 0) {
-                await tx.treasury.create({
-                    data: {
-                        type: 'in', amount: newReturn.total,
-                        description: `مرتجع مشتريات #${returnNo}`,
-                        referenceType: 'purchase_return', referenceId: newReturn.id,
-                        userId, branchId,
-                    }
-                });
+                const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                await TreasuryPostingService.createTreasuryEntry(tx, {
+                    type: 'in', amount: newReturn.total,
+                    description: `مرتجع مشتريات #${returnNo}`,
+                    referenceType: 'purchase_return', referenceId: newReturn.id,
+                }, userId, branchId);
             }
 
             await postPurchaseReturn({
