@@ -182,20 +182,42 @@ async function getTopProducts(): Promise<string> {
 async function addPurchase(amount: number): Promise<string> {
     if (amount <= 0) return '❌ المبلغ غير صحيح';
     const tax = amount * 0.15;
-    const count = await prisma.purchaseInvoice.count();
-    await prisma.purchaseInvoice.create({
-        data: { invoiceNo: count + 1, date: new Date(), subtotal: amount, discountRate: 0, discountValue: 0, taxValue: tax, total: amount + tax, paymentType: 'cash', paid: amount + tax, remaining: 0, notes: 'تم الإضافة عبر بوت تلجرام' },
+    const tenantId = 'default';
+
+    await import('@/lib/db/transaction').then(async ({ runFinancialTx }) => {
+        await runFinancialTx(prisma, async (tx: any) => {
+            const count = await tx.purchaseInvoice.count({ where: { tenantId } });
+            const invoiceNo = count + 1;
+            
+            const invoice = await tx.purchaseInvoice.create({
+                data: { tenantId, invoiceNo, date: new Date(), subtotal: amount, discountRate: 0, discountValue: 0, taxValue: tax, total: amount + tax, paymentType: 'cash', paid: amount + tax, remaining: 0, notes: 'تم الإضافة عبر بوت تلجرام' },
+            });
+            
+            const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+            await TreasuryPostingService.createTreasuryEntry(tx, {
+                type: 'out', amount: amount + tax, description: `مشتريات #${invoiceNo} (تلجرام)`, referenceType: 'purchase', referenceId: invoice.id, date: new Date()
+            }, null, null);
+        }, 'TELEGRAM_PURCHASE');
     });
-    await prisma.treasury.create({
-        data: { type: 'out', amount: amount + tax, description: `مشتريات #${count + 1} (تلجرام)`, referenceType: 'purchase', date: new Date() },
-    });
-    return `✅ <b>تم تسجيل مشتريات</b>\n\n💰 المبلغ: <b>${fmt(amount)} ر.س</b>\n📊 الضريبة: <b>${fmt(tax)} ر.س</b>\n📋 الإجمالي: <b>${fmt(amount + tax)} ر.س</b>\n📄 فاتورة رقم: <b>#${count + 1}</b>`;
+
+    return `✅ <b>تم تسجيل مشتريات</b>\n\n💰 المبلغ: <b>${fmt(amount)} ر.س</b>\n📊 الضريبة: <b>${fmt(tax)} ر.س</b>\n📋 الإجمالي: <b>${fmt(amount + tax)} ر.س</b>\n📄 فاتورة رقم: <b>#مشتريات-سريعة</b>`;
 }
 
 async function addExpense(amount: number, description: string): Promise<string> {
     if (amount <= 0) return '❌ المبلغ غير صحيح';
-    await prisma.expense.create({ data: { amount, description: description || 'مصروف عبر تلجرام', date: new Date() } });
-    await prisma.treasury.create({ data: { type: 'out', amount, description: `مصروف: ${description || 'عام'} (تلجرام)`, referenceType: 'expense', date: new Date() } });
+    const tenantId = 'default';
+
+    await import('@/lib/db/transaction').then(async ({ runFinancialTx }) => {
+        await runFinancialTx(prisma, async (tx: any) => {
+            const expense = await tx.expense.create({ data: { tenantId, amount, description: description || 'مصروف عبر تلجرام', date: new Date() } });
+            
+            const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+            await TreasuryPostingService.createTreasuryEntry(tx, {
+                type: 'out', amount, description: `مصروف: ${description || 'عام'} (تلجرام)`, referenceType: 'expense', referenceId: expense.id, date: new Date()
+            }, null, null);
+        }, 'TELEGRAM_EXPENSE');
+    });
+
     return `✅ <b>تم تسجيل مصروف</b>\n\n💰 المبلغ: <b>${fmt(amount)} ر.س</b>\n📝 الوصف: ${description || 'مصروف عام'}`;
 }
 
@@ -276,24 +298,29 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
         if (!parsedData.grandTotal) { await sendMessage(chatId, '❌ لم يتم استخراج الإجمالي من الفاتورة بوضوح.'); return; }
 
         // Database Insertion via Transaction
-        const savedInvoice = await prisma.$transaction(async (tx) => {
+        const tenantId = 'default';
+        const { runFinancialTx } = await import('@/lib/db/transaction');
+        const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+        const { InventoryService } = await import('@/lib/services/inventory.service');
+
+        const savedInvoice = await runFinancialTx(prisma, async (tx: any) => {
             let supplierId = null;
             if (parsedData.supplierName) {
-                let supplier = await tx.customer.findFirst({ where: { name: parsedData.supplierName, type: 1 } });
-                if (!supplier) supplier = await tx.customer.create({ data: { name: parsedData.supplierName, type: 1, taxNumber: parsedData.taxNumber || null } });
+                let supplier = await tx.customer.findFirst({ where: { name: parsedData.supplierName, type: 1, tenantId } });
+                if (!supplier) supplier = await tx.customer.create({ data: { tenantId, name: parsedData.supplierName, type: 1, taxNumber: parsedData.taxNumber || null } });
                 supplierId = supplier.id;
             }
 
-            const last = await tx.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+            const last = await tx.purchaseInvoice.findFirst({ where: { tenantId }, orderBy: { invoiceNo: 'desc' } });
             const invoiceNo = (last?.invoiceNo || 0) + 1;
             const grandTotal = parseFloat(parsedData.grandTotal) || 0;
             
             const dbItems = [];
             for (const item of (parsedData.items || [])) {
                 if (!item.name) continue;
-                let product = await tx.product.findFirst({ where: { name: item.name } });
+                let product = await tx.product.findFirst({ where: { name: item.name, tenantId } });
                 if (!product) {
-                    product = await tx.product.create({ data: { name: item.name, barcode: Math.floor(100000000 + Math.random() * 900000000).toString(), sellPrice: (parseFloat(item.price) || 0) * 1.5, buyPrice: parseFloat(item.price) || 0 } });
+                    product = await tx.product.create({ data: { tenantId, name: item.name, barcode: Math.floor(100000000 + Math.random() * 900000000).toString(), sellPrice: (parseFloat(item.price) || 0) * 1.5, buyPrice: parseFloat(item.price) || 0 } });
                 } else if ((parseFloat(item.price) || 0) > 0) {
                     await tx.product.update({ where: { id: product.id }, data: { buyPrice: parseFloat(item.price) } });
                 }
@@ -305,34 +332,47 @@ export async function processPhoto(fileId: string, chatId: number): Promise<void
 
             const subtotal = dbItems.reduce((s: any, i: any) => s + (i.price * i.quantity), 0);
             const taxValue = subtotal * 0.15;
-            const verifiedTotal = subtotal + taxValue; // use calculated total to be safe
+            const verifiedTotal = subtotal + taxValue; 
 
             const invoice = await tx.purchaseInvoice.create({
                 data: {
-                    invoiceNo, supplierId, stockId: 1, subtotal, taxValue, total: verifiedTotal, paid: verifiedTotal, remaining: 0,
+                    tenantId, invoiceNo, supplierId, stockId: 1, subtotal, taxValue, total: verifiedTotal, paid: verifiedTotal, remaining: 0,
                     supplierInvoiceNo: parsedData.invoiceNo || null, paymentType: 'cash', status: 'completed', receiptStatus: 'received', notes: 'إضافة آلية بذكاء تلجرام',
-                    details: { create: dbItems },
+                    details: { create: dbItems.map(item => ({ ...item, tenantId })) },
                 }, include: { details: true, supplier: true }
             });
 
             for (const detail of invoice.details) {
                 await tx.product.update({ where: { id: detail.productId }, data: { currentStock: { increment: detail.quantity } } });
-                const existingStock = await tx.productStock.findFirst({ where: { productId: detail.productId, stockId: 1 } });
-                if (existingStock) {
-                    await tx.productStock.update({
-                        where: { id: existingStock.id },
-                        data: { quantity: { increment: detail.quantity } }
-                    });
-                } else {
-                    await tx.productStock.create({
-                        data: { productId: detail.productId, stockId: 1, quantity: detail.quantity }
-                    });
-                }
+                
+                await InventoryService.adjustStock(tx, {
+                    tenantId,
+                    productId: detail.productId,
+                    stockId: 1,
+                    quantityChange: detail.quantity,
+                    reason: `مشتريات آلي #${invoiceNo}`,
+                    sourceType: 'TELEGRAM_PURCHASE',
+                    reference: `PI-${invoice.id}`
+                });
+
+                await InventoryService.recordMovement(tx, {
+                    tenantId,
+                    productId: detail.productId,
+                    stockId: 1,
+                    quantity: detail.quantity,
+                    type: 'IN',
+                    referenceType: 'purchase',
+                    referenceId: invoice.id,
+                    notes: `مشتريات آلي #${invoiceNo}`
+                });
             }
 
-            await tx.treasury.create({ data: { type: 'out', amount: verifiedTotal, description: `مشتريات آلي #${invoiceNo} (${invoice.supplier?.name || 'عام'})`, referenceType: 'purchase', referenceId: invoice.id, date: new Date() } });
+            await TreasuryPostingService.createTreasuryEntry(tx, {
+                type: 'out', amount: verifiedTotal, description: `مشتريات آلي #${invoiceNo} (${invoice.supplier?.name || 'عام'})`, referenceType: 'purchase', referenceId: invoice.id, date: new Date()
+            }, null, null);
+            
             return invoice;
-        });
+        }, 'TELEGRAM_AI_INVOICE');
 
         await sendMessage(chatId, `✅ <b>تم استخراج الفاتورة وإضافتها بنجاح!</b>\n━━━━━━━━━━━━━━━━━━\n\n📄 فاتورة رقم: <b>#${savedInvoice.invoiceNo}</b>\n🏢 المورد: <b>${savedInvoice.supplier?.name || 'غير محدد'}</b>\n📦 عدد الأصناف: <b>${savedInvoice.details.length}</b>\n\n💵 الإجمالي (مع الضريبة): <b>${n(savedInvoice.total).toLocaleString('en-US', { minimumFractionDigits: 2 })} ر.س</b>`);
     } catch (err: any) {

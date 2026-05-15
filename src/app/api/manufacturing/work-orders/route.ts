@@ -4,17 +4,26 @@ import { getPrisma } from '@/lib/prisma';
 import { getNextNumber } from '@/lib/numbering';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 import { canTransition, DocumentType } from '@/lib/document-state-machine';
-
+import { InventoryService } from '@/lib/services/inventory.service';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'manufacturing.work-orders' });
+
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
+    let auth: any = null;
+    try { auth = getUserFromRequest(request as any); } catch (e) {}
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const orders: any = await prisma.manufacturingOrder.findMany({ take: 100,
+            where: { tenantId },
             include: {
                 recipe: {
                     include: { finishedProduct: true, ingredients: { include: { rawProduct: true } } }
@@ -27,11 +36,10 @@ async function _GET(request: Request) {
 
         return NextResponse.json(orders);
     } catch (error: any) {
-        log.error("WO GET error:", error);
+        EnterpriseLogger.error("WO GET error:", { tenantId, userId: auth.userId }, error);
         return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
     }
 }
-
 
 const _POSTSchema = z.object({
   recipeId: z.union([z.string(), z.number()]).optional(),
@@ -43,15 +51,15 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
+    let auth: any = null;
+    try { auth = getUserFromRequest(request as any); } catch (e) {}
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const body = await request.json();
 
-        const _parsed = _PUTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-
-        const _parsed2 = _POSTSchema.safeParse(body);
+        const _parsed = _POSTSchema.safeParse(body);
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
         }
@@ -61,6 +69,7 @@ async function _POST(request: Request) {
 
         const order = await prisma.manufacturingOrder.create({
             data: {
+                tenantId,
                 orderNumber,
                 recipeId: parseInt(recipeId),
                 quantityToProduce: parseFloat(quantityToProduce),
@@ -72,12 +81,9 @@ async function _POST(request: Request) {
             }
         });
 
-        let auth: any = null;
-        try { auth = getUserFromRequest(request as any); } catch (e) {}
-
         const { logAuditEvent } = await import('@/lib/audit-trail');
         await logAuditEvent(prisma as any, {
-            tenantId: request.headers.get('x-tenant') || 'default',
+            tenantId,
             userId: auth?.userId || null,
             action: 'CREATE',
             entityType: 'ManufacturingWorkOrder',
@@ -89,11 +95,10 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ message: 'تم إنشاء أمر التشغيل بنجاح', data: order });
     } catch (error: any) {
-        log.error("WO POST error:", error);
+        EnterpriseLogger.error("WO POST error:", { tenantId, userId: auth.userId }, error);
         return NextResponse.json({ error: 'Failed to create work order' }, { status: 500 });
     }
 }
-
 
 const _PUTSchema = z.object({
   id: z.union([z.string(), z.number()]).optional(),
@@ -103,42 +108,43 @@ const _PUTSchema = z.object({
 
 async function _PUT(request: Request) {
     const prisma = getPrisma(request);
+    let auth: any = null;
+    try { auth = getUserFromRequest(request as any); } catch (e) {}
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const body = await request.json();
         const { id, status, completionData } = body;
 
-        const order: any = await prisma.manufacturingOrder.findUnique({
-            where: { id: parseInt(id) },
+        const order: any = await prisma.manufacturingOrder.findFirst({
+            where: { id: parseInt(id), tenantId },
             include: { recipe: { include: { ingredients: true, operations: { include: { workCenter: true } } } } } as any
         });
 
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-        // Validate state transition before any side effects
         if (!canTransition(order.status, status, DocumentType.MANUFACTURING_ORDER)) {
             return NextResponse.json({
                 error: `انتقال غير مسموح: لا يمكن تحويل أمر التشغيل من "${order.status}" إلى "${status}"`,
             }, { status: 400 });
         }
 
-        // ─── draft → in_progress: Issue materials & overhead to WIP ──────
         if (status === 'in_progress' && order.status === 'draft') {
-            let auth: any = null;
-            try { auth = getUserFromRequest(request as any); } catch (e) {}
             const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
 
-            await prisma.$transaction(async (tx) => {
+            await runFinancialTx(prisma, async (tx: any) => {
                 let totalCost = 0;
                 let materialCost = 0;
 
-                // 1. Material costs & Stock Deduction (per ingredient with scrap percentage)
                 for (const item of order.recipe.ingredients) {
                     const scrapPerc = (item as any).scrapPercentage || 0;
                     const qtyNeeded = item.quantity * order.quantityToProduce * (1 + scrapPerc / 100);
                     const cost = item.estimatedCost * order.quantityToProduce;
 
-                    await (tx as any).manufacturingCost.create({
+                    await tx.manufacturingCost.create({
                         data: {
+                            tenantId,
                             manufacturingOrderId: order.id,
                             costType: 'material',
                             amount: cost,
@@ -148,41 +154,40 @@ async function _PUT(request: Request) {
                     totalCost += cost;
                     materialCost += cost;
 
-                    // Physical Inventory Deduction
+                    await InventoryService.adjustStock(tx, {
+                        tenantId,
+                        productId: item.rawProductId,
+                        stockId: targetStockId,
+                        quantityChange: -qtyNeeded,
+                        reason: `صرف خامات لأمر التصنيع ${order.orderNumber}`,
+                        sourceType: 'MANUFACTURING_CONSUMPTION',
+                        reference: `MO-${order.id}`
+                    });
+
+                    await InventoryService.recordMovement(tx, {
+                        tenantId,
+                        productId: item.rawProductId,
+                        stockId: targetStockId,
+                        quantity: -qtyNeeded,
+                        type: 'OUT',
+                        referenceType: 'manufacturing_order',
+                        referenceId: order.id,
+                        notes: `صرف خامات لأمر التصنيع ${order.orderNumber}`
+                    });
+
                     await tx.product.update({
                         where: { id: item.rawProductId },
                         data: { currentStock: { decrement: qtyNeeded } }
                     });
-
-                    // Warehouse-Specific Deduction
-                    await (tx as any).productStock.upsert({
-                        where: { productId_stockId: { productId: item.rawProductId, stockId: targetStockId } },
-                        update: { quantity: { decrement: qtyNeeded } },
-                        create: { productId: item.rawProductId, stockId: targetStockId, quantity: -qtyNeeded }
-                    });
-
-                    // Audit Log (Stock Movement)
-                    await tx.stockMovement.create({
-                        data: {
-                            productId: item.rawProductId,
-                            stockId: targetStockId,
-                            type: 'out',
-                            quantity: qtyNeeded,
-                            referenceType: 'manufacturing_order',
-                            referenceId: order.id,
-                            userId: auth?.userId || null,
-                            notes: `صرف خامات لأمر التصنيع ${order.orderNumber}`
-                        }
-                    });
                 }
 
-                // 2. Overhead costs (Work-Center hourly rate × routing duration)
                 for (const op of (order.recipe as any).operations || []) {
                     const hoursNeeded = (op.durationMinutes / 60) * order.quantityToProduce;
                     const overheadCost = hoursNeeded * op.workCenter.costPerHour;
                     if (overheadCost > 0) {
-                        await (tx as any).manufacturingCost.create({
+                        await tx.manufacturingCost.create({
                             data: {
+                                tenantId,
                                 manufacturingOrderId: order.id,
                                 costType: 'overhead',
                                 amount: overheadCost,
@@ -198,7 +203,6 @@ async function _PUT(request: Request) {
                     data: { status: 'in_progress', totalCost }
                 });
 
-                // 3. Auto-journal: Dr WIP / Cr Raw Materials (issuance) INSIDE transaction
                 if (materialCost > 0) {
                     const journalResult = await postMaterialIssueToWIP({
                         orderNumber: order.orderNumber,
@@ -214,7 +218,7 @@ async function _PUT(request: Request) {
 
                 const { logAuditEvent } = await import('@/lib/audit-trail');
                 await logAuditEvent(tx as any, {
-                    tenantId: request.headers.get('x-tenant') || 'default',
+                    tenantId,
                     userId: auth?.userId || null,
                     action: 'UPDATE',
                     entityType: 'ManufacturingWorkOrder',
@@ -224,9 +228,15 @@ async function _PUT(request: Request) {
                     newData: { status: 'in_progress', materialCost },
                     ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
-            });
+            }, `WO_START_${order.id}`);
+            
+            EnterpriseLogger.traceInventoryTx(
+                `WO_START_${order.id}`,
+                'WORK_ORDER_STARTED',
+                tenantId,
+                { orderId: order.id, orderNumber: order.orderNumber }
+            );
         }
-        // ─── in_progress → completed: WIP → Finished Goods ──────────────
         else if (status === 'completed' && order.status === 'in_progress') {
             const yieldQty = completionData?.yieldQty || order.quantityToProduce;
             const yieldWeight = completionData?.yieldWeight || 0;
@@ -239,12 +249,9 @@ async function _PUT(request: Request) {
             const standardCost = order.recipe.totalCost * yieldQty;
             const finishedProductName = (order as any).recipe?.finishedProduct?.name;
 
-            let auth: any = null;
-            try { auth = getUserFromRequest(request as any); } catch (e) {}
             const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
 
-            await prisma.$transaction(async (tx: any) => {
-                // 1. Mark order completed
+            await runFinancialTx(prisma, async (tx: any) => {
                 await tx.manufacturingOrder.update({
                     where: { id: order.id },
                     data: { 
@@ -255,10 +262,10 @@ async function _PUT(request: Request) {
                     }
                 });
 
-                // 2. Log Wastage if applicable
                 if (wastageWeight > 0) {
                     await tx.manufacturingWastage.create({
                         data: {
+                            tenantId,
                             manufacturingOrderId: order.id,
                             rawProductId: order.recipe.ingredients[0]?.rawProductId || order.recipe.finishedProductId,
                             lostQuantity: 0,
@@ -270,38 +277,35 @@ async function _PUT(request: Request) {
                     });
                 }
 
-                // 3. Increase finished-product stock + log movement
                 const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
                 if (fp) {
-                    // Physical Inventory Update
                     await tx.product.update({
                         where: { id: fp.id },
                         data: { currentStock: (fp.currentStock || 0) + yieldQty }
                     });
 
-                    // Warehouse-Specific Update
-                    await tx.productStock.upsert({
-                        where: { productId_stockId: { productId: fp.id, stockId: targetStockId } },
-                        update: { quantity: { increment: yieldQty } },
-                        create: { productId: fp.id, stockId: targetStockId, quantity: yieldQty }
+                    await InventoryService.adjustStock(tx, {
+                        tenantId,
+                        productId: fp.id,
+                        stockId: targetStockId,
+                        quantityChange: yieldQty,
+                        reason: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`,
+                        sourceType: 'MANUFACTURING_PRODUCTION',
+                        reference: `MO-${order.id}`
                     });
 
-                    // Audit Log (Stock Movement)
-                    await tx.stockMovement.create({
-                        data: {
-                            productId: fp.id,
-                            stockId: targetStockId,
-                            type: 'in',
-                            quantity: yieldQty,
-                            referenceType: 'manufacturing_order',
-                            referenceId: order.id,
-                            userId: auth?.userId || null,
-                            notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`
-                        }
+                    await InventoryService.recordMovement(tx, {
+                        tenantId,
+                        productId: fp.id,
+                        stockId: targetStockId,
+                        quantity: yieldQty,
+                        type: 'IN',
+                        referenceType: 'manufacturing_order',
+                        referenceId: order.id,
+                        notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`
                     });
                 }
 
-                // 4. Auto-journal: Dr FG / Cr WIP / Variance INSIDE transaction
                 const journalResult = await postManufacturingCompletion({
                     orderNumber: order.orderNumber,
                     standardCost,
@@ -318,7 +322,7 @@ async function _PUT(request: Request) {
 
                 const { logAuditEvent } = await import('@/lib/audit-trail');
                 await logAuditEvent(tx as any, {
-                    tenantId: request.headers.get('x-tenant') || 'default',
+                    tenantId,
                     userId: auth?.userId || null,
                     action: 'UPDATE',
                     entityType: 'ManufacturingWorkOrder',
@@ -328,17 +332,24 @@ async function _PUT(request: Request) {
                     newData: { status: 'completed', totalCost: totalActualCost },
                     ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
-            });
+            }, `WO_COMPLETE_${order.id}`);
+
+            EnterpriseLogger.traceInventoryTx(
+                `WO_COMPLETE_${order.id}`,
+                'WORK_ORDER_COMPLETED',
+                tenantId,
+                { orderId: order.id, orderNumber: order.orderNumber }
+            );
         }
 
         return NextResponse.json({ message: 'تم تحديث حالة الأمر بنجاح' });
     } catch (error: any) {
-        log.error("WO PUT error:", error);
+        EnterpriseLogger.error("WO PUT error:", { tenantId, userId: auth.userId }, error);
         return NextResponse.json({ error: 'Failed to update work order status' }, { status: 500 });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production'] });
 
 export const POST = withRoute(async ({ req }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
@@ -356,7 +367,7 @@ export const POST = withRoute(async ({ req }) => {
         await unlockIdempotencyKey(tenantString, 'mfg_wo_post', idempotencyKey);
         throw e;
     }
-}, { rateLimit: 'DEFAULT' });
+}, { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'production'] });
 
 export const PUT = withRoute(async ({ req }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
@@ -374,4 +385,4 @@ export const PUT = withRoute(async ({ req }) => {
         await unlockIdempotencyKey(tenantString, 'mfg_wo_put', idempotencyKey);
         throw e;
     }
-}, { rateLimit: 'DEFAULT' });
+}, { rateLimit: 'FINANCIAL', roles: ['admin', 'owner', 'production'] });

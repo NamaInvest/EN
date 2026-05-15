@@ -2,32 +2,42 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
-
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { EnterpriseLogger } from '@/lib/observability/logger';
+import { TreasuryPostingService } from '@/lib/services/treasury-posting.service';
 
 const log = logger.child({ service: 'banks.id.transactions' });
+
 async function _GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const resolvedParams = await params;
         const id = parseInt(resolvedParams.id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         const transactions = await prisma.bankTransaction.findMany({ take: 100, 
-            where: { bankAccountId: id },
+            where: { 
+                ...requireTenantFilter(tenantId),
+                bankAccountId: id 
+            },
             orderBy: { transactionDate: 'desc' } 
         });
         
         return NextResponse.json(transactions);
     } catch (error: any) { 
-        log.error(error); 
+        EnterpriseLogger.error('Failed to fetch transactions', { tenantId, userId: auth.userId }, error);
         return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 }); 
     }
 }
-
 
 const _POSTSchema = z.object({
   amount: z.number().optional(),
@@ -36,6 +46,11 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const resolvedParams = await params;
         const bankAccountId = parseInt(resolvedParams.id);
@@ -57,26 +72,24 @@ async function _POST(request: Request, { params }: { params: Promise<{ id: strin
             return NextResponse.json({ error: 'Invalid transaction type' }, { status: 400 });
         }
 
-        // Start transaction
-        const result = await prisma.$transaction(async (tx) => {
-            // 1. Create the bank transaction
+        const result = await runFinancialTx(prisma, async (tx: any) => {
             const bankTransaction = await tx.bankTransaction.create({
                 data: {
+                    tenantId,
                     bankAccountId,
                     transactionDate: new Date(),
-                    type: body.type,  // deposit = + balance, withdrawal = - balance
+                    type: body.type,
                     amount,
                     description: body.description || '',
                     reference: body.reference || null,
-                    isReconciled: true, // Auto reconciled for simplicity unless workflow is needed
+                    isReconciled: true,
                 }
             });
 
-            // 2. Update the bank account balance
             const balanceChange = body.type === 'deposit' ? amount : -amount;
             
             await tx.bankAccount.update({
-                where: { id: bankAccountId },
+                where: { id: bankAccountId, tenantId },
                 data: {
                     currentBalance: {
                         increment: balanceChange
@@ -84,34 +97,41 @@ async function _POST(request: Request, { params }: { params: Promise<{ id: strin
                 }
             });
 
-            // 3. Update the Treasury balance if it's connected
             if (body.linkedToTreasury) {
-                // If depositing to bank -> withdrawing from treasury (out)
-                // If withdrawing from bank -> depositing to treasury (in)
                 const treasuryType = body.type === 'deposit' ? 'out' : 'in';
                 
-                await tx.treasury.create({
-                    data: {
+                await TreasuryPostingService.createTreasuryEntry(
+                    tx,
+                    {
                         type: treasuryType,
-                        amount: amount,
+                        amount,
                         description: `تسوية بنكية: ${body.description || ''} - للبنك ${bankAccountId}`,
-                        date: new Date(),
                         referenceType: 'bank_transaction',
-                        referenceId: bankTransaction.id
-                    }
-                });
+                        referenceId: bankTransaction.id,
+                        treasuryAccountId: body.treasuryAccountId, // Make sure these are passed if required
+                        counterpartyAccountId: body.counterpartyAccountId 
+                    },
+                    auth.userId,
+                    null
+                );
             }
 
+            EnterpriseLogger.traceFinancialTx(
+                `BANK_TX_${bankTransaction.id}`,
+                'BANK_TRANSACTION_POSTED',
+                tenantId,
+                { bankAccountId, type: body.type, amount }
+            );
+
             return bankTransaction;
-        });
+        }, `BANK_TRANSACTION_${bankAccountId}`);
 
         return NextResponse.json(result);
     } catch (error: any) { 
-        log.error(error); 
+        EnterpriseLogger.error('حدث خطأ في المعالجة', { tenantId, userId: auth?.userId }, error);
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'banks/[id]/transactions' }); 
     }
 }
 
 export const GET = withRoute(async ({ req }, context) => _GET(req as any, context), { rateLimit: 'DEFAULT' });
-
-export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'FINANCIAL', roles: ['admin', 'owner', 'accountant'] });

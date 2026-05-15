@@ -14,7 +14,10 @@ import { z }                     from 'zod';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { n }                     from '@/lib/decimal-utils';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runInventoryTx } from '@/lib/db/transaction';
+import { InventoryService } from '@/lib/services/inventory.service';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'adjustments' });
 
@@ -49,9 +52,10 @@ const AdjQuerySchema = z.object({
 
 // ── GET ───────────────────────────────────────────────────────────────────────
 
-async function _GET(req: NextRequest) {
+async function _GET(req: NextRequest, auth: any) {
   const prisma = getPrisma(req);
   const q      = req.nextUrl.searchParams;
+  const tenantId = assertTenant(auth?.tenantId);
 
   const queryParsed = AdjQuerySchema.safeParse(Object.fromEntries(q));
   if (!queryParsed.success) {
@@ -61,19 +65,23 @@ async function _GET(req: NextRequest) {
 
   const action = q.get('action');
 
+  const tenantFilter = requireTenantFilter(tenantId);
+
   // ── Stats endpoint ──────────────────────────────────────────────────────────
   if (action === 'stats') {
     const [total, pending, totalVarianceCost] = await Promise.all([
-      (prisma as any).inventoryAdjustment?.count() ?? 0,
-      (prisma as any).inventoryAdjustment?.count({ where: { status: 'pending' } }) ?? 0,
-      (prisma as any).inventoryAdjustment?.aggregate({ _sum: { totalVarianceCost: true } })
-        .then((r: any) => r._sum?.totalVarianceCost ?? 0).catch(() => 0),
+      (prisma as any).inventoryAdjustment?.count({ where: tenantFilter }) ?? 0,
+      (prisma as any).inventoryAdjustment?.count({ where: { ...tenantFilter, status: 'pending' } }) ?? 0,
+      (prisma as any).inventoryAdjustment?.aggregate({ 
+        _sum: { totalVarianceCost: true },
+        where: tenantFilter
+      }).then((r: any) => r._sum?.totalVarianceCost ?? 0).catch(() => 0),
     ]);
     return NextResponse.json({ total, pending, totalVarianceCost });
   }
 
   // ── List adjustments ────────────────────────────────────────────────────────
-  const where: any = {};
+  const where: any = { ...tenantFilter };
   if (branchId)  where.branchId = branchId;
   if (status)    where.status   = status;
   if (from || to) {
@@ -97,8 +105,6 @@ async function _GET(req: NextRequest) {
     return NextResponse.json({ items, total, page, pages: Math.ceil(total / take) });
   } catch (err: unknown) {
     log.error('src/app/api/adjustments/route.ts', { error: err instanceof Error ? err.message : err });
-
-    // Fallback: table might not exist yet
     return NextResponse.json({ items: [], total: 0, page: 1, pages: 0 });
   }
 }
@@ -108,6 +114,7 @@ async function _GET(req: NextRequest) {
 async function _POST(req: NextRequest, auth: any) {
   const prisma = getPrisma(req);
   const path   = req.nextUrl.pathname;
+  const tenantId = assertTenant(auth?.tenantId);
 
   // ── Batch from stocktake ────────────────────────────────────────────────────
   if (path.endsWith('/batch')) {
@@ -123,33 +130,45 @@ async function _POST(req: NextRequest, auth: any) {
     const { items, reason, branchId, date } = parsed.data;
     const results = [];
 
-    for (const item of items) {
-      const diff     = item.actualQty - item.systemQty;
-      if (Math.abs(diff) < 0.001) continue; // no change
+    await runInventoryTx(prisma, async (tx: any) => {
+      for (const item of items) {
+        const diff     = item.actualQty - item.systemQty;
+        if (Math.abs(diff) < 0.001) continue; 
 
-      const diffCost = diff * (item.unitCost || 0);
+        const diffCost = diff * (item.unitCost || 0);
 
-      // Update stock
-      await prisma.productStock.upsert({
-        where:  { productId_stockId: { productId: item.productId, stockId: item.stockId } },
-        create: { productId: item.productId, stockId: item.stockId, quantity: item.actualQty },
-        update: { quantity: item.actualQty },
-      }).catch(() => null);
-
-      // Auto-journal per item
-      if (Math.abs(diffCost) > 0.01) {
-        await postInventoryAdjustment({
+        await InventoryService.adjustStock(tx, {
+          tenantId,
           productId: item.productId,
-          diffCost,
-          reason:    item.reason || reason,
-          userId:    auth?.userId,
-          branchId,
-          date:      date || new Date().toISOString().split('T')[0],
-        }).catch(err => log.error('[adj-journal]', err.message));
-      }
+          stockId: item.stockId,
+          quantityChange: diff,
+          reason: item.reason || reason,
+          sourceType: 'BATCH_ADJUSTMENT'
+        });
+        
+        await InventoryService.recordMovement(tx, {
+           tenantId,
+           productId: item.productId,
+           stockId: item.stockId,
+           quantity: diff,
+           type: 'ADJUSTMENT',
+           notes: item.reason || reason
+        });
 
-      results.push({ productId: item.productId, diff, diffCost });
-    }
+        if (Math.abs(diffCost) > 0.01) {
+          await postInventoryAdjustment({
+            productId: item.productId,
+            diffCost,
+            reason:    item.reason || reason,
+            userId:    auth?.userId,
+            branchId,
+            date:      date || new Date().toISOString().split('T')[0],
+          }).catch(err => EnterpriseLogger.error('[adj-journal]', { tenantId }, err));
+        }
+
+        results.push({ productId: item.productId, diff, diffCost });
+      }
+    }, 'BATCH_INVENTORY_ADJUSTMENT');
 
     return NextResponse.json({ success: true, processed: results.length, results });
   }
@@ -167,7 +186,7 @@ async function _POST(req: NextRequest, auth: any) {
   const { items, reason, branchId, date, notes, stocktakeId } = parsed.data;
   let totalVarianceCost = 0;
 
-  await prisma.$transaction(async (tx) => {
+  await runInventoryTx(prisma, async (tx: any) => {
     for (const item of items) {
       const diff     = item.actualQty - item.systemQty;
       const diffCost = diff * (item.unitCost || 0);
@@ -175,22 +194,31 @@ async function _POST(req: NextRequest, auth: any) {
 
       if (Math.abs(diff) < 0.001) continue;
 
-      // Update product stock
-      await (tx as any).productStock.upsert({
-        where:  { productId_stockId: { productId: item.productId, stockId: item.stockId } },
-        create: { productId: item.productId, stockId: item.stockId, quantity: item.actualQty },
-        update: { quantity: item.actualQty },
-      }).catch(() => null);
+      await InventoryService.adjustStock(tx, {
+        tenantId,
+        productId: item.productId,
+        stockId: item.stockId,
+        quantityChange: diff,
+        reason,
+        sourceType: 'SINGLE_ADJUSTMENT'
+      });
 
-      // Update product currentStock  
+      await InventoryService.recordMovement(tx, {
+        tenantId,
+        productId: item.productId,
+        stockId: item.stockId,
+        quantity: diff,
+        type: 'ADJUSTMENT',
+        notes: reason
+      });
+
       await tx.product.update({
         where: { id: item.productId },
         data:  { currentStock: { increment: diff } },
       }).catch(() => null);
     }
-  });
+  }, 'SINGLE_INVENTORY_ADJUSTMENT');
 
-  // Auto-journal for total variance
   if (Math.abs(totalVarianceCost) > 0.01) {
     await postInventoryAdjustment({
       productId: items[0].productId,
@@ -199,8 +227,15 @@ async function _POST(req: NextRequest, auth: any) {
       userId:    auth?.userId,
       branchId,
       date:      date || new Date().toISOString().split('T')[0],
-    }).catch(err => log.error('[adj-journal]', err.message));
+    }).catch(err => EnterpriseLogger.error('[adj-journal]', { tenantId }, err));
   }
+
+  EnterpriseLogger.traceInventoryTx(
+      'ADJUSTMENT',
+      'INVENTORY_ADJUSTMENT_POSTED',
+      tenantId,
+      { itemsAdjusted: items.length, totalVarianceCost }
+  );
 
   return NextResponse.json({
     success:            true,
@@ -213,8 +248,8 @@ async function _POST(req: NextRequest, auth: any) {
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 export const GET = withRoute(
-  async ({ req }) => _GET(req as any),
-  { rateLimit: 'DEFAULT' }
+  async ({ req, auth }) => _GET(req as any, auth),
+  { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'warehouse', 'accountant'] }
 );
 
 export const POST = withRoute(

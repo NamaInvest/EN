@@ -7,16 +7,24 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'bookings.invoice' });
+
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+    const tenantId = assertTenant(auth.tenantId);
+
     try {
         const { bookingId } = await request.json();
 
-        const booking = await prisma.booking.findUnique({
-            where: { id: parseInt(bookingId) },
+        const booking = await prisma.booking.findFirst({
+            where: { id: parseInt(bookingId), tenantId },
             include: { customer: { select: { id: true, name: true, phone: true, taxNumber: true } } }
         });
 
@@ -29,38 +37,40 @@ async function _POST(request: Request) {
 
         const remainingAmount = n(booking.total) - n(booking.deposit);
         if (remainingAmount <= 0) {
-            // Already fully paid, just mark as invoiced
-            await prisma.booking.update({ where: { id: booking.id }, data: { status: 'invoiced' } });
+            await prisma.booking.update({ where: { id: booking.id, tenantId }, data: { status: 'invoiced' } });
             return NextResponse.json({ success: true, message: 'مكتمل الدفع بالكامل مسبقاً' });
         }
 
-        // 1. Find or create a generic 'Booking Service' Product to satisfy Foreign Key constraints
-        let bookingProduct = await prisma.product.findFirst({
-            where: { name: 'خدمة حجز عامة' }
-        });
-
-        if (!bookingProduct) {
-            bookingProduct = await prisma.product.create({
-                data: {
-                    name: 'خدمة حجز عامة',
-                    buyPrice: 0,
-                    sellPrice: 0,
-                    taxRate: 15,
-                    currentStock: 99999, // infinite for a service
-                }
+        const newInvoice = await runFinancialTx(prisma, async (tx: any) => {
+            let bookingProduct = await tx.product.findFirst({
+                where: { name: 'خدمة حجز عامة', tenantId }
             });
-        }
 
-        // 2. Generate ZATCA Sales Invoice natively
-        const lastInvoice = await prisma.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
-        const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
+            if (!bookingProduct) {
+                bookingProduct = await tx.product.create({
+                    data: {
+                        tenantId,
+                        name: 'خدمة حجز عامة',
+                        buyPrice: 0,
+                        sellPrice: 0,
+                        taxRate: 15,
+                        currentStock: 99999,
+                    }
+                });
+            }
 
-        const baseAmount = remainingAmount / 1.15;
-        const taxAmount = remainingAmount - baseAmount;
+            const lastInvoice = await tx.salesInvoice.findFirst({ 
+                where: { tenantId }, 
+                orderBy: { invoiceNo: 'desc' } 
+            });
+            const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
 
-        const newInvoice = await prisma.$transaction(async (tx) => {
+            const baseAmount = remainingAmount / 1.15;
+            const taxAmount = remainingAmount - baseAmount;
+
             const invoice = await tx.salesInvoice.create({
                 data: {
+                    tenantId,
                     invoiceNo,
                     customerId: booking.customerId,
                     subtotal: baseAmount,
@@ -86,32 +96,35 @@ async function _POST(request: Request) {
                 }
             });
 
-            // Mark booking as correctly invoiced
-            await tx.booking.update({ where: { id: booking.id }, data: { status: 'invoiced' } });
+            await tx.booking.update({ where: { id: booking.id, tenantId }, data: { status: 'invoiced' } });
+
+            await postSalesInvoice({
+                invoiceNo: invoice.invoiceNo,
+                subtotal: n(invoice.subtotal),
+                taxValue: n(invoice.taxValue),
+                total: n(invoice.total),
+                paymentType: 'cash',
+                userId: invoice.userId || undefined,
+                branchId: 1,
+                txClient: tx
+            });
+
+            EnterpriseLogger.traceFinancialTx(
+                `BOOKING_INVOICE_${booking.id}`,
+                'BOOKING_INVOICED',
+                tenantId,
+                { bookingId: booking.id, invoiceId: invoice.id, total: remainingAmount }
+            );
 
             return invoice;
-        });
-
-        try {
-            await postSalesInvoice({
-                invoiceNo: newInvoice.invoiceNo,
-                subtotal: n(newInvoice.subtotal),
-                taxValue: n(newInvoice.taxValue),
-                total: n(newInvoice.total),
-                paymentType: 'cash',
-                userId: newInvoice.userId || undefined,
-                branchId: 1
-            });
-        } catch (je: unknown) {
-            log.error("Auto Journal Error (Bookings - Invoice Conversion):", je);
-        }
+        }, `BOOKING_INVOICE_${booking.id}`);
 
         return NextResponse.json(newInvoice, { status: 201 });
 
     } catch (e: any) {
-        log.error("Invoice Conversion Error:", e);
+        EnterpriseLogger.error("Invoice Conversion Error:", { tenantId, userId: auth.userId }, e);
         return NextResponse.json({ error: e.message || 'فشل توليد الفاتورة' }, { status: 500 });
     }
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'sales'] });
