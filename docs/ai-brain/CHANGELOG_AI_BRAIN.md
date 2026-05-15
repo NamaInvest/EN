@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.24
+- **Audit Trail Foundation (Phase 2.3.1):** Created the foundational infrastructure for system-wide auditing. Deployed the `AuditLog` table to `schema.prisma` with comprehensive tracking fields (action, entityType, oldData/newData, route, IP) and optimized indexing for multi-tenant scalability. Implemented `src/lib/audit-trail.ts` (`logAuditEvent`) designed to run safely within `prisma.$transaction` loops without impacting application performance or throwing unhandled errors.
+
 ## Version 1.1.23
 - **Treasury Idempotency & Replay Protection (Phase 2.2.4):** Expanded strict Redis-backed `x-idempotency-key` protection to core Treasury mutating endpoints (`api/finance/treasury`, `api/smart-transfers`, and `api/finance/petty-cash/[id]/process`). This ensures that FX postings, transit stock out/in operations, and petty cash settlements are fully idempotent. Rejects duplicate submissions (double clicks, retries) with `409 Conflict` and missing keys with `400 Bad Request` to guarantee absolute financial integrity without altering core business transactions.
 
