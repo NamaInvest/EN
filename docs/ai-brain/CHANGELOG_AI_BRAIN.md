@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.4
+- **Ledger Posting Atomicity (Phase 1.4.1):** Addressed a critical Ledger Split-Brain vulnerability in the `PATCH /api/accounting/journal/[id]` endpoint. The manual journal posting mechanism, including the document state `transition` and iterative `account.update` logic, is now safely encapsulated inside a strict `prisma.$transaction`. This prevents partial balance updates if the server fails mid-execution.
+
 ## Version 1.1.3
 - **Purchases DELETE Atomicity (Phase 1.3.3):** Refactored `DELETE /api/purchases` to safely reverse the General Ledger instead of leaving orphaned journals. Migrated to using `reverseJournalByReference` to generate contra-entries for both the primary purchase journal (`PUR-`) and any partial payment journals (`PUR-PAY-`). All reversals, stock un-reservation, and treasury deletions are securely bound within the single `prisma.$transaction`.
 ## Version 1.1.2

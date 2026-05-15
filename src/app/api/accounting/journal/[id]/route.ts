@@ -178,40 +178,42 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
 
         await checkFiscalPeriodOpen(prisma, entry.entryDate);
 
-        // استخدم State Machine لتطبيق التغيير
-        await transition(prisma, {
-            docType: DocumentType.JOURNAL_ENTRY,
-            docId: id,
-            from: entry.status,
-            to: status,
-            userId: auth.userId,
-            reason: reason,
-            apply: async () => {
-                // If it's becoming POSTED, we must update the account balances!
-                if (status === DocumentStatus.POSTED && entry.status !== DocumentStatus.POSTED) {
-                    const lines = await prisma.journalLine.findMany({ take: 100, where: { entryId: id } });
-                    for (const line of lines) {
-                        const account = await prisma.account.findUnique({ where: { id: line.accountId } });
-                        if (account) {
-                            let balanceChange = 0;
-                            if (['asset', 'expense'].includes(account.type)) {
-                                balanceChange = n(line.debit) - n(line.credit);
-                            } else {
-                                balanceChange = n(line.credit) - n(line.debit);
+        // استخدم State Machine لتطبيق التغيير داخل Transaction
+        await prisma.$transaction(async (tx: any) => {
+            await transition(tx, {
+                docType: DocumentType.JOURNAL_ENTRY,
+                docId: id,
+                from: entry.status,
+                to: status,
+                userId: auth.userId,
+                reason: reason,
+                apply: async () => {
+                    // If it's becoming POSTED, we must update the account balances!
+                    if (status === DocumentStatus.POSTED && entry.status !== DocumentStatus.POSTED) {
+                        const lines = await tx.journalLine.findMany({ take: 100, where: { entryId: id } });
+                        for (const line of lines) {
+                            const account = await tx.account.findUnique({ where: { id: line.accountId } });
+                            if (account) {
+                                let balanceChange = 0;
+                                if (['asset', 'expense'].includes(account.type)) {
+                                    balanceChange = n(line.debit) - n(line.credit);
+                                } else {
+                                    balanceChange = n(line.credit) - n(line.debit);
+                                }
+                                await tx.account.update({
+                                    where: { id: line.accountId },
+                                    data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
+                                });
                             }
-                            await prisma.account.update({
-                                where: { id: line.accountId },
-                                data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
-                            });
                         }
                     }
+                    
+                    await tx.journalEntry.update({
+                        where: { id },
+                        data: { status }
+                    });
                 }
-                
-                await prisma.journalEntry.update({
-                    where: { id },
-                    data: { status }
-                });
-            }
+            });
         });
 
         return NextResponse.json({ success: true, status });
