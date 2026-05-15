@@ -229,7 +229,7 @@ async function _POST(request: Request) {
                 log.error('[document-state-machine] POS audit log failed:', e);
             }
 
-            const { postPurchaseInvoice } = await import('@/lib/auto-journal');
+            const { postPurchaseInvoice, postGRN } = await import('@/lib/auto-journal');
             const journalResult = await postPurchaseInvoice({
                 invoiceNo,
                 subtotal,
@@ -246,6 +246,22 @@ async function _POST(request: Request) {
 
             if (journalResult && (journalResult as any).success === false) {
                  throw new Error('فشل إنشاء القيد المحاسبي لفاتورة المشتريات');
+            }
+
+            // [Phase 1.5.2D] If immediate receipt, post GRN to clear GRNI
+            if (receiptStatus === 'received') {
+                const totalCost = Number(subtotal) - Number(calculatedPpv || 0);
+                if (totalCost > 0.01) {
+                    await postGRN({
+                        grnNo: invoiceNo,
+                        totalCost,
+                        supplierName: `مورد ${body.supplierId || 'غير محدد'}`,
+                        userId: userId || undefined,
+                        branchId: branchId || undefined,
+                        date: new Date().toISOString().split('T')[0],
+                        txClient: tx,
+                    });
+                }
             }
 
             return createdInvoice;

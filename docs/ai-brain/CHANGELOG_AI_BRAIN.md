@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.11
+- **Immediate Purchase Receive GRN Posting (Phase 1.5.2D):** Refactored `POST /api/purchases` to safely close the Ghost Balance vulnerability when creating purchase invoices with immediate receipt (`receiptStatus = 'received'`). The endpoint now executes `postPurchaseInvoice` (Dr GRNI) and immediately follows with `postGRN` (Cr GRNI, Dr INVENTORY) within the same `prisma.$transaction`. This ensures all immediate receipts are correctly tracked in both the physical inventory and the GL without bypassing the 3-Way Match GRNI clearing logic.
+
 ## Version 1.1.10
 - **Purchases Receive Atomic GRN Posting (Phase 1.5.2C):** Refactored the `PUT /api/purchases/[id]/receive` endpoint to encapsulate physical stock increments and financial GRN journal creation within a strict `prisma.$transaction`. Removed all `try/catch` blocks that previously swallowed inventory update errors. The endpoint now reliably calls `postGRN` to transition balances from `GRNI` to `INVENTORY` atomically, guaranteeing GL integrity during post-invoice stock receipts.
 
