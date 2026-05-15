@@ -98,43 +98,44 @@ async function _POST(req: NextRequest) {
                 });
             }));
 
-            // C. Update ProductStock balances & Create StockMovement
+            // C. Update ProductStock balances, currentStock, and calculate COGS
+            let totalCost = 0;
             for (const item of details) {
-                // Update Stock
-                const currentStock = await tx.productStock.findFirst({
-                    where: { productId: item.productId, stockId: stockId }
+                const parsedProductId = parseInt(item.productId);
+                
+                // 1. Fetch product to get buyPrice for COGS
+                const prod = await tx.product.findUnique({ where: { id: parsedProductId } });
+                totalCost += (Number(prod?.buyPrice) || 0) * item.quantity;
+
+                // 2. Global Stock Deduction
+                await tx.product.update({
+                    where: { id: parsedProductId },
+                    data: { currentStock: { decrement: item.quantity } }
                 });
 
-                if (currentStock) {
-                    await tx.productStock.update({
-                        where: { id: currentStock.id },
-                        data: { quantity: currentStock.quantity - item.quantity }
-                    });
-                } else {
-                    // Create if not exists with negative balance (or throw error)
-                    await tx.productStock.create({
-                        data: {
-                            productId: item.productId,
-                            stockId: stockId,
-                            quantity: -item.quantity
-                        }
-                    });
-                }
+                // 3. Warehouse Stock Deduction (ProductStock)
+                await tx.productStock.upsert({
+                    where: { productId_stockId: { productId: parsedProductId, stockId: parseInt(stockId) } },
+                    update: { quantity: { decrement: item.quantity } },
+                    create: { productId: parsedProductId, stockId: parseInt(stockId), quantity: -item.quantity }
+                });
 
-                // Create Stock Movement Audit Record
+                // 4. Create Stock Movement Audit Record
                 await tx.stockMovement.create({
                     data: {
-                        productId: item.productId,
-                        stockId: stockId,
+                        productId: parsedProductId,
+                        stockId: parseInt(stockId),
                         type: "out",
                         quantity: item.quantity,
                         referenceType: "SalesInvoice",
                         referenceId: invoice.id,
-                        userId: userId,
+                        userId: userId || null,
                         notes: `POS Sale - Invoice ${invoice.id}`
                     }
                 });
             }
+            
+            // Note: totalCost is now correctly calculated and ready for postSalesInvoice in Phase 1.9.2
 
             // D. Create ZATCARecord for the electronic invoicing integration
             const zatcaRecord = await tx.zATCARecord.create({
