@@ -198,6 +198,23 @@ async function _POST(req: NextRequest) {
                 }
             });
 
+            // G. Audit Trail
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx, {
+                tenantId: tenantString,
+                userId: userId ? Number(userId) : null,
+                action: 'CREATE',
+                entityType: 'POS_Invoice',
+                entityId: invoice.id,
+                route: '/api/pos',
+                newData: {
+                    invoiceNo: invoice.invoiceNo,
+                    total: invoice.total,
+                    paymentType: invoice.paymentType,
+                },
+                ipAddress: req.headers.get('x-forwarded-for') || null,
+            });
+
             return { invoice, lineItems, zatcaRecord };
         });
 

@@ -29,33 +29,28 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         let totalOver = 0;
         let totalValueDiff = 0;
 
-        const updatePromises: any[] = [];
+        await prisma.$transaction(async (tx: any) => {
+            for (const item of (stocktake as any).items) {
+                const diff = item.actualQty - item.systemQty;
+                let status = 'matched';
+                if (diff > 0) { status = 'over'; totalOver++; }
+                else if (diff < 0) { status = 'short'; totalShort++; }
+                else { totalMatched++; }
 
-        for (const item of (stocktake as any).items) {
-            const diff = item.actualQty - item.systemQty;
-            let status = 'matched';
-            if (diff > 0) { status = 'over'; totalOver++; }
-            else if (diff < 0) { status = 'short'; totalShort++; }
-            else { totalMatched++; }
+                const valueDiff = diff * item.product.buyPrice;
+                totalValueDiff += valueDiff;
 
-            const valueDiff = diff * item.product.buyPrice;
-            totalValueDiff += valueDiff;
-
-            updatePromises.push(
-                prisma.stocktakeItem.update({
+                await tx.stocktakeItem.update({
                     where: { id: item.id },
                     data: { difference: diff, status }
-                })
-            );
+                });
 
-            // Create stock movement and update product stock if there is a difference
-            if (diff !== 0) {
-                updatePromises.push(
-                    prisma.product.update({
+                if (diff !== 0) {
+                    await tx.product.update({
                         where: { id: item.productId },
-                        data: { currentStock: item.actualQty } // Set to actual
-                    }),
-                    prisma.stockMovement.create({
+                        data: { currentStock: item.actualQty }
+                    });
+                    await tx.stockMovement.create({
                         data: {
                             productId: item.productId,
                             stockId: 1, // Default
@@ -65,14 +60,11 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
                             referenceType: 'Stocktake',
                             referenceId: stocktake.id,
                         }
-                    })
-                );
+                    });
+                }
             }
-        }
 
-        // Update the main stocktake record
-        updatePromises.push(
-            prisma.stocktake.update({
+            await tx.stocktake.update({
                 where: { id },
                 data: {
                     status: 'approved',
@@ -80,16 +72,21 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
                     over: totalOver,
                     short: totalShort
                 }
-            })
-        );
+            });
 
-        // If significant value diff, we'd create a Journal Entry (Simulation here)
-        // Dr/Cr 1310 Inventory <-> 5910 Inventory Adjustment
-        if (totalValueDiff !== 0) {
-            log.info(`[FINANCE] Journal Entry Created for Stocktake #${stocktake.id}. Net Value Adjustment: ${totalValueDiff} SAR`);
-        }
-
-        await prisma.$transaction(updatePromises);
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx, {
+                tenantId: req.headers.get('x-tenant') || 'default',
+                userId: null, // no auth available in this scope easily without refactor
+                action: 'UPDATE',
+                entityType: 'StocktakeApprove',
+                entityId: id,
+                route: `/api/inventory/stocktake/${id}/approve`,
+                oldData: { status: stocktake.status },
+                newData: { status: 'approved', matched: totalMatched, over: totalOver, short: totalShort },
+                ipAddress: req.headers.get('x-forwarded-for') || null,
+            });
+        });
 
         return NextResponse.json({ success: true, message: 'Stocktake approved and stock updated' });
     } catch (e: any) {

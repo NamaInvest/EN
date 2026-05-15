@@ -268,6 +268,23 @@ export class RealizedFXEngine {
       return null;
     });
 
+    if (journal) {
+      const { logAuditEvent } = await import('@/lib/audit-trail');
+      await logAuditEvent(prisma as any, {
+        tenantId,
+        userId: userId ? Number(userId) : null,
+        action: 'EXECUTE',
+        entityType: 'RealizedFX',
+        entityId: journal.id,
+        route: '/api/finance/treasury',
+        newData: {
+          transactionId: entry.transactionId,
+          currency: entry.currency,
+          settlementAmountSAR: entry.settlementAmountSAR,
+        }
+      });
+    }
+
     return { journalId: journal?.id ?? 0, posted: !!journal };
   }
 }

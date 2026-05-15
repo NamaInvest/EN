@@ -183,6 +183,18 @@ async function _POST(req: Request) {
                 },
             }).catch(() => {});
 
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: req.headers.get('x-tenant') || 'default',
+                userId: decoded.userId || null,
+                action: 'CREATE',
+                entityType: 'GoodsReceiptNote',
+                entityId: newGrn.id,
+                route: '/api/purchases/grn',
+                newData: { grnNo: newGrn.grnNo, supplierId: newGrn.supplierId },
+                ipAddress: req.headers.get('x-forwarded-for') || null,
+            });
+
             return newGrn;
         });
 

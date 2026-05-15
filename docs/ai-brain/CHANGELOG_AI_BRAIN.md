@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.25
+- **Audit Trail Expansion (Phase 2.3.2):** Implemented widespread audit instrumentation across mission-critical financial and inventory routes (`POST /api/pos`, `POST /api/finance/treasury`, `POST/PUT/DELETE /api/purchases`, `PUT /api/purchases/[id]/receive`, `POST /api/purchases/grn`, `POST/PUT /api/manufacturing/orders`, `POST/PUT /api/manufacturing/work-orders`, `POST /api/sales/delivery-notes`, and `POST /api/inventory/stocktake/[id]/approve`). Audit logs are natively injected within the exact same `prisma.$transaction` block as the business operations, ensuring atomic auditing without bloated payloads.
+
 ## Version 1.1.24
 - **Audit Trail Foundation (Phase 2.3.1):** Created the foundational infrastructure for system-wide auditing. Deployed the `AuditLog` table to `schema.prisma` with comprehensive tracking fields (action, entityType, oldData/newData, route, IP) and optimized indexing for multi-tenant scalability. Implemented `src/lib/audit-trail.ts` (`logAuditEvent`) designed to run safely within `prisma.$transaction` loops without impacting application performance or throwing unhandled errors.
 

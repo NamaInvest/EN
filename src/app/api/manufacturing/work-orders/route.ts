@@ -72,6 +72,21 @@ async function _POST(request: Request) {
             }
         });
 
+        let auth: any = null;
+        try { auth = getUserFromRequest(request as any); } catch (e) {}
+
+        const { logAuditEvent } = await import('@/lib/audit-trail');
+        await logAuditEvent(prisma as any, {
+            tenantId: request.headers.get('x-tenant') || 'default',
+            userId: auth?.userId || null,
+            action: 'CREATE',
+            entityType: 'ManufacturingWorkOrder',
+            entityId: order.id,
+            route: '/api/manufacturing/work-orders',
+            newData: { orderNumber: order.orderNumber, status: order.status },
+            ipAddress: request.headers.get('x-forwarded-for') || null,
+        });
+
         return NextResponse.json({ message: 'تم إنشاء أمر التشغيل بنجاح', data: order });
     } catch (error: any) {
         log.error("WO POST error:", error);
@@ -196,6 +211,19 @@ async function _PUT(request: Request) {
                         throw new Error(`Financial entry failed: ${journalResult.error}`);
                     }
                 }
+
+                const { logAuditEvent } = await import('@/lib/audit-trail');
+                await logAuditEvent(tx as any, {
+                    tenantId: request.headers.get('x-tenant') || 'default',
+                    userId: auth?.userId || null,
+                    action: 'UPDATE',
+                    entityType: 'ManufacturingWorkOrder',
+                    entityId: order.id,
+                    route: '/api/manufacturing/work-orders',
+                    oldData: { status: 'draft' },
+                    newData: { status: 'in_progress', materialCost },
+                    ipAddress: request.headers.get('x-forwarded-for') || null,
+                });
             });
         }
         // ─── in_progress → completed: WIP → Finished Goods ──────────────
@@ -287,6 +315,19 @@ async function _PUT(request: Request) {
                 if (!journalResult.success) {
                     throw new Error(`Financial entry failed: ${journalResult.error}`);
                 }
+
+                const { logAuditEvent } = await import('@/lib/audit-trail');
+                await logAuditEvent(tx as any, {
+                    tenantId: request.headers.get('x-tenant') || 'default',
+                    userId: auth?.userId || null,
+                    action: 'UPDATE',
+                    entityType: 'ManufacturingWorkOrder',
+                    entityId: order.id,
+                    route: '/api/manufacturing/work-orders',
+                    oldData: { status: 'in_progress' },
+                    newData: { status: 'completed', totalCost: totalActualCost },
+                    ipAddress: request.headers.get('x-forwarded-for') || null,
+                });
             });
         }
 

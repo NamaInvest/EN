@@ -78,6 +78,18 @@ async function _POST(request: NextRequest) {
             include: { recipe: true, machine: true }
         });
 
+        const { logAuditEvent } = await import('@/lib/audit-trail');
+        await logAuditEvent(prisma as any, {
+            tenantId: request.headers.get('x-tenant') || 'default',
+            userId: auth?.userId || null,
+            action: 'CREATE',
+            entityType: 'ManufacturingOrder',
+            entityId: newOrder.id,
+            route: '/api/manufacturing/orders',
+            newData: { orderNumber: newOrder.orderNumber, status: newOrder.status },
+            ipAddress: request.headers.get('x-forwarded-for') || null,
+        });
+
         // تشغيل MRP — فحص توفر المواد الخام وتوليد طلب شراء تلقائي عند النقص
         let mrpResult = null;
         try {
@@ -196,13 +208,26 @@ async function _PUT(request: NextRequest) {
                 });
 
                 // Update the original order state natively
-                await tx.manufacturingOrder.update({
+                const updatedMfgOrder = await tx.manufacturingOrder.update({
                     where: { id: currentOrder.id },
                     data: {
                         status: 'completed',
                         endDate: new Date(),
                         totalCost: totalMaterialCost
                     }
+                });
+
+                const { logAuditEvent } = await import('@/lib/audit-trail');
+                await logAuditEvent(tx as any, {
+                    tenantId: request.headers.get('x-tenant') || 'default',
+                    userId: null, // User is not extracted directly in PUT currently unless we pass auth
+                    action: 'UPDATE',
+                    entityType: 'ManufacturingOrder',
+                    entityId: currentOrder.id,
+                    route: '/api/manufacturing/orders',
+                    oldData: { status: currentOrder.status },
+                    newData: { status: 'completed', totalCost: totalMaterialCost },
+                    ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
             });
 

@@ -67,6 +67,19 @@ async function _PUT(
                 });
             }
 
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: request.headers.get('x-tenant') || 'default',
+                userId: auth?.userId || null,
+                action: 'UPDATE',
+                entityType: 'PurchaseInvoiceReceive',
+                entityId: id,
+                route: `/api/purchases/${id}/receive`,
+                oldData: { receiptStatus: invoice.receiptStatus },
+                newData: { receiptStatus: 'received' },
+                ipAddress: request.headers.get('x-forwarded-for') || null,
+            });
+
             return updatedInvoice;
         });
 

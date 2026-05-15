@@ -115,6 +115,19 @@ async function _POST(req: NextRequest) {
                     });
                 }
             }
+
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: req.headers.get('x-tenant') || 'default',
+                userId: decoded.userId || null,
+                action: 'CREATE',
+                entityType: 'DeliveryNote',
+                entityId: newNote.id,
+                route: '/api/sales/delivery-notes',
+                newData: { noteNo: newNote.noteNo, customerId: newNote.customerId },
+                ipAddress: req.headers.get('x-forwarded-for') || null,
+            });
+
             return newNote;
         });
 

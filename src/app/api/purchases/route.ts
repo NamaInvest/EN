@@ -264,6 +264,22 @@ async function _POST(request: Request) {
                 }
             }
 
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: request.headers.get('x-tenant') || 'default',
+                userId: userId || null,
+                action: 'CREATE',
+                entityType: 'PurchaseInvoice',
+                entityId: createdInvoice.id,
+                route: '/api/purchases',
+                newData: {
+                    invoiceNo: createdInvoice.invoiceNo,
+                    total: createdInvoice.total,
+                    paymentType: createdInvoice.paymentType,
+                },
+                ipAddress: request.headers.get('x-forwarded-for') || null,
+            });
+
             return createdInvoice;
         });
 
@@ -331,6 +347,19 @@ async function _PUT(request: Request) {
                 branchId: branchId,
                 date: new Date().toISOString().split('T')[0],
                 txClient: tx,
+            });
+
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: request.headers.get('x-tenant') || 'default',
+                userId: parsedUserId,
+                action: 'UPDATE',
+                entityType: 'PurchaseInvoicePayment',
+                entityId: invoice.id,
+                route: '/api/purchases',
+                oldData: { paid: invoice.paid, remaining: invoice.remaining },
+                newData: { paid: newPaid, remaining: newRemaining, amountPaid: payAmount },
+                ipAddress: request.headers.get('x-forwarded-for') || null,
             });
 
             return updatedInvoice;
@@ -410,6 +439,18 @@ async function _DELETE(request: NextRequest) {
 
             // Delete invoice (cascade deletes details)
             await tx.purchaseInvoice.delete({ where: { id } });
+
+            const { logAuditEvent } = await import('@/lib/audit-trail');
+            await logAuditEvent(tx as any, {
+                tenantId: request.headers.get('x-tenant') || 'default',
+                userId: auth.userId,
+                action: 'DELETE',
+                entityType: 'PurchaseInvoice',
+                entityId: invoice.id,
+                route: '/api/purchases',
+                oldData: { invoiceNo: invoice.invoiceNo, total: invoice.total },
+                ipAddress: request.headers.get('x-forwarded-for') || null,
+            });
         });
 
         // Audit trail — log deletion (after transaction succeeds)
