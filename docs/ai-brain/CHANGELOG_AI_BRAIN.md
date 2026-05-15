@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.8
+- **GRN Atomicity Enforcement (Phase 1.5.1):** Hardened the `POST /api/grn` endpoint to eliminate Stock-to-GL desync vulnerabilities. The `postGRN` financial journal creation is now fully bound within the primary `prisma.$transaction`. Removed all error-swallowing `.catch()` blocks from physical inventory updates, ensuring that any failure in the accounting layer (e.g., closed fiscal periods) definitively aborts the entire receiving process and rolls back physical stock adjustments.
+
 ## Version 1.1.7
 - **Stock Adjustments Warehouse Sync (Phase 1.4.4):** Hardened the `POST /api/stock/adjustments` endpoint to ensure warehouse-level consistency. The schema now accepts an optional `stockId` parameter. The transaction now includes a `productStock.upsert` operation to update the physical location balance synchronously with the global `currentStock`, fixing a discrepancy where physical stock counts were only recorded globally and defaulted to warehouse 1.
 

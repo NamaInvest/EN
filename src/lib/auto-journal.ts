@@ -654,6 +654,7 @@ export async function postGRN(grn: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     // Dr Inventory
     // Cr GRNI (Goods Received Not Invoiced)
@@ -667,6 +668,7 @@ export async function postGRN(grn: {
         userId: grn.userId,
         branchId: grn.branchId,
         date: grn.date,
+        txClient: grn.txClient,
     });
 }
 

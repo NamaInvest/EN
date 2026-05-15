@@ -1,69 +1,33 @@
-# GL ↔ Treasury Consistency Audit Report (Phase 1)
-**Date:** 2026-05-14
-**Mode:** ENTERPRISE ARCHITECTURAL AUDIT MODE (DEEP SCAN LEVEL 3)
-**Domain:** Financial Integrity (Treasury & General Ledger)
-
-## 1. ما فهمته (Understanding of the Task)
-المطلوب هو إجراء تدقيق شامل على مستوى معمارية النظام (Consistency Audit) للتأكد من التوافق التام بين حركات الخزينة/البنوك (Treasury) والقيود المحاسبية (Journal Entries). الهدف هو رصد أي حالات (Split-Brain) حيث يتم تسجيل حركة مالية في أحد الطرفين دون الآخر، أو وجود ثغرات في الـ Atomicity و Idempotency التي قد تؤدي إلى تكرار الحركات أو غياب المرجعية المالية.
-
-## 2. الملفات التي تم فحصها (Files Scanned)
-- `prisma/schema.prisma` (Architecture mapping)
-- `src/app/api/treasury/route.ts` (Manual Treasury Entries)
-- `src/app/api/sales/route.ts` (Sales Invoices & split payments)
-- `src/app/api/purchases/route.ts` (Purchase Invoices & partial payments)
-- `src/app/api/sales-returns/route.ts` (Sales Returns refunds)
-- `src/lib/auto-journal.ts` (Journal Entry engine)
-- `src/lib/payment-run-engine.ts` (Batch payments)
-- `src/lib/open-items.ts` (Atomic payment apps & FX)
-
-## 3. الملفات المحتمل تعديلها (Potential Target Files)
-- `src/app/api/purchases/route.ts`
-- `src/app/api/sales/route.ts`
-- `src/app/api/sales-returns/route.ts`
-- `src/app/api/purchase-returns/route.ts`
-- `src/lib/idempotency.ts` (If applying missing wrappers)
-
-## 4. الدومينات المتأثرة (Affected Domains)
-- **Treasury (Cash/Bank Management)**
-- **Accounting (General Ledger)**
-- **Accounts Payable (AP)**
-- **Accounts Receivable (AR)**
-- **Tenant Isolation**
-
-## 5. المخاطر والثغرات المكتشفة (Findings & Root Causes)
-
-### A. Critical Gap: Purchase Invoice Partial Payments (Split-Brain)
-- **المكان:** `src/app/api/purchases/route.ts` (Method: `_PUT`)
-- **وصف الثغرة:** عند قيام المستخدم بتسديد دفعة جزئية (Partial Payment) لفاتورة مشتريات عبر `PUT`، يتم إنشاء حركة `Treasury` (`type: 'out'`, `referenceType: 'purchase_payment'`) **ولكن لا يتم استدعاء محرك القيود `createJournalEntry` نهائياً!**
-- **الخطر (Financial Risk):** انخفاض رصيد الصندوق/البنك في واجهة الخزينة دون تسجيل القيد الدائن في الـ GL ودون تسجيل القيد المدين في حساب الدائنين (AP). هذا يسبب فرقاً مباشراً في ميزان المراجعة (Trial Balance) وانفصالاً بين الواقع المحاسبي وواقع الخزينة.
-- **Root Cause:** غياب ربط الـ `_PUT` مع `auto-journal.ts` (missing `postPurchasePayment` function).
-
-### B. Missing Idempotency on Critical Endpoints
-- **المكان:** `src/app/api/purchases/route.ts`
-- **وصف الثغرة:** الـ `PUT` endpoint الخاص بدفعات المشتريات غير محمي بـ `withIdempotency`، بينما الـ `POST` محمي. 
-- **الخطر (Security/Concurrency Risk):** قد يؤدي النقر المزدوج (Double-click) إلى تسجيل الدفعة نفسها مرتين في الخزينة وخصم المبلغ مرتين من رصيد الفاتورة (Double-Spend).
-
-### C. Missing Hard Link between Treasury and JournalEntry
-- **وصف الثغرة:** لا يوجد مفتاح أجنبي مباشر `journalEntryId` داخل جدول `Treasury`. يتم الربط حالياً عبر الـ `reference` (مثال: `TREAS-123` أو `SALE-456`).
-- **الخطر (Architectural Risk):** يجعل من الصعب (أو البطيء جداً) استخراج تقارير مطابقة سريعة (Reconciliation) لاكتشاف الـ Orphans. الـ Payment Run هو الوحيد الذي يخزن `journalEntryId` في الـ `PaymentRun` model، لكن الـ Treasury rows الفردية تفتقر لهذا الرابط الصريح.
-
-### D. Sales Returns & Purchase Returns Treasury Isolation
-- **المكان:** `src/app/api/sales-returns/route.ts`
-- **وصف الثغرة:** يتم تسجيل الـ Treasury row بمبلغ إجمالي الـ Return، ثم يتم استدعاء `postSalesReturn` الذي ينشئ القيد. العملية محاطة بـ `prisma.$transaction` وهذا ممتاز، ولكن الـ Treasury uses `referenceType: 'salesReturn'` والقيد يستخدم `reference: SRET-<id>`. لا توجد ثغرة Split-Brain هنا بفضل الـ Transaction، لكن يوجد ضعف في التتبع المرجعي المباشر.
-
-## 6. خطة التنفيذ (Small Safe Plan)
-بناءً على المبدأ المعماري الصارم، يجب معالجة أخطر ثغرة أولاً (ثغرة الدفعات الجزئية للمشتريات)، قبل إجراء أي تغييرات معمارية على الداتا بيز.
-
-**المرحلة المقترحة (Phase 1.1): سد ثغرة الـ Purchase Payments**
-1. إنشاء دالة `postPurchasePayment(params)` داخل `src/lib/auto-journal.ts` لتوليد القيد المحاسبي المباشر (Dr. AP / Cr. Cash-Bank).
-2. تعديل الـ `_PUT` في `src/app/api/purchases/route.ts` لاستدعاء هذه الدالة ضمن نفس الـ `prisma.$transaction`.
-3. حماية الـ `PUT` endpoint في المشتريات باستخدام `withIdempotency` لمنع تكرار الدفع.
-4. عدم المساس بباقي الملفات حالياً التزاماً بقاعدة "أصغر تعديل آمن" (Small Patch).
-
-## 7. خطة الاختبار (Testing Plan)
-- **Unit/Integration Test:** التحقق من أن عمل `PUT` لدفعة جزئية (مثلاً 500 ريال) على فاتورة مشتريات ينشئ صفاً في `Treasury` + صفاً في `JournalEntry` بنفس اللحظة.
-- **Idempotency Test:** إرسال طلبين متطابقين بنفس الـ Idempotency Key والتأكد من تسجيل دفعة واحدة فقط.
-- **Financial Balance Test:** ميزان المراجعة قبل وبعد الدفعة يجب أن يظل متوازناً.
+# SCAN + PLAN REPORT: Financial & Inventory Integrity
+**Date:** 2026-05-15
+**Focus:** Residual Atomicity, Isolation, and Workflow Gaps.
 
 ---
-**الرجاء المراجعة وإعطاء الموافقة (Approval) للبدء في تنفيذ Phase 1.1.**
+
+## 🛑 Top 5 Remaining Risks
+
+1. **[CRITICAL] Goods Receipt (GRN) & Purchase Receiving Atomicity:**
+   * **المشكلة:** في مسارات استلام البضاعة (`POST /api/grn` و `PUT /api/purchases/[id]/receive`)، يتم إنشاء سجل الاستلام وتحديث المخزون `product.update`، لكن القيد المحاسبي `postGRN` يتم إنشاؤه خارج الـ transaction ومحاط بـ `.catch()` لابتلاع الأخطاء! هذا يعني أنه إذا فشل النظام المحاسبي (مثلاً: فترة مغلقة)، سيزيد المخزون الفعلي بينما لا تسجل قيمته في ميزان المراجعة (Stock-to-GL Desync حاد).
+2. **[HIGH] Direct Stock Updates without GL Binding:**
+   * **المشكلة:** بعض المسارات مثل `api/stocktake/route.ts` وعمليات استيراد المنتجات `api/products/import` تحدث `product.currentStock` مباشرة بدون أي تزامن محاسبي أو تحديث لـ `ProductStock`.
+3. **[MEDIUM] Sales & Purchase Returns Workflows:**
+   * **المشكلة:** مسارات إرجاع المبيعات (`api/sales/returns`) تنشئ طلبات الإرجاع `salesReturn` وتحديثات الـ `DocumentStateLog` خارج أي إطار معاملي (Transaction)، ولا ترتبط بشكل صلب مع قيود الاسترجاع المحاسبية في نفس اللحظة.
+4. **[MEDIUM] Audit Logging Escaping Transactions:**
+   * **المشكلة:** التحديث اليدوي للقيود (`PATCH /api/accounting/journal/[id]`) يستدعي `logFieldChanges` لتوثيق تغييرات التدقيق، لكنه يتم في `try/catch` خارج הـ `$transaction` الرئيسي. إذا فشل القيد قد يسجل خطأً أنه تم، وإذا نجح القيد قد لا يُسجل بسب خطأ برمجي في التدقيق دون عمل Rollback.
+5. **[LOW] Tenant/Branch Isolation Consistency:**
+   * **المشكلة:** بعض المسارات تعتمد على Fallback بـ `null` للفرع، ولا تفرض `tenantId` (إن وجد) في استعلامات الـ `findUnique`، مما يترك ثغرة نظرية إذا كان هناك Tenants متعددين بقواعد بيانات مشتركة.
+
+---
+
+## ⚠️ هل يوجد خطر Critical يستحق Phase 1.5؟
+**نعم وبكل تأكيد.** ثغرة **استلام البضائع (GRN)** مطابقة تماماً للمشكلة التي حللناها للتو في الـ Adjustments. السماح بابتلاع أخطاء المحاسبة أثناء استلام البضائع سيدمر قيمة المخزون (Inventory Valuation) في الـ GL.
+
+## 🎯 التوصية الواضحة: المحور القادم
+**Phase 1.5: GRN & Receiving Atomicity**
+يجب دمج `postGRN` داخل الـ `$transaction` الخاص بـ `POST /api/grn`، وإزالة הـ `try/catch` التي تبتلع الأخطاء، ونقل الـ `txClient: tx` إلى دالة المحاسبة للحفاظ على سلامة المخزون ↔ المحاسبة عند الاستلام.
+
+## 🛠 خطة تنفيذ مصغرة وآمنة (Phase 1.5)
+1. **تعديل `src/lib/auto-journal.ts`:** إضافة دعم `txClient` لدالة `postGRN`.
+2. **تعديل `src/app/api/grn/route.ts`:** نقل استدعاء `postGRN` إلى داخل كتلة `prisma.$transaction`.
+3. **التخلص من `.catch(...)`:** السماح للخطأ المحاسبي بإجهاض كامل الـ transaction ورفض استلام البضاعة فيزيائياً إن لم تترجم محاسبياً.
+4. **توحيد `ProductStock`:** التأكد من تحديث رصيد المستودع (تم البدء به في GRN، يحتاج تنقيح ليصبح `await tx.productStock...` بدل الابتلاع بـ `catch`).

@@ -144,7 +144,7 @@ async function _POST(req: NextRequest, auth: any) {
             where:  { productId_stockId: { productId: item.productId, stockId } },
             create: { productId: item.productId, stockId, quantity: item.quantity },
             update: { quantity: { increment: item.quantity } },
-          }).catch(() => null);
+          });
         }
       }
 
@@ -153,30 +153,31 @@ async function _POST(req: NextRequest, auth: any) {
         await tx.product.update({
           where: { id: item.productId },
           data:  { currentStock: { increment: item.quantity } },
-        }).catch(() => null);
+        });
+      }
+
+      // ——————————————————————————————————————————————————————————————————————————————
+      if (totalCost > 0.01) {
+        await postGRN({
+          grnNo,
+          totalCost,
+          supplierName: supplier?.name,
+          userId:       auth?.userId,
+          branchId:     body.branchId,
+          date:         today,
+          txClient:     tx,
+        });
       }
 
       return created;
     });
-
-    // â”€â”€ Auto-Journal: Dr Inventory / Cr GRNI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    if (totalCost > 0.01) {
-      await postGRN({
-        grnNo,
-        totalCost,
-        supplierName: supplier?.name,
-        userId:       auth?.userId,
-        branchId:     body.branchId,
-        date:         today,
-      }).catch(err => log.error('[grn-journal]', err.message));
-    }
 
     return NextResponse.json({
       success: true,
       grn,
       grnNo,
       totalCost: Math.round(totalCost * 100) / 100,
-      message:   `طھظ… ط§ط³طھظ„ط§ظ… ط§ظ„ط¨ط¶ط§ط¹ط© GRN-${grnNo} ظˆطھط±ط­ظٹظ„ ط§ظ„ظ‚ظٹط¯ ط§ظ„ظ…ط­ط§ط³ط¨ظٹ (ظ…ط¯ظٹظ†: ط§ظ„ظ…ط®ط²ظˆظ† / ط¯ط§ط¦ظ†: ط¨ط¶ط§ط¹ط© ط؛ظٹط± ظ…ظپظˆطھط±ط©)`,
+      message:   `تم استلام البضاعة GRN-${grnNo} وترحيل القيد المحاسبي (مدين: المخزون / دائن: بضاعة غير مفوترة)`,
     }, { status: 201 });
 
   } catch (e: any) {
