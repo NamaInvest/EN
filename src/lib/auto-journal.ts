@@ -382,13 +382,12 @@ export async function postPurchaseInvoice(invoice: {
     const ppv = invoice.ppvAmount || 0;
     const inventoryBase = invoice.subtotal - ppv;
 
-    // [EG-02 FIX] Choose correct debit account:
-    // If GRN already posted (DR Inventory / CR GRNI), we CLEAR GRNI here.
-    // If no GRN (direct purchase), we debit INVENTORY directly.
-    const debitAccount = invoice.hasGRN ? ACCOUNTS.GRNI : ACCOUNTS.INVENTORY;
-    const debitDescription = invoice.hasGRN
-        ? `تصفية GRNI - مطابقة فاتورة شراء #${invoice.invoiceNo} مع سند الإدخال`
-        : `مشتريات فاتورة #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''} ${ppv !== 0 ? '(بالسعر المعياري)' : ''}`;
+    // [EG-03 FIX] Phase 1.5.2B: Purchase invoices ALWAYS debit GRNI.
+    // This enforces the 3-Way Match standard:
+    // 1. Invoice: Dr GRNI / Cr AP
+    // 2. Receipt (GRN): Dr INVENTORY / Cr GRNI
+    const debitAccount = ACCOUNTS.GRNI;
+    const debitDescription = `استحقاق المورد (GRNI) - فاتورة مشتريات #${invoice.invoiceNo} ${totalLandedCost > 0 ? '(متضمنة تكاليف الاستيراد)' : ''} ${ppv !== 0 ? '(بالسعر المعياري)' : ''}`;
 
     lines.push({
         accountCode: debitAccount,

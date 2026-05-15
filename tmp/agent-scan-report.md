@@ -1,33 +1,66 @@
-# SCAN + PLAN REPORT: Financial & Inventory Integrity
+# Phase 1.5.2A — Purchase GRNI Accounting Model Audit
 **Date:** 2026-05-15
-**Focus:** Residual Atomicity, Isolation, and Workflow Gaps.
+**Focus:** Purchase Invoice, GRN, and GL Synchronization.
 
----
+## 📊 1. القيد الحالي عند إنشاء فاتورة مشتريات (`postPurchaseInvoice`)
+يُبنى القيد بناءً على شرط `hasGRN`:
+* **إذا كانت الفاتورة Pending (`hasGRN=false`):** 
+  من حـ/ المخزون (`INVENTORY`)
+  من حـ/ القيمة المضافة (`VAT`)
+  إلى حـ/ الموردين (`AP`)
+* **إذا كانت الفاتورة Received (`hasGRN=true`):** 
+  من حـ/ استحقاق فواتير غير مستلمة (`GRNI`)
+  من حـ/ القيمة المضافة (`VAT`)
+  إلى حـ/ الموردين (`AP`)
 
-## 🛑 Top 5 Remaining Risks
+## 📦 2. القيد الحالي عند استلام البضاعة `postGRN`
+  من حـ/ المخزون (`INVENTORY`)
+  إلى حـ/ استحقاق الاستلام (`GRNI`)
 
-1. **[CRITICAL] Goods Receipt (GRN) & Purchase Receiving Atomicity:**
-   * **المشكلة:** في مسارات استلام البضاعة (`POST /api/grn` و `PUT /api/purchases/[id]/receive`)، يتم إنشاء سجل الاستلام وتحديث المخزون `product.update`، لكن القيد المحاسبي `postGRN` يتم إنشاؤه خارج الـ transaction ومحاط بـ `.catch()` لابتلاع الأخطاء! هذا يعني أنه إذا فشل النظام المحاسبي (مثلاً: فترة مغلقة)، سيزيد المخزون الفعلي بينما لا تسجل قيمته في ميزان المراجعة (Stock-to-GL Desync حاد).
-2. **[HIGH] Direct Stock Updates without GL Binding:**
-   * **المشكلة:** بعض المسارات مثل `api/stocktake/route.ts` وعمليات استيراد المنتجات `api/products/import` تحدث `product.currentStock` مباشرة بدون أي تزامن محاسبي أو تحديث لـ `ProductStock`.
-3. **[MEDIUM] Sales & Purchase Returns Workflows:**
-   * **المشكلة:** مسارات إرجاع المبيعات (`api/sales/returns`) تنشئ طلبات الإرجاع `salesReturn` وتحديثات الـ `DocumentStateLog` خارج أي إطار معاملي (Transaction)، ولا ترتبط بشكل صلب مع قيود الاسترجاع المحاسبية في نفس اللحظة.
-4. **[MEDIUM] Audit Logging Escaping Transactions:**
-   * **المشكلة:** التحديث اليدوي للقيود (`PATCH /api/accounting/journal/[id]`) يستدعي `logFieldChanges` لتوثيق تغييرات التدقيق، لكنه يتم في `try/catch` خارج הـ `$transaction` الرئيسي. إذا فشل القيد قد يسجل خطأً أنه تم، وإذا نجح القيد قد لا يُسجل بسب خطأ برمجي في التدقيق دون عمل Rollback.
-5. **[LOW] Tenant/Branch Isolation Consistency:**
-   * **المشكلة:** بعض المسارات تعتمد على Fallback بـ `null` للفرع، ولا تفرض `tenantId` (إن وجد) في استعلامات الـ `findUnique`، مما يترك ثغرة نظرية إذا كان هناك Tenants متعددين بقواعد بيانات مشتركة.
+## ⚖️ 3. الفرق بين الفاتورة Pending و Received
+* **Pending:** لا يتم تحديث المخزون الفيزيائي. يتم رفع المخزون الدفتري في الـ GL مباشرة.
+* **Received:** يتم تحديث المخزون الفيزيائي فوراً. القيد المالي للفاتورة يذهب إلى حساب وسيط (`GRNI`)، لكن المصيبة أنه لا يتم إنشاء قيد الاستلام (`postGRN`)!
 
----
+## 🔄 4. دور دالة `postGRN`
+دالة `postGRN` تنشئ رصيداً دفترياً جديداً في حساب المخزون (`Dr INVENTORY`) وتقابله كالتزام مؤقت في حساب (`Cr GRNI`). فهي لا تعكس الـ GRNI للصفر، بل تمثل الجانب الفيزيائي (الاستلام) الذي يجب أن تصفيه الفاتورة المالية لاحقاً.
 
-## ⚠️ هل يوجد خطر Critical يستحق Phase 1.5؟
-**نعم وبكل تأكيد.** ثغرة **استلام البضائع (GRN)** مطابقة تماماً للمشكلة التي حللناها للتو في الـ Adjustments. السماح بابتلاع أخطاء المحاسبة أثناء استلام البضائع سيدمر قيمة المخزون (Inventory Valuation) في الـ GL.
+## 💥 5. أين يحدث خطر Double Journal والتضخم المحاسبي؟
+**السيناريو الأول (Double Journal):**
+إذا أنشأنا فاتورة `pending`:
+1. الفاتورة تسجل (Dr INVENTORY / Cr AP).
+2. لاحقاً عند استلام البضاعة عبر مسار الـ `receive`، إذا أضفنا `postGRN`: سيسجل (Dr INVENTORY / Cr GRNI).
+3. **النتيجة:** تضخم حساب المخزون مرتين للعملية نفسها! وحساب GRNI وحساب AP متضخمان دائنان.
 
-## 🎯 التوصية الواضحة: المحور القادم
-**Phase 1.5: GRN & Receiving Atomicity**
-يجب دمج `postGRN` داخل الـ `$transaction` الخاص بـ `POST /api/grn`، وإزالة הـ `try/catch` التي تبتلع الأخطاء، ونقل الـ `txClient: tx` إلى دالة المحاسبة للحفاظ على سلامة المخزون ↔ المحاسبة عند الاستلام.
+**السيناريو الثاني (Ghost Balances):**
+إذا أنشأنا فاتورة `received`:
+1. يتم رفع المخزون المادي.
+2. الفاتورة تسجل (Dr GRNI / Cr AP). ولا يتم استدعاء `postGRN` إطلاقاً.
+3. **النتيجة:** حساب المخزون المالي (`INVENTORY`) فارغ، وحساب الـ `GRNI` مدين إلى الأبد دون تصفية!
 
-## 🛠 خطة تنفيذ مصغرة وآمنة (Phase 1.5)
-1. **تعديل `src/lib/auto-journal.ts`:** إضافة دعم `txClient` لدالة `postGRN`.
-2. **تعديل `src/app/api/grn/route.ts`:** نقل استدعاء `postGRN` إلى داخل كتلة `prisma.$transaction`.
-3. **التخلص من `.catch(...)`:** السماح للخطأ المحاسبي بإجهاض كامل الـ transaction ورفض استلام البضاعة فيزيائياً إن لم تترجم محاسبياً.
-4. **توحيد `ProductStock`:** التأكد من تحديث رصيد المستودع (تم البدء به في GRN، يحتاج تنقيح ليصبح `await tx.productStock...` بدل الابتلاع بـ `catch`).
+## 🏗️ 6. النموذج المحاسبي الصحيح المقترح (3-Way Matching)
+للتخلص من جميع المخاطر وتوحيد النظام المعماري:
+* **فاتورة المشتريات (`postPurchaseInvoice`) دائماً تضرب الـ GRNI:**
+  Dr GRNI
+  Dr VAT
+  Cr AP
+* **أي استلام لبضاعة (`postGRN` سواء فوري أو لاحق) دائماً يضرب المخزون ويصفر الـ GRNI:**
+  Dr INVENTORY
+  Cr GRNI
+
+*بهذا الشكل:* 
+- إذا فاتورة + استلام معاً = `Dr GRNI / Cr AP` ثم `Dr INVENTORY / Cr GRNI`. المحصلة: حساب `GRNI` يصبح صفر، و`INVENTORY` ارتفع بشكل سليم.
+- إذا فاتورة ثم استلام = الفاتورة ترفع التزام المورد وتفتح `GRNI` مدين. لاحقاً الاستلام يرفع المخزون ويغلق `GRNI`.
+
+## 🛠️ 7. أقل تعديل آمن (Minimal Safe Implementation)
+1. **في `auto-journal.ts` (`postPurchaseInvoice`):** إزالة تأثير الـ `hasGRN`، وجعل الفاتورة **دائماً** تسجل الجانب المدين على حساب `GRNI`.
+2. **في `POST /api/purchases/route.ts`:** إذا كانت الفاتورة `received` فوراً، يتم استدعاء `postGRN` مباشرة كجزء من المعاملة لإغلاق الـ `GRNI` المفتوح.
+3. **في `PUT /api/purchases/[id]/receive/route.ts`:** يتم لف الاستلام الفيزيائي بـ `transaction` واستدعاء `postGRN` لعمل الإغلاق وتحديث المخزون بشكل آمن (Phase 1.5.2).
+
+## 📁 8. الملفات المتأثرة
+* **المطلوب تعديله:**
+  * `src/lib/auto-journal.ts` (تبسيط `postPurchaseInvoice`)
+  * `src/app/api/purchases/route.ts` (إضافة `postGRN` عند الاستلام الفوري)
+  * `src/app/api/purchases/[id]/receive/route.ts` (إضافة `prisma.$transaction` و `postGRN`)
+* **الملفات التي يجب عدم لمسها:**
+  * `src/app/api/grn/route.ts` (تم إصلاحها ومستقرة)
+  * كل ما يتعلق بالمبيعات أو المرتجعات.

@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.9
+- **Purchase GRNI Normalization (Phase 1.5.2B):** Standardized the `postPurchaseInvoice` accounting logic to unconditionally debit `GRNI` (Goods Received Not Invoiced) rather than varying between `INVENTORY` and `GRNI` based on receipt status. This enforces a strict 3-Way Match paradigm, setting the foundation to safely implement atomic stock receipts without risking Double Journal anomalies.
+
 ## Version 1.1.8
 - **GRN Atomicity Enforcement (Phase 1.5.1):** Hardened the `POST /api/grn` endpoint to eliminate Stock-to-GL desync vulnerabilities. The `postGRN` financial journal creation is now fully bound within the primary `prisma.$transaction`. Removed all error-swallowing `.catch()` blocks from physical inventory updates, ensuring that any failure in the accounting layer (e.g., closed fiscal periods) definitively aborts the entire receiving process and rolls back physical stock adjustments.
 
