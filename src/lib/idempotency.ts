@@ -1,156 +1,91 @@
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { getTenantPrisma, resolveTenant } from '@/lib/prisma';
+import { redisConnection } from '@/lib/queue';
+import { logger } from '@/lib/logger';
+import { NextResponse, NextRequest } from 'next/server';
 
+const log = logger.child({ service: 'idempotency' });
+
+/**
+ * Checks and sets an idempotency key in Redis.
+ * Format: idempotency:{tenantId}:{routeName}:{idempotencyKey}
+ * Returns true if the request is unique and can proceed.
+ * Returns false if the request is a duplicate (already processing or completed).
+ */
+export async function lockIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string, ttlSeconds = 86400): Promise<boolean> {
+    const key = `idempotency:${tenantId}:${routeName}:${idempotencyKey}`;
+    try {
+        // SET NX: Set only if it does NOT exist.
+        // EX: Expire after ttlSeconds
+        const result = await redisConnection.set(key, 'PROCESSING', 'EX', ttlSeconds, 'NX');
+        return result === 'OK';
+    } catch (err) {
+        log.error('[Idempotency] Failed to check key, failing closed', { tenantId, routeName, idempotencyKey, error: (err as Error).message });
+        return false; 
+    }
+}
+
+/**
+ * Marks an idempotency key as COMPLETED.
+ */
+export async function completeIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string, ttlSeconds = 86400): Promise<void> {
+    const key = `idempotency:${tenantId}:${routeName}:${idempotencyKey}`;
+    try {
+        await redisConnection.set(key, 'COMPLETED', 'EX', ttlSeconds);
+    } catch (err) {
+        log.error('[Idempotency] Failed to mark key as completed', { tenantId, routeName, idempotencyKey, error: (err as Error).message });
+    }
+}
+
+/**
+ * Deletes an idempotency key on failure to allow retry.
+ */
+export async function unlockIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string): Promise<void> {
+    const key = `idempotency:${tenantId}:${routeName}:${idempotencyKey}`;
+    try {
+        await redisConnection.del(key);
+    } catch (err) {
+        log.error('[Idempotency] Failed to delete key', { tenantId, routeName, idempotencyKey, error: (err as Error).message });
+    }
+}
+
+/**
+ * Higher Order Function to wrap an API route handler with idempotency.
+ * Added for backward compatibility with older routes using this pattern.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function withIdempotency(
-    req: any,
+    req: NextRequest | any,
     endpoint: string,
     handler: () => Promise<NextResponse>
 ): Promise<NextResponse> {
+    const tenantId = req.headers.get('x-tenant') || 'default';
+    const key = req.headers.get('Idempotency-Key') || req.headers.get('x-idempotency-key');
+    
+    // If no key is provided, bypass idempotency
+    if (!key) {
+        return handler();
+    }
+    
+    const isUnique = await lockIdempotencyKey(tenantId, endpoint, key);
+    if (!isUnique) {
+        return NextResponse.json(
+            { success: false, message: 'Duplicate request detected or currently processing.' },
+            { status: 409 }
+        );
+    }
+    
     try {
-        const tenantId = resolveTenant(req);
-        const prisma = getTenantPrisma(req) as any;
-
-        // 1. Read key from header or body
-        let idempotencyKey = req.headers.get('Idempotency-Key') || req.headers.get('idempotency-key');
+        const response = await handler();
         
-        let bodyText = '';
-        let bodyJson: any = null;
-        
-        try {
-            // Read body ONCE and override req methods so the handler doesn't fail
-            bodyText = await req.text();
-            bodyJson = bodyText ? JSON.parse(bodyText) : null;
-            
-            req.json = async () => bodyJson;
-            req.text = async () => bodyText;
-        } catch (e) {
-            // Ignore parse errors, body might be empty
-        }
-
-        if (!idempotencyKey && bodyJson && bodyJson.idempotencyKey) {
-            idempotencyKey = String(bodyJson.idempotencyKey);
-        }
-
-        // If no key provided, skip idempotency entirely
-        if (!idempotencyKey) {
-            return await handler();
-        }
-
-        // 2. Hash request body (normalized)
-        const hashPayload = bodyJson ? JSON.stringify(bodyJson) : bodyText;
-        const requestHash = crypto.createHash('sha256').update(hashPayload).digest('hex');
-
-        // 3. Check or Create Idempotency Record
-        let record;
-        let createdNewRecord = false;
-        try {
-            record = await prisma.idempotencyRecord.create({
-                data: {
-                    tenantId,
-                    endpoint,
-                    key: idempotencyKey,
-                    requestHash,
-                    status: 'IN_PROGRESS',
-                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // TTL: 24h
-                }
-            });
-            createdNewRecord = true;
-        } catch (error: any) {
-            // P2002: Unique constraint violation (Race Condition or Duplicate)
-            if (error.code === 'P2002') {
-                record = await prisma.idempotencyRecord.findUnique({
-                    where: {
-                        tenantId_endpoint_key: {
-                            tenantId,
-                            endpoint,
-                            key: idempotencyKey
-                        }
-                    }
-                });
-
-                if (!record) {
-                    // Extremely rare edge case where create failed but findUnique returned null
-                    throw new Error('Idempotency conflict resolution failed.');
-                }
-            } else {
-                throw error;
-            }
-        }
-
-        // 4. Handle Existing Record Status
-        if (!createdNewRecord) {
-            if (record.status === 'IN_PROGRESS') {
-                return NextResponse.json(
-                    { success: false, message: 'طلب مكرر تحت المعالجة (IN_PROGRESS).' },
-                    { status: 409 }
-                );
-            }
-
-            if (record.status === 'COMPLETED') {
-                if (record.requestHash !== requestHash) {
-                    return NextResponse.json(
-                        { success: false, message: 'مفتاح Idempotency مكرر مع بيانات طلب مختلفة.' },
-                        { status: 400 }
-                    );
-                }
-                return NextResponse.json(record.responseBody, { status: record.responseCode || 200 });
-            }
-
-            if (record.status === 'FAILED') {
-                if (record.requestHash !== requestHash) {
-                    return NextResponse.json(
-                        { success: false, message: 'مفتاح Idempotency مكرر لطلب فاشل مع بيانات مختلفة.' },
-                        { status: 400 }
-                    );
-                }
-                // Update back to IN_PROGRESS for retry
-                await prisma.idempotencyRecord.update({
-                    where: { id: record.id },
-                    data: { status: 'IN_PROGRESS', lockedAt: new Date() }
-                });
-            }
-        }
-
-        // 5. Execute Original Handler
-        let response: NextResponse;
-        try {
-            response = await handler();
-        } catch (handlerError: any) {
-            // Handler threw an unhandled exception
-            await prisma.idempotencyRecord.update({
-                where: { id: record.id },
-                data: { status: 'FAILED' }
-            });
-            throw handlerError; // Re-throw to be handled by global error catcher
-        }
-
-        // 6. Inspect Response
+        // Only mark as completed if successful
         if (response.status >= 200 && response.status < 400) {
-            // Success
-            const clonedRes = response.clone();
-            const responseData = await clonedRes.json().catch(() => null);
-            
-            await prisma.idempotencyRecord.update({
-                where: { id: record.id },
-                data: {
-                    status: 'COMPLETED',
-                    responseCode: response.status,
-                    responseBody: responseData || undefined
-                }
-            });
+            await completeIdempotencyKey(tenantId, endpoint, key);
         } else {
-            // Business logic failure (e.g., 400, 422) returned via NextResponse
-            await prisma.idempotencyRecord.update({
-                where: { id: record.id },
-                data: { status: 'FAILED' }
-            });
+            await unlockIdempotencyKey(tenantId, endpoint, key);
         }
-
+        
         return response;
-    } catch (e: any) {
-        // Fallback for fatal errors outside the handler
-        console.error('[Idempotency System] Fatal error:', e);
-        return NextResponse.json({ success: false, message: 'خطأ في نظام المعالجة.' }, { status: 500 });
+    } catch (err) {
+        await unlockIdempotencyKey(tenantId, endpoint, key);
+        throw err;
     }
 }

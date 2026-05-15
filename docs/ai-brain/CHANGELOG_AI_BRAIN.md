@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.19
+- **POS Idempotency & Replay Protection (Phase 2.2.1):** Built a Redis-backed Distributed Lock utility (`src/lib/idempotency.ts`) using `SET NX` to enforce Exactly-Once delivery. Integrated this protection deeply into `api/pos/route.ts`. The API now rejects identical duplicate requests (Double Clicks, Webhook Replays, Network Retries) with `409 Conflict`, entirely mitigating duplicated accounting journals and phantom stock deductions.
+
 ## Version 1.1.18
 - **Financial Integrity Scanner (Phase 2.1):** Built `api/admin/system-audit/route.ts`, a forensic Read-Only endpoint. The scanner verifies ACID constraints by detecting "Orphaned Invoices" (missing GL Journals for Sales and Purchases), "Split-Brain Inventory" (discrepancy between `currentStock` and `ProductStock`), and "Financial Blackholes" (cash/bank sales without a `Treasury` receipt). Secured via `withGuard` as Admin-only.
 

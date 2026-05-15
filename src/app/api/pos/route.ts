@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
 import { postSalesInvoice } from '@/lib/auto-journal';
+import { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'pos' });
 
@@ -26,6 +27,16 @@ async function _POST(req: NextRequest) {
         const tenantString = resolveTenant(req as any);
         if (!tenantString) {
             return NextResponse.json({ error: "Missing or invalid Tenant ID" }, { status: 401 });
+        }
+
+        const idempotencyKey = req.headers.get('x-idempotency-key');
+        if (!idempotencyKey) {
+            return NextResponse.json({ error: "Missing x-idempotency-key header. Required for POS operations." }, { status: 400 });
+        }
+
+        const isUnique = await lockIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+        if (!isUnique) {
+            return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
         }
 
         // Parse Request Body
@@ -190,6 +201,8 @@ async function _POST(req: NextRequest) {
             return { invoice, lineItems, zatcaRecord };
         });
 
+        await completeIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+
         return NextResponse.json({
             success: true,
             message: "POS Transaction Completed Successfully",
@@ -197,6 +210,12 @@ async function _POST(req: NextRequest) {
         }, { status: 201 });
 
     } catch (error: any) {
+        const tenantString = resolveTenant(req as any);
+        const idempotencyKey = req.headers.get('x-idempotency-key');
+        if (tenantString && idempotencyKey) {
+            await unlockIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+        }
+
         log.error("POS API Error:", error);
         return NextResponse.json({
             success: false,
