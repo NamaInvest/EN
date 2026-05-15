@@ -18,7 +18,7 @@ async function _PUT(
         
         const invoice = await prisma.purchaseInvoice.findUnique({
             where: { id },
-            include: { details: true }
+            include: { details: true, supplier: { select: { name: true } } }
         });
 
         if (!invoice) {
@@ -29,35 +29,51 @@ async function _PUT(
             return NextResponse.json({ error: 'تم استلام بضاعة هذه الفاتورة مسبقاً' }, { status: 400 });
         }
 
-        // Increment stock
-        for (const detail of invoice.details) {
-            const qty = detail.quantity;
-            await prisma.product.update({
-                where: { id: detail.productId },
-                data: { currentStock: { increment: qty } },
-            });
-            
-            try {
-                await prisma.productStock.upsert({
+        const { postGRN } = await import('@/lib/auto-journal');
+
+        const updated = await prisma.$transaction(async (tx) => {
+            // Increment stock
+            for (const detail of invoice.details) {
+                const qty = detail.quantity;
+                await tx.product.update({
+                    where: { id: detail.productId },
+                    data: { currentStock: { increment: qty } },
+                });
+                
+                await tx.productStock.upsert({
                     where: { productId_stockId: { productId: detail.productId, stockId: invoice.stockId } },
                     update: { quantity: { increment: qty } },
                     create: { productId: detail.productId, stockId: invoice.stockId, quantity: qty },
                 });
-            } catch (e: any) {
-                 log.error('Failed to update productStock for purchase receipt:', e);
             }
-        }
 
-        // Update receiptStatus
-        const updated = await prisma.purchaseInvoice.update({
-            where: { id },
-            data: { receiptStatus: 'received' }
+            // Update receiptStatus
+            const updatedInvoice = await tx.purchaseInvoice.update({
+                where: { id },
+                data: { receiptStatus: 'received' }
+            });
+
+            // Post GRN Journal
+            const totalCost = Number(invoice.subtotal) - Number((invoice as any).ppvAmount || 0);
+            if (totalCost > 0.01) {
+                await postGRN({
+                    grnNo: invoice.invoiceNo || invoice.id,
+                    totalCost,
+                    supplierName: invoice.supplier?.name || `مورد ${invoice.supplierId}`,
+                    userId: auth?.userId,
+                    branchId: invoice.branchId,
+                    date: new Date().toISOString().split('T')[0],
+                    txClient: tx,
+                });
+            }
+
+            return updatedInvoice;
         });
 
         return NextResponse.json(updated);
 
     } catch (e: any) {
-        log.error(e);
+        log.error('Purchase receive error:', e);
         return NextResponse.json({ error: 'فشل بتحديث حالة الاستلام' }, { status: 500 });
     }
 }
