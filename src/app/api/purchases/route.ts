@@ -10,7 +10,7 @@ import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { reverseJournalByReference } from '@/lib/auto-journal';
 const log = logger.child({ route: 'purchases' });
 
@@ -112,7 +112,7 @@ async function _POST(request: Request) {
         const status = remaining > 0 ? 'pending' : 'completed';
         const receiptStatus = body.receiptStatus || 'received';
 
-        const invoice = await prisma.$transaction(async (tx) => {
+        const invoice = await runFinancialTx(prisma, async (tx: any) => {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
                     invoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
@@ -175,9 +175,8 @@ async function _POST(request: Request) {
             }
 
             if (paid > 0) {
-                await tx.treasury.create({
-                    data: { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id, userId, branchId },
-                });
+                const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+                await TreasuryPostingService.createTreasuryEntry(tx, { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id }, userId, branchId);
             }
 
             if (purchaseOrderId) {
@@ -312,7 +311,7 @@ async function _PUT(request: Request) {
         const newPaid = n(invoice.paid) + payAmount;
         const newRemaining = n(invoice.total) - newPaid;
 
-        const updated = await prisma.$transaction(async (tx) => {
+        const updated = await runFinancialTx(prisma, async (tx: any) => {
             const updatedInvoice = await tx.purchaseInvoice.update({
                 where: { id: Number(invoiceId) },
                 data: {
@@ -325,17 +324,14 @@ async function _PUT(request: Request) {
             const parsedUserId = userId ? Number(userId) : null;
             const branchId = invoice.branchId; // use invoice's original branch
 
-            const treasuryRec = await tx.treasury.create({
-                data: {
-                    type: 'out',
-                    amount: payAmount,
-                    description: `تسديد دفعة - فاتورة مشتريات #${invoice.invoiceNo}`,
-                    referenceType: 'purchase_payment',
-                    referenceId: invoice.id,
-                    userId: parsedUserId,
-                    branchId,
-                },
-            });
+            const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+            const treasuryRec = await TreasuryPostingService.createTreasuryEntry(tx, {
+                type: 'out',
+                amount: payAmount,
+                description: `تسديد دفعة - فاتورة مشتريات #${invoice.invoiceNo}`,
+                referenceType: 'purchase_payment',
+                referenceId: invoice.id,
+            }, parsedUserId, branchId);
 
             const { postPurchasePayment } = await import('@/lib/auto-journal');
             await postPurchasePayment({
@@ -392,7 +388,7 @@ async function _DELETE(request: NextRequest) {
         const invoice = await prisma.purchaseInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        await prisma.$transaction(async (tx: any) => {
+        await runFinancialTx(prisma, async (tx: any) => {
             // 1. Reverse Original Purchase Journal
             await reverseJournalByReference({
                 originalReference: `PUR-${invoice.invoiceNo}`,
