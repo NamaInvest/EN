@@ -618,6 +618,7 @@ export async function postInventoryAdjustment(adj: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     const lines = [];
     const absCost = Math.abs(adj.diffCost);
@@ -633,12 +634,13 @@ export async function postInventoryAdjustment(adj: {
     }
 
     return createJournalEntry({
-        description: `تسوية أصدة مستودع (الجرد)`,
+        description: `تسوية أرصدة مستودع (الجرد)`,
         reference: `ADJ-${Date.now()}`,
         lines,
         userId: adj.userId,
         branchId: adj.branchId,
         date: adj.date,
+        txClient: adj.txClient,
     });
 }
 

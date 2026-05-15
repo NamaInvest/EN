@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.5
+- **Stock Adjustments Atomicity (Phase 1.4.2):** Refactored `POST /api/stock/adjustments` and `postInventoryAdjustment` in `auto-journal.ts` to strictly enforce GL atomicity. Removed the `try/catch` wrapper that previously swallowed journal creation failures, and passed the `txClient` directly into the journal generation function. This guarantees that if the financial journal cannot be posted (e.g. closed fiscal period), the physical stock adjustment will safely rollback, resolving a major Stock-to-GL desync vulnerability.
+
 ## Version 1.1.4
 - **Ledger Posting Atomicity (Phase 1.4.1):** Addressed a critical Ledger Split-Brain vulnerability in the `PATCH /api/accounting/journal/[id]` endpoint. The manual journal posting mechanism, including the document state `transition` and iterative `account.update` logic, is now safely encapsulated inside a strict `prisma.$transaction`. This prevents partial balance updates if the server fails mid-execution.
 

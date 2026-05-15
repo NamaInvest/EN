@@ -103,16 +103,13 @@ async function _POST(req: Request) {
             // Post to Auto Journal
             const diffCost = diff * (n(product.buyPrice) || 0);
             if (diffCost !== 0) {
-                try {
-                    await postInventoryAdjustment({
-                        productId: product.id,
-                        diffCost: diffCost,
-                        reason: reason || 'تسوية جردية يدوية',
-                        userId: decoded.userId
-                    });
-                } catch (je: unknown) {
-                    log.error("Auto Journal Error (Inventory Adj):", je);
-                }
+                await postInventoryAdjustment({
+                    productId: product.id,
+                    diffCost: diffCost,
+                    reason: reason || 'تسوية جردية يدوية',
+                    userId: decoded.userId,
+                    txClient: tx
+                });
             }
 
             return mov;
