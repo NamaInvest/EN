@@ -57,7 +57,8 @@ async function _POST(req: NextRequest) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const { customerId, salesOrderId, items } = body;
+        const { customerId, salesOrderId, items, stockId } = body;
+        const targetStockId = stockId ? parseInt(stockId) : 1;
 
         const agg = await prisma.deliveryNote.aggregate({ _max: { noteNo: true } });
         const nextNo = (agg._max.noteNo || 5000) + 1;
@@ -84,15 +85,26 @@ async function _POST(req: NextRequest) {
             for (const item of items) {
                 const qty = parseFloat(item.quantity) || 0;
                 if (qty > 0) {
+                    const parsedProductId = parseInt(item.productId);
+                    
+                    // 1. Global Stock Deduction
                     await tx.product.update({
-                        where: { id: parseInt(item.productId) },
+                        where: { id: parsedProductId },
                         data: { currentStock: { decrement: qty } }
                     });
 
+                    // 2. Warehouse Stock Deduction (ProductStock)
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId: parsedProductId, stockId: targetStockId } },
+                        update: { quantity: { decrement: qty } },
+                        create: { productId: parsedProductId, stockId: targetStockId, quantity: -qty }
+                    });
+
+                    // 3. Stock Movement Audit Log
                     await tx.stockMovement.create({
                         data: {
-                            productId: parseInt(item.productId),
-                            stockId: 1, // Default main warehouse
+                            productId: parsedProductId,
+                            stockId: targetStockId,
                             type: 'out',
                             quantity: qty,
                             referenceType: 'DeliveryNote',

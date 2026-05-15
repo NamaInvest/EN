@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.16
+- **Delivery Notes Stock Consistency (Phase 1.8):** Refactored `api/sales/delivery-notes` to extract the `stockId` from the request payload and fully synchronize physical stock deductions. The endpoint now atomically applies the quantity decrement to both global `currentStock` and warehouse-specific `ProductStock`, while recording a `StockMovement` explicitly linked to the chosen `stockId`. This completely eliminates the hardcoded `stockId: 1` split-brain vulnerability during outbound delivery processing.
+
 ## Version 1.1.15
 - **Manufacturing Completion Atomicity (Phase 1.7.2):** Sealed the remaining split-brain vulnerabilities in `api/manufacturing/work-orders` during the `in_progress -> completed` transition. Migrated finished goods inventory additions, warehouse allocation (`ProductStock.upsert`), detailed `StockMovement` creation, and the final manufacturing journal (`postManufacturingCompletion`) directly into the `prisma.$transaction`. Financial failure now halts physical state mutations.
 
