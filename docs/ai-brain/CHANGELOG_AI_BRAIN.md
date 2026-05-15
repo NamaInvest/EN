@@ -2,6 +2,9 @@
 # Changelog: AI Brain
 **Generated At:** 2026-05-14T11:46:55.234Z
 
+## Version 1.1.1
+- **Auto-Journal Reversal Engine (Phase 1.3.1):** Implemented `reverseJournalByReference` in `auto-journal.ts` to provide a standardized, idempotent, and atomic mechanism for reversing GL entries. Instead of hard-deleting records, the engine generates opposing contra-entries (Reversal Journals) ensuring absolute GL consistency. Included robust idempotency checks to prevent duplicate reversals of the same reference.
+
 ## Version 1.1.0
 - **Sales Partial Payment Atomicity (Phase 1.2):** Implemented strict atomicity for `PUT /api/sales` using `withIdempotency`. Created `postSalesPayment` in `auto-journal.ts` mapping `CASH/BANK` to `RECEIVABLES`. Prevented overpayments by returning HTTP 400 *before* any transactions open. Ensured the Treasury in-flow and Journal Entry are securely generated inside a unified `prisma.$transaction`.
 

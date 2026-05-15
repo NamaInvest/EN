@@ -1368,3 +1368,99 @@ export async function postSalesPayment(params: {
 
     return result;
 }
+
+/**
+ * Reverse a journal entry by its reference.
+ * Generates a contra-entry (Reversal Journal) maintaining GL atomicity.
+ * Idempotent: Skips if the reversal journal already exists.
+ */
+export async function reverseJournalByReference(params: {
+    originalReference: string;
+    userId?: number | null;
+    branchId?: number | null;
+    date?: string;
+    txClient: any;
+}) {
+    const { originalReference, userId, branchId, date, txClient } = params;
+
+    // 1. Fetch Original Journal Entries
+    const originalEntries = await txClient.journalEntry.findMany({
+        where: { reference: originalReference },
+        include: { lines: true }
+    });
+
+    if (!originalEntries || originalEntries.length === 0) {
+        log.info(`No journal entries found for reference ${originalReference} to reverse.`);
+        return { success: true, message: 'No entries to reverse' };
+    }
+
+    const reversedEntryIds: number[] = [];
+
+    // 2. Create Contra-Entries for each original entry
+    for (const originalEntry of originalEntries) {
+        // Idempotency Check per entry
+        const reversalReference = `REV-${originalEntry.id}-${originalReference}`;
+        
+        const existingReversal = await txClient.journalEntry.findFirst({
+            where: { reference: reversalReference }
+        });
+
+        if (existingReversal) {
+            log.info(`Reversal journal already exists for entry ${originalEntry.id}, skipping.`);
+            reversedEntryIds.push(existingReversal.id);
+            continue;
+        }
+
+        // Prepare reversal lines (flip debit and credit)
+        const reversalLines = [];
+        
+        for (const line of originalEntry.lines) {
+            const account = await txClient.account.findUnique({ where: { id: line.accountId } });
+            if (!account) {
+                throw new Error(`Account ID ${line.accountId} not found for reversal.`);
+            }
+
+            reversalLines.push({
+                accountCode: account.code,
+                debit: line.credit, // Debit becomes Credit
+                credit: line.debit, // Credit becomes Debit
+                foreignDebit: line.foreignCredit || line.credit,
+                foreignCredit: line.foreignDebit || line.debit,
+                description: `عكس قيد: ${line.description || originalEntry.description}`,
+                costCenterId: line.costCenterId,
+                profitCenterId: line.profitCenterId,
+                projectId: line.projectId,
+                segmentId: line.segmentId,
+                productId: line.productId,
+                customerId: line.customerId,
+                vendorId: line.vendorId,
+                employeeId: line.employeeId,
+                assetId: line.assetId,
+                bookId: line.bookId,
+                fxRate: line.fxRate,
+                quantity: line.quantity ? -line.quantity : null, // Reverse quantity if exists
+                uom: line.uom,
+            });
+        }
+
+        const result = await createJournalEntry({
+            description: `عكس رياضي للقيد #${originalEntry.entryNumber}`,
+            reference: reversalReference,
+            lines: reversalLines,
+            userId: userId || undefined,
+            branchId: branchId || undefined,
+            date: date || new Date().toISOString().split('T')[0],
+            txClient: txClient,
+        });
+
+        if (result && (result as any).success === false) {
+            throw new Error(`فشل إنشاء القيد العكسي للمرجع ${originalReference}: ${(result as any).error}`);
+        }
+
+        if (result.entryId) {
+            reversedEntryIds.push(result.entryId);
+        }
+    }
+
+    return { success: true, reversedEntryIds };
+}
