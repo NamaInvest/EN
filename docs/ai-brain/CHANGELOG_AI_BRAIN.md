@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.6
+- **Manual Stock Movements Atomicity (Phase 1.4.3):** Hardened the `POST /api/stock-movements` endpoint. The creation of `stockMovement` records and the modification of `product.currentStock` are now unified under a strict `prisma.$transaction`. Additionally, `productStock.upsert` was implemented within the transaction to ensure that location-specific warehouse balances (`stockId`) are synchronously tracked, closing a loophole where only the global item stock was updated.
+
 ## Version 1.1.5
 - **Stock Adjustments Atomicity (Phase 1.4.2):** Refactored `POST /api/stock/adjustments` and `postInventoryAdjustment` in `auto-journal.ts` to strictly enforce GL atomicity. Removed the `try/catch` wrapper that previously swallowed journal creation failures, and passed the `txClient` directly into the journal generation function. This guarantees that if the financial journal cannot be posted (e.g. closed fiscal period), the physical stock adjustment will safely rollback, resolving a major Stock-to-GL desync vulnerability.
 

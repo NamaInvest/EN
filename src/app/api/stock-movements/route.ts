@@ -41,11 +41,25 @@ async function _POST(request: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const movement = await prisma.stockMovement.create({
-            data: { productId: parseInt(body.productId), stockId: parseInt(body.stockId) || 1, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId || null },
-        });
         const increment = (body.type === 'in' || body.type === 'adjustment') ? parseFloat(body.quantity) : -parseFloat(body.quantity);
-        const updatedProduct = await prisma.product.update({ where: { id: parseInt(body.productId) }, data: { currentStock: { increment } } });
+        const productId = parseInt(body.productId);
+        const stockId = parseInt(body.stockId) || 1;
+
+        const { movement, updatedProduct } = await prisma.$transaction(async (tx) => {
+            const mov = await tx.stockMovement.create({
+                data: { productId, stockId, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId ? parseInt(body.userId as any) : null },
+            });
+            
+            const prod = await tx.product.update({ where: { id: productId }, data: { currentStock: { increment } } });
+            
+            await (tx as any).productStock.upsert({
+                where: { productId_stockId: { productId, stockId } },
+                create: { productId, stockId, quantity: increment },
+                update: { quantity: { increment } }
+            });
+
+            return { movement: mov, updatedProduct: prod };
+        });
         
         if (updatedProduct.barcode) {
             await syncStockToSalla(updatedProduct.barcode, n(updatedProduct.currentStock));
