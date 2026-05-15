@@ -44,6 +44,7 @@ const _POSTSchema = z.object({
   productId: z.union([z.string(), z.number()]).optional(),
   actualQuantity: z.number().optional(),
   reason: z.any().optional(),
+  stockId: z.union([z.string(), z.number()]).optional(),
 }).passthrough();
 
 async function _POST(req: Request) {
@@ -66,7 +67,7 @@ async function _POST(req: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const { productId, actualQuantity, reason } = body;
+        const { productId, actualQuantity, reason, stockId } = body;
 
         if (!productId || actualQuantity === undefined) {
             return NextResponse.json({ error: 'المعلومات غير مكتملة' }, { status: 400 });
@@ -81,17 +82,26 @@ async function _POST(req: Request) {
 
             if (diff === 0) throw new Error('لا يوجد فارق لتسويته! الرصيد الفعلي يطابق الدفتري.');
 
+            const targetStockId = stockId ? parseInt(stockId) : 1;
+
             // Update product to absolute new quantity
             await tx.product.update({
                 where: { id: product.id },
                 data: { currentStock: parseFloat(actualQuantity) }
             });
 
+            // Upsert ProductStock for warehouse balance
+            await (tx as any).productStock.upsert({
+                where: { productId_stockId: { productId: product.id, stockId: targetStockId } },
+                create: { productId: product.id, stockId: targetStockId, quantity: diff },
+                update: { quantity: { increment: diff } }
+            });
+
             // Log adjustment
             const mov = await tx.stockMovement.create({
                 data: {
                     productId: product.id,
-                    stockId: 1,
+                    stockId: targetStockId,
                     type: diff > 0 ? 'adjustment_in' : 'adjustment_out',
                     quantity: Math.abs(diff),
                     referenceType: 'PhysicalCount',

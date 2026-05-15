@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.7
+- **Stock Adjustments Warehouse Sync (Phase 1.4.4):** Hardened the `POST /api/stock/adjustments` endpoint to ensure warehouse-level consistency. The schema now accepts an optional `stockId` parameter. The transaction now includes a `productStock.upsert` operation to update the physical location balance synchronously with the global `currentStock`, fixing a discrepancy where physical stock counts were only recorded globally and defaulted to warehouse 1.
+
 ## Version 1.1.6
 - **Manual Stock Movements Atomicity (Phase 1.4.3):** Hardened the `POST /api/stock-movements` endpoint. The creation of `stockMovement` records and the modification of `product.currentStock` are now unified under a strict `prisma.$transaction`. Additionally, `productStock.upsert` was implemented within the transaction to ensure that location-specific warehouse balances (`stockId`) are synchronously tracked, closing a loophole where only the global item stock was updated.
 
