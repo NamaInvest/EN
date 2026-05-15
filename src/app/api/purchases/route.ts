@@ -11,7 +11,7 @@ import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
-
+import { reverseJournalByReference } from '@/lib/auto-journal';
 const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
@@ -347,8 +347,29 @@ async function _DELETE(request: NextRequest) {
         const invoice = await prisma.purchaseInvoice.findUnique({ where: { id }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
-        await prisma.$transaction(async (tx) => {
-            // Reverse stock (decrement what was added from purchase) ONLY IF it was actually received
+        await prisma.$transaction(async (tx: any) => {
+            // 1. Reverse Original Purchase Journal
+            await reverseJournalByReference({
+                originalReference: `PUR-${invoice.invoiceNo}`,
+                userId: auth.userId,
+                txClient: tx
+            });
+
+            // 2. Reverse Purchase Payment Journals
+            const paymentJournals = await tx.journalEntry.findMany({
+                where: { reference: { startsWith: `PUR-PAY-${invoice.invoiceNo}-` } },
+                select: { reference: true }
+            });
+            const distinctPayRefs = Array.from(new Set(paymentJournals.map((j: any) => j.reference)));
+            for (const ref of distinctPayRefs) {
+                await reverseJournalByReference({
+                    originalReference: ref as string,
+                    userId: auth.userId,
+                    txClient: tx
+                });
+            }
+
+            // 3. Reverse stock (decrement what was added from purchase) ONLY IF it was actually received
             if (invoice.receiptStatus === 'received') {
                 for (const detail of invoice.details) {
                     await tx.product.update({
@@ -368,7 +389,7 @@ async function _DELETE(request: NextRequest) {
                 }
             }
 
-            // Remove related treasury entries
+            // 4. Remove related treasury entries
             await tx.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id } });
 
             // Delete invoice (cascade deletes details)

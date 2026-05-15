@@ -1,5 +1,7 @@
 
 # Changelog: AI Brain
+## Version 1.1.3
+- **Purchases DELETE Atomicity (Phase 1.3.3):** Refactored `DELETE /api/purchases` to safely reverse the General Ledger instead of leaving orphaned journals. Migrated to using `reverseJournalByReference` to generate contra-entries for both the primary purchase journal (`PUR-`) and any partial payment journals (`PUR-PAY-`). All reversals, stock un-reservation, and treasury deletions are securely bound within the single `prisma.$transaction`.
 ## Version 1.1.2
 - **Sales DELETE Atomicity (Phase 1.3.2):** Refactored `DELETE /api/sales` to completely eliminate the usage of `journalEntry.deleteMany`. Migrated to using `reverseJournalByReference` to safely generate contra-entries for both the primary sales journal (`SALE-`) and any partial payment journals (`SAL-PAY-`). All reversals, along with the standard stock un-reservation and treasury record deletions, are securely bound within the single `prisma.$transaction`.
 
