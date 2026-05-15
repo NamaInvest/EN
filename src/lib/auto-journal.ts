@@ -1438,7 +1438,7 @@ export async function reverseJournalByReference(params: {
                 assetId: line.assetId,
                 bookId: line.bookId,
                 fxRate: line.fxRate,
-                quantity: line.quantity ? -line.quantity : null, // Reverse quantity if exists
+                quantity: line.quantity ? -line.quantity : undefined, // Reverse quantity if exists
                 uom: line.uom,
             });
         }
