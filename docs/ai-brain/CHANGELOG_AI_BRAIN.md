@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.14
+- **Manufacturing Material Issue Atomicity (Phase 1.7.1):** Hardened the Work Orders endpoint (`api/manufacturing/work-orders`) during the `draft -> in_progress` transition. Integrated physical stock deduction (`product.currentStock`), warehouse inventory (`ProductStock`), and `StockMovement` creation directly into the main `prisma.$transaction`. Also injected the transaction client (`txClient`) into `postMaterialIssueToWIP`, ensuring that if the accounting journal entry fails, the physical raw materials are safely rolled back, eliminating split-brain vulnerabilities in the manufacturing module.
+
 ## Version 1.1.13
 - **Products Import Phantom Stock Guard (Phase 1.6.2A):** Hardened the `api/products/import` endpoint to prevent users from injecting "phantom stock" via Excel bulk import. If an imported product has `currentStock > 0`, the system automatically zeroes it out during creation and appends a warning message instructing the user to use the Stocktake module. This prevents untracked stock from bypassing `ProductStock` allocation, `StockMovement` logging, and opening balance journal generation.
 

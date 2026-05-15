@@ -108,11 +108,15 @@ async function _PUT(request: Request) {
 
         // ─── draft → in_progress: Issue materials & overhead to WIP ──────
         if (status === 'in_progress' && order.status === 'draft') {
-            const { materialCost } = await prisma.$transaction(async (tx) => {
+            let auth: any = null;
+            try { auth = getUserFromRequest(request as any); } catch (e) {}
+            const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
+
+            await prisma.$transaction(async (tx) => {
                 let totalCost = 0;
                 let materialCost = 0;
 
-                // 1. Material costs (per ingredient with scrap percentage)
+                // 1. Material costs & Stock Deduction (per ingredient with scrap percentage)
                 for (const item of order.recipe.ingredients) {
                     const scrapPerc = (item as any).scrapPercentage || 0;
                     const qtyNeeded = item.quantity * order.quantityToProduce * (1 + scrapPerc / 100);
@@ -128,6 +132,33 @@ async function _PUT(request: Request) {
                     });
                     totalCost += cost;
                     materialCost += cost;
+
+                    // Physical Inventory Deduction
+                    await tx.product.update({
+                        where: { id: item.rawProductId },
+                        data: { currentStock: { decrement: qtyNeeded } }
+                    });
+
+                    // Warehouse-Specific Deduction
+                    await (tx as any).productStock.upsert({
+                        where: { productId_stockId: { productId: item.rawProductId, stockId: targetStockId } },
+                        update: { quantity: { decrement: qtyNeeded } },
+                        create: { productId: item.rawProductId, stockId: targetStockId, quantity: -qtyNeeded }
+                    });
+
+                    // Audit Log (Stock Movement)
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.rawProductId,
+                            stockId: targetStockId,
+                            type: 'out',
+                            quantity: qtyNeeded,
+                            referenceType: 'manufacturing_order',
+                            referenceId: order.id,
+                            userId: auth?.userId || null,
+                            notes: `صرف خامات لأمر التصنيع ${order.orderNumber}`
+                        }
+                    });
                 }
 
                 // 2. Overhead costs (Work-Center hourly rate × routing duration)
@@ -152,17 +183,20 @@ async function _PUT(request: Request) {
                     data: { status: 'in_progress', totalCost }
                 });
 
-                return { totalCost, materialCost };
+                // 3. Auto-journal: Dr WIP / Cr Raw Materials (issuance) INSIDE transaction
+                if (materialCost > 0) {
+                    const journalResult = await postMaterialIssueToWIP({
+                        orderNumber: order.orderNumber,
+                        materialCost,
+                        userId: auth?.userId,
+                        branchId: body.branchId ? parseInt(body.branchId) : undefined,
+                        txClient: tx
+                    });
+                    if (!journalResult.success) {
+                        throw new Error(`Financial entry failed: ${journalResult.error}`);
+                    }
+                }
             });
-
-            // 3. Auto-journal: Dr WIP / Cr Raw Materials (issuance)
-            //    Done OUTSIDE the tx because auto-journal opens its own atomic flow.
-            if (materialCost > 0) {
-                await postMaterialIssueToWIP({
-                    orderNumber: order.orderNumber,
-                    materialCost,
-                });
-            }
         }
         // ─── in_progress → completed: WIP → Finished Goods ──────────────
         else if (status === 'completed' && order.status === 'in_progress') {

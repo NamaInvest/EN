@@ -740,6 +740,7 @@ export async function postMaterialIssueToWIP(params: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     return createJournalEntry({
         description: `إصدار مواد خام لأمر التصنيع ${params.orderNumber}`,
@@ -751,6 +752,7 @@ export async function postMaterialIssueToWIP(params: {
         userId: params.userId,
         branchId: params.branchId,
         date: params.date,
+        txClient: params.txClient,
     });
 }
 

@@ -1,45 +1,38 @@
-# SCAN + PLAN REPORT: Phase 1.6 (Direct Stock Mutation Audit)
-**Date:** 2026-05-15
-**Focus:** `api/stocktake`, `api/products/import`, and uncontrolled mutations of `currentStock`.
+# Phase 1.7 - Agent Scan & Plan Report
 
-## 🚨 أبرز 5 مخاطر متبقية (Top 5 Risks):
+## النطاق المفحوص (Scan Scope)
+تم إجراء مسح شامل على مسارات تعديل المخزون والقيود المحاسبية للموديلات التالية:
+1. المبيعات (`api/sales`)
+2. مردودات المبيعات (`api/sales-returns`)
+3. سندات التسليم (`api/sales/delivery-notes`)
+4. أوامر التصنيع (`api/manufacturing/work-orders`)
+5. المرتجعات الشرائية (`api/purchase-returns`)
 
-1. **الخطر الأول: اختراق المستودعات في الجرد (`api/stocktake`)**
-   * **المشكلة:** عند تفعيل الجرد (`applyAdjustment`)، النظام يحدّث الـ `currentStock` بـ `for` loop بدون `transaction`، **ويتجاهل تماماً** تحديث الـ `ProductStock` (رصيد المستودع)!
-   * **الأثر المالي والرقابي:** لا يتم تسجيل حركة `StockMovement` للفرق، ولا يتم إنشاء قيد تسوية جردية `postInventoryAdjustment`، ممّا يُحدث فجوة مالية فورية بين المخزون المادي والمحاسبي.
+## تحليل الوضع الحالي
+1. **مسارات المبيعات والمردودات (Sales & Returns):**
+   * تعمل بشكل سليم من ناحية الـ Transaction. جميع القيود المحاسبية (`postSalesInvoice`, `postSalesReturn`) وحركات المخزون تمرر `txClient: tx`.
+   * **التقييم:** ACID Compliant.
 
-2. **الخطر الثاني: أرصدة وهمية عبر الاستيراد (`api/products/import`)**
-   * **المشكلة:** استيراد المنتجات بملف Excel يسمح بإدخال `currentStock > 0`. يتم إدراج هذا الرقم في الـ `Product` مباشرة دون إنشاء `ProductStock`.
-   * **الأثر المالي والرقابي:** بضاعة تظهر في النظام بدون مستودع، بدون حركة `StockMovement` (رصيد افتتاحي)، وبدون قيد محاسبي يثبت رأس المال (Dr Inventory / Cr Opening Balance).
+2. **مسار سندات التسليم (Delivery Notes):**
+   * **المشكلة:** يقلل `product.currentStock` وينشئ `StockMovement` برقم مستودع ثابت (`stockId: 1`) ويتجاهل تماماً تحديث `ProductStock`.
+   * **الخطر:** Split-Brain بين الرصيد الإجمالي ورصيد المستودع (بضاعة تخرج من العدم).
 
-3. **الخطر الثالث: غياب طبقة `InventoryService` الموحدة**
-   * **المشكلة:** كل مسار (`purchases`, `stocktake`, `import`, `manufacturing`) يقوم بكتابة الـ `update` الخاص بالمخزون بشكل يدوي ومختلف. 
-   * **الأثر:** أي تحديث مستقبلي سيتطلب تتبع عشرات الملفات، ويزيد من احتمالية سقوط الـ Atomicity.
+3. **مسار أوامر التصنيع (Manufacturing Work Orders):**
+   * **المشكلة 1 (خطيرة جداً):** استدعاء القيود المحاسبية (`postMaterialIssueToWIP` و `postManufacturingCompletion`) يتم **خارج** الـ Transaction `prisma.$transaction`.
+   * **المشكلة 2:** عند استلام المنتج التام (`status === 'completed'`)، يتم تحديث `currentStock` بدون تحديث `ProductStock` الخاص بالمستودع.
+   * **الخطر:** إذا فشل إنشاء القيد المحاسبي لأي سبب (مثل نقص إعدادات الحسابات)، سيتم خصم الخامات وإضافة المنتج التام فعلياً في النظام دون أي أثر مالي (أرصدة وهمية معمارية، وفقدان تام للمواد الخام).
 
-4. **الخطر الرابع: مسارات التصنيع (Manufacturing & MRP)**
-   * **المشكلة:** مسارات إهلاك المواد الخام وإضافة المنتج التام (`manufacturing/work-orders`) مرشحة بشدة لاحتواء نفس ثغرات التحديث المباشر للمخزون بدون قيود تصنيع دقيقة أو بدون `transaction`.
+## أعلى المخاطر المتبقية بالترتيب
+1. **Manufacturing Work Orders (Critical):** تحويل الخامات إلى منتج تام يتم مالياً خارج المعاملة، وتحديثات المستودعات مبتورة.
+2. **Sales Delivery Notes (High):** خروج البضاعة يتم بدون خصم من أرصدة المستودع الحقيقية (`ProductStock`) برقم مستودع ثابت `1`.
+3. **Products Bulk Import (Medium):** لم يتم بناء مسار لإدخال الأرصدة الافتتاحية بشكل آمن محاسبياً.
 
-5. **الخطر الخامس: تحديثات الـ API الخارجية (E-Commerce Sync)**
-   * **المشكلة:** إذا كانت نقاط المزامنة مع Zid/Salla تحدث المخزون مباشرة، فهذا سيخلق فروقات بدون أثر تدقيق (Audit Trail).
+## التوصية (Phase 1.7)
+يجب توجيه الضربة القادمة إلى **`api/manufacturing/work-orders` (Manufacturing Atomicity Fix)** نظراً لحساسيته المالية (تحويل أصول من حسابات لأخرى).
 
----
+**خطة العمل (Manufacturing):**
+1. إدخال `postMaterialIssueToWIP` و `postManufacturingCompletion` داخل `tx`.
+2. ربط استلام المنتج التام بـ `ProductStock.upsert` و `StockMovement`.
+3. ربط صرف الخامات بـ `tx.product.update` و `ProductStock.upsert` و `StockMovement`.
 
-## 📁 الملفات المتأثرة بشكل مباشر (للإصلاح الفوري):
-* `src/app/api/stocktake/route.ts` (يحتوي على تدمير للـ Atomicity والـ Warehouse sync).
-* `src/app/api/products/import/route.ts` (يسمح بإدخال مخزون دون قيود).
-
----
-
-## 💡 التوصية (أيهما نبدأ؟):
-نوصي بالبدء بـ **`api/stocktake` (الجرد)**. 
-**السبب:** الجرد عملية مالية وتشغيلية دورية حرجة تُستخدم تحديداً لـ "تصحيح" الأرصدة. إذا كانت أداة التصحيح نفسها معيبة (تحدث فجوة بين `currentStock` و `ProductStock` ولا تسجل قيوداً)، فإنها تدمر موثوقية النظام المالي بالكامل.
-
----
-
-## 🛠️ خطة تنفيذ مصغرة وآمنة لـ `stocktake`:
-1. في `api/stocktake/route.ts`: عندما يكون `body.applyAdjustment = true`، نقوم بفتح `prisma.$transaction`.
-2. بداخل الـ Transaction: 
-   * نحدث `tx.product.update`.
-   * نحدث `tx.productStock.upsert` للمستودع الافتراضي أو المحدد.
-   * ننشئ `tx.stockMovement.create` لإثبات فرق الجرد.
-   * نستدعي `postInventoryAdjustment` لتسجيل التسوية المحاسبية مالياً.
+انتظر توجيهك لبدء Phase 1.7 بناءً على ما سبق.
