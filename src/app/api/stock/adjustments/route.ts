@@ -7,7 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'stock.adjustments' });
 
@@ -73,7 +73,7 @@ async function _POST(req: Request) {
             return NextResponse.json({ error: 'المعلومات غير مكتملة' }, { status: 400 });
         }
 
-        const adjustment = await prisma.$transaction(async (tx) => {
+        const adjustment = await runInventoryTx(prisma, async (tx: any) => {
             const product = await tx.product.findUnique({ where: { id: parseInt(productId) } });
             if (!product) throw new Error('المنتج غير موجود');
 
