@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.18
+- **Financial Integrity Scanner (Phase 2.1):** Built `api/admin/system-audit/route.ts`, a forensic Read-Only endpoint. The scanner verifies ACID constraints by detecting "Orphaned Invoices" (missing GL Journals for Sales and Purchases), "Split-Brain Inventory" (discrepancy between `currentStock` and `ProductStock`), and "Financial Blackholes" (cash/bank sales without a `Treasury` receipt). Secured via `withGuard` as Admin-only.
+
 ## Version 1.1.17
 - **POS Atomicity & Accounting Fix (Phase 1.9):** Completely overhauled the `api/pos/route.ts` point-of-sale endpoint to integrate it fully with the accounting and inventory engines. Addressed the "Financial Blackhole" by generating automatic `Treasury` receipts for cash/bank payments and invoking `postSalesInvoice` to record Revenue, COGS, and VAT into the General Ledger. Addressed the "Inverse Split-Brain" by enforcing synchronous deductions of both global `currentStock` and `ProductStock` within a strict `prisma.$transaction`.
 
