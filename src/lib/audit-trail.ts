@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger';
 export interface AuditEventPayload {
   tenantId: string;
   userId?: number | null;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'EXECUTE' | 'REVERSE' | 'ADJUST';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'EXECUTE' | 'REVERSE' | 'ADJUST' | 'SYSTEM_RECONCILIATION';
   entityType: string;
   entityId: string | number;
   route?: string | null;

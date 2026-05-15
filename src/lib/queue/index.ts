@@ -37,9 +37,10 @@ export const pdfQueue    = new Queue('pdfQueue',    { connection: redisConnectio
 export const syncQueue   = new Queue('syncQueue',   { connection: redisConnection, defaultJobOptions });
 export const reportQueue = new Queue('reportQueue', { connection: redisConnection, defaultJobOptions });
 export const aiAuditQueue = new Queue('aiAuditQueue', { connection: redisConnection, defaultJobOptions });
+export const systemReconciliationQueue = new Queue('systemReconciliationQueue', { connection: redisConnection, defaultJobOptions });
 
 // Suppress unhandled errors on queue objects themselves
-[emailQueue, pdfQueue, syncQueue, reportQueue, aiAuditQueue].forEach(q => q.on('error', () => {}));
+[emailQueue, pdfQueue, syncQueue, reportQueue, aiAuditQueue, systemReconciliationQueue].forEach(q => q.on('error', () => {}));
 
 // ── Worker initialization ────────────────────────────────────────────────
 export const startWorkers = async () => {
@@ -180,10 +181,18 @@ export const startWorkers = async () => {
     const { dailyAuditWorker } = await import('@/workers/ai/daily-audit.worker');
     const { cfoReportWorker } = await import('@/workers/ai/cfo-report.worker');
 
+    // ── System Reconciliation Worker ──────────────────────────────────────
+    const { systemReconciliationWorker } = await import('@/workers/audit/reconciliation.worker');
 
+    // Add repeatable cron job for daily reconciliation (midnight)
+    await systemReconciliationQueue.add(
+        'daily_reconciliation',
+        {},
+        { repeat: { pattern: '0 0 * * *' }, jobId: 'daily_reconciliation_job' }
+    );
 
     // ── Global event handlers ─────────────────────────────────────────────
-    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker];
+    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker, systemReconciliationWorker];
 
     allWorkers.forEach(worker => {
         worker.on('error', (err: Error) => logger.error({}, `[Queue] ${worker.name} error`, { message: err.message }));
@@ -191,7 +200,7 @@ export const startWorkers = async () => {
         worker.on('completed', (job: any) => logger.info({},  `[Queue] ${worker.name} job ${job?.id} completed`));
     });
 
-    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit'] });
+    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit', 'systemReconciliation'] });
 
     return allWorkers;
 };
