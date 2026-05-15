@@ -689,6 +689,7 @@ export async function postManufacturingCompletion(params: {
     userId?: number;
     branchId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     const variance = params.actualCost - params.standardCost;
 
@@ -726,6 +727,7 @@ export async function postManufacturingCompletion(params: {
         userId: params.userId,
         branchId: params.branchId,
         date: params.date,
+        txClient: params.txClient,
     });
 }
 

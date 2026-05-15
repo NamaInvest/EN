@@ -211,6 +211,10 @@ async function _PUT(request: Request) {
             const standardCost = order.recipe.totalCost * yieldQty;
             const finishedProductName = (order as any).recipe?.finishedProduct?.name;
 
+            let auth: any = null;
+            try { auth = getUserFromRequest(request as any); } catch (e) {}
+            const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
+
             await prisma.$transaction(async (tx: any) => {
                 // 1. Mark order completed
                 await tx.manufacturingOrder.update({
@@ -241,29 +245,48 @@ async function _PUT(request: Request) {
                 // 3. Increase finished-product stock + log movement
                 const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
                 if (fp) {
+                    // Physical Inventory Update
                     await tx.product.update({
                         where: { id: fp.id },
                         data: { currentStock: (fp.currentStock || 0) + yieldQty }
                     });
+
+                    // Warehouse-Specific Update
+                    await tx.productStock.upsert({
+                        where: { productId_stockId: { productId: fp.id, stockId: targetStockId } },
+                        update: { quantity: { increment: yieldQty } },
+                        create: { productId: fp.id, stockId: targetStockId, quantity: yieldQty }
+                    });
+
+                    // Audit Log (Stock Movement)
                     await tx.stockMovement.create({
                         data: {
                             productId: fp.id,
+                            stockId: targetStockId,
                             type: 'in',
                             quantity: yieldQty,
+                            referenceType: 'manufacturing_order',
+                            referenceId: order.id,
+                            userId: auth?.userId || null,
                             notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`
                         }
                     });
                 }
-            });
 
-            // 3. Auto-journal: Dr FG / Cr WIP / Variance
-            //    Uses account-code lookup (not hardcoded IDs) and balance updates
-            //    handled centrally — complies with CLAUDE.md §3.1.
-            await postManufacturingCompletion({
-                orderNumber: order.orderNumber,
-                standardCost,
-                actualCost: totalActualCost,
-                productName: finishedProductName,
+                // 4. Auto-journal: Dr FG / Cr WIP / Variance INSIDE transaction
+                const journalResult = await postManufacturingCompletion({
+                    orderNumber: order.orderNumber,
+                    standardCost,
+                    actualCost: totalActualCost,
+                    productName: finishedProductName,
+                    userId: auth?.userId,
+                    branchId: body.branchId ? parseInt(body.branchId) : undefined,
+                    txClient: tx
+                });
+
+                if (!journalResult.success) {
+                    throw new Error(`Financial entry failed: ${journalResult.error}`);
+                }
             });
         }
 

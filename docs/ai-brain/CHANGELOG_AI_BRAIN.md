@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.15
+- **Manufacturing Completion Atomicity (Phase 1.7.2):** Sealed the remaining split-brain vulnerabilities in `api/manufacturing/work-orders` during the `in_progress -> completed` transition. Migrated finished goods inventory additions, warehouse allocation (`ProductStock.upsert`), detailed `StockMovement` creation, and the final manufacturing journal (`postManufacturingCompletion`) directly into the `prisma.$transaction`. Financial failure now halts physical state mutations.
+
 ## Version 1.1.14
 - **Manufacturing Material Issue Atomicity (Phase 1.7.1):** Hardened the Work Orders endpoint (`api/manufacturing/work-orders`) during the `draft -> in_progress` transition. Integrated physical stock deduction (`product.currentStock`), warehouse inventory (`ProductStock`), and `StockMovement` creation directly into the main `prisma.$transaction`. Also injected the transaction client (`txClient`) into `postMaterialIssueToWIP`, ensuring that if the accounting journal entry fails, the physical raw materials are safely rolled back, eliminating split-brain vulnerabilities in the manufacturing module.
 
