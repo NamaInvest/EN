@@ -5,6 +5,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases.id.receive' });
 async function _PUT(
@@ -31,7 +32,7 @@ async function _PUT(
 
         const { postGRN } = await import('@/lib/auto-journal');
 
-        const updated = await prisma.$transaction(async (tx) => {
+        const updated = await runFinancialTx(prisma, async (tx: any) => {
             // Increment stock
             for (const detail of invoice.details) {
                 const qty = detail.quantity;
