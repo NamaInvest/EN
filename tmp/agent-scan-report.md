@@ -1,66 +1,45 @@
-# Phase 1.5.2A — Purchase GRNI Accounting Model Audit
+# SCAN + PLAN REPORT: Phase 1.6 (Direct Stock Mutation Audit)
 **Date:** 2026-05-15
-**Focus:** Purchase Invoice, GRN, and GL Synchronization.
+**Focus:** `api/stocktake`, `api/products/import`, and uncontrolled mutations of `currentStock`.
 
-## 📊 1. القيد الحالي عند إنشاء فاتورة مشتريات (`postPurchaseInvoice`)
-يُبنى القيد بناءً على شرط `hasGRN`:
-* **إذا كانت الفاتورة Pending (`hasGRN=false`):** 
-  من حـ/ المخزون (`INVENTORY`)
-  من حـ/ القيمة المضافة (`VAT`)
-  إلى حـ/ الموردين (`AP`)
-* **إذا كانت الفاتورة Received (`hasGRN=true`):** 
-  من حـ/ استحقاق فواتير غير مستلمة (`GRNI`)
-  من حـ/ القيمة المضافة (`VAT`)
-  إلى حـ/ الموردين (`AP`)
+## 🚨 أبرز 5 مخاطر متبقية (Top 5 Risks):
 
-## 📦 2. القيد الحالي عند استلام البضاعة `postGRN`
-  من حـ/ المخزون (`INVENTORY`)
-  إلى حـ/ استحقاق الاستلام (`GRNI`)
+1. **الخطر الأول: اختراق المستودعات في الجرد (`api/stocktake`)**
+   * **المشكلة:** عند تفعيل الجرد (`applyAdjustment`)، النظام يحدّث الـ `currentStock` بـ `for` loop بدون `transaction`، **ويتجاهل تماماً** تحديث الـ `ProductStock` (رصيد المستودع)!
+   * **الأثر المالي والرقابي:** لا يتم تسجيل حركة `StockMovement` للفرق، ولا يتم إنشاء قيد تسوية جردية `postInventoryAdjustment`، ممّا يُحدث فجوة مالية فورية بين المخزون المادي والمحاسبي.
 
-## ⚖️ 3. الفرق بين الفاتورة Pending و Received
-* **Pending:** لا يتم تحديث المخزون الفيزيائي. يتم رفع المخزون الدفتري في الـ GL مباشرة.
-* **Received:** يتم تحديث المخزون الفيزيائي فوراً. القيد المالي للفاتورة يذهب إلى حساب وسيط (`GRNI`)، لكن المصيبة أنه لا يتم إنشاء قيد الاستلام (`postGRN`)!
+2. **الخطر الثاني: أرصدة وهمية عبر الاستيراد (`api/products/import`)**
+   * **المشكلة:** استيراد المنتجات بملف Excel يسمح بإدخال `currentStock > 0`. يتم إدراج هذا الرقم في الـ `Product` مباشرة دون إنشاء `ProductStock`.
+   * **الأثر المالي والرقابي:** بضاعة تظهر في النظام بدون مستودع، بدون حركة `StockMovement` (رصيد افتتاحي)، وبدون قيد محاسبي يثبت رأس المال (Dr Inventory / Cr Opening Balance).
 
-## 🔄 4. دور دالة `postGRN`
-دالة `postGRN` تنشئ رصيداً دفترياً جديداً في حساب المخزون (`Dr INVENTORY`) وتقابله كالتزام مؤقت في حساب (`Cr GRNI`). فهي لا تعكس الـ GRNI للصفر، بل تمثل الجانب الفيزيائي (الاستلام) الذي يجب أن تصفيه الفاتورة المالية لاحقاً.
+3. **الخطر الثالث: غياب طبقة `InventoryService` الموحدة**
+   * **المشكلة:** كل مسار (`purchases`, `stocktake`, `import`, `manufacturing`) يقوم بكتابة الـ `update` الخاص بالمخزون بشكل يدوي ومختلف. 
+   * **الأثر:** أي تحديث مستقبلي سيتطلب تتبع عشرات الملفات، ويزيد من احتمالية سقوط الـ Atomicity.
 
-## 💥 5. أين يحدث خطر Double Journal والتضخم المحاسبي؟
-**السيناريو الأول (Double Journal):**
-إذا أنشأنا فاتورة `pending`:
-1. الفاتورة تسجل (Dr INVENTORY / Cr AP).
-2. لاحقاً عند استلام البضاعة عبر مسار الـ `receive`، إذا أضفنا `postGRN`: سيسجل (Dr INVENTORY / Cr GRNI).
-3. **النتيجة:** تضخم حساب المخزون مرتين للعملية نفسها! وحساب GRNI وحساب AP متضخمان دائنان.
+4. **الخطر الرابع: مسارات التصنيع (Manufacturing & MRP)**
+   * **المشكلة:** مسارات إهلاك المواد الخام وإضافة المنتج التام (`manufacturing/work-orders`) مرشحة بشدة لاحتواء نفس ثغرات التحديث المباشر للمخزون بدون قيود تصنيع دقيقة أو بدون `transaction`.
 
-**السيناريو الثاني (Ghost Balances):**
-إذا أنشأنا فاتورة `received`:
-1. يتم رفع المخزون المادي.
-2. الفاتورة تسجل (Dr GRNI / Cr AP). ولا يتم استدعاء `postGRN` إطلاقاً.
-3. **النتيجة:** حساب المخزون المالي (`INVENTORY`) فارغ، وحساب الـ `GRNI` مدين إلى الأبد دون تصفية!
+5. **الخطر الخامس: تحديثات الـ API الخارجية (E-Commerce Sync)**
+   * **المشكلة:** إذا كانت نقاط المزامنة مع Zid/Salla تحدث المخزون مباشرة، فهذا سيخلق فروقات بدون أثر تدقيق (Audit Trail).
 
-## 🏗️ 6. النموذج المحاسبي الصحيح المقترح (3-Way Matching)
-للتخلص من جميع المخاطر وتوحيد النظام المعماري:
-* **فاتورة المشتريات (`postPurchaseInvoice`) دائماً تضرب الـ GRNI:**
-  Dr GRNI
-  Dr VAT
-  Cr AP
-* **أي استلام لبضاعة (`postGRN` سواء فوري أو لاحق) دائماً يضرب المخزون ويصفر الـ GRNI:**
-  Dr INVENTORY
-  Cr GRNI
+---
 
-*بهذا الشكل:* 
-- إذا فاتورة + استلام معاً = `Dr GRNI / Cr AP` ثم `Dr INVENTORY / Cr GRNI`. المحصلة: حساب `GRNI` يصبح صفر، و`INVENTORY` ارتفع بشكل سليم.
-- إذا فاتورة ثم استلام = الفاتورة ترفع التزام المورد وتفتح `GRNI` مدين. لاحقاً الاستلام يرفع المخزون ويغلق `GRNI`.
+## 📁 الملفات المتأثرة بشكل مباشر (للإصلاح الفوري):
+* `src/app/api/stocktake/route.ts` (يحتوي على تدمير للـ Atomicity والـ Warehouse sync).
+* `src/app/api/products/import/route.ts` (يسمح بإدخال مخزون دون قيود).
 
-## 🛠️ 7. أقل تعديل آمن (Minimal Safe Implementation)
-1. **في `auto-journal.ts` (`postPurchaseInvoice`):** إزالة تأثير الـ `hasGRN`، وجعل الفاتورة **دائماً** تسجل الجانب المدين على حساب `GRNI`.
-2. **في `POST /api/purchases/route.ts`:** إذا كانت الفاتورة `received` فوراً، يتم استدعاء `postGRN` مباشرة كجزء من المعاملة لإغلاق الـ `GRNI` المفتوح.
-3. **في `PUT /api/purchases/[id]/receive/route.ts`:** يتم لف الاستلام الفيزيائي بـ `transaction` واستدعاء `postGRN` لعمل الإغلاق وتحديث المخزون بشكل آمن (Phase 1.5.2).
+---
 
-## 📁 8. الملفات المتأثرة
-* **المطلوب تعديله:**
-  * `src/lib/auto-journal.ts` (تبسيط `postPurchaseInvoice`)
-  * `src/app/api/purchases/route.ts` (إضافة `postGRN` عند الاستلام الفوري)
-  * `src/app/api/purchases/[id]/receive/route.ts` (إضافة `prisma.$transaction` و `postGRN`)
-* **الملفات التي يجب عدم لمسها:**
-  * `src/app/api/grn/route.ts` (تم إصلاحها ومستقرة)
-  * كل ما يتعلق بالمبيعات أو المرتجعات.
+## 💡 التوصية (أيهما نبدأ؟):
+نوصي بالبدء بـ **`api/stocktake` (الجرد)**. 
+**السبب:** الجرد عملية مالية وتشغيلية دورية حرجة تُستخدم تحديداً لـ "تصحيح" الأرصدة. إذا كانت أداة التصحيح نفسها معيبة (تحدث فجوة بين `currentStock` و `ProductStock` ولا تسجل قيوداً)، فإنها تدمر موثوقية النظام المالي بالكامل.
+
+---
+
+## 🛠️ خطة تنفيذ مصغرة وآمنة لـ `stocktake`:
+1. في `api/stocktake/route.ts`: عندما يكون `body.applyAdjustment = true`، نقوم بفتح `prisma.$transaction`.
+2. بداخل الـ Transaction: 
+   * نحدث `tx.product.update`.
+   * نحدث `tx.productStock.upsert` للمستودع الافتراضي أو المحدد.
+   * ننشئ `tx.stockMovement.create` لإثبات فرق الجرد.
+   * نستدعي `postInventoryAdjustment` لتسجيل التسوية المحاسبية مالياً.

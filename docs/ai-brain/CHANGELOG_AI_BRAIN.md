@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.12
+- **Stocktake Atomic Inventory Correction (Phase 1.6.1):** Hardened the `api/stocktake` endpoint by enclosing the inventory correction loop within a `prisma.$transaction`. Fixed a severe bug where `currentStock` was updated but warehouse-specific `ProductStock` was ignored, `StockMovement` logs were not created, and the `postInventoryAdjustment` accounting journal was never generated. Now, all four operations execute atomically, preventing inventory and general ledger desynchronization.
+
 ## Version 1.1.11
 - **Immediate Purchase Receive GRN Posting (Phase 1.5.2D):** Refactored `POST /api/purchases` to safely close the Ghost Balance vulnerability when creating purchase invoices with immediate receipt (`receiptStatus = 'received'`). The endpoint now executes `postPurchaseInvoice` (Dr GRNI) and immediately follows with `postGRN` (Cr GRNI, Dr INVENTORY) within the same `prisma.$transaction`. This ensures all immediate receipts are correctly tracked in both the physical inventory and the GL without bypassing the 3-Way Match GRNI clearing logic.
 

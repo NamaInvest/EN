@@ -33,7 +33,7 @@ async function _POST(request: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const products = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
+        const products = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true, buyPrice: true } });
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
             const product = products.find(p => p.id === item.productId);
@@ -52,31 +52,72 @@ async function _POST(request: Request) {
         const over = items.filter((i: { status: string }) => i.status === 'over').length;
         const short = items.filter((i: { status: string }) => i.status === 'short').length;
 
-        const stocktake = await prisma.stocktake.create({
-            data: {
-                stocktakeDate: new Date().toISOString().split('T')[0],
-                totalItems: items.length, matched, over, short,
-                status: body.applyAdjustment ? 'applied' : 'completed',
-                notes: body.notes || null,
-                createdBy: body.userId || null,
-                items: { create: items },
-            },
-            include: { items: true },
-        });
+        const result = await prisma.$transaction(async (tx) => {
+            const stocktake = await tx.stocktake.create({
+                data: {
+                    stocktakeDate: new Date().toISOString().split('T')[0],
+                    totalItems: items.length, matched, over, short,
+                    status: body.applyAdjustment ? 'applied' : 'completed',
+                    notes: body.notes || null,
+                    createdBy: body.userId || null,
+                    items: { create: items },
+                },
+                include: { items: true },
+            });
 
-        // Apply stock adjustment if requested
-        if (body.applyAdjustment) {
-            for (const item of items) {
-                if (item.difference !== 0) {
-                    await prisma.product.update({
-                        where: { id: item.productId },
-                        data: { currentStock: item.actualQty },
-                    });
+            // Apply stock adjustment if requested
+            if (body.applyAdjustment) {
+                const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
+                
+                // Need auto-journal import locally if not at top level
+                const { postInventoryAdjustment } = await import('@/lib/auto-journal');
+
+                for (const item of items) {
+                    if (item.difference !== 0) {
+                        const product = products.find(p => p.id === item.productId);
+                        if (!product) continue;
+
+                        await tx.product.update({
+                            where: { id: item.productId },
+                            data: { currentStock: item.actualQty },
+                        });
+
+                        await (tx as any).productStock.upsert({
+                            where: { productId_stockId: { productId: item.productId, stockId: targetStockId } },
+                            create: { productId: item.productId, stockId: targetStockId, quantity: item.difference },
+                            update: { quantity: { increment: item.difference } }
+                        });
+
+                        await tx.stockMovement.create({
+                            data: {
+                                productId: item.productId,
+                                stockId: targetStockId,
+                                type: item.difference > 0 ? 'adjustment_in' : 'adjustment_out',
+                                quantity: Math.abs(item.difference),
+                                referenceType: 'Stocktake',
+                                referenceId: stocktake.id,
+                                userId: body.userId || null,
+                                notes: `تسوية جردية (Stocktake #${stocktake.id}): من ${item.systemQty} إلى ${item.actualQty}`
+                            }
+                        });
+
+                        const diffCost = item.difference * (n((product as any).buyPrice) || 0);
+                        if (diffCost !== 0) {
+                            await postInventoryAdjustment({
+                                productId: item.productId,
+                                diffCost: diffCost,
+                                reason: `تسوية جردية رقم #${stocktake.id}`,
+                                userId: body.userId,
+                                txClient: tx
+                            });
+                        }
+                    }
                 }
             }
-        }
+            return stocktake;
+        });
 
-        return NextResponse.json(stocktake, { status: 201 });
+        return NextResponse.json(result, { status: 201 });
     } catch (e: any) { log.error('Stocktake error:', e); return NextResponse.json({ error: 'فشل في إنشاء الجرد' }, { status: 500 }); }
 }
 
