@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.26
+- **Background Reconciliation Jobs Foundation (Phase 2.4.1):** Decoupled the financial integrity scanning logic from `api/admin/system-audit` into a dedicated service module `src/lib/system-audit.ts` (`runSystemReconciliation`). The API now acts as a thin wrapper. This enables the exact same integrity rules (Orphaned Invoices, Split-Brain Inventory, POS Financial Blackholes) to be safely executed by a background BullMQ worker in upcoming phases without code duplication or schema changes.
+
 ## Version 1.1.25
 - **Audit Trail Expansion (Phase 2.3.2):** Implemented widespread audit instrumentation across mission-critical financial and inventory routes (`POST /api/pos`, `POST /api/finance/treasury`, `POST/PUT/DELETE /api/purchases`, `PUT /api/purchases/[id]/receive`, `POST /api/purchases/grn`, `POST/PUT /api/manufacturing/orders`, `POST/PUT /api/manufacturing/work-orders`, `POST /api/sales/delivery-notes`, and `POST /api/inventory/stocktake/[id]/approve`). Audit logs are natively injected within the exact same `prisma.$transaction` block as the business operations, ensuring atomic auditing without bloated payloads.
 
