@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases.matching' });
 
@@ -95,7 +95,7 @@ async function _POST(req: Request) {
             let allQtyMatched = true;
             let allPriceMatched = true;
 
-            const matchLines = [];
+            const matchLines: any[] = [];
 
             for (const d of invoice.details) {
                 const poQty = poQtyMap[d.productId] || 0;
@@ -150,8 +150,8 @@ async function _POST(req: Request) {
                 paymentBlocked = true;
             }
 
-            await prisma.$transaction([
-                prisma.threeWayMatch.create({
+            await runFinancialTx(prisma, async (tx: any) => {
+                await tx.threeWayMatch.create({
                     data: {
                         invoiceId: invoice.id,
                         purchaseOrderId: po.id,
@@ -174,14 +174,14 @@ async function _POST(req: Request) {
                             create: matchLines
                         }
                     }
-                }),
-                ...(status === 'MATCHED' ? [
-                    prisma.purchaseInvoice.update({
+                });
+                if (status === 'MATCHED') {
+                    await tx.purchaseInvoice.update({
                         where: { id: invoice.id },
                         data: { status: 'APPROVED_FOR_PAYMENT' }
-                    })
-                ] : [])
-            ]);
+                    });
+                }
+            });
 
             processed++;
         }

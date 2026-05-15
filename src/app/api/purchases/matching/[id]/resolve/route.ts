@@ -3,7 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases.matching.id.resolve' });
 
@@ -49,23 +49,20 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
             dataToUpdate.matchStatus = 'MANUAL_REVIEW';
         }
 
-        const updatePromises: any[] = [
-            prisma.threeWayMatch.update({
+        const updated = await runFinancialTx(prisma, async (tx: any) => {
+            const matchUpdate = await tx.threeWayMatch.update({
                 where: { id: Number(id) },
                 data: dataToUpdate
-            })
-        ];
+            });
 
-        if (override) {
-            updatePromises.push(
-                prisma.purchaseInvoice.update({
+            if (override) {
+                await tx.purchaseInvoice.update({
                     where: { id: match.invoiceId },
                     data: { status: 'APPROVED_FOR_PAYMENT' }
-                })
-            );
-        }
-
-        const [updated] = await prisma.$transaction(updatePromises);
+                });
+            }
+            return matchUpdate;
+        });
 
         return NextResponse.json({ success: true, data: updated });
     } catch (e: any) {

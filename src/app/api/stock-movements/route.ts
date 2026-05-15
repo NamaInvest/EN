@@ -7,6 +7,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'stock-movements' });
 async function _GET(request: Request) {
@@ -45,7 +46,7 @@ async function _POST(request: Request) {
         const productId = parseInt(body.productId);
         const stockId = parseInt(body.stockId) || 1;
 
-        const { movement, updatedProduct } = await prisma.$transaction(async (tx) => {
+        const { movement, updatedProduct } = await runInventoryTx(prisma, async (tx: any) => {
             const mov = await tx.stockMovement.create({
                 data: { productId, stockId, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId ? parseInt(body.userId as any) : null },
             });

@@ -5,6 +5,7 @@ import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'product-stocks.location' });
 
@@ -28,9 +29,11 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: 'Missing productStockId' }, { status: 400 });
         }
 
-        const updated = await prisma.productStock.update({
-            where: { id: parseInt(productStockId) },
-            data: { location: location || null }
+        const updated = await runInventoryTx(prisma, async (tx: any) => {
+            return await tx.productStock.update({
+                where: { id: parseInt(productStockId) },
+                data: { location: location || null }
+            });
         });
 
         return NextResponse.json(updated, { status: 200 });

@@ -7,7 +7,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'smart-transfers' });
 async function _GET(req: NextRequest) {
@@ -111,14 +111,12 @@ async function _POST(req: NextRequest) {
         const transferRef = `TRX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
         // Phase 1: Dispatch (Transit Out) using Prisma Transaction
-        const dispatchAction = await prisma.$transaction([
-            // Deduct from sender natively
-            prisma.productStock.update({
+        const dispatchAction = await runInventoryTx(prisma, async (tx: any) => {
+            const updateAction = await tx.productStock.update({
                 where: { id: currentStock.id },
                 data: { quantity: { decrement: Number(quantity) } }
-            }),
-            // Create the transit log
-            prisma.stockMovement.create({
+            });
+            const createAction = await tx.stockMovement.create({
                 data: {
                     productId: Number(productId),
                     stockId: Number(senderStockId), // Origin
@@ -132,8 +130,9 @@ async function _POST(req: NextRequest) {
                         transferRef: transferRef
                     })
                 }
-            })
-        ]);
+            });
+            return [updateAction, createAction];
+        });
 
         const movementId = dispatchAction[1].id;
         try {
@@ -188,7 +187,7 @@ async function _PUT(req: NextRequest) {
         const qty = Math.abs(n(tr.quantity));
 
         // Receive the goods natively via Prisma Transaction
-        await prisma.$transaction(async (tx) => {
+        await runInventoryTx(prisma, async (tx: any) => {
             // 1. Mark sender transit complete
             await tx.stockMovement.update({
                 where: { id: tr.id },

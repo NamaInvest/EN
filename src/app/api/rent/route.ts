@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { resolveTenant } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'rent' });
 
@@ -31,7 +31,7 @@ async function _POST(req: NextRequest) {
             total += (item.quantity * item.unitPrice);
         }
 
-        const result = await prisma.$transaction(async (tx: any) => {
+        const result = await runFinancialTx(prisma, async (tx: any) => {
             const invoice = await tx.rentInvoice.create({
                 data: {
                     invoiceNo: `RNT-${Math.floor(Math.random() * 1000000)}`,

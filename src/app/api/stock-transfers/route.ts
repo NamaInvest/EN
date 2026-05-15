@@ -1,4 +1,4 @@
-﻿import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { postStockTransfer } from '@/lib/auto-journal';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'stock-transfers' });
 
@@ -74,7 +74,7 @@ async function _POST(request: NextRequest) {
         }
 
         // ── Transaction: Create Transfer + Update Stock ───────────────────────
-        const transfer = await prisma.$transaction(async (tx) => {
+        const transfer = await runInventoryTx(prisma, async (tx: any) => {
             const tr = await tx.stockTransfer.create({
                 data: {
                     transferNo,

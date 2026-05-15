@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ route: 'webhooks/salla' });
 
 import { getUserFromRequest } from '@/lib/auth';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 /** Timing-safe HMAC comparison */
 function verifySallaSignature(bodyStr: string, secret: string, signature: string): boolean {
@@ -95,7 +95,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
     const mainStock = await prisma.stock.findFirst({ orderBy: { id: 'asc' } });
     const stockId = mainStock?.id || 1;
 
-    await prisma.$transaction(async (tx: any) => {
+    await runFinancialTx(prisma, async (tx: any) => {
         // Find Customer by phone or create
         let customer = await tx.customer.findFirst({ where: { phone: customerPhone } });
         if (customer) {

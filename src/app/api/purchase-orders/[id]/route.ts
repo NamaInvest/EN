@@ -6,7 +6,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchase-orders.id' });
 async function _GET(
@@ -90,7 +90,7 @@ async function _PUT(
                 include: { expenseAccount: true }
             });
 
-            const invoice = await prisma.$transaction(async (tx) => {
+            const invoice = await runFinancialTx(prisma, async (tx: any) => {
                 const createdInvoice = await tx.purchaseInvoice.create({
                     data: {
                         invoiceNo,

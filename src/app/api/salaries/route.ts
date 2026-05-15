@@ -8,7 +8,7 @@ import { handleApiError } from '@/lib/api-handler';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'salaries' });
 async function _GET(request: Request) {
@@ -41,7 +41,7 @@ async function _POST(request: Request) {
         }
 
         // Atomic transaction: create salary AND treasury deduction together
-        const salary = await prisma.$transaction(async (tx) => {
+        const salary = await runFinancialTx(prisma, async (tx: any) => {
             const newSalary = await tx.salary.create({
                 data: {
                     employeeId: Number(body.employeeId),

@@ -6,6 +6,7 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'stocktake' });
 async function _GET(request: NextRequest) {
@@ -52,7 +53,7 @@ async function _POST(request: Request) {
         const over = items.filter((i: { status: string }) => i.status === 'over').length;
         const short = items.filter((i: { status: string }) => i.status === 'short').length;
 
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await runInventoryTx(prisma, async (tx: any) => {
             const stocktake = await tx.stocktake.create({
                 data: {
                     stocktakeDate: new Date().toISOString().split('T')[0],

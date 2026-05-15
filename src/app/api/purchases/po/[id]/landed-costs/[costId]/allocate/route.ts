@@ -4,7 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'purchases.po.id.landed-costs.costId.allo' });
 
@@ -49,37 +49,34 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, c
         if (totalFactor === 0) totalFactor = 1;
 
         // Allocate cost and update buyPrice (as a simple average cost uplift)
-        const updatePromises = po.details.map(d => {
-            let factor = 0;
-            if (cost.allocationMethod === 'value') {
-                factor = n(d.price) * n(d.quantity);
-            } else if (cost.allocationMethod === 'quantity') {
-                factor = n(d.quantity);
-            } else {
-                factor = n(d.price) * n(d.quantity);
+        await runFinancialTx(prisma, async (tx: any) => {
+            for (const d of po.details) {
+                let factor = 0;
+                if (cost.allocationMethod === 'value') {
+                    factor = n(d.price) * n(d.quantity);
+                } else if (cost.allocationMethod === 'quantity') {
+                    factor = n(d.quantity);
+                } else {
+                    factor = n(d.price) * n(d.quantity);
+                }
+
+                const allocatedAmount = (factor / totalFactor) * n(cost.amount);
+                const qty = n(d.quantity);
+                const unitUplift = qty > 0 ? allocatedAmount / qty : 0;
+
+                await tx.product.update({
+                    where: { id: d.productId },
+                    data: {
+                        buyPrice: { increment: unitUplift }
+                    }
+                });
             }
 
-            const allocatedAmount = (factor / totalFactor) * n(cost.amount);
-            const qty = n(d.quantity);
-            const unitUplift = qty > 0 ? allocatedAmount / qty : 0;
-
-            // In a real system, this should add a record to a cost layer.
-            // Here we update the product's average buyPrice as a simplification.
-            return prisma.product.update({
-                where: { id: d.productId },
-                data: {
-                    buyPrice: { increment: unitUplift }
-                }
-            });
-        });
-
-        await prisma.$transaction([
-            ...updatePromises,
-            prisma.landedCost.update({
+            await tx.landedCost.update({
                 where: { id: costId },
                 data: { isAllocated: true }
-            })
-        ]);
+            });
+        });
 
         return NextResponse.json({ success: true });
     } catch (e: any) {
