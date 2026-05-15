@@ -13,8 +13,16 @@
  */
 
 import { logger } from '@/lib/logger';
+import { Prisma } from '@prisma/client';
 
 const log = logger.child({ service: 'db-transaction' });
+
+/** 
+ * Strongly typed transaction client to enforce boundaries 
+ */
+export type TxClient = Prisma.TransactionClient;
+export type FinancialTxClient = TxClient;
+export type InventoryTxClient = TxClient;
 
 /** Options for controlling retry behavior */
 export interface TransactionRetryOptions {
@@ -81,7 +89,7 @@ function sleep(ms: number): Promise<void> {
  */
 export async function withTransaction<T>(
   prisma: any,
-  fn: (tx: any) => Promise<T>,
+  fn: (tx: TxClient) => Promise<T>,
   options: TransactionRetryOptions = {}
 ): Promise<T> {
   const {
@@ -141,8 +149,32 @@ export async function withTransaction<T>(
  */
 export async function atomically<T>(
   prisma: any,
-  fn: (tx: any) => Promise<T>,
+  fn: (tx: TxClient) => Promise<T>,
   operationName?: string
 ): Promise<T> {
   return withTransaction(prisma, fn, { operationName });
+}
+
+/**
+ * Strongly typed wrapper for Critical Financial Transactions.
+ * Guarantees that the callback executes within an isolated, retryable TxClient context.
+ */
+export async function runFinancialTx<T>(
+  prisma: any,
+  fn: (tx: FinancialTxClient) => Promise<T>,
+  operationName: string = 'financial-tx'
+): Promise<T> {
+  return withTransaction(prisma, fn, { operationName, maxRetries: 3 });
+}
+
+/**
+ * Strongly typed wrapper for Critical Inventory Transactions.
+ * Guarantees that the callback executes within an isolated, retryable TxClient context.
+ */
+export async function runInventoryTx<T>(
+  prisma: any,
+  fn: (tx: InventoryTxClient) => Promise<T>,
+  operationName: string = 'inventory-tx'
+): Promise<T> {
+  return withTransaction(prisma, fn, { operationName, maxRetries: 3 });
 }
