@@ -1,5 +1,8 @@
 
 # Changelog: AI Brain
+## Version 1.1.23
+- **Treasury Idempotency & Replay Protection (Phase 2.2.4):** Expanded strict Redis-backed `x-idempotency-key` protection to core Treasury mutating endpoints (`api/finance/treasury`, `api/smart-transfers`, and `api/finance/petty-cash/[id]/process`). This ensures that FX postings, transit stock out/in operations, and petty cash settlements are fully idempotent. Rejects duplicate submissions (double clicks, retries) with `409 Conflict` and missing keys with `400 Bad Request` to guarantee absolute financial integrity without altering core business transactions.
+
 ## Version 1.1.22
 - **Manufacturing Idempotency & Replay Protection (Phase 2.2.3):** Implemented strict Redis-backed Idempotency on `api/manufacturing/work-orders` and `api/manufacturing/orders` (`POST` and `PUT` methods). Prevents critical double-clicks during manufacturing completion that could duplicate material backflushing, WIP-to-FG stock transfers, and financial auto-journals.
 
