@@ -13,7 +13,7 @@
         "db:generate": "npx prisma generate",
         "db:push": "npx prisma db push",
         "db:seed": "npx tsx prisma/seed.ts",
-        "db:setup": "npx prisma db push && npx tsx prisma/seed.ts",
+        "db:setup": "npx prisma db push && npx tsx prisma/seed.ts && npx tsx src/scripts/setup-db-triggers.ts",
         "db:studio": "npx prisma studio",
         "electron:dev": "concurrently \"node scripts/start-desktop.js\" \"wait-on http://localhost:3500 && electron .\"",
         "electron:build": "npm version patch --no-git-tag-version && node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win",
