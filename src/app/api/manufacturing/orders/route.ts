@@ -8,13 +8,20 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { InventoryService } from '@/lib/services/inventory.service';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'manufacturing.orders' });
-async function _GET(request: NextRequest) {
+
+async function _GET(request: NextRequest, auth: any) {
     const prisma = getPrisma(request);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
-        const orders = await prisma.manufacturingOrder.findMany({ take: 100,
+        const orders = await prisma.manufacturingOrder.findMany({ 
+            take: 100,
+            where: requireTenantFilter({ tenantId }),
             include: {
                 recipe: { include: { finishedProduct: true, ingredients: { include: { rawProduct: true } } } },
                 machine: true,
@@ -23,17 +30,22 @@ async function _GET(request: NextRequest) {
             orderBy: { id: 'desc' }
         });
 
-        const recipes = await prisma.recipe.findMany({ take: 100, where: { isActive: true }, include: { finishedProduct: true } });
-        const machines = await prisma.machine.findMany({ take: 100, where: { status: 'active' } });
+        const recipes = await prisma.recipe.findMany({ 
+            take: 100, 
+            where: { isActive: true, ...requireTenantFilter({ tenantId }) }, 
+            include: { finishedProduct: true } 
+        });
+        const machines = await prisma.machine.findMany({ 
+            take: 100, 
+            where: { status: 'active', ...requireTenantFilter({ tenantId }) } 
+        });
 
         return NextResponse.json({ orders, recipes, machines }, { status: 200 });
     } catch (error: any) {
-        log.error('src/app/api/manufacturing/orders/route.ts', { error: error instanceof Error ? error.message : error });
-
+        log.error('manufacturing.orders.GET', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'فشل جلب أوامر التصنيع', { context: 'manufacturing/orders' });
     }
 }
-
 
 const _POSTSchema = z.object({
   recipeId: z.union([z.string(), z.number()]).optional(),
@@ -44,28 +56,28 @@ const _POSTSchema = z.object({
   notes: z.any().optional(),
 }).passthrough();
 
-async function _POST(request: NextRequest) {
+async function _POST(request: NextRequest, auth: any) {
     const prisma = getPrisma(request);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
-        const auth = getUserFromRequest(request as any);
         const body = await request.json();
 
-        const _parsed = _PUTSchema.safeParse(body);
+        const _parsed = _POSTSchema.safeParse(body);
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-
-        const _parsed2 = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
-        }
         
-        const lastOrder = await prisma.manufacturingOrder.findFirst({ orderBy: { id: 'desc' } });
+        const lastOrder = await prisma.manufacturingOrder.findFirst({ 
+            where: requireTenantFilter({ tenantId }),
+            orderBy: { id: 'desc' } 
+        });
         const nextId = (lastOrder?.id || 0) + 1;
         const orderNumber = `MFG-${new Date().getFullYear()}-${nextId.toString().padStart(4, '0')}`;
 
         const newOrder = await prisma.manufacturingOrder.create({
             data: {
+                tenantId,
                 orderNumber,
                 recipeId: parseInt(body.recipeId),
                 machineId: body.machineId ? parseInt(body.machineId) : null,
@@ -80,7 +92,7 @@ async function _POST(request: NextRequest) {
 
         const { logAuditEvent } = await import('@/lib/audit-trail');
         await logAuditEvent(prisma as any, {
-            tenantId: request.headers.get('x-tenant') || 'default',
+            tenantId,
             userId: auth?.userId || null,
             action: 'CREATE',
             entityType: 'ManufacturingOrder',
@@ -100,12 +112,10 @@ async function _POST(request: NextRequest) {
 
         return NextResponse.json({ ...newOrder, mrp: mrpResult }, { status: 201 });
     } catch (error: any) {
-        log.error('src/app/api/manufacturing/orders/route.ts', { error: error instanceof Error ? error.message : error });
-
+        log.error('manufacturing.orders.POST', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'Error creating Manufacturing Order', { context: 'manufacturing/orders' });
     }
 }
-
 
 const _PUTSchema = z.object({
   id: z.union([z.string(), z.number()]).optional(),
@@ -113,14 +123,16 @@ const _PUTSchema = z.object({
   wastageData: z.any().optional(),
 }).passthrough();
 
-async function _PUT(request: NextRequest) {
+async function _PUT(request: NextRequest, auth: any) {
     const prisma = getPrisma(request);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
         const body = await request.json();
         const { id, status, wastageData } = body;
 
-        const currentOrder = await prisma.manufacturingOrder.findUnique({
-            where: { id: parseInt(id) },
+        const currentOrder = await prisma.manufacturingOrder.findFirst({
+            where: { id: parseInt(id), ...requireTenantFilter({ tenantId }) },
             include: { recipe: { include: { ingredients: true } } }
         });
 
@@ -128,22 +140,37 @@ async function _PUT(request: NextRequest) {
 
         // If shifting to completed, we must perform Heavy Manufacturing Stock Adjustments
         if (status === 'completed' && currentOrder.status !== 'completed') {
-            await prisma.$transaction(async (tx) => {
+            await runFinancialTx(prisma, async (tx) => {
                 let totalMaterialCost = 0;
 
                 // 1. Deduct Raw Materials based on exact BOM (Bill of Materials) formula
                 for (const ing of currentOrder.recipe.ingredients) {
                     const requiredQty = n(ing.quantity) * n(currentOrder.quantityToProduce);
                     
-                    const rawProd = await tx.product.update({
-                        where: { id: ing.rawProductId },
-                        data: { currentStock: { decrement: requiredQty } }
+                    const rawProd = await tx.product.findFirst({
+                        where: { id: ing.rawProductId, ...requireTenantFilter({ tenantId }) }
                     });
 
-                    await tx.productStock.upsert({
-                        where: { productId_stockId: { productId: ing.rawProductId, stockId: currentOrder.stockId } },
-                        update: { quantity: { decrement: requiredQty } },
-                        create: { productId: ing.rawProductId, stockId: currentOrder.stockId, quantity: -requiredQty }
+                    if (!rawProd) throw new Error(`Raw product ${ing.rawProductId} not found`);
+
+                    await InventoryService.adjustStock(tx, {
+                        tenantId,
+                        productId: ing.rawProductId,
+                        stockId: currentOrder.stockId,
+                        quantityChange: -requiredQty,
+                        reason: `Manufacturing consumption for MO-${currentOrder.orderNumber}`,
+                        sourceType: 'MANUFACTURING_CONSUMPTION'
+                    });
+
+                    await InventoryService.recordMovement(tx, {
+                        tenantId,
+                        productId: ing.rawProductId,
+                        stockId: currentOrder.stockId,
+                        quantity: -requiredQty,
+                        type: 'OUT',
+                        referenceId: currentOrder.id,
+                        referenceType: 'MANUFACTURING_ORDER',
+                        notes: `Material consumption`
                     });
 
                     // We approximate the production cost of the finished good natively from the raw materials' average buy price
@@ -154,14 +181,31 @@ async function _PUT(request: NextRequest) {
                 if (wastageData && wastageData.length > 0) {
                     for (const waste of wastageData) {
                         const lostQty = parseFloat(waste.lostQuantity);
-                        const rawProd = await tx.product.update({
-                            where: { id: waste.rawProductId },
-                            data: { currentStock: { decrement: lostQty } }
+                        
+                        const rawProd = await tx.product.findFirst({
+                            where: { id: waste.rawProductId, ...requireTenantFilter({ tenantId }) }
+                        });
+                        
+                        if (!rawProd) throw new Error(`Wastage raw product ${waste.rawProductId} not found`);
+
+                        await InventoryService.adjustStock(tx, {
+                            tenantId,
+                            productId: waste.rawProductId,
+                            stockId: currentOrder.stockId,
+                            quantityChange: -lostQty,
+                            reason: `Wastage reported for MO-${currentOrder.orderNumber}`,
+                            sourceType: 'MANUFACTURING_SCRAP'
                         });
 
-                        await tx.productStock.update({
-                            where: { productId_stockId: { productId: waste.rawProductId, stockId: currentOrder.stockId } },
-                            data: { quantity: { decrement: lostQty } }
+                        await InventoryService.recordMovement(tx, {
+                            tenantId,
+                            productId: waste.rawProductId,
+                            stockId: currentOrder.stockId,
+                            quantity: -lostQty,
+                            type: 'OUT',
+                            referenceId: currentOrder.id,
+                            referenceType: 'MANUFACTURING_WASTAGE',
+                            notes: waste.reason || `Material wastage`
                         });
 
                         const lostCost = (n(rawProd.buyPrice) || 0) * lostQty;
@@ -169,6 +213,7 @@ async function _PUT(request: NextRequest) {
 
                         await tx.manufacturingWastage.create({
                             data: {
+                                tenantId,
                                 manufacturingOrderId: currentOrder.id,
                                 rawProductId: waste.rawProductId,
                                 lostQuantity: lostQty,
@@ -182,7 +227,9 @@ async function _PUT(request: NextRequest) {
                 // 3. Optional Machine Hourly Cost (Factory Overhead)
                 let overheadCost = 0;
                 if (currentOrder.machineId) {
-                    const machine = await tx.machine.findUnique({ where: { id: currentOrder.machineId } });
+                    const machine = await tx.machine.findFirst({ 
+                        where: { id: currentOrder.machineId, ...requireTenantFilter({ tenantId }) } 
+                    });
                     if (machine && n(machine.hourlyCost) > 0) {
                         const hoursElapsed = Math.abs(new Date().getTime() - currentOrder.startDate.getTime()) / 3600000;
                         overheadCost = hoursElapsed * n(machine.hourlyCost);
@@ -196,15 +243,28 @@ async function _PUT(request: NextRequest) {
                 await tx.product.update({
                     where: { id: currentOrder.recipe.finishedProductId },
                     data: {
-                        currentStock: { increment: currentOrder.quantityToProduce },
                         buyPrice: singleUnitCost // Recalibrates average valuation automatically
                     }
                 });
 
-                await tx.productStock.upsert({
-                    where: { productId_stockId: { productId: currentOrder.recipe.finishedProductId, stockId: currentOrder.stockId } },
-                    update: { quantity: { increment: currentOrder.quantityToProduce } },
-                    create: { productId: currentOrder.recipe.finishedProductId, stockId: currentOrder.stockId, quantity: currentOrder.quantityToProduce }
+                await InventoryService.adjustStock(tx, {
+                    tenantId,
+                    productId: currentOrder.recipe.finishedProductId,
+                    stockId: currentOrder.stockId,
+                    quantityChange: currentOrder.quantityToProduce,
+                    reason: `Manufacturing completion for MO-${currentOrder.orderNumber}`,
+                    sourceType: 'MANUFACTURING_PRODUCTION'
+                });
+
+                await InventoryService.recordMovement(tx, {
+                    tenantId,
+                    productId: currentOrder.recipe.finishedProductId,
+                    stockId: currentOrder.stockId,
+                    quantity: currentOrder.quantityToProduce,
+                    type: 'IN',
+                    referenceId: currentOrder.id,
+                    referenceType: 'MANUFACTURING_ORDER',
+                    notes: `Finished goods receipt`
                 });
 
                 // Update the original order state natively
@@ -219,8 +279,8 @@ async function _PUT(request: NextRequest) {
 
                 const { logAuditEvent } = await import('@/lib/audit-trail');
                 await logAuditEvent(tx as any, {
-                    tenantId: request.headers.get('x-tenant') || 'default',
-                    userId: null, // User is not extracted directly in PUT currently unless we pass auth
+                    tenantId,
+                    userId: auth?.userId || null,
                     action: 'UPDATE',
                     entityType: 'ManufacturingOrder',
                     entityId: currentOrder.id,
@@ -229,48 +289,49 @@ async function _PUT(request: NextRequest) {
                     newData: { status: 'completed', totalCost: totalMaterialCost },
                     ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
-            });
 
-            // Auto-Journal: WIP -> Finished Goods
-            const { createJournalEntry, ACCOUNTS } = require('@/lib/auto-journal');
-            const finishedGoodsCost = await prisma.manufacturingOrder.findUnique({ where: { id: currentOrder.id }, select: { totalCost: true } });
-            
-            await createJournalEntry({
-                description: `إقفال أمر التصنيع ${currentOrder.orderNumber} وتحويل التكلفة للمنتج التام`,
-                reference: currentOrder.orderNumber,
-                lines: [
-                    { accountCode: ACCOUNTS.FINISHED_GOODS || '1340', debit: finishedGoodsCost?.totalCost || 0, credit: 0, description: 'إثبات المنتج التام' },
-                    { accountCode: ACCOUNTS.WIP || '1330', debit: 0, credit: finishedGoodsCost?.totalCost || 0, description: 'تخفيض حساب تحت التشغيل' }
-                ],
-                status: 'posted'
-            });
+                // Auto-Journal: WIP -> Finished Goods natively inside transaction
+                const { ACCOUNTS } = await import('@/lib/auto-journal');
+                const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+                
+                await AccountingJournalService.createEntry(tx, {
+                    description: `إقفال أمر التصنيع ${currentOrder.orderNumber} وتحويل التكلفة للمنتج التام`,
+                    reference: currentOrder.orderNumber,
+                    lines: [
+                        { accountCode: ACCOUNTS.FINISHED_GOODS || '1340', debit: totalMaterialCost, credit: 0, description: 'إثبات المنتج التام' },
+                        { accountCode: ACCOUNTS.WIP || '1330', debit: 0, credit: totalMaterialCost, description: 'تخفيض حساب تحت التشغيل' }
+                    ],
+                    status: 'posted'
+                });
+
+            }, 'MANUFACTURING_ORDER_COMPLETION');
 
             return NextResponse.json({ success: true, message: 'Manufacturing Order Completed successfully with stock mutations' });
         } else {
             // Simple status tracking transition (e.g. Draft -> Processing -> Quality)
             const updated = await prisma.manufacturingOrder.update({
-                where: { id: parseInt(id) },
+                where: { id: parseInt(id) }, // No need to check tenant again if currentOrder matched
                 data: { status }
             });
             return NextResponse.json(updated);
         }
     } catch (error: any) {
-        log.error("Manufacturing Validation Error:", error);
+        log.error("Manufacturing Validation Error:", { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'Error altering order matrix', { context: 'manufacturing/orders' });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req, auth }) => _GET(req as any, auth), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => {
+export const POST = withRoute(async ({ req, auth }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
-    const tenantString = req.headers.get('x-tenant') || 'default';
+    const tenantString = assertTenant(auth?.tenantId);
     const idempotencyKey = req.headers.get('x-idempotency-key');
     if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
     const isUnique = await lockIdempotencyKey(tenantString, 'mfg_ord_post', idempotencyKey);
     if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
     try {
-        const response = await _POST(req as any);
+        const response = await _POST(req as any, auth);
         if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'mfg_ord_post', idempotencyKey);
         else await unlockIdempotencyKey(tenantString, 'mfg_ord_post', idempotencyKey);
         return response;
@@ -280,15 +341,15 @@ export const POST = withRoute(async ({ req }) => {
     }
 }, { rateLimit: 'DEFAULT' });
 
-export const PUT = withRoute(async ({ req }) => {
+export const PUT = withRoute(async ({ req, auth }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
-    const tenantString = req.headers.get('x-tenant') || 'default';
+    const tenantString = assertTenant(auth?.tenantId);
     const idempotencyKey = req.headers.get('x-idempotency-key');
     if (!idempotencyKey) return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
     const isUnique = await lockIdempotencyKey(tenantString, 'mfg_ord_put', idempotencyKey);
     if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
     try {
-        const response = await _PUT(req as any);
+        const response = await _PUT(req as any, auth);
         if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'mfg_ord_put', idempotencyKey);
         else await unlockIdempotencyKey(tenantString, 'mfg_ord_put', idempotencyKey);
         return response;
@@ -297,3 +358,4 @@ export const PUT = withRoute(async ({ req }) => {
         throw e;
     }
 }, { rateLimit: 'DEFAULT' });
+

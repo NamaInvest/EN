@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { apiError } from '@/lib/api-error';
 import { n } from '@/lib/decimal-utils';
 
@@ -20,30 +21,32 @@ async function _PUT(
 
         const params = await context.params;
         const id = parseInt((await params).id);
+        const tenantId = requireTenantId(request as any);
 
         const { action } = await request.json();
 
         // @ts-ignore
         const order = await prisma.salesOrder.findUnique({
-            where: { id },
+            where: { id, tenantId },
             include: { details: true }
         });
 
         if (!order) return NextResponse.json({ error: 'أمر البيع غير موجود' }, { status: 404 });
 
         if (action === 'approve') {
-            await prisma.salesOrder.update({ where: { id }, data: { status: 'approved' } });
+            await prisma.salesOrder.update({ where: { id, tenantId }, data: { status: 'approved' } });
             return NextResponse.json({ message: 'تم الاعتماد' });
         } 
         
         if (action === 'deliver') {
             // Generate Delivery Note
             // @ts-ignore
-            const lastNote = await prisma.deliveryNote.findFirst({ orderBy: { noteNo: 'desc' } });
+            const lastNote = await prisma.deliveryNote.findFirst({ where: { tenantId }, orderBy: { noteNo: 'desc' } });
             const newNoteNo = lastNote ? lastNote.noteNo + 1 : 5000;
 
             const note = await prisma.deliveryNote.create({
                 data: {
+                    tenantId,
                     noteNo: newNoteNo,
                     salesOrderId: id,
                     customerId: order.customerId,
@@ -51,6 +54,7 @@ async function _PUT(
                     status: 'delivered',
                     details: {
                         create: order.details.map((d: any) => ({
+                            tenantId,
                             productId: d.productId,
                             productName: d.productName,
                             quantity: d.quantity
@@ -60,7 +64,7 @@ async function _PUT(
             });
 
             // Update order status
-            await prisma.salesOrder.update({ where: { id }, data: { status: 'delivered' } });
+            await prisma.salesOrder.update({ where: { id, tenantId }, data: { status: 'delivered' } });
             
             // Deduct stock here (simplified mapping, usually depends on your stock logic)
             // Or call your stock deduction utility.
@@ -70,11 +74,12 @@ async function _PUT(
 
         if (action === 'invoice') {
             // Generate Sales Invoice
-            const lastInv = await prisma.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' }, select: { invoiceNo: true } });
+            const lastInv = await prisma.salesInvoice.findFirst({ where: { tenantId }, orderBy: { invoiceNo: 'desc' }, select: { invoiceNo: true } });
             const newInvNo = lastInv ? lastInv.invoiceNo + 1 : 1000;
 
             const inv = await prisma.salesInvoice.create({
                 data: {
+                    tenantId,
                     invoiceNo: newInvNo,
                     customerId: order.customerId,
                     salesRepId: order.salesRepId,
@@ -86,6 +91,7 @@ async function _PUT(
                     remaining: n(order.total), // Unpaid
                     details: {
                         create: order.details.map((d: any) => ({
+                            tenantId,
                             productId: d.productId,
                             quantity: d.quantity,
                             price: d.price,
@@ -96,7 +102,7 @@ async function _PUT(
             });
 
             // Update order
-            await prisma.salesOrder.update({ where: { id }, data: { status: 'invoiced' } });
+            await prisma.salesOrder.update({ where: { id, tenantId }, data: { status: 'invoiced' } });
             return NextResponse.json({ message: 'تم إصدار الفاتورة وتوجيه القيود', invoiceId: inv.id });
         }
 

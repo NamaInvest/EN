@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getStateMachineFor, BaseState } from '@/lib/state-machine';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'documents.transition' });
-
 
 const _POSTSchema = z.object({
   entityType: z.any().optional(),
@@ -18,11 +18,11 @@ const _POSTSchema = z.object({
   reason: z.any().optional(),
 }).passthrough();
 
-async function _POST(req: Request) {
+async function _POST(req: NextRequest, auth: any) {
     const prisma = getPrisma(req as any);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
-        const { getUserFromRequest } = require('@/lib/auth');
-        const auth = getUserFromRequest(req as any);
         if (!auth) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -49,12 +49,12 @@ async function _POST(req: Request) {
         }
 
         // Apply transition using a transaction so both the entity update and log are atomic
-        await prisma.$transaction(async (tx: any) => {
+        await runFinancialTx(prisma, async (tx: any) => {
             // Write the state log (handled by machine, but we pass prisma down or we just create it here)
-            // Wait, the machine instances in state-machine.ts import a global prisma.
             // For multitenancy, we should ideally create the log using this request's tx.
             await tx.documentStateLog.create({
                 data: {
+                    tenantId,
                     entityType,
                     entityId: parseInt(entityId),
                     fromState: currentState,
@@ -80,17 +80,18 @@ async function _POST(req: Request) {
                 // Determine the status field name (usually 'status', but could be 'state')
                 // Assuming 'status' is widely used
                 await tx[modelName].update({
-                    where: { id: parseInt(entityId) },
+                    where: { id: parseInt(entityId), ...requireTenantFilter({ tenantId }) },
                     data: { status: targetState }
                 });
             }
-        });
+        }, 'DOCUMENT_STATE_TRANSITION');
 
         return NextResponse.json({ success: true, message: 'Status updated' });
     } catch (e: any) {
-        log.error('State transition error:', e);
+        log.error('documents.transition.POST', { error: e instanceof Error ? e.message : e, tenantId });
         return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 });
     }
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req, auth }) => _POST(req as any, auth), { rateLimit: 'DEFAULT' });
+

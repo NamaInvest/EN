@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { syncProductToSalla } from '@/lib/salla';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
+import { requireTenantId, ensureTenantWhere } from '@/lib/governance/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -48,6 +49,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         const { id } = await params;
         const productId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
+        const tenantId = requireTenantId(request as any);
         const body = await request.json();
 
         const _parsed = _PUTSchema.safeParse(body);
@@ -59,7 +61,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         const before = await prisma.product.findUnique({ where: { id: productId } });
 
         const product = await prisma.product.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), tenantId },
             data: {
                 name: body.name,
                 barcode: body.barcode || null,
@@ -135,6 +137,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(request as any);
 
     const prisma = getPrisma(request);
     try {
@@ -149,9 +152,9 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         if (usedInSales > 0 || usedInPurchases > 0 || usedInStockMovements > 0) {
             // Soft delete: keep the product but mark it inactive so it doesn't appear in POS/Purchases
-            const beforeProduct = await prisma.product.findUnique({ where: { id: productId } });
+            const beforeProduct = await prisma.product.findUnique({ where: { id: productId, tenantId } });
             await prisma.product.update({
-                where: { id: productId },
+                where: { id: productId, tenantId },
                 data: { active: false },
             });
             try {
@@ -167,8 +170,8 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         } catch (e: any) { log.error('[audit] Product delete audit failed:', e); }
 
         await runInventoryTx(prisma, async (tx: any) => {
-            await tx.productStock.deleteMany({ where: { productId } });
-            await tx.product.delete({ where: { id: productId } });
+            await tx.productStock.deleteMany({ where: { productId, tenantId } });
+            await tx.product.delete({ where: { id: productId, tenantId } });
         });
 
         return NextResponse.json({ message: 'تم حذف المنتج نهائياً لعدم وجود حركات مرتبطة به' });
