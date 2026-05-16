@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 ﻿import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma, resolveTenant } from '@/lib/prisma';
@@ -8,12 +9,13 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.shopfloor' });
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const tenantId = resolveTenant(request as any);
+        const tenantId = requireTenantId(request as any);
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action') || 'active';
 
@@ -49,12 +51,13 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const tenantId = resolveTenant(request as any);
+        const tenantId = requireTenantId(request as any);
         const body = await request.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -81,7 +84,7 @@ async function _POST(request: Request) {
 
             case 'pause': {
                 await prisma.shopFloorSession.update({
-                    where: { id: body.sessionId },
+                    where: { id: body.sessionId , tenantId },
                     data: { status: 'PAUSED', pausedAt: new Date() }
                 });
                 return NextResponse.json({ success: true, message: 'تم إيقاف العملية مؤقتاً' });
@@ -89,7 +92,7 @@ async function _POST(request: Request) {
 
             case 'resume': {
                 await prisma.shopFloorSession.update({
-                    where: { id: body.sessionId },
+                    where: { id: body.sessionId , tenantId },
                     data: { status: 'ACTIVE', pausedAt: null }
                 });
                 return NextResponse.json({ success: true, message: 'تم استئناف العملية' });
@@ -97,7 +100,7 @@ async function _POST(request: Request) {
 
             case 'complete': {
                 await prisma.shopFloorSession.update({
-                    where: { id: body.sessionId },
+                    where: { id: body.sessionId , tenantId },
                     data: {
                         status: 'COMPLETED',
                         completedAt: new Date(),
@@ -112,7 +115,7 @@ async function _POST(request: Request) {
                 const goodQty  = Number(body.goodQty  || 0);
                 const scrapQty = Number(body.scrapQty || 0);
                 if ((goodQty + scrapQty) > 0) {
-                    const sessionData = await (prisma as any).shopFloorSession.findUnique({ where: { id: body.sessionId }, include: { manufacturingOrder: true } }).catch(() => null);
+                    const sessionData = await (prisma as any).shopFloorSession.findUnique({ where: { id: body.sessionId , tenantId }, include: { manufacturingOrder: true } }).catch(() => null);
                     const unitCost = Number((sessionData as any)?.manufacturingOrder?.unitCost || 0);
                     const fgCost = goodQty * unitCost;
                     const scrapCost = scrapQty * unitCost;
@@ -139,7 +142,7 @@ async function _POST(request: Request) {
 
             case 'andon-resolve': {
                 await prisma.andonCall.update({
-                    where: { id: body.callId },
+                    where: { id: body.callId , tenantId },
                     data: {
                         respondedBy: auth.userId.toString(),
                         respondedAt: new Date(),

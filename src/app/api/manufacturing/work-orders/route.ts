@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -15,11 +16,11 @@ import { EnterpriseLogger } from '@/lib/observability/logger';
 const log = logger.child({ service: 'manufacturing.work-orders' });
 
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     let auth: any = null;
     try { auth = getUserFromRequest(request as any); } catch (e) {}
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const tenantId = assertTenant(auth.tenantId);
 
     try {
         const orders: any = await prisma.manufacturingOrder.findMany({ take: 100,
@@ -50,11 +51,11 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     let auth: any = null;
     try { auth = getUserFromRequest(request as any); } catch (e) {}
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const tenantId = assertTenant(auth.tenantId);
 
     try {
         const body = await request.json();
@@ -107,11 +108,11 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     let auth: any = null;
     try { auth = getUserFromRequest(request as any); } catch (e) {}
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const tenantId = assertTenant(auth.tenantId);
 
     try {
         const body = await request.json();
@@ -176,7 +177,7 @@ async function _PUT(request: Request) {
                     });
 
                     await tx.product.update({
-                        where: { id: item.rawProductId },
+                        where: { id: item.rawProductId , tenantId },
                         data: { currentStock: { decrement: qtyNeeded } }
                     });
                 }
@@ -199,7 +200,7 @@ async function _PUT(request: Request) {
                 }
 
                 await tx.manufacturingOrder.update({
-                    where: { id: order.id },
+                    where: { id: order.id , tenantId },
                     data: { status: 'in_progress', totalCost }
                 });
 
@@ -253,7 +254,7 @@ async function _PUT(request: Request) {
 
             await runFinancialTx(prisma, async (tx: any) => {
                 await tx.manufacturingOrder.update({
-                    where: { id: order.id },
+                    where: { id: order.id , tenantId },
                     data: { 
                         status: 'completed', 
                         endDate: new Date(),
@@ -277,10 +278,10 @@ async function _PUT(request: Request) {
                     });
                 }
 
-                const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId } });
+                const fp = await tx.product.findUnique({ where: { id: order.recipe.finishedProductId , tenantId } });
                 if (fp) {
                     await tx.product.update({
-                        where: { id: fp.id },
+                        where: { id: fp.id , tenantId },
                         data: { currentStock: (fp.currentStock || 0) + yieldQty }
                     });
 

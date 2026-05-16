@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * GET /api/manufacturing/subcontracting — Subcontracting Purchase Orders
  */

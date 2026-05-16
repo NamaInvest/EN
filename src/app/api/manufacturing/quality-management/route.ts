@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { logger } from '@/lib/logger';

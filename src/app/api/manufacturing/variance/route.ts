@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -7,6 +8,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.variance' });
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const variances = await prisma.varianceTransaction.findMany({ take: 100,

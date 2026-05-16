@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -8,6 +9,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.capa' });
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const ncrs = await prisma.nonConformanceReport.findMany({ take: 100,
@@ -38,6 +40,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -98,13 +101,14 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
         const { capaId, status, effectivenessReview } = body;
 
         const capa = await prisma.correctiveAction.update({
-            where: { id: parseInt(capaId) },
+            where: { id: parseInt(capaId) , tenantId },
             data: { 
                 status, 
                 effectivenessReview,

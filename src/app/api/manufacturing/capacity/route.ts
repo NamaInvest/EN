@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -7,6 +8,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'manufacturing.capacity' });
 
 async function _GET(req: Request) {
+    const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req as any);
     try {
@@ -42,6 +44,7 @@ const _PUTSchema = z.object({
 
 async function _PUT(req: Request) {
 
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
@@ -53,7 +56,7 @@ async function _PUT(req: Request) {
         const { orderId, newStartDate, newEndDate, machineId } = body;
 
         const updated = await prisma.manufacturingOrder.update({
-            where: { id: Number(orderId) },
+            where: { id: Number(orderId) , tenantId },
             data: {
                 startDate: new Date(newStartDate),
                 endDate: new Date(newEndDate),

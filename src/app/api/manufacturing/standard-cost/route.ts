@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * GET /api/manufacturing/standard-cost — Standard cost versions per product
  * GET /api/manufacturing/stats          — Manufacturing KPIs dashboard

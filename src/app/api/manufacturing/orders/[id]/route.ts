@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -16,6 +17,7 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -34,7 +36,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         if (body.status === 'in_progress' && !body.startDate) data.startDate = new Date();
 
         const order = await prisma.manufacturingOrder.update({
-            where: { id: orderId },
+            where: { id: orderId , tenantId },
             data,
             include: { recipe: { include: { finishedProduct: true } } }
         });
@@ -51,15 +53,16 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
     const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const orderId = parseInt(id);
-        const order = await prisma.manufacturingOrder.findUnique({ where: { id: orderId } });
+        const order = await prisma.manufacturingOrder.findUnique({ where: { id: orderId , tenantId } });
         if (order && order.status === 'completed') {
             return NextResponse.json({ error: 'لا يمكن حذف أمر تصنيع مكتمل' }, { status: 400 });
         }
-        await prisma.manufacturingOrder.delete({ where: { id: orderId } });
+        await prisma.manufacturingOrder.delete({ where: { id: orderId , tenantId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
         log.error(error);

@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -9,6 +10,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.quality-control' });
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const checks = await prisma.qualityCheck.findMany({ take: 100,
@@ -34,6 +36,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
@@ -45,7 +48,7 @@ async function _POST(request: Request) {
         const { manufacturingOrderId, inspectedQuantity, passedQuantity, failedQuantity, notes, inspectorId } = body;
 
         // Ensure order exists
-        const order = await prisma.manufacturingOrder.findUnique({ where: { id: parseInt(manufacturingOrderId) } });
+        const order = await prisma.manufacturingOrder.findUnique({ where: { id: parseInt(manufacturingOrderId) , tenantId } });
         if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
         const parsedInspected = parseFloat(inspectedQuantity) || 0;
@@ -76,7 +79,7 @@ async function _POST(request: Request) {
             });
             // Update order total cost
             await prisma.manufacturingOrder.update({
-                where: { id: order.id },
+                where: { id: order.id , tenantId },
                 data: { totalCost: n(order.totalCost) + scrapCost }
             });
 

@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -9,6 +10,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.quality' });
 async function _GET(req: NextRequest) {
+    const tenantId = requireTenantId(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const prisma = getPrisma(req);
@@ -28,6 +30,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req);
     try {
         const body = await req.json();

@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { MESEngine } from '@/lib/mes-engine';
 

@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { MPSEngine } from '@/lib/mps-engine';
@@ -13,6 +14,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: NextRequest) {
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();

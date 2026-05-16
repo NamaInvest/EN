@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -9,8 +10,8 @@ import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 const log = logger.child({ service: 'manufacturing.boms.versions.activate' });
 
 async function _POST(req: NextRequest, { params }: { params: Promise<{ versionId: string }> }, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const versionId = Number((await params).versionId);
@@ -39,14 +40,14 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ versionId
             // Mark them as OBSOLETE
             for (const active of activeVersions) {
                 await tx.bOMVersion.update({
-                    where: { id: active.id },
+                    where: { id: active.id , tenantId },
                     data: { status: 'OBSOLETE', effectiveTo: new Date() }
                 });
             }
 
             // Activate the new version
             await tx.bOMVersion.update({
-                where: { id: versionId },
+                where: { id: versionId , tenantId },
                 data: { status: 'ACTIVE', effectiveFrom: new Date(), effectiveTo: null }
             });
         }, 'BOM_VERSION_ACTIVATE');

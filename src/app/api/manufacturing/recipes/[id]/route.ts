@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -17,6 +18,7 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
@@ -30,12 +32,12 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 
         // Delete old ingredients and recreate
         if (body.ingredients) {
-            await prisma.recipeIngredient.deleteMany({ where: { recipeId } });
+            await prisma.recipeIngredient.deleteMany({ where: { recipeId, tenantId } });
             const ingredients = body.ingredients || [];
             const totalCost = ingredients.reduce((sum: number, i: any) => sum + (parseFloat(i.estimatedCost) || 0), 0);
 
             const recipe = await prisma.recipe.update({
-                where: { id: recipeId },
+                where: { id: recipeId , tenantId },
                 data: {
                     name: body.name,
                     finishedProductId: body.finishedProductId ? parseInt(body.finishedProductId) : undefined,
@@ -55,7 +57,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         }
 
         const recipe = await prisma.recipe.update({
-            where: { id: recipeId },
+            where: { id: recipeId , tenantId },
             data: {
                 name: body.name,
                 isActive: body.isActive !== undefined ? body.isActive : undefined,
@@ -74,16 +76,17 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
     const _auth = getUserFromRequest(request as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const recipeId = parseInt(id);
-        const orderCount = await prisma.manufacturingOrder.count({ where: { recipeId } });
+        const orderCount = await prisma.manufacturingOrder.count({ where: { recipeId, tenantId } });
         if (orderCount > 0) {
             return NextResponse.json({ error: 'لا يمكن حذف الوصفة لوجود أوامر تصنيع مرتبطة بها' }, { status: 400 });
         }
-        await prisma.recipeIngredient.deleteMany({ where: { recipeId } });
-        await prisma.recipe.delete({ where: { id: recipeId } });
+        await prisma.recipeIngredient.deleteMany({ where: { recipeId, tenantId } });
+        await prisma.recipe.delete({ where: { id: recipeId , tenantId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
         log.error(error);

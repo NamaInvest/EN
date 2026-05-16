@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
 import { withRoute } from '@/lib/api/with-route';
 /**
@@ -28,6 +29,7 @@ interface MRPItem {
 }
 
 async function _GET(req: Request) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -108,6 +110,7 @@ async function _GET(req: Request) {
 
 // POST — Convert MRP suggestions into Purchase Requisitions
 async function _POST(req: Request) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });

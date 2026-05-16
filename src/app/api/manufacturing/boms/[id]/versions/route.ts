@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -7,6 +8,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'manufacturing.boms.id.versions' });
 
 async function _GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const tenantId = requireTenantId(req as any);
 
   const { id } = await params;
     const prisma = getPrisma(req as any);
@@ -16,7 +18,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
         // Fetch Product and its associated BOM versions
         // A product has multiple recipes, each recipe might have a BOMVersion
         const product = await prisma.product.findUnique({
-            where: { id: productId },
+            where: { id: productId , tenantId },
             include: {
                 finishedRecipes: {
                     include: {
@@ -62,6 +64,7 @@ const _POSTSchema = z.object({
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
   const { id } = await params;
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     try {
         const productId = Number((await params).id);

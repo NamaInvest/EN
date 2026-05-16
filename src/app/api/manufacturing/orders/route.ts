@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -15,8 +16,8 @@ import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 const log = logger.child({ service: 'manufacturing.orders' });
 
 async function _GET(request: NextRequest, auth: any) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const orders = await prisma.manufacturingOrder.findMany({ 
@@ -57,8 +58,8 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: NextRequest, auth: any) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const body = await request.json();
@@ -124,8 +125,8 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(request: NextRequest, auth: any) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const body = await request.json();
@@ -241,7 +242,7 @@ async function _PUT(request: NextRequest, auth: any) {
                 const singleUnitCost = totalMaterialCost / n(currentOrder.quantityToProduce);
                 
                 await tx.product.update({
-                    where: { id: currentOrder.recipe.finishedProductId },
+                    where: { id: currentOrder.recipe.finishedProductId , tenantId },
                     data: {
                         buyPrice: singleUnitCost // Recalibrates average valuation automatically
                     }
@@ -269,7 +270,7 @@ async function _PUT(request: NextRequest, auth: any) {
 
                 // Update the original order state natively
                 const updatedMfgOrder = await tx.manufacturingOrder.update({
-                    where: { id: currentOrder.id },
+                    where: { id: currentOrder.id , tenantId },
                     data: {
                         status: 'completed',
                         endDate: new Date(),
@@ -310,7 +311,7 @@ async function _PUT(request: NextRequest, auth: any) {
         } else {
             // Simple status tracking transition (e.g. Draft -> Processing -> Quality)
             const updated = await prisma.manufacturingOrder.update({
-                where: { id: parseInt(id) }, // No need to check tenant again if currentOrder matched
+                where: { id: parseInt(id) , tenantId }, // No need to check tenant again if currentOrder matched
                 data: { status }
             });
             return NextResponse.json(updated);

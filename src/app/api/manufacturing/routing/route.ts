@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -9,8 +10,8 @@ import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 const log = logger.child({ service: 'manufacturing.routing' });
 
 async function _GET(req: NextRequest, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const { searchParams } = new URL(req.url);
@@ -51,8 +52,8 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: NextRequest, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const body = await req.json();

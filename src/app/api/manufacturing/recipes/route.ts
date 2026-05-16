@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -9,6 +10,7 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing.recipes' });
 async function _GET(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const recipes = await prisma.recipe.findMany({ take: 100,
@@ -36,6 +38,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     const prisma = getPrisma(request);
     try {
         const body = await request.json();

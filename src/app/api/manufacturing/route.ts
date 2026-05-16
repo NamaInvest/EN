@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * Manufacturing API — Complete Production Orders Management
  * 
@@ -41,6 +42,7 @@ const UpdateOrderSchema = z.object({
 // â”€â”€ GET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _GET(req: NextRequest) {
+  const tenantId = requireTenantId(req as any);
   const prisma = getPrisma(req);
   const q      = req.nextUrl.searchParams;
   const status = q.get('status');
@@ -79,6 +81,7 @@ async function _GET(req: NextRequest) {
 // â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _POST(req: NextRequest, auth: any) {
+  const tenantId = requireTenantId(req as any);
   const prisma = getPrisma(req);
   const raw    = await req.json().catch(() => ({}));
   const parsed = CreateOrderSchema.safeParse(raw);
@@ -94,7 +97,7 @@ async function _POST(req: NextRequest, auth: any) {
 
   // Get recipe to compute standard cost
   const recipe = await prisma.recipe.findUnique({
-    where:   { id: body.recipeId },
+    where: { id: body.recipeId , tenantId },
     include: { ingredients: { include: { rawProduct: true } } }
   }).catch(() => null);
 
@@ -132,6 +135,7 @@ async function _POST(req: NextRequest, auth: any) {
 // â”€â”€ PUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function _PUT(req: NextRequest, auth: any) {
+  const tenantId = requireTenantId(req as any);
   const prisma = getPrisma(req);
   const raw    = await req.json().catch(() => ({}));
   const parsed = UpdateOrderSchema.safeParse(raw);
@@ -146,7 +150,7 @@ async function _PUT(req: NextRequest, auth: any) {
   const { orderId, action, actualCost, completedQty, notes } = parsed.data;
 
   const order = await prisma.manufacturingOrder.findUnique({
-    where:   { id: orderId },
+    where: { id: orderId , tenantId },
     include: { recipe: { include: { ingredients: true } } }
   }).catch(() => null);
 
@@ -157,7 +161,7 @@ async function _PUT(req: NextRequest, auth: any) {
   // â”€â”€ action: start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (action === 'start') {
     await prisma.manufacturingOrder.update({
-      where: { id: orderId },
+      where: { id: orderId , tenantId },
       data:  { status: 'in_progress', startDate: new Date() },
     });
     return NextResponse.json({ success: true, message: 'طھظ… ط¨ط¯ط، طھظ†ظپظٹط° ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹' });
@@ -186,7 +190,7 @@ async function _PUT(req: NextRequest, auth: any) {
     const orderNum = (order as any).orderNumber || `MO-${order.id}`;
 
     await prisma.manufacturingOrder.update({
-      where: { id: orderId },
+      where: { id: orderId , tenantId },
       data:  {
         status:    'completed',
         endDate:   new Date(),
@@ -216,7 +220,7 @@ async function _PUT(req: NextRequest, auth: any) {
   // â”€â”€ action: cancel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (action === 'cancel' || action === 'pause') {
     await prisma.manufacturingOrder.update({
-      where: { id: orderId },
+      where: { id: orderId , tenantId },
       data:  { status: action === 'cancel' ? 'cancelled' : 'draft', notes: notes || undefined },
     });
     return NextResponse.json({ success: true, message: action === 'cancel' ? 'طھظ… ط¥ظ„ط؛ط§ط، ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹' : 'طھظ… ط¥ظٹظ‚ط§ظپ ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹ ظ…ط¤ظ‚طھط§ظ‹' });
