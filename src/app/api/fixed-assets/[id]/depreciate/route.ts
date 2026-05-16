@@ -2,23 +2,25 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { apiError } from '@/lib/api-error';
-
-import { getUserFromRequest } from '@/lib/auth';
-import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { n } from '@/lib/decimal-utils';
 
 const log = logger.child({ service: 'fixed-assets.id.depreciate' });
-async function _POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+
+async function _POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }, auth: any) {
     const { id } = await params;
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(request);
-    if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth?.tenantId);
 
     const prisma = getPrisma(request);
     try {
         const assetId = parseInt(id, 10);
-        const asset = await prisma.fixedAsset.findUnique({ where: { id: assetId } });
+        // Use findFirst to enforce tenantId
+        const asset = await prisma.fixedAsset.findFirst({ 
+            where: { id: assetId, ...requireTenantFilter({ tenantId }) } 
+        });
 
         if (!asset) return NextResponse.json({ error: 'الأصل غير موجود' }, { status: 404 });
         if (asset.status !== 'ACTIVE') return NextResponse.json({ error: 'الأصل غير نشط أو تم التخلص منه' }, { status: 400 });
@@ -47,11 +49,11 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
         const newBookValue = currentBookValue - depreciationAmount;
         const newAccumulated = Number(asset.accumulatedDepreciation) + depreciationAmount;
 
-        // Resolve account IDs from settings (with fallbacks)
+        // Resolve account IDs from settings
         const getAccountId = async (key: string, fallback: number) => {
-            const setting = await prisma.setting.findUnique({ where: { key } });
+            const setting = await prisma.setting.findFirst({ where: { key, ...requireTenantFilter({ tenantId }) } });
             const code = setting?.value || key;
-            const acc = await prisma.account.findFirst({ where: { code } });
+            const acc = await prisma.account.findFirst({ where: { code, ...requireTenantFilter({ tenantId }) } });
             return acc ? acc.id : fallback;
         };
         const depExpenseAccountId = await getAccountId('acc_dep_expense', 5100);
@@ -59,7 +61,7 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
 
         const now = new Date();
 
-        await prisma.$transaction(async (tx: any) => {
+        await runFinancialTx(prisma, async (tx: any) => {
             await tx.fixedAsset.update({
                 where: { id: assetId },
                 data: {
@@ -68,19 +70,24 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
                 },
             });
 
+            // Get next document number within transaction
+            const { getNextNumber } = await import('@/lib/numbering');
+            const seqResult = await getNextNumber(tx, 'JE', undefined);
+
             const je = await tx.journalEntry.create({
                 data: {
-                    entryNumber: `DEP-${asset.id}-${Date.now()}`,
+                    tenantId,
+                    entryNumber: seqResult.formatted,
                     entryDate: now.toISOString(),
                     description: `إهلاك الأصل: ${asset.name}`,
                     status: 'posted',
                     totalDebit: depreciationAmount,
                     totalCredit: depreciationAmount,
-                    createdBy: _auth.id,
+                    createdBy: auth.userId || null,
                     lines: {
                         create: [
-                            { accountId: depExpenseAccountId, debit: depreciationAmount, credit: 0, description: 'مصروف الإهلاك' },
-                            { accountId: accDepAccountId, debit: 0, credit: depreciationAmount, description: 'مجمع الإهلاك' },
+                            { tenantId, accountId: depExpenseAccountId, debit: depreciationAmount, credit: 0, description: 'مصروف الإهلاك' },
+                            { tenantId, accountId: accDepAccountId, debit: 0, credit: depreciationAmount, description: 'مجمع الإهلاك' },
                         ],
                     },
                 },
@@ -88,6 +95,7 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
 
             await tx.assetDepreciationLog.create({
                 data: {
+                    tenantId,
                     assetId,
                     periodStart: new Date(now.getFullYear(), now.getMonth(), 1),
                     periodEnd: now,
@@ -98,13 +106,14 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
                     journalEntryId: je.id,
                 },
             });
-        });
+        }, 'FIXED_ASSET_DEPRECIATION');
 
         return NextResponse.json({ success: true, message: 'تم إهلاك الأصل وتسجيل القيد بنجاح' });
     } catch (error: any) {
-        log.error(error);
+        log.error('fixed-assets/depreciate', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets-depreciate' });
     }
 }
 
-export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req, auth }, context) => _POST(req as any, context, auth), { rateLimit: 'FINANCIAL' });
+
