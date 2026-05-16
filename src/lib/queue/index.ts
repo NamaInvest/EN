@@ -38,9 +38,10 @@ export const syncQueue   = new Queue('syncQueue',   { connection: redisConnectio
 export const reportQueue = new Queue('reportQueue', { connection: redisConnection, defaultJobOptions });
 export const aiAuditQueue = new Queue('aiAuditQueue', { connection: redisConnection, defaultJobOptions });
 export const systemReconciliationQueue = new Queue('systemReconciliationQueue', { connection: redisConnection, defaultJobOptions });
+export const outboxRelayQueue = new Queue('outboxRelayQueue', { connection: redisConnection, defaultJobOptions });
 
 // Suppress unhandled errors on queue objects themselves
-[emailQueue, pdfQueue, syncQueue, reportQueue, aiAuditQueue, systemReconciliationQueue].forEach(q => q.on('error', () => {}));
+[emailQueue, pdfQueue, syncQueue, reportQueue, aiAuditQueue, systemReconciliationQueue, outboxRelayQueue].forEach(q => q.on('error', () => {}));
 
 // ── Worker initialization ────────────────────────────────────────────────
 export const startWorkers = async () => {
@@ -60,21 +61,28 @@ export const startWorkers = async () => {
         const { documentType, documentId, tenantId } = job.data;
         logger.info({ tenantId }, `[pdfQueue] Processing job ${job.id}`, { documentType, documentId });
 
-        try {
-            const { CustomerStatementPdfEngine } = await import('@/lib/customer-statement-pdf');
-            const { uploadFile } = await import('@/lib/cloud-storage');
-
-            const dateFrom = job.data.dateFrom ? new Date(job.data.dateFrom) : new Date(Date.now() - 30 * 86400000);
-            const dateTo   = job.data.dateTo   ? new Date(job.data.dateTo)   : new Date();
-
-            const { pdfBuffer } = await CustomerStatementPdfEngine.generatePdf(documentId, dateFrom, dateTo);
-            const result = await uploadFile(pdfBuffer, `${documentType}-${documentId}.pdf`, 'documents');
-            return { status: 'generated', url: result.url };
-        } catch (err: any) {
-            // Fallback for non-statement PDF types
-            logger.warn({ tenantId }, `[pdfQueue] PDF generation not implemented for type ${documentType}`);
-            return { status: 'skipped', reason: 'handler_not_implemented' };
+        if (!tenantId) {
+            return { status: 'skipped', reason: 'missing_tenantId' };
         }
+
+        const { withTenant } = await import('@/lib/prisma');
+        return withTenant(tenantId, async () => {
+            try {
+                const { CustomerStatementPdfEngine } = await import('@/lib/customer-statement-pdf');
+                const { uploadFile } = await import('@/lib/cloud-storage');
+
+                const dateFrom = job.data.dateFrom ? new Date(job.data.dateFrom) : new Date(Date.now() - 30 * 86400000);
+                const dateTo   = job.data.dateTo   ? new Date(job.data.dateTo)   : new Date();
+
+                const { pdfBuffer } = await CustomerStatementPdfEngine.generatePdf(documentId, dateFrom, dateTo);
+                const result = await uploadFile(pdfBuffer, `${documentType}-${documentId}.pdf`, 'documents');
+                return { status: 'generated', url: result.url };
+            } catch (err: any) {
+                // Fallback for non-statement PDF types
+                logger.warn({ tenantId }, `[pdfQueue] PDF generation not implemented for type ${documentType}`);
+                return { status: 'skipped', reason: 'handler_not_implemented' };
+            }
+        });
     }, { connection: redisConnection, concurrency: 2 });
 
     // ── Sync Worker (EventBus dispatcher) ────────────────────────────────
@@ -109,54 +117,59 @@ export const startWorkers = async () => {
         }
 
         if (job.name === 'webhook_delivery') {
-            const { url, body, headers, subscriptionId, event, attempt, maxAttempts } = job.data;
-            const { PrismaClient } = await import('@prisma/client');
-            const prisma = new PrismaClient();
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers,
-                    body,
-                    signal: AbortSignal.timeout(30000), // 30 second timeout
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                await prisma.webhookDeliveryLog.create({
-                    data: {
-                        subscriptionId,
-                        event,
-                        statusCode: response.status,
-                    },
-                });
-
-                return { status: 'delivered', statusCode: response.status };
-            } catch (error: any) {
-                if (attempt < maxAttempts) {
-                    // Re-throw to trigger BullMQ retry logic
-                    throw error;
-                }
-
-                // Dead letter (final failure)
-                await prisma.webhookDeliveryLog.create({
-                    data: {
-                        subscriptionId,
-                        event,
-                        statusCode: 0,
-                        error: error.message,
-                    },
-                });
-
-                await prisma.webhookSubscription.update({
-                    where: { id: subscriptionId },
-                    data: { failCount: { increment: 1 } },
-                });
-
-                return { status: 'failed_dead_letter' };
+            const { url, body, headers, subscriptionId, event, attempt, maxAttempts, tenantId } = job.data;
+            
+            if (!tenantId) {
+                return { status: 'skipped', reason: 'missing_tenantId' };
             }
+
+            const { withTenant, prisma } = await import('@/lib/prisma');
+            return withTenant(tenantId, async () => {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers,
+                        body,
+                        signal: AbortSignal.timeout(30000), // 30 second timeout
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    await prisma.webhookDeliveryLog.create({
+                        data: {
+                            subscriptionId,
+                            event,
+                            statusCode: response.status,
+                        },
+                    });
+
+                    return { status: 'delivered', statusCode: response.status };
+                } catch (error: any) {
+                    if (attempt < maxAttempts) {
+                        // Re-throw to trigger BullMQ retry logic
+                        throw error;
+                    }
+
+                    // Dead letter (final failure)
+                    await prisma.webhookDeliveryLog.create({
+                        data: {
+                            subscriptionId,
+                            event,
+                            statusCode: 0,
+                            error: error.message,
+                        },
+                    });
+
+                    await prisma.webhookSubscription.update({
+                        where: { id: subscriptionId },
+                        data: { failCount: { increment: 1 } },
+                    });
+
+                    return { status: 'failed_dead_letter' };
+                }
+            });
         }
 
         return { status: 'unknown_job' };
@@ -167,14 +180,21 @@ export const startWorkers = async () => {
         const { reportType, tenantId, params } = job.data;
         logger.info({ tenantId }, `[reportQueue] Processing job ${job.id}`, { reportType });
 
-        try {
-            const { CustomReportEngine } = await import('@/lib/custom-report-engine');
-            const result = await (CustomReportEngine as any).generate(reportType, tenantId, params);
-            return { status: 'generated', result };
-        } catch (err: any) {
-            logger.warn({ tenantId }, `[reportQueue] handler not available for ${reportType}`);
-            return { status: 'skipped' };
+        if (!tenantId) {
+            return { status: 'skipped', reason: 'missing_tenantId' };
         }
+
+        const { withTenant } = await import('@/lib/prisma');
+        return withTenant(tenantId, async () => {
+            try {
+                const { CustomReportEngine } = await import('@/lib/custom-report-engine');
+                const result = await (CustomReportEngine as any).generate(reportType, tenantId, params);
+                return { status: 'generated', result };
+            } catch (err: any) {
+                logger.warn({ tenantId }, `[reportQueue] handler not available for ${reportType}`);
+                return { status: 'skipped' };
+            }
+        });
     }, { connection: redisConnection, concurrency: 2 });
 
     // ── AI Audit Worker ───────────────────────────────────────────────────
@@ -184,6 +204,9 @@ export const startWorkers = async () => {
     // ── System Reconciliation Worker ──────────────────────────────────────
     const { systemReconciliationWorker } = await import('@/workers/audit/reconciliation.worker');
 
+    // ── Outbox Relay Worker (Phase 2.1) ──────────────────────────────────
+    const { outboxRelayWorker } = await import('@/workers/outbox/outbox-relay.worker');
+
     // Add repeatable cron job for daily reconciliation (midnight)
     await systemReconciliationQueue.add(
         'daily_reconciliation',
@@ -191,8 +214,15 @@ export const startWorkers = async () => {
         { repeat: { pattern: '0 0 * * *' }, jobId: 'daily_reconciliation_job' }
     );
 
+    // Add repeatable job for Outbox Relay (runs every minute)
+    await outboxRelayQueue.add(
+        'process_outbox',
+        {},
+        { repeat: { pattern: '* * * * *' }, jobId: 'process_outbox_job' }
+    );
+
     // ── Global event handlers ─────────────────────────────────────────────
-    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker, systemReconciliationWorker];
+    const allWorkers = [emailWorker, pdfWorker, syncWorker, reportWorker, dailyAuditWorker, cfoReportWorker, systemReconciliationWorker, outboxRelayWorker];
 
     allWorkers.forEach(worker => {
         worker.on('error', (err: Error) => logger.error({}, `[Queue] ${worker.name} error`, { message: err.message }));
@@ -200,7 +230,7 @@ export const startWorkers = async () => {
         worker.on('completed', (job: any) => logger.info({},  `[Queue] ${worker.name} job ${job?.id} completed`));
     });
 
-    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit', 'systemReconciliation'] });
+    logger.info({}, '[Queue] Workers started', { queues: ['email', 'pdf', 'sync', 'report', 'aiAudit', 'systemReconciliation', 'outboxRelay'] });
 
     return allWorkers;
 };
