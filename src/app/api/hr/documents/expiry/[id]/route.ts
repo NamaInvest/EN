@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Document Expiry Alert Actions
@@ -23,6 +24,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
   const { id } = await params;
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const alertId = parseInt((await params).id);
 

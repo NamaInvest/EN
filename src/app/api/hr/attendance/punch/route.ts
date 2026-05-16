@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { TNAEngine } from '@/lib/tna-engine';
 
 export async function POST(req: NextRequest) {
+  const tenantId = requireTenantId(req);
   const body = await req.json();
+  body.tenantId = tenantId;
   // Validate geofence if coords provided
   if (body.geoLatitude && body.geoLongitude) {
     const HQ_LAT = 24.7136, HQ_LNG = 46.6753;
@@ -14,8 +17,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const tenantId = requireTenantId(req);
   const { searchParams } = new URL(req.url);
-  const tenantId = searchParams.get('tenantId') ?? '1';
   const employeeId = Number(searchParams.get('employeeId') ?? 0);
   const date = new Date(searchParams.get('date') ?? new Date());
   const punches = await TNAEngine.getDailySummary(tenantId, employeeId, date);

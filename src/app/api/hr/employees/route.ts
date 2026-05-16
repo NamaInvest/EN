@@ -5,16 +5,19 @@ import { getPrisma } from '@/lib/prisma';
 import { GOSIService } from '@/lib/gosi-service';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr.employees' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
-        const where = search ? { name: { contains: search, mode: 'insensitive' as const } } : {};
+        const where: any = { tenantId };
+        if (search) where.name = { contains: search, mode: 'insensitive' as const };
         const employees = await prisma.employee.findMany({ take: 100,
             where,
             include: { branch: true },
@@ -44,6 +47,7 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const body = await request.json();
 
@@ -69,7 +73,6 @@ async function _POST(request: Request) {
         });
 
         // Trigger GOSI Auto-Registration (Non-blocking)
-        const tenantId = (request as any).headers?.get('x-tenant-id') || 'default';
         GOSIService.registerEmployee(tenantId, employee, Number(employee.salary), Number(employee.housingAllowance))
             .catch(err => log.error('GOSI async registration failed', { error: err.message }));
 

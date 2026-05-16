@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -9,10 +10,11 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'hr.attendance' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const todayStr = new Date().toISOString().split('T')[0];
         const records = await prisma.attendance.findMany({ take: 100,
-            where: { date: todayStr },
+            where: { date: todayStr, tenantId },
             include: { employee: true },
             orderBy: { id: 'desc' }
         });
@@ -31,6 +33,7 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const body = await request.json();
 
@@ -48,7 +51,7 @@ async function _POST(request: Request) {
         const nowTime = new Date().toTimeString().split(' ')[0].slice(0, 5); // HH:MM
 
         let record = await prisma.attendance.findFirst({
-            where: { employeeId: parseInt(employeeId), date: todayStr }
+            where: { employeeId: parseInt(employeeId), date: todayStr, tenantId }
         });
 
         if (action === 'check-in') {
@@ -60,12 +63,13 @@ async function _POST(request: Request) {
                     data: {
                         employeeId: parseInt(employeeId),
                         date: todayStr,
-                        checkIn: nowTime
+                        checkIn: nowTime,
+                        tenantId
                     }
                 });
             } else {
                 record = await prisma.attendance.update({
-                    where: { id: record.id },
+                    where: { id: record.id, tenantId },
                     data: { checkIn: nowTime }
                 });
             }
@@ -77,7 +81,7 @@ async function _POST(request: Request) {
                 return NextResponse.json({ error: 'تم تسجيل الانصراف مسبقاً اليوم' }, { status: 400 });
             }
             record = await prisma.attendance.update({
-                where: { id: record.id },
+                where: { id: record.id, tenantId },
                 data: { checkOut: nowTime }
             });
         }

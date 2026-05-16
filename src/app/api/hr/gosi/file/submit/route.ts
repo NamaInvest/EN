@@ -5,6 +5,7 @@ import { getPrisma } from '@/lib/prisma';
 import { GOSIEngine } from '@/lib/gosi-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -15,6 +16,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const tenantId = requireTenantId(request as any);
     try {
         const body = await request.json();
 

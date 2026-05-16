@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Document Expiry API Routes
@@ -15,6 +16,7 @@ const log = logger.child({ service: 'hr.documents.expiry' });
 async function _GET(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const dashboard = await DocumentExpiryEngine.getDashboard();
@@ -33,6 +35,7 @@ const _POSTSchema = z.object({
 async function _POST(req: Request) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();

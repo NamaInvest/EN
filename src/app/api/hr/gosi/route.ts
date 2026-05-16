@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * GOSI (التأمينات الاجتماعية) Payroll Deductions API
@@ -25,6 +26,7 @@ async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const url = new URL(req.url);
     const month = parseInt(url.searchParams.get('month') || String(new Date().getMonth() + 1));
@@ -32,7 +34,7 @@ async function _GET(req: Request) {
 
     try {
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId },
             select: {
                 id: true, name: true,
                 salary: true, position: true,
@@ -87,6 +89,7 @@ async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();
@@ -99,7 +102,7 @@ async function _POST(req: Request) {
         const year = parseInt(body.year) || new Date().getFullYear();
 
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId },
             select: { id: true, name: true, salary: true },
         });
 
@@ -122,11 +125,11 @@ async function _POST(req: Request) {
 
                 // Update salary record if exists
                 const salaryRecord = await tx.salary.findFirst({
-                    where: { employeeId: emp.id, month, year },
+                    where: { employeeId: emp.id, month, year, tenantId },
                 });
                 if (salaryRecord) {
                     await tx.salary.update({
-                        where: { id: salaryRecord.id },
+                        where: { id: salaryRecord.id, tenantId },
                         data: {
                             deductions: { increment: Math.round(empDeduction * 100) / 100 },
                         },

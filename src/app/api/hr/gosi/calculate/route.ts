@@ -5,6 +5,7 @@ import { getPrisma } from '@/lib/prisma';
 import { GOSIEngine } from '@/lib/gosi-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -16,6 +17,7 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     const prisma = getPrisma(request as any);
+    const tenantId = requireTenantId(request as any);
 
     try {
         const body = await request.json();
@@ -35,15 +37,18 @@ async function _POST(request: Request) {
 
         // Fetch salaries for this run
         const run = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId }
+            where: { id: payrollRunId, tenantId }
         });
+
+        if (!run) return NextResponse.json({ error: 'PayrollRun not found' }, { status: 404 });
 
         // BUILD SAFETY: if (!run) throw new Error('PayrollRun not found');
 
         const salaries = await prisma.salary.findMany({ take: 100,
             where: {
                 month: run.month,
-                year: run.year
+                year: run.year,
+                tenantId
             }
         });
 
