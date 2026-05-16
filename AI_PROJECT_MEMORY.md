@@ -1,23 +1,30 @@
-# AI PROJECT MEMORY
+# AI Project Memory
 
-## Welcome AI Agent
-You are operating within **Nama Invest ERP**, a complex, financial-grade Enterprise Resource Planning platform.
+## Stabilization Completion Snapshot
+**Date:** 2026-05-17
+**Last Commit Hash:** `ded1350cbf9972ceedc71db2e76d419ec8938e29`
 
-## Your Brain Location
-All deep architectural context, rules, and system maps are located in `/docs/ai-brain/`.
+### قائمة Commits المنجزة (Stabilization Phase)
+1. `docs: update enterprise governance roadmap`
+2. `governance: enhance tenant isolation and middlewares`
+3. `phase reliability add outbox relay infrastructure`
+4. `manufacturing harden inventory transaction boundaries`
+5. `hr assets enforce financial atomicity and idempotency`
+6. `financial core enforce atomic posting boundaries`
+7. `integrations enforce transactional consistency`
+8. `schema package add outbox infrastructure setup`
 
-### Index of Knowledge:
-1. [Project Brain](./docs/ai-brain/PROJECT_BRAIN.md) - System overview.
-2. [AI Agent Rules](./docs/ai-brain/AI_AGENT_RULES.md) - **MANDATORY READING BEFORE CODING**.
-3. [System Map](./docs/ai-brain/SYSTEM_MAP.md) - Files and execution flow.
-4. [API Map](./docs/ai-brain/API_MAP.md) - Endpoints.
-5. [Database Map](./docs/ai-brain/DATABASE_MAP.md) - Models and relations.
-6. [Workflows](./docs/ai-brain/WORKFLOWS.md) - Step-by-step logic.
-7. [Security & Tenant Isolation](./docs/ai-brain/SECURITY_AND_TENANT_ISOLATION.md) - How we prevent data leaks.
-8. [Financial Integrity](./docs/ai-brain/FINANCIAL_INTEGRITY.md) - ACID compliance rules.
+### الحالة الحالية للنظام
+- TypeScript Zero-Error ✅
+- Working Tree Clean ✅
+- لا توجد `prisma.$transaction` مكشوفة ✅
+- `OutboxEvent` موجود في Schema ✅
+- `db:setup` يشغل سكربت `setup-db-triggers` تلقائياً ✅
 
-## Core Directives for Agents
-- **Never guess.** Read the brain files.
-- **Never bypass Tenant IDs.**
-- **Never bypass Financial Transaction wrappers.**
-- **Always update this memory** if you add new APIs, tables, or major logic.
+### القاعدة الجديدة والمستمرة للنظام
+أي مرحلة قادمة (مثل Phase 3.1.4 وما بعدها) يجب أن تحافظ بصرامة على:
+- No exposed `prisma.$transaction`.
+- All mutations through domain tx wrappers (`runFinancialTx`, `runInventoryTx`, etc.).
+- No financial posting outside tx.
+- Tenant isolation enforced strictly.
+- Idempotency implemented for all external integrations.
