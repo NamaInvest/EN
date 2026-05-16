@@ -1,9 +1,9 @@
 # Phase 3.1: Tenant Isolation P0 Audit Report
 
 ## Summary
-- **P0_CONFIRMED**: 294
+- **P0_CONFIRMED**: 267
 - **P0_REVIEW**: 9
-- **SAFE**: 86
+- **SAFE**: 113
 - **EXEMPTED FILES**: 58
 
 ## Top 20 P0_CONFIRMED
