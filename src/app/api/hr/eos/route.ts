@@ -1,4 +1,4 @@
-import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * EOS (End of Service) API Routes
@@ -15,15 +15,14 @@ const log = logger.child({ service: 'hr.eos' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const url = new URL(req.url);
         const status = url.searchParams.get('status');
         const employeeId = url.searchParams.get('employeeId');
 
-        const where: any = {};
+        const where: any = { tenantId };
         if (status) where.status = status;
         if (employeeId) where.employeeId = parseInt(employeeId);
 
@@ -48,8 +47,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();

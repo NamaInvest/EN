@@ -1,4 +1,4 @@
-import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Leave Balance API
@@ -11,8 +11,7 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'hr.leaves.balance' });
 
 async function _GET(req: Request) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const url = new URL(req.url);
     const employeeId = parseInt(url.searchParams.get('employeeId') || '0');

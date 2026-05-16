@@ -7,6 +7,9 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -22,6 +25,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
   const { id } = await params;
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const url = new URL(req.url);
     const requestId = parseInt((await params).id);
@@ -36,13 +40,51 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         const { action, rejectionReason } = body;
 
         if (action === 'approve') {
-            await LeaveEngine.approveLeaveRequest(requestId, user.userId);
+            const prisma = getPrisma(req as any);
+            await runFinancialTx(prisma, async (tx: any) => {
+                const request = await tx.leaveRequest.findUnique({ where: { id: requestId, tenantId } });
+                if (!request) throw new Error('طلب الإجازة غير موجود');
+                if (request.status !== 'PENDING') throw new Error('الطلب ليس في حالة انتظار');
+
+                await tx.leaveRequest.update({
+                    where: { id: requestId, tenantId },
+                    data: { status: 'APPROVED', approvedBy: user.userId, approvedAt: new Date() }
+                });
+
+                const year = new Date(request.startDate).getFullYear();
+                const days = Number(request.days);
+
+                if (request.leaveType === 'ANNUAL') {
+                    await tx.leaveBalance.updateMany({
+                        where: { employeeId: request.employeeId, leaveType: 'ANNUAL', year, tenantId },
+                        data: { used: { increment: days }, pending: { decrement: days } }
+                    });
+                }
+            }, 'LEAVE_APPROVE');
             return NextResponse.json({ success: true, message: 'تم الموافقة على طلب الإجازة' });
         } else if (action === 'reject') {
             if (!rejectionReason) {
                 return NextResponse.json({ error: 'يجب ذكر سبب الرفض' }, { status: 400 });
             }
-            await LeaveEngine.rejectLeaveRequest(requestId, user.userId, rejectionReason);
+            const prisma = getPrisma(req as any);
+            await runFinancialTx(prisma, async (tx: any) => {
+                const request = await tx.leaveRequest.findUnique({ where: { id: requestId, tenantId } });
+                if (!request) throw new Error('طلب الإجازة غير موجود');
+                if (request.status !== 'PENDING') throw new Error('الطلب ليس في حالة انتظار');
+
+                await tx.leaveRequest.update({
+                    where: { id: requestId, tenantId },
+                    data: { status: 'REJECTED', rejectionReason }
+                });
+
+                if (request.leaveType === 'ANNUAL') {
+                    const year = new Date(request.startDate).getFullYear();
+                    await tx.leaveBalance.updateMany({
+                        where: { employeeId: request.employeeId, leaveType: 'ANNUAL', year, tenantId },
+                        data: { pending: { decrement: Number(request.days) } }
+                    });
+                }
+            }, 'LEAVE_REJECT');
             return NextResponse.json({ success: true, message: 'تم رفض طلب الإجازة' });
         } else {
             return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });

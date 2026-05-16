@@ -1,4 +1,4 @@
-import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Leave API Routes
@@ -15,8 +15,7 @@ const log = logger.child({ service: 'hr.leaves' });
 
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const url = new URL(req.url);
     const employeeId = url.searchParams.get('employeeId');
@@ -24,7 +23,7 @@ async function _GET(req: Request) {
     const year = parseInt(url.searchParams.get('year') || String(new Date().getFullYear()));
 
     try {
-        const where: any = {};
+        const where: any = { tenantId };
         if (employeeId) where.employeeId = parseInt(employeeId);
         if (status) where.status = status;
         where.startDate = {
@@ -56,8 +55,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();
