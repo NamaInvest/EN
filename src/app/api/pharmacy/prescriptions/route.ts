@@ -6,12 +6,13 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
 import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 
 const log = logger.child({ service: 'pharmacy.prescriptions' });
 
 async function _GET(req: NextRequest, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const url = new URL(req.url);
@@ -63,8 +64,8 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: NextRequest, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -118,8 +119,8 @@ async function _POST(req: NextRequest, auth: any) {
 // PUT — Dispense prescription
 
 async function _PUT(req: NextRequest, auth: any) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -135,49 +136,68 @@ async function _PUT(req: NextRequest, auth: any) {
             let allDispensed = true;
 
             for (const item of items) {
-                const qty = parseFloat(item.dispensedQty);
-                await tx.prescriptionItem.update({
-                    where: { id: parseInt(item.id), ...requireTenantFilter({ tenantId }) },
-                    data: {
-                        dispensedQty: qty,
-                        status: qty >= item.quantity ? 'dispensed' : 'partial',
-                    },
+                const requestedDispensedQty = parseFloat(item.dispensedQty);
+                
+                const currentItem = await tx.prescriptionItem.findUnique({
+                    where: { id: parseInt(item.id), tenantId }
                 });
-                if (qty < item.quantity) allDispensed = false;
-
-                // Deduct from stock
-                await tx.product.update({
-                    where: { id: parseInt(item.productId), ...requireTenantFilter({ tenantId }) },
-                    data: { currentStock: { decrement: qty } },
-                });
-
-                // Log medication
-                await tx.medicationLog.create({
-                    data: {
-                        tenantId,
-                        patientId: parseInt(body.patientId),
-                        drugName: item.drugName,
-                        dosage: item.dosage || null,
-                        quantity: qty,
-                        pharmacistId: auth.userId,
-                    },
-                });
-
-                // Controlled drug log
-                if (item.isControlled) {
-                    await tx.controlledDrugLog.create({
+                if (!currentItem) throw new Error('Prescription item not found');
+                
+                const currentDispensedQty = currentItem.dispensedQty ? Number(currentItem.dispensedQty) : 0;
+                const delta = requestedDispensedQty - currentDispensedQty;
+                
+                if (delta > 0) {
+                    const product = await tx.product.findUnique({
+                        where: { id: parseInt(item.productId), tenantId }
+                    });
+                    if (!product || Number(product.currentStock) < delta) {
+                        throw new Error(`Insufficient stock for product ${item.productId}`);
+                    }
+                    
+                    await tx.prescriptionItem.update({
+                        where: { id: parseInt(item.id), tenantId },
                         data: {
-                            tenantId,
-                            drugId: parseInt(item.drugId),
-                            patientNationalId: body.patientNationalId,
-                            patientName: body.patientName,
-                            doctorName: body.doctorName || '',
-                            doctorLicense: body.doctorLicense || '',
-                            pharmacistId: auth.userId,
-                            quantity: qty,
+                            dispensedQty: requestedDispensedQty,
+                            status: requestedDispensedQty >= item.quantity ? 'dispensed' : 'partial',
                         },
                     });
+
+                    // Deduct from stock
+                    await tx.product.update({
+                        where: { id: parseInt(item.productId), tenantId },
+                        data: { currentStock: { decrement: delta } },
+                    });
+
+                    // Log medication
+                    await tx.medicationLog.create({
+                        data: {
+                            tenantId,
+                            patientId: parseInt(body.patientId),
+                            drugName: item.drugName,
+                            dosage: item.dosage || null,
+                            quantity: delta,
+                            pharmacistId: auth.userId,
+                        },
+                    });
+
+                    // Controlled drug log
+                    if (item.isControlled) {
+                        await tx.controlledDrugLog.create({
+                            data: {
+                                tenantId,
+                                drugId: parseInt(item.drugId),
+                                patientNationalId: body.patientNationalId,
+                                patientName: body.patientName,
+                                doctorName: body.doctorName || '',
+                                doctorLicense: body.doctorLicense || '',
+                                pharmacistId: auth.userId,
+                                quantity: delta,
+                            },
+                        });
+                    }
                 }
+
+                if (requestedDispensedQty < item.quantity) allDispensed = false;
             }
 
             // Update prescription status
