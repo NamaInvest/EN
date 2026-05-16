@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Priority 4: Payroll Engine API
@@ -11,6 +12,7 @@ import { withRoute } from '@/lib/api/with-route';
  */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
+import { runFinancialTx } from '@/lib/db/transaction';
 import { postSalary } from '@/lib/auto-journal';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
@@ -30,9 +32,9 @@ interface PayrollResult {
     salaryId?: number;
 }
 
-async function calcPayroll(prisma: any, employeeId: number, month: number, year: number): Promise<PayrollResult | null> {
+async function calcPayroll(prisma: any, employeeId: number, month: number, year: number, tenantId: string): Promise<PayrollResult | null> {
     const employee = await prisma.employee.findUnique({
-        where: { id: employeeId },
+        where: { id: employeeId, tenantId },
         select: {
             id: true,
             name: true,
@@ -54,6 +56,7 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
     const attendance = await prisma.attendance.findMany({ take: 100,
         where: {
             employeeId,
+            tenantId,
             date: { gte: startStr, lte: endStr },
         },
         select: { date: true, checkIn: true, checkOut: true },
@@ -68,7 +71,7 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
 
     // Loan deductions
     const loans = await prisma.employeeLoan.findMany({ take: 100,
-        where: { employeeId, status: 'active' },
+        where: { employeeId, status: 'active', tenantId },
         select: { monthlyDeduction: true },
     });
     const allowances = n(employee.housingAllowance) + n(employee.transportAllowance) + n(employee.otherAllowance);
@@ -91,8 +94,9 @@ async function calcPayroll(prisma: any, employeeId: number, month: number, year:
 // GET — Preview payroll for all active employees
 async function _GET(req: Request) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const url = new URL(req.url);
     const month = parseInt(url.searchParams.get('month') || String(new Date().getMonth() + 1));
@@ -101,13 +105,13 @@ async function _GET(req: Request) {
     try {
         // Employee uses 'active' Boolean not 'status'
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId },
             select: { id: true },
         });
 
         const results: PayrollResult[] = [];
         for (const emp of employees) {
-            const r = await calcPayroll(prisma, emp.id, month, year);
+            const r = await calcPayroll(prisma, emp.id, month, year, tenantId);
             if (r) results.push(r);
         }
 
@@ -133,8 +137,9 @@ const _POSTSchema = z.object({
 
 async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
+    const user = getUserFromRequest(req as any) as any;
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();
@@ -149,64 +154,69 @@ async function _POST(req: Request) {
 
         // Check already processed — month/year are Int in Salary model
         const existing = await prisma.salary.findFirst({
-            where: { month, year },
+            where: { month, year, tenantId },
         });
         if (existing) {
             return NextResponse.json({ error: `الرواتب لشهر ${month}/${year} تم احتسابها مسبقاً` }, { status: 409 });
         }
 
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId },
             select: { id: true },
         });
 
         const committed: PayrollResult[] = [];
         for (const emp of employees) {
-            const r = await calcPayroll(prisma, emp.id, month, year);
+            const r = await calcPayroll(prisma, emp.id, month, year, tenantId);
             if (!r || r.netSalary === 0) continue;
 
-            const salary = await prisma.salary.create({
-                data: {
-                    employeeId: r.employeeId,
-                    month,   // Int
-                    year,    // Int
-                    basicSalary: r.basicSalary,
-                    additions: r.additions,
-                    deductions: r.deductions,
-                    netSalary: r.netSalary,
-                    notes: `احتساب تلقائي — حضور: ${r.workedDays} يوم، غياب: ${r.absentDays} يوم`,
-                },
-            });
+            let salaryId = 0;
+            await runFinancialTx(prisma, async (tx: any) => {
+                const salary = await tx.salary.create({
+                    data: {
+                        employeeId: r.employeeId,
+                        month,
+                        year,
+                        basicSalary: r.basicSalary,
+                        additions: r.additions,
+                        deductions: r.deductions,
+                        netSalary: r.netSalary,
+                        notes: `احتساب تلقائي — حضور: ${r.workedDays} يوم، غياب: ${r.absentDays} يوم`,
+                        tenantId
+                    },
+                });
+                salaryId = salary.id;
 
-            try {
-                await postSalary({
-                    employeeName: r.name,
-                    netSalary: r.netSalary,
-                    userId: user.userId,
-                    branchId,
-                    date: `${year}-${String(month).padStart(2, '0')}-01`,
-                });
-                
-                // Update Loan Balances automatically!
-                const activeLoans = await prisma.employeeLoan.findMany({ take: 100,
-                    where: { employeeId: emp.id, status: 'active' }
-                });
-                
-                for (const loan of activeLoans) {
-                    const newRemaining = Math.max(0, n(loan.remainingAmount) - n(loan.monthlyDeduction));
-                    await prisma.employeeLoan.update({
-                        where: { id: loan.id },
-                        data: {
-                            remainingAmount: newRemaining,
-                            status: newRemaining === 0 ? 'paid' : 'active'
-                        }
+                try {
+                    await postSalary({
+                        employeeName: r.name,
+                        netSalary: r.netSalary,
+                        userId: user.userId || user.id,
+                        branchId,
+                        date: `${year}-${String(month).padStart(2, '0')}-01`,
+                        tenantId // postSalary might need this inside, or just for context
+                    } as any);
+                    
+                    const activeLoans = await tx.employeeLoan.findMany({ take: 100,
+                        where: { employeeId: emp.id, status: 'active', tenantId }
                     });
+                    
+                    for (const loan of activeLoans) {
+                        const newRemaining = Math.max(0, n(loan.remainingAmount) - n(loan.monthlyDeduction));
+                        await tx.employeeLoan.update({
+                            where: { id: loan.id, tenantId },
+                            data: {
+                                remainingAmount: newRemaining,
+                                status: newRemaining === 0 ? 'paid' : 'active'
+                            }
+                        });
+                    }
+                } catch (je: unknown) {
+                    log.error('Salary journal error:', je);
                 }
-            } catch (je: unknown) {
-                log.error('Salary journal error:', je);
-            }
+            }, 'PAYROLL_CALCULATE_SALARY');
 
-            committed.push({ ...r, salaryId: salary.id });
+            committed.push({ ...r, salaryId: salaryId });
         }
 
         return NextResponse.json({

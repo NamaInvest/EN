@@ -1,12 +1,11 @@
-import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'saudi-gov.mudad' });
 
 export class MudadEngine {
-    static async authenticate() {
+    static async authenticate(prisma: any, tenantId: string) {
         const creds = await prisma.govApiCredentials.findFirst({
-            where: { provider: 'MUDAD', isActive: true }
+            where: { provider: 'MUDAD', isActive: true, tenantId }
         });
         
         if (!creds) throw new Error("Mudad credentials not configured");
@@ -29,10 +28,10 @@ export class MudadEngine {
         return newToken;
     }
 
-    static async submitWPSBatch(batchId: string) {
+    static async submitWPSBatch(prisma: any, batchId: string, tenantId: string) {
         // Fetch payroll data and format as SIF logic
-        const token = await this.authenticate();
-        const creds = await prisma.govApiCredentials.findFirst({ where: { provider: 'MUDAD' } });
+        const token = await this.authenticate(prisma, tenantId);
+        const creds = await prisma.govApiCredentials.findFirst({ where: { provider: 'MUDAD', tenantId } });
 
         const tx = await prisma.govApiTransaction.create({
             data: {
@@ -41,7 +40,8 @@ export class MudadEngine {
                 method: 'POST',
                 requestBody: JSON.stringify({ batchId, data: "Mock SIF Data" }),
                 status: 'PENDING',
-                credentialsId: creds!.id
+                credentialsId: creds!.id,
+                tenantId: tenantId
             }
         });
 
@@ -69,8 +69,8 @@ export class MudadEngine {
         }
     }
 
-    static async pollStatus(transactionId: number) {
-        const tx = await prisma.govApiTransaction.findUnique({ where: { id: transactionId } });
+    static async pollStatus(prisma: any, transactionId: number, tenantId: string) {
+        const tx = await prisma.govApiTransaction.findUnique({ where: { id: transactionId, tenantId } });
         if (!tx) throw new Error("Transaction not found");
         
         if (tx.status !== 'PENDING') return tx.status;

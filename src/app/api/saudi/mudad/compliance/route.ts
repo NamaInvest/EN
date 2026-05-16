@@ -1,4 +1,5 @@
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 /**
  * Mudad Compliance API
@@ -15,23 +16,24 @@ const log = logger.child({ service: 'saudi.mudad.compliance' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req);
     try {
         const view = req.nextUrl.searchParams.get('view');
 
         if (view === 'unprotected') {
-            const employees = await getUnprotectedEmployees(prisma);
+            const employees = await getUnprotectedEmployees(prisma, tenantId);
             return NextResponse.json(employees);
         }
 
         if (view === 'report') {
             const month = req.nextUrl.searchParams.get('month') || new Date().toISOString().slice(0, 7);
-            const report = await generateMudadReport(prisma, month);
+            const report = await generateMudadReport(prisma, month, tenantId);
             return NextResponse.json(report);
         }
 
-        const status = await checkMudadCompliance(prisma);
+        const status = await checkMudadCompliance(prisma, tenantId);
         return NextResponse.json(status);
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });

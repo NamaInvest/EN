@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { TimesheetEngine } from '@/lib/timesheet-engine';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -11,6 +12,7 @@ const log = logger.child({ service: 'hr.timesheet' });
 async function _GET(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req);
     try {
         const empId = parseInt(req.nextUrl.searchParams.get('employeeId') || '0');
@@ -38,6 +40,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req);
     try {
         const body = await req.json();
@@ -46,7 +49,7 @@ async function _POST(req: NextRequest) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        if (body.action === 'log') return NextResponse.json(await TimesheetEngine.logHours(prisma, { ...body, tenantId: (user as any).tenantId || '' }));
+        if (body.action === 'log') return NextResponse.json(await TimesheetEngine.logHours(prisma, { ...body, tenantId }));
         if (body.action === 'submit') return NextResponse.json(await TimesheetEngine.submit(prisma, body.employeeId, new Date(body.weekStart)));
         if (body.action === 'approve') return NextResponse.json(await TimesheetEngine.approve(prisma, body.employeeId, new Date(body.weekStart)));
         return NextResponse.json({ error: 'action: log | submit | approve' }, { status: 400 });

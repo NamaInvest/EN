@@ -17,8 +17,6 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'mudad-compliance' });
 
-const db = (p: any) => p as any;
-
 // ── Mudad Compliance Status ────────────────────────────────────
 export type MudadComplianceStatus = {
     totalEmployees: number;
@@ -32,11 +30,12 @@ export type MudadComplianceStatus = {
 
 // ── Check Mudad Compliance ─────────────────────────────────────
 export async function checkMudadCompliance(
-    prisma: PrismaClient
+    prisma: any,
+    tenantId: string
 ): Promise<MudadComplianceStatus> {
-    const employees = await db(prisma).employee.findMany({
+    const employees = await prisma.employee.findMany({
             take: 100,
-        where: { active: true },
+        where: { active: true, tenantId },
         select: { id: true, mudadStatus: true, name: true },
     });
 
@@ -59,28 +58,30 @@ export async function checkMudadCompliance(
 
 // ── Update Employee Mudad Status ───────────────────────────────
 export async function updateMudadStatus(
-    prisma: PrismaClient,
+    prisma: any,
     employeeId: number,
-    status: string
+    status: string,
+    tenantId: string
 ): Promise<any> {
-    return db(prisma).employee.update({
-        where: { id: employeeId },
+    return prisma.employee.update({
+        where: { id: employeeId, tenantId },
         data: { mudadStatus: status },
     });
 }
 
 // ── Bulk Update Mudad Status ───────────────────────────────────
 export async function bulkUpdateMudadStatus(
-    prisma: PrismaClient,
-    updates: Array<{ employeeId: number; status: string }>
+    prisma: any,
+    updates: Array<{ employeeId: number; status: string }>,
+    tenantId: string
 ): Promise<{ updated: number; errors: string[] }> {
     const errors: string[] = [];
     let updated = 0;
 
     for (const u of updates) {
         try {
-            await db(prisma).employee.update({
-                where: { id: u.employeeId },
+            await prisma.employee.update({
+                where: { id: u.employeeId, tenantId },
                 data: { mudadStatus: u.status },
             });
             updated++;
@@ -94,12 +95,14 @@ export async function bulkUpdateMudadStatus(
 
 // ── Get Employees Missing Wage Protection ──────────────────────
 export async function getUnprotectedEmployees(
-    prisma: PrismaClient
+    prisma: any,
+    tenantId: string
 ): Promise<any[]> {
-    return db(prisma).employee.findMany({
+    return prisma.employee.findMany({
             take: 100,
         where: {
             active: true,
+            tenantId,
             OR: [
                 { mudadStatus: null },
                 { mudadStatus: 'PENDING' },
@@ -139,17 +142,18 @@ export function validateForMudad(employee: any): { valid: boolean; issues: strin
 
 // ── Generate Mudad Salary Report ───────────────────────────────
 export async function generateMudadReport(
-    prisma: PrismaClient,
-    month: string // YYYY-MM
+    prisma: any,
+    month: string, // YYYY-MM
+    tenantId: string
 ): Promise<{
     period: string;
     summary: { totalSalaries: number; employeeCount: number; avgSalary: number };
     byBank: Record<string, { count: number; total: number }>;
     issues: string[];
 }> {
-    const employees = await db(prisma).employee.findMany({
+    const employees = await prisma.employee.findMany({
             take: 100,
-        where: { active: true },
+        where: { active: true, tenantId },
         select: {
             id: true, name: true, salary: true, housingAllowance: true,
             transportAllowance: true, otherAllowance: true,

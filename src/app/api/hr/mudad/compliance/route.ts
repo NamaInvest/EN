@@ -10,6 +10,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { logger } from '@/lib/logger';
 import {
   checkMudadCompliance,
@@ -26,25 +27,26 @@ async function _GET(request: NextRequest) {
   try {
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    const tenantId = requireTenantId(request as any);
 
     const { searchParams } = new URL(request.url);
     const view = searchParams.get('view') || 'dashboard'; // dashboard | unprotected | report
     const month = searchParams.get('month') || new Date().toISOString().slice(0, 7); // YYYY-MM
 
     if (view === 'unprotected') {
-      const employees = await getUnprotectedEmployees(prisma);
+      const employees = await getUnprotectedEmployees(prisma, tenantId);
       return NextResponse.json({ employees, total: employees.length });
     }
 
     if (view === 'report') {
-      const report = await generateMudadReport(prisma, month);
+      const report = await generateMudadReport(prisma, month, tenantId);
       return NextResponse.json(report);
     }
 
     // Default: full compliance dashboard
     const [compliance, unprotected] = await Promise.all([
-      checkMudadCompliance(prisma),
-      getUnprotectedEmployees(prisma),
+      checkMudadCompliance(prisma, tenantId),
+      getUnprotectedEmployees(prisma, tenantId),
     ]);
 
     return NextResponse.json({
@@ -75,6 +77,7 @@ async function _POST(request: NextRequest) {
   try {
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    const tenantId = requireTenantId(request as any);
 
     const body = await request.json();
     const { updates } = body as {
@@ -95,7 +98,7 @@ async function _POST(request: NextRequest) {
       );
     }
 
-    const result = await bulkUpdateMudadStatus(prisma, updates);
+    const result = await bulkUpdateMudadStatus(prisma, updates, tenantId);
 
     log.info(`Mudad bulk update: ${result.updated} updated, ${result.errors.length} errors`);
 
