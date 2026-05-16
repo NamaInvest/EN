@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * Insurance Claims API — مطالبات التأمين CCHI/NPHIES
  * GET  /api/pharmacy/insurance
@@ -31,11 +32,12 @@ const UpdateClaimSchema = z.object({
 });
 
 export const GET = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const url     = new URL(req.url);
   const status  = url.searchParams.get('status');
   const company = url.searchParams.get('company');
 
-  const where: any = {};
+  const where: any = { tenantId };
   if (status)  where.status = status;
   if (company) where.insuranceCompany = { contains: company, mode: 'insensitive' };
 
@@ -76,6 +78,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
 }, { rateLimit: 'DEFAULT' });
 
 export const POST = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const raw    = await req.json().catch(() => ({}));
   const parsed = CreateClaimSchema.safeParse(raw);
   if (!parsed.success) {
@@ -87,7 +90,7 @@ export const POST = withRoute(async ({ req, prisma }) => {
 
   const body  = parsed.data;
   const claim = await (prisma as any).insuranceClaim.create({
-    data: {
+    data: { tenantId,
       patientId:        body.patientId,
       prescriptionId:   body.prescriptionId ?? null,
       salesInvoiceId:   body.salesInvoiceId ?? null,
@@ -105,6 +108,7 @@ export const POST = withRoute(async ({ req, prisma }) => {
 }, { rateLimit: 'DEFAULT' });
 
 export const PUT = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const raw    = await req.json().catch(() => ({}));
   const parsed = UpdateClaimSchema.safeParse(raw);
   if (!parsed.success) {
@@ -118,7 +122,7 @@ export const PUT = withRoute(async ({ req, prisma }) => {
   const resolved = ['approved', 'rejected', 'paid'].includes(status) ? new Date() : null;
 
   const claim = await (prisma as any).insuranceClaim.update({
-    where: { id },
+    where: { id, tenantId },
     data:  { status, rejectionReason: rejectionReason ?? null, resolvedAt: resolved },
   });
 

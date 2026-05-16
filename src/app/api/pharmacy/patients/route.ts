@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * Pharmacy Patients API — إدارة المرضى
  * GET  /api/pharmacy/patients?nationalId=1XXXXXXXXX
@@ -25,6 +26,7 @@ const UpsertPatientSchema = z.object({
 });
 
 export const GET = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const url        = new URL(req.url);
   const nationalId = url.searchParams.get('nationalId');
   const phone      = url.searchParams.get('phone');
@@ -33,7 +35,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
   if (nationalId) {
     // pharmacyPatient model pending `prisma generate`
     const patient = await (prisma as any).pharmacyPatient.findUnique({
-      where:   { nationalId },
+      where: { nationalId, tenantId },
       include: {
         prescriptions: {
           include:  { items: { include: { drug: true } } },
@@ -50,7 +52,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
     return NextResponse.json(patient);
   }
 
-  const where: any = {};
+  const where: any = { tenantId };
   if (phone)  where.phone = { contains: phone };
   if (search) {
     where.OR = [
@@ -74,6 +76,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
 }, { rateLimit: 'DEFAULT' });
 
 export const POST = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const raw    = await req.json().catch(() => ({}));
   const parsed = UpsertPatientSchema.safeParse(raw);
   if (!parsed.success) {
@@ -97,9 +100,9 @@ export const POST = withRoute(async ({ req, prisma }) => {
   };
 
   const patient = await (prisma as any).pharmacyPatient.upsert({
-    where:  { nationalId: b.nationalId },
+    where: { nationalId_tenantId: { nationalId: b.nationalId, tenantId } },
     update: shared,
-    create: { nationalId: b.nationalId, nameEn: b.nameEn ?? null, ...shared },
+    create: { tenantId, nationalId: b.nationalId, nameEn: b.nameEn ?? null, ...shared },
   });
 
   return NextResponse.json(patient, { status: 201 });

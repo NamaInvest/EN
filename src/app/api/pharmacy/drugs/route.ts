@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 /**
  * Pharmacy Drugs API — إدارة الأدوية
  * GET  /api/pharmacy/drugs  — قائمة الأدوية
@@ -32,13 +33,14 @@ const CreateDrugSchema = z.object({
 });
 
 export const GET = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const url         = new URL(req.url);
   const search      = url.searchParams.get('q') || '';
   const drugClass   = url.searchParams.get('class') || '';
   const lowStock    = url.searchParams.get('lowStock') === 'true';
   const expiringSoon = url.searchParams.get('expiringSoon') === 'true';
 
-  const where: any = { active: true };
+  const where: any = { tenantId, active: true };
   if (drugClass) where.drugClass = drugClass;
   if (search) {
     where.OR = [
@@ -85,6 +87,7 @@ export const GET = withRoute(async ({ req, prisma }) => {
 }, { rateLimit: 'DEFAULT' });
 
 export const POST = withRoute(async ({ req, prisma }) => {
+  const tenantId = requireTenantId(req as any);
   const raw = await req.json().catch(() => ({}));
   const parsed = CreateDrugSchema.safeParse(raw);
   if (!parsed.success) {
@@ -96,38 +99,44 @@ export const POST = withRoute(async ({ req, prisma }) => {
 
   const body = parsed.data;
 
-  // 1. Create Product first
-  const product = await prisma.product.create({
-    data: {
-      name:        body.name,
-      nameEn:      body.nameEn,
-      barcode:     body.barcode ?? null,
-      buyPrice:    body.buyPrice,
-      sellPrice:   body.sellPrice || body.mohMaxPrice,
-      minQuantity: body.minQuantity,
-      taxRate:     0, // أدوية معفاة من الضريبة في السعودية
-      categoryId:  body.categoryId ?? null,
-      unitId:      body.unitId,
-    },
+  const result = await (prisma as any).$transaction(async (tx: any) => {
+    // 1. Create Product first
+    const product = await tx.product.create({
+      data: {
+        tenantId,
+        name:        body.name,
+        nameEn:      body.nameEn,
+        barcode:     body.barcode ?? null,
+        buyPrice:    body.buyPrice,
+        sellPrice:   body.sellPrice || body.mohMaxPrice,
+        minQuantity: body.minQuantity,
+        taxRate:     0, // أدوية معفاة من الضريبة في السعودية
+        categoryId:  body.categoryId ?? null,
+        unitId:      body.unitId,
+      },
+    });
+
+    // 2. Create PharmacyDrug linked to product
+    const drug = await tx.pharmacyDrug.create({
+      data: {
+        tenantId,
+        productId:       product.id,
+        sfdaNumber:      body.sfdaNumber,
+        genericName:     body.genericName,
+        genericNameEn:   body.genericNameEn,
+        drugClass:       body.drugClass,
+        manufacturer:    body.manufacturer ?? null,
+        countryOfOrigin: body.countryOfOrigin ?? null,
+        storageTemp:     body.storageTemp,
+        mohMaxPrice:     body.mohMaxPrice,
+        requiresRx:      body.requiresRx,
+        isControlled:    body.isControlled,
+      },
+      include: { product: true },
+    });
+    
+    return drug;
   });
 
-  // 2. Create PharmacyDrug linked to product
-  const drug = await (prisma as any).pharmacyDrug.create({
-    data: {
-      productId:       product.id,
-      sfdaNumber:      body.sfdaNumber,
-      genericName:     body.genericName,
-      genericNameEn:   body.genericNameEn,
-      drugClass:       body.drugClass,
-      manufacturer:    body.manufacturer ?? null,
-      countryOfOrigin: body.countryOfOrigin ?? null,
-      storageTemp:     body.storageTemp,
-      mohMaxPrice:     body.mohMaxPrice,
-      requiresRx:      body.requiresRx,
-      isControlled:    body.isControlled,
-    },
-    include: { product: true },
-  });
-
-  return NextResponse.json(drug, { status: 201 });
+  return NextResponse.json(result, { status: 201 });
 }, { rateLimit: 'DEFAULT' });

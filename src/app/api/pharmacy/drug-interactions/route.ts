@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
 import { withRoute } from '@/lib/api/with-route';
 /**
@@ -47,6 +48,7 @@ function normalizeGenericName(name: string): string {
 }
 
 async function _GET(req: Request) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -58,7 +60,7 @@ async function _GET(req: Request) {
         return NextResponse.json({ interactions: [], message: 'يجب تحديد دواءين على الأقل' });
     }
 
-    return checkInteractions(prisma, drugIds);
+    return checkInteractions(prisma, drugIds, [], tenantId);
 }
 
 
@@ -68,6 +70,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -85,13 +88,13 @@ async function _POST(req: Request) {
         return NextResponse.json({ interactions: [] });
     }
 
-    return checkInteractions(prisma, drugIds, genericNames);
+    return checkInteractions(prisma, drugIds, genericNames, tenantId);
 }
 
-async function checkInteractions(prisma: any, drugIds: number[], extraNames: string[] = []) {
+async function checkInteractions(prisma: any, drugIds: number[], extraNames: string[] = [], tenantId: string = '') {
     // @ts-ignore — pharmacy model
     const drugs = drugIds.length > 0 ? await prisma.pharmacyDrug.findMany({ take: 100,
-        where: { id: { in: drugIds } },
+        where: { id: { in: drugIds }, tenantId },
         select: { id: true, genericName: true, genericNameEn: true, drugClass: true },
     }) : [];
 

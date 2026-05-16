@@ -1,3 +1,4 @@
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
 import { withRoute } from '@/lib/api/with-route';
 /**
@@ -19,6 +20,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    const tenantId = requireTenantId(req as any);
     const prisma = getPrisma(req as any);
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
@@ -34,7 +36,7 @@ async function _POST(req: Request) {
 
         // @ts-ignore — pharmacy model
         const claim = await prisma.insuranceClaim.findUnique({
-            where: { id: parseInt(claimId) },
+            where: { id: parseInt(claimId), tenantId },
             include: { patient: { select: { name: true } } },
         });
         if (!claim) return NextResponse.json({ error: 'المطالبة غير موجودة' }, { status: 404 });
@@ -43,7 +45,7 @@ async function _POST(req: Request) {
 
         const entryRef = `INS-CLM-${claim.id}`;
         await prisma.journalEntry.create({
-            data: {
+            data: { tenantId,
                 entryNumber: entryRef,
                 entryDate: new Date().toISOString().split('T')[0],
                 reference: entryRef,
@@ -74,8 +76,8 @@ async function _POST(req: Request) {
         // Update claim status to paid
         // @ts-ignore — pharmacy model
         await prisma.insuranceClaim.update({
-            where: { id: parseInt(claimId) },
-            data: { status: 'paid', resolvedAt: new Date() },
+            where: { id: parseInt(claimId), tenantId },
+            data: { tenantId, status: 'paid', resolvedAt: new Date() },
         });
 
         return NextResponse.json({ success: true, message: 'تم تسجيل القيد المحاسبي بنجاح' });
