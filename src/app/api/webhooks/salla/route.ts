@@ -5,11 +5,13 @@ import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { getUserFromRequest } from '@/lib/auth';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { TreasuryPostingService } from '@/lib/services/treasury-posting.service';
+import { InventoryService } from '@/lib/services/inventory.service';
+import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ route: 'webhooks/salla' });
-
-import { getUserFromRequest } from '@/lib/auth';
-import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 
 /** Timing-safe HMAC comparison */
 function verifySallaSignature(bodyStr: string, secret: string, signature: string): boolean {
@@ -18,8 +20,9 @@ function verifySallaSignature(bodyStr: string, secret: string, signature: string
     try {
         return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
     } catch (err: unknown) {
- log.error('src/app/api/webhooks/salla/route.ts', { error: err instanceof Error ? err.message : err });
- return false; }
+        EnterpriseLogger.error('Signature verification failed', { error: err instanceof Error ? err.message : err });
+        return false; 
+    }
 }
 
 const SallaPayloadSchema = z.object({
@@ -30,6 +33,7 @@ const SallaPayloadSchema = z.object({
 
 async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
+    const tenantId = 'default'; 
     try {
         const signature = request.headers.get('x-salla-signature');
         if (!signature) {
@@ -38,9 +42,8 @@ async function _POST(request: NextRequest) {
 
         const rawBody = await request.text();
 
-        // Fetch Salla config directly from database to get the secret
         const settings = await prisma.setting.findMany({ take: 100,
-            where: { key: { in: ['salla_enabled', 'salla_client_secret'] } }
+            where: { tenantId, key: { in: ['salla_enabled', 'salla_client_secret'] } }
         });
         const config: Record<string, string> = {};
         settings.forEach(s => config[s.key] = s.value || '');
@@ -61,43 +64,42 @@ async function _POST(request: NextRequest) {
         }
         const { event, event_id, data } = parsedPayload.data;
         
-        log.info(`[Salla Webhook] Received Event: ${event} (ID: ${event_id})`);
+        EnterpriseLogger.traceFinancialTx(
+            `SALLA_WEBHOOK_${event_id}`,
+            'SALLA_WEBHOOK_RECEIVED',
+            tenantId,
+            { event, event_id }
+        );
 
         if (event === 'order.created') {
-            await handleSallaOrderCreated(data, prisma);
+            await handleSallaOrderCreated(data, prisma, tenantId);
         } else if (event === 'app.store.authorize') {
-            // Store authorized our app
             log.info('✅ Salla App Authorized:', data);
         }
 
         return NextResponse.json({ success: true, message: 'Webhook Processed' });
     } catch (error: any) {
-        log.error('Salla Webhook Error:', error);
+        EnterpriseLogger.error('Salla Webhook Error:', { tenantId }, error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-async function handleSallaOrderCreated(order: any, prisma: any) {
-    // Determine total and tax based on Salla payload
+async function handleSallaOrderCreated(order: any, prisma: any, tenantId: string) {
     const total = order.amounts?.total?.amount || 0;
     const subtotal = order.amounts?.sub_total?.amount || 0;
     const taxValue = order.amounts?.tax?.amount || 0;
 
-    // We assume an online order is fully paid. Create a generic customer if not present.
     const customerPhone = order.customer?.mobile || order.customer?.phone || '0000000000';
     const customerName = (order.customer?.first_name || '') + ' ' + (order.customer?.last_name || '');
 
-    // Get next invoice number
-    const lastInvoice = await prisma.salesInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
-    const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
-
-    // Find main stock (warehouse 1)
-    const mainStock = await prisma.stock.findFirst({ orderBy: { id: 'asc' } });
-    const stockId = mainStock?.id || 1;
-
     await runFinancialTx(prisma, async (tx: any) => {
-        // Find Customer by phone or create
-        let customer = await tx.customer.findFirst({ where: { phone: customerPhone } });
+        const lastInvoice = await tx.salesInvoice.findFirst({ where: { tenantId }, orderBy: { invoiceNo: 'desc' } });
+        const invoiceNo = (lastInvoice?.invoiceNo || 0) + 1;
+
+        const mainStock = await tx.stock.findFirst({ where: { tenantId }, orderBy: { id: 'asc' } });
+        const stockId = mainStock?.id || 1;
+
+        let customer = await tx.customer.findFirst({ where: { tenantId, phone: customerPhone } });
         if (customer) {
             customer = await tx.customer.update({
                 where: { id: customer.id },
@@ -105,12 +107,13 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
             });
         } else {
             customer = await tx.customer.create({
-                data: { name: customerName || 'Salla Customer', phone: customerPhone }
+                data: { tenantId, name: customerName || 'Salla Customer', phone: customerPhone }
             });
         }
 
         const createdInvoice = await tx.salesInvoice.create({
             data: {
+                tenantId,
                 date: new Date(),
                 invoiceNo,
                 customerId: customer.id,
@@ -122,7 +125,7 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
                 total,
                 paid: total,
                 remaining: 0,
-                paymentType: 'online', // Salla Order
+                paymentType: 'online', 
                 status: 'completed',
                 notes: `Salla Order #${order.reference_id}`,
                 details: {
@@ -133,13 +136,14 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
                         const itemTotal = item.amounts?.total?.amount || price;
 
                         return {
-                            productId: 1, // Fallback product ID
+                            tenantId,
+                            productId: 1, 
                             productName: item.name,
                             quantity: qty,
                             price: price,
                             discountRate: 0,
                             discountValue: 0,
-                            taxRate: 15, // Defaulting assuming KSA VAT
+                            taxRate: 15, 
                             taxValue: itemTax,
                             total: itemTotal,
                         };
@@ -149,52 +153,60 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
             include: { details: true }
         });
 
-        // Loop items to match by SKU/Barcode and deduct real local stock
         for (const item of order.items) {
             const sku = item.sku;
             const qty = item.quantity || 1;
             
             if (sku) {
-                const localProd = await tx.product.findUnique({ where: { barcode: sku } });
+                const localProd = await tx.product.findFirst({ where: { tenantId, barcode: sku } });
                 if (localProd) {
-                    // Update actual product ID on the invoice line
                     await tx.salesInvoiceDetail.updateMany({
                         where: { invoiceId: createdInvoice.id, productName: item.name },
                         data: { productId: localProd.id }
                     });
 
-                    // Deduct Global Stock
                     await tx.product.update({
                         where: { id: localProd.id },
                         data: { currentStock: { decrement: qty } }
                     });
 
-                    // Deduct Warehouse specific Stock
                     try {
-                        await tx.productStock.upsert({
-                            where: { productId_stockId: { productId: localProd.id, stockId } },
-                            update: { quantity: { decrement: qty } },
-                            create: { productId: localProd.id, stockId, quantity: -qty },
+                        await InventoryService.adjustStock(tx, {
+                            tenantId,
+                            productId: localProd.id,
+                            stockId,
+                            quantityChange: -qty,
+                            reason: `Salla Order #${order.reference_id}`,
+                            sourceType: 'SALLA_WEBHOOK',
+                            reference: `SI-${createdInvoice.id}`
+                        });
+
+                        await InventoryService.recordMovement(tx, {
+                            tenantId,
+                            productId: localProd.id,
+                            stockId,
+                            quantity: -qty,
+                            type: 'OUT',
+                            referenceType: 'sale',
+                            referenceId: createdInvoice.id,
+                            notes: `مبيعات سلة أونلاين - فاتورة #${invoiceNo}`
                         });
                     } catch (e: any) {
-                        log.error('Failed to update productStock for Salla webhook inside tx:', e);
+                        EnterpriseLogger.error('Failed to update productStock for Salla webhook inside tx', { tenantId }, e);
                     }
                 }
             }
         }
 
-        // Add to Treasury
-        await tx.treasury.create({
-            data: { 
-                type: 'in', amount: total, 
-                description: `مبيعات سلة أونلاين - فاتورة #${invoiceNo}`, 
-                referenceType: 'sale', referenceId: createdInvoice.id 
-            }
-        });
-    });
+        await TreasuryPostingService.createTreasuryEntry(tx, {
+            type: 'in', 
+            amount: total, 
+            description: `مبيعات سلة أونلاين - فاتورة #${invoiceNo}`, 
+            referenceType: 'sale', 
+            referenceId: createdInvoice.id,
+            date: new Date()
+        }, null, null);
 
-    // Accounting Journal creation (done outside transaction to avoid blocking it if journal fails)
-    try {
         await postSalesInvoice({
             invoiceNo,
             subtotal,
@@ -205,10 +217,31 @@ async function handleSallaOrderCreated(order: any, prisma: any) {
             splitCard: total,
             discountValue: 0,
             date: new Date().toISOString().split('T')[0],
+            txClient: tx
         });
-    } catch (jErr: unknown) {
-        log.error('Auto-journal for Salla webhook failed:', jErr);
-    }
+        
+    }, 'SALLA_WEBHOOK_ORDER');
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => {
+    const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
+    const tenantString = 'default';
+    const idempotencyKey = req.headers.get('x-salla-event-id');
+    if (idempotencyKey) {
+        const isUnique = await lockIdempotencyKey(tenantString, 'salla_webhook', idempotencyKey);
+        if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+    }
+    
+    try {
+        const response = await _POST(req as any);
+        if (idempotencyKey && response.status >= 200 && response.status < 400) {
+            await completeIdempotencyKey(tenantString, 'salla_webhook', idempotencyKey);
+        } else if (idempotencyKey) {
+            await unlockIdempotencyKey(tenantString, 'salla_webhook', idempotencyKey);
+        }
+        return response;
+    } catch (e) {
+        if (idempotencyKey) await unlockIdempotencyKey(tenantString, 'salla_webhook', idempotencyKey);
+        throw e;
+    }
+}, { rateLimit: 'DEFAULT' });

@@ -1,23 +1,18 @@
+import { NextResponse, NextRequest } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
 import { withRoute } from '@/lib/api/with-route';
-/**
- * Prescriptions API — إدارة الوصفات الطبية
- * GET  /api/pharmacy/prescriptions?patientId=1
- * POST /api/pharmacy/prescriptions — تسجيل وصفة جديدة
- * PUT  /api/pharmacy/prescriptions — صرف وصفة
- */
-import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runInventoryTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'pharmacy.prescriptions' });
 
-async function _GET(req: Request) {
+async function _GET(req: NextRequest, auth: any) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth?.tenantId);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const url = new URL(req.url);
     const patientId = url.searchParams.get('patientId');
@@ -25,13 +20,14 @@ async function _GET(req: Request) {
     const status = url.searchParams.get('status');
 
     try {
-        const where: any = {};
+        const where: any = { ...requireTenantFilter({ tenantId }) };
         if (patientId) where.patientId = parseInt(patientId);
         if (wasfatyRef) where.wasfatyRef = wasfatyRef;
         if (status) where.status = status;
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
-        const prescriptions = await prisma.prescription.findMany({ take: 100,
+        const prescriptions = await prisma.prescription.findMany({ 
+            take: 100,
             where,
             include: {
                 patient: { select: { nationalId: true, name: true, phone: true, allergies: true } },
@@ -43,6 +39,7 @@ async function _GET(req: Request) {
 
         return NextResponse.json({ total: prescriptions.length, prescriptions });
     } catch (e: any) {
+        log.error('pharmacy.prescriptions.GET', { error: e instanceof Error ? e.message : e, tenantId });
         return NextResponse.json({ error: 'خطأ في تحميل الوصفات' }, { status: 500 });
     }
 }
@@ -60,27 +57,28 @@ const _POSTSchema = z.object({
   imageUrl: z.any().optional(),
 }).passthrough();
 
-async function _POST(req: Request) {
+const _PUTSchema = z.object({
+  prescriptionId: z.union([z.string(), z.number()]).optional(),
+  items: z.array(z.any()).optional(),
+}).passthrough();
+
+async function _POST(req: NextRequest, auth: any) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth?.tenantId);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
         const body = await req.json();
 
-        const _parsed = _PUTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-
         const _parsed2 = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
+        if (!_parsed2.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed2.error.flatten().fieldErrors }, { status: 400 });
         }
 
         // @ts-ignore — new pharmacy model; restart TS server to clear IDE cache
         const prescription = await prisma.prescription.create({
             data: {
+                tenantId,
                 patientId: parseInt(body.patientId),
                 wasfatyRef: body.wasfatyRef || null,
                 doctorName: body.doctorName || null,
@@ -91,10 +89,11 @@ async function _POST(req: Request) {
                 source: body.source || 'paper',
                 status: 'pending',
                 imageUrl: body.imageUrl || null,
-                pharmacistId: user.userId,
+                pharmacistId: auth.userId,
                 notes: body.notes || null,
                 items: {
                     create: (body.items || []).map((item: any) => ({
+                        tenantId,
                         drugId: parseInt(item.drugId),
                         drugName: item.drugName,
                         dosage: item.dosage || null,
@@ -111,34 +110,34 @@ async function _POST(req: Request) {
 
         return NextResponse.json(prescription, { status: 201 });
     } catch (e: any) {
-        log.error(e);
+        log.error('pharmacy.prescriptions.POST', { error: e instanceof Error ? e.message : e, tenantId });
         return NextResponse.json({ error: 'خطأ في تسجيل الوصفة' }, { status: 500 });
     }
 }
 
 // PUT — Dispense prescription
 
-const _PUTSchema = z.object({
-  prescriptionId: z.union([z.string(), z.number()]).optional(),
-  items: z.array(z.any()).optional(),
-}).passthrough();
-
-async function _PUT(req: Request) {
+async function _PUT(req: NextRequest, auth: any) {
     const prisma = getPrisma(req as any);
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = assertTenant(auth?.tenantId);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
         const body = await req.json();
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+        
         const { prescriptionId, items } = body;
 
-        const result = await prisma.$transaction(async (tx: any) => {
+        const result = await runInventoryTx(prisma, async (tx: any) => {
             let allDispensed = true;
 
             for (const item of items) {
                 const qty = parseFloat(item.dispensedQty);
                 await tx.prescriptionItem.update({
-                    where: { id: parseInt(item.id) },
+                    where: { id: parseInt(item.id), ...requireTenantFilter({ tenantId }) },
                     data: {
                         dispensedQty: qty,
                         status: qty >= item.quantity ? 'dispensed' : 'partial',
@@ -148,18 +147,19 @@ async function _PUT(req: Request) {
 
                 // Deduct from stock
                 await tx.product.update({
-                    where: { id: parseInt(item.productId) },
+                    where: { id: parseInt(item.productId), ...requireTenantFilter({ tenantId }) },
                     data: { currentStock: { decrement: qty } },
                 });
 
                 // Log medication
                 await tx.medicationLog.create({
                     data: {
+                        tenantId,
                         patientId: parseInt(body.patientId),
                         drugName: item.drugName,
                         dosage: item.dosage || null,
                         quantity: qty,
-                        pharmacistId: user.userId,
+                        pharmacistId: auth.userId,
                     },
                 });
 
@@ -167,12 +167,13 @@ async function _PUT(req: Request) {
                 if (item.isControlled) {
                     await tx.controlledDrugLog.create({
                         data: {
+                            tenantId,
                             drugId: parseInt(item.drugId),
                             patientNationalId: body.patientNationalId,
                             patientName: body.patientName,
                             doctorName: body.doctorName || '',
                             doctorLicense: body.doctorLicense || '',
-                            pharmacistId: user.userId,
+                            pharmacistId: auth.userId,
                             quantity: qty,
                         },
                     });
@@ -181,26 +182,27 @@ async function _PUT(req: Request) {
 
             // Update prescription status
             const rx = await tx.prescription.update({
-                where: { id: parseInt(prescriptionId) },
+                where: { id: parseInt(prescriptionId), ...requireTenantFilter({ tenantId }) },
                 data: {
                     status: allDispensed ? 'dispensed' : 'partial',
                     dispensedAt: new Date(),
-                    pharmacistId: user.userId,
+                    pharmacistId: auth.userId,
                 },
             });
 
             return rx;
-        });
+        }, 'PRESCRIPTION_DISPENSE');
 
         return NextResponse.json({ success: true, prescription: result });
     } catch (e: any) {
-        log.error(e);
+        log.error('pharmacy.prescriptions.PUT', { error: e instanceof Error ? e.message : e, tenantId });
         return NextResponse.json({ error: 'خطأ في صرف الوصفة' }, { status: 500 });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req, auth }) => _GET(req as any, auth), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req, auth }) => _POST(req as any, auth), { rateLimit: 'DEFAULT' });
 
-export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'DEFAULT' });
+export const PUT = withRoute(async ({ req, auth }) => _PUT(req as any, auth), { rateLimit: 'FINANCIAL' });
+
