@@ -6,14 +6,14 @@ import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runFinancialTx } from '@/lib/db/transaction';
-import { assertTenant } from '@/lib/security/tenant-guard';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'hr.payroll.run' });
 
 async function _GET(req: Request, auth: any) {
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
+    const tenantId = requireTenantId(req as any);
 
     try {
         const { searchParams } = new URL(req.url);
@@ -71,7 +71,7 @@ const _POSTSchema = z.object({
 
 async function _POST(req: Request, auth: any) {
     const prisma = getPrisma(req as any);
-    const tenantId = assertTenant(auth?.tenantId);
+    const tenantId = requireTenantId(req as any);
 
     try {
         const body = await req.json();
@@ -81,11 +81,6 @@ async function _POST(req: Request, auth: any) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const { month, year, data } = body;
-
-        const existing = await prisma.salary.findFirst({ where: { tenantId, month, year } });
-        if (existing) {
-            return NextResponse.json({ error: 'تم إصدار مسير الرواتب لهذا الشهر مسبقاً.' }, { status: 400 });
-        }
 
         const setting = await prisma.setting.findUnique({ where: { key: 'payroll_accounting_config' } });
         if (!setting || !setting.value) {
@@ -120,6 +115,11 @@ async function _POST(req: Request, auth: any) {
         });
 
         await runFinancialTx(prisma, async (tx: any) => {
+            const txExisting = await tx.salary.findFirst({ where: { tenantId, month, year } });
+            if (txExisting) {
+                throw new Error('تم إصدار مسير الرواتب لهذا الشهر مسبقاً.');
+            }
+
             const jeNumberData = await getNextNumber(tx, 'JE');
             const jeNo = jeNumberData.formatted;
 
@@ -158,7 +158,10 @@ async function _POST(req: Request, auth: any) {
 
         return NextResponse.json({ success: true, message: 'تم ترحيل مسير الرواتب المحاسبي وإنشاء قيد الاستحقاق بنجاح.' });
     } catch (e: any) {
-        EnterpriseLogger.error("Payroll run error", { tenantId: auth?.tenantId }, e);
+        EnterpriseLogger.error("Payroll run error", { tenantId }, e);
+        if (e.message === 'تم إصدار مسير الرواتب لهذا الشهر مسبقاً.') {
+            return NextResponse.json({ error: e.message }, { status: 400 });
+        }
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

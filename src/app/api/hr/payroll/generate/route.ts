@@ -6,7 +6,7 @@ import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runFinancialTx } from '@/lib/db/transaction';
-import { assertTenant } from '@/lib/security/tenant-guard';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'hr.payroll.generate' });
@@ -18,7 +18,7 @@ const GeneratePayrollSchema = z.object({
 
 async function _POST(request: Request, auth: any) {
     const prisma = getPrisma(request);
-    const tenantId = assertTenant(auth?.tenantId);
+    const tenantId = requireTenantId(request as any);
 
     try {
         const raw    = await request.json();
@@ -170,7 +170,7 @@ async function _POST(request: Request, auth: any) {
         }, { status: 201 });
 
     } catch (error: any) {
-        EnterpriseLogger.error("Payroll generate error", { tenantId: auth?.tenantId }, error);
+        EnterpriseLogger.error("Payroll generate error", { tenantId }, error);
         return apiError(error, 'فشل توليد مسير الرواتب', { context: 'hr/payroll/generate' });
     }
 }

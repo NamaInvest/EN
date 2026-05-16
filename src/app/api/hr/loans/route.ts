@@ -2,15 +2,18 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
-import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { runFinancialTx } from '@/lib/db/transaction';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr.loans' });
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const loans = await prisma.employeeLoan.findMany({ take: 100,
+            where: { tenantId },
             include: { employee: true },
             orderBy: { id: 'desc' }
         });
@@ -31,6 +34,7 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
         const body = await request.json();
 
@@ -44,17 +48,20 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const loan = await prisma.employeeLoan.create({
-            data: {
-                employeeId: parseInt(employeeId),
-                amount: parseFloat(amount),
-                monthlyDeduction: parseFloat(monthlyDeduction),
-                remainingAmount: parseFloat(amount),
-                reason: reason || null,
-                startDate: new Date(),
-                status: 'active'
-            }
-        });
+        const loan = await runFinancialTx(prisma, async (tx: any) => {
+            return await tx.employeeLoan.create({
+                data: {
+                    tenantId,
+                    employeeId: parseInt(employeeId),
+                    amount: parseFloat(amount),
+                    monthlyDeduction: parseFloat(monthlyDeduction),
+                    remainingAmount: parseFloat(amount),
+                    reason: reason || null,
+                    startDate: new Date(),
+                    status: 'active'
+                }
+            });
+        }, 'EMPLOYEE_LOAN_CREATE');
 
         return NextResponse.json(loan, { status: 201 });
     } catch (error: any) {
