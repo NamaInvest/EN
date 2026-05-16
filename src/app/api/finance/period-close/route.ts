@@ -1,13 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { prisma } from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'finance.period-close' });
 
-async function _GET(req: Request) {
+async function _GET(req: NextRequest, auth: any) {
+    const prisma = getPrisma(req as any);
+    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const { searchParams } = new URL(req.url);
@@ -16,6 +19,7 @@ async function _GET(req: Request) {
         if (!periodId) {
             // return latest period close checklist
             const latest = await prisma.periodCloseChecklist.findMany({
+                where: requireTenantFilter({ tenantId }),
                 include: { fiscalPeriod: true },
                 orderBy: { id: 'desc' },
                 take: 10
@@ -23,24 +27,27 @@ async function _GET(req: Request) {
             return NextResponse.json(latest);
         }
 
-        const checklist = await prisma.periodCloseChecklist.findMany({ take: 100,
-            where: { fiscalPeriodId: parseInt(periodId) },
+        const checklist = await prisma.periodCloseChecklist.findMany({ 
+            take: 100,
+            where: { fiscalPeriodId: parseInt(periodId), ...requireTenantFilter({ tenantId }) },
             orderBy: { sequence: 'asc' },
             include: { fiscalPeriod: true }
         });
 
         return NextResponse.json(checklist);
     } catch (error: any) {
+        log.error('finance.period-close.GET', { error: error instanceof Error ? error.message : error, tenantId });
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
-
 
 const _POSTSchema = z.object({
   fiscalPeriodId: z.union([z.string(), z.number()]).optional(),
 }).passthrough();
 
-async function _POST(req: Request) {
+async function _POST(req: NextRequest, auth: any) {
+    const prisma = getPrisma(req as any);
+    const tenantId = assertTenant(auth?.tenantId);
 
     try {
         const body = await req.json();
@@ -63,24 +70,28 @@ async function _POST(req: Request) {
             { taskName: 'Variance review', sequence: 8, owner: 'Controller' },
         ];
 
-        const created = await prisma.$transaction(
-            templates.map(t => prisma.periodCloseChecklist.create({
-                data: {
+        const created = await runFinancialTx(prisma, async (tx) => {
+            const checklist = await tx.periodCloseChecklist.createMany({
+                data: templates.map(t => ({
+                    tenantId,
                     fiscalPeriodId: parseInt(fiscalPeriodId),
                     taskName: t.taskName,
                     sequence: t.sequence,
                     owner: t.owner,
                     status: 'PENDING'
-                }
-            }))
-        );
+                }))
+            });
+            return checklist;
+        }, 'PERIOD_CLOSE_CHECKLIST_INIT');
 
-        return NextResponse.json(created);
+        return NextResponse.json({ count: created.count });
     } catch (error: any) {
+        log.error('finance.period-close.POST', { error: error instanceof Error ? error.message : error, tenantId });
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req, auth }) => _GET(req as any, auth), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req, auth }) => _POST(req as any, auth), { rateLimit: 'FINANCIAL' });
+

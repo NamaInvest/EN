@@ -328,6 +328,7 @@ export async function postExpense(expense: {
     branchId?: number | null;
     costCenterId?: number | null;
     date?: string;
+    txClient?: any;
 }) {
     // Map expense category to account code
     const categoryMap: Record<string, string> = {
@@ -352,6 +353,7 @@ export async function postExpense(expense: {
         userId: expense.userId,
         branchId: expense.branchId,
         date: expense.date,
+        txClient: expense.txClient,
     });
 }
 

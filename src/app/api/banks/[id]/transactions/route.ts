@@ -26,7 +26,7 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
 
         const transactions = await prisma.bankTransaction.findMany({ take: 100, 
             where: { 
-                ...requireTenantFilter(tenantId),
+                ...requireTenantFilter({ tenantId }),
                 bankAccountId: id 
             },
             orderBy: { transactionDate: 'desc' } 

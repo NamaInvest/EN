@@ -12,6 +12,8 @@ export class TreasuryPostingService {
         userId: number | null,
         branchId: number | null
     ) {
+        const tenantId = body.tenantId || 'default';
+
         // Strict Validation for Manual Entries
         if (body.referenceType === 'manual') {
             if (!body.counterpartyAccountId) {
@@ -27,6 +29,7 @@ export class TreasuryPostingService {
 
         const newTreasury = await tx.treasury.create({
             data: { 
+                tenantId,
                 type: body.type, 
                 amount: body.amount, 
                 description: body.description || null, 
