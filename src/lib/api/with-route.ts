@@ -76,24 +76,45 @@ const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
   PUBLIC:    { max: 200,  windowMs: 60_000 },
 };
 
-// In-memory rate limiter (replace with Redis in multi-replica setup)
+// In-memory rate limiter fallback
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
-function checkRateLimit(key: string, tier: RateLimitTier): boolean {
+import IORedis from 'ioredis';
+// Create a shared Redis client specifically for rate-limiting
+const redisRateLimiter = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+  maxRetriesPerRequest: 1,
+  lazyConnect: true,
+  enableOfflineQueue: false
+});
+
+redisRateLimiter.on('error', () => { /* ignore connection errors, let it fallback */ });
+
+async function checkRateLimit(key: string, tier: RateLimitTier): Promise<boolean> {
   const config = RATE_LIMITS[tier];
-  const now    = Date.now();
-  const entry  = rateLimitStore.get(key);
+  
+  try {
+    const redisKey = `ratelimit:${key}`;
+    const count = await redisRateLimiter.incr(redisKey);
+    if (count === 1) {
+      await redisRateLimiter.pexpire(redisKey, config.windowMs);
+    }
+    return count <= config.max;
+  } catch (err) {
+    // Memory fallback if Redis is down
+    const now = Date.now();
+    const entry = rateLimitStore.get(key);
 
-  if (!entry || entry.resetAt < now) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + config.windowMs });
-    return true;
+    if (!entry || entry.resetAt < now) {
+      rateLimitStore.set(key, { count: 1, resetAt: now + config.windowMs });
+      return true;
+    }
+
+    entry.count++;
+    return entry.count <= config.max;
   }
-
-  entry.count++;
-  return entry.count <= config.max;
 }
 
-// Cleanup stale rate-limit entries every 10 minutes
+// Cleanup stale rate-limit entries every 10 minutes (for memory fallback)
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
@@ -119,9 +140,9 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
       const reqForTenant = { headers: { get: (k: string) => req.headers.get(k) } };
       const tenant = resolveTenant(reqForTenant);
 
-      // 2. Rate limiting
+      // 2. Rate limiting (Redis-backed Phase 1 implementation)
       const rateLimitKey = `${tenant}:${method}:${pathname}`;
-      if (!checkRateLimit(rateLimitKey, rateLimit)) {
+      if (!(await checkRateLimit(rateLimitKey, rateLimit))) {
         httpRequestsTotal.inc({ method, status: '429', route: pathname });
         return NextResponse.json(
           { error: 'Too Many Requests', retryAfter: 60 },
