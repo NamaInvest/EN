@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -35,7 +34,7 @@ async function _GET(request: Request) {
 
         if (!file) {
             // Generate it on the fly if not exists
-            const result = await GOSIEngine.generateMonthlyFile(dateObj); // Might need tenantId
+            const result = await GOSIEngine.generateMonthlyFile(prisma, dateObj, tenantId); // Might need tenantId
             file = await prisma.gOSIMonthlyFile.findUnique({ where: { id: result.fileId, tenantId } });
         }
 

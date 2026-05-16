@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -35,26 +34,22 @@ async function _POST(request: Request) {
             );
         }
 
-        // Fetch salaries for this run
         const run = await prisma.payrollRun.findUnique({
             where: { id: payrollRunId, tenantId }
         });
 
         if (!run) return NextResponse.json({ error: 'PayrollRun not found' }, { status: 404 });
 
-        // BUILD SAFETY: if (!run) throw new Error('PayrollRun not found');
-
-        const salaries = await prisma.salary.findMany({ take: 100,
-            where: {
-                month: run.month,
-                year: run.year,
-                tenantId
-            }
+        const salaries = await prisma.salary.findMany({
+            where: { month: run.month, year: run.year, tenantId },
+            include: { employee: true }
         });
 
         const results = [];
         for (const salary of salaries) {
-            const contribution = await GOSIEngine.calculateForEmployee(salary.employeeId, payrollRunId);
+            const basic = Number(salary.basicSalary || 0);
+            const housing = Number(salary.employee?.housingAllowance || 0);
+            const contribution = GOSIEngine.calculateForEmployee(salary.employee, basic, housing);
             results.push(contribution);
         }
 

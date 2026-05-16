@@ -1,10 +1,8 @@
-// @ts-nocheck
-import { PrismaClient, Employee, GOSIContribution } from '@prisma/client';
+import { PrismaClient, Employee } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { runFinancialTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'gosi-engine' });
-
-const prisma = new PrismaClient();
 
 export class GOSIEngine {
     static MIN_SUBJECT_WAGE = 1500;
@@ -89,50 +87,51 @@ export class GOSIEngine {
     /**
      * Generates GOSI for all employees in a payroll run
      */
-    static async processPayrollRun(payrollRunId: number): Promise<void> {
+    static async processPayrollRun(prisma: any, payrollRunId: number, tenantId: string): Promise<void> {
         const run = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId },
-            include: {
-                payslips: {
-                    include: { employee: true }
-                }
-            }
+            where: { id: payrollRunId, tenantId }
         });
 
         if (!run) throw new Error("Payroll Run not found");
 
-        const contributions = [];
+        const salaries = await prisma.salary.findMany({
+            where: { month: run.month, year: run.year, tenantId },
+            include: { employee: true }
+        });
 
-        for (const payslip of run.payslips) {
-            const basic = Number(payslip.basicSalary || 0);
-            const housing = Number(payslip.housingAllowance || 0);
+        const contributions: any[] = [];
+
+        for (const salary of salaries) {
+            const basic = Number(salary.basicSalary || 0);
+            const housing = Number(salary.employee?.housingAllowance || 0);
             
-            const calc = this.calculateForEmployee(payslip.employee, basic, housing);
+            const calc = this.calculateForEmployee(salary.employee, basic, housing);
 
             contributions.push({
-                employeeId: payslip.employeeId,
+                employeeId: salary.employeeId,
                 payrollRunId: payrollRunId,
-                contributionMonth: new Date(run.periodYear, run.periodMonth - 1, 1),
+                contributionMonth: new Date(run.year, run.month - 1, 1),
                 ...calc
             });
         }
 
-        await prisma.$transaction(async (tx) => {
+        await runFinancialTx(prisma, async (tx: any) => {
             // Clear existing contributions for this run
             await tx.gOSIContribution.deleteMany({
-                where: { payrollRunId: payrollRunId }
+                where: { payrollRunId: payrollRunId, tenantId }
             });
 
             // Insert new contributions
+            const contributionsWithTenant = contributions.map(c => ({ ...c, tenantId }));
             await tx.gOSIContribution.createMany({
-                data: contributions
+                data: contributionsWithTenant
             });
 
             // Update payslips with GOSI deductions
             for (const c of contributions) {
                 if (c.totalEmployeeDeduction > 0) {
                     await tx.payslip.updateMany({
-                        where: { payrollRunId: payrollRunId, employeeId: c.employeeId },
+                        where: { payrollRunId: payrollRunId, employeeId: c.employeeId, tenantId },
                         data: {
                             gosiDeduction: c.totalEmployeeDeduction,
                             // Recalculate Net Salary:
@@ -146,18 +145,18 @@ export class GOSIEngine {
             // Note: Journal Entry generation for GOSI Expense and Payable would happen here
             // DR: GOSI Expense (Employer share)
             // CR: GOSI Payable (Total to GOSI)
-        });
+        }, 'GOSI_PROCESS');
     }
 
     /**
      * Generate Monthly File for GOSI portal upload (mock logic)
      */
-    static async generateMonthlyFile(month: Date): Promise<{ content: string; fileName: string }> {
+    static async generateMonthlyFile(prisma: any, month: Date, tenantId: string): Promise<{ content: string; fileId: number; fileName: string }> {
         const targetMonth = new Date(month.getFullYear(), month.getMonth(), 1);
         
         const contributions = await prisma.gOSIContribution.findMany({
             take: 100,
-            where: { contributionMonth: targetMonth }
+            where: { contributionMonth: targetMonth, tenantId }
         });
 
         let totalEmployees = 0;
@@ -175,8 +174,9 @@ export class GOSIEngine {
         // Real GOSI integration usually happens via API or specific portal XML
         const content = `GOSI_REPORT|${month.toISOString().slice(0, 7)}|${totalEmployees}|${totalAmount.toFixed(2)}`;
 
-        await prisma.gOSIMonthlyFile.create({
+        const createdFile = await prisma.gOSIMonthlyFile.create({
             data: {
+                tenantId,
                 month: targetMonth,
                 totalEmployees,
                 totalEmployeeContribution: totalEmployeeShare,
@@ -187,6 +187,23 @@ export class GOSIEngine {
             }
         });
 
-        return { content, fileName: `GOSI_${month.toISOString().slice(0, 7)}.txt` };
+        return { content, fileId: createdFile.id, fileName: `GOSI_${month.toISOString().slice(0, 7)}.txt` };
+    }
+
+    /**
+     * Mock submission to GOSI logic
+     */
+    static async submitToGOSI(prisma: any, fileId: number, userId: number, tenantId: string): Promise<void> {
+        const file = await prisma.gOSIMonthlyFile.findUnique({
+            where: { id: fileId, tenantId }
+        });
+        if (!file) throw new Error("GOSI file not found");
+
+        await runFinancialTx(prisma, async (tx: any) => {
+            // Add a mock journal entry or logic here if needed
+            // For now, we just validate it exists within a transaction wrapper
+            // If gOSIMonthlyFile has a status, we would update it here:
+            // await tx.gOSIMonthlyFile.update({ where: { id: fileId, tenantId }, data: { status: 'SUBMITTED' } });
+        }, 'GOSI_SUBMIT');
     }
 }

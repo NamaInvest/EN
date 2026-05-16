@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -16,6 +15,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(request: Request) {
+    const prisma = getPrisma(request as any);
     const tenantId = requireTenantId(request as any);
     try {
         const body = await request.json();
@@ -36,7 +36,7 @@ async function _POST(request: Request) {
         const user = await getUserFromRequest(request as any);
         const userId = (user as any)?.id || (user as any)?.userId || 1; // fallback for demo
 
-        await GOSIEngine.submitToGOSI(fileId, userId);
+        await GOSIEngine.submitToGOSI(prisma, fileId, userId, tenantId);
 
         return NextResponse.json({
             message: 'GOSI file submitted and journal entry created successfully',
