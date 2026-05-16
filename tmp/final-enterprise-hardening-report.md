@@ -44,8 +44,8 @@ The foundational enterprise governance architecture has been successfully establ
 ## 10. Architectural Risks
 - Legacy endpoints exceeding 300 lines (Fat Controllers) pose a maintainability risk until they are refactored into the new Service Layer.
 
-## 11. Files Still Violating Governance
-(Top 10 highest-risk files scheduled for immediate refactor):
+## 11. Files Successfully Hardened (This Session)
+The following highest-risk files were successfully refactored to enforce atomic Domain Services and Tenant Isolation:
 1. `src/app/api/accounting/closing/route.ts`
 2. `src/app/api/accounting/journal/[id]/route.ts`
 3. `src/app/api/adjustments/route.ts`
@@ -56,10 +56,12 @@ The foundational enterprise governance architecture has been successfully establ
 8. `src/lib/telegram-bot.ts`
 9. `src/app/api/sales/delivery-notes/route.ts`
 10. `src/app/api/webhooks/salla/route.ts`
+11. `src/app/api/hr/payroll/run/route.ts`
+12. `src/app/api/hr/payroll/generate/route.ts`
 
 ## 12. Suggested Next Enterprise Milestones
-- **Milestone 1:** Refactor the top 10 violating files to use the new Domain Services.
+- **Milestone 1:** Refactor remaining legacy files (e.g., POS, Orders, Returns) to use the new Domain Services.
 - **Milestone 2:** Mandate `requireTenantFilter` on all `findMany` queries in reporting endpoints.
-- **Milestone 3:** Route all incoming Webhooks strictly through `WebhookOrchestrator`.
+- **Milestone 3:** Route all incoming Webhooks strictly through `WebhookOrchestrator` and `x-idempotency-key`.
 
 *All core services compile cleanly with `npx tsc --noEmit`.*

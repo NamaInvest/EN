@@ -1,7 +1,7 @@
 # 09 - المكتبات والأدوات الأساسية (Core Libraries & Utils)
 
-> **عدد الملفات في src/lib:** 540
-> **تم التوليد تلقائياً بتاريخ:** 2026-05-14T08:21:21.790Z
+> **عدد الملفات في src/lib:** 554
+> **تم التوليد تلقائياً بتاريخ:** 2026-05-15T23:04:43.990Z
 
 ## `src/lib/ab-testing.ts` (89 سطر)
 ### الثوابت المُصدّرة:
@@ -276,6 +276,14 @@
 ### الفئات:
 - `ATSEngine`
 
+## `src/lib/audit-trail.ts` (56 سطر)
+### الدوال المُصدّرة:
+- `logAuditEvent(
+  txOrPrisma: Prisma.TransactionClient | PrismaClient,
+  payload: AuditEventPay)`
+### الواجهات (Interfaces):
+- `AuditEventPayload`
+
 ## `src/lib/audit.ts` (27 سطر)
 ### الدوال المُصدّرة:
 - `logAuditAction(params: {
@@ -311,7 +319,7 @@
 
 ## `src/lib/auto-journal.test.ts` (161 سطر)
 
-## `src/lib/auto-journal.ts` (1293 سطر)
+## `src/lib/auto-journal.ts` (1353 سطر)
 ### الدوال المُصدّرة:
 - `postSalesInvoice(invoice: {
     invoiceNo: number;
@@ -417,6 +425,18 @@
     period: string;
     accountCode: string; // e.g. AP or AR
     b)`
+- `postPurchasePayment(params: {
+    invoiceNo: string | number;
+    amount: number;
+    paymentType)`
+- `postSalesPayment(params: {
+    invoiceNo: string | number;
+    amount: number;
+    paymentType)`
+- `reverseJournalByReference(params: {
+    originalReference: string;
+    userId?: number | null;
+    bran)`
 ### الأنواع (Types):
 - `JournalDimensions`
 
@@ -900,9 +920,13 @@
 ### الفئات:
 - `DataMaskingEngine`
 
-## `src/lib/db/transaction.ts` (149 سطر)
+## `src/lib/db/transaction.ts` (181 سطر)
 ### الواجهات (Interfaces):
 - `TransactionRetryOptions`
+### الأنواع (Types):
+- `TxClient`
+- `FinancialTxClient`
+- `InventoryTxClient`
 
 ## `src/lib/db/__tests__/transaction.test.ts` (93 سطر)
 
@@ -1593,10 +1617,13 @@
 ### الفئات:
 - `ICNettingEngine`
 
-## `src/lib/idempotency.ts` (153 سطر)
+## `src/lib/idempotency.ts` (92 سطر)
 ### الدوال المُصدّرة:
+- `lockIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string, ttlSeconds = 86400)`
+- `completeIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string, ttlSeconds = 86400)`
+- `unlockIdempotencyKey(tenantId: string, routeName: string, idempotencyKey: string)`
 - `withIdempotency(
-    req: any,
+    req: NextRequest | any,
     endpoint: string,
     handler: ()`
 
@@ -1982,6 +2009,12 @@
 ### الثوابت المُصدّرة:
 - `NUMBERING_DEFAULTS`
 
+## `src/lib/observability/logger.ts` (63 سطر)
+### الفئات:
+- `EnterpriseLogger`
+### الواجهات (Interfaces):
+- `LogContext`
+
 ## `src/lib/observability.ts` (127 سطر)
 ### الدوال المُصدّرة:
 - `incrementCounter(name: string, labels: Record<string, string> = {}, delta: number = 1)`
@@ -2026,7 +2059,7 @@
 - `PartyType`
 - `DisputeResolution`
 
-## `src/lib/open-items.ts` (184 سطر)
+## `src/lib/open-items.ts` (293 سطر)
 ### الفئات:
 - `OpenItemsEngine`
 
@@ -2085,7 +2118,7 @@
 ### الفئات:
 - `MoyasarEngine`
 
-## `src/lib/payment-run-engine.ts` (261 سطر)
+## `src/lib/payment-run-engine.ts` (325 سطر)
 ### الفئات:
 - `PaymentRunEngine`
 
@@ -2587,7 +2620,7 @@
 ### الفئات:
 - `QualityManagementEngine`
 
-## `src/lib/queue/index.ts` (198 سطر)
+## `src/lib/queue/index.ts` (207 سطر)
 ### الثوابت المُصدّرة:
 - `redisConnection`
 - `emailQueue`
@@ -2595,6 +2628,7 @@
 - `syncQueue`
 - `reportQueue`
 - `aiAuditQueue`
+- `systemReconciliationQueue`
 - `startWorkers`
 
 ## `src/lib/quotaGuard.test.ts` (101 سطر)
@@ -2679,7 +2713,7 @@
 - `rateLimiter`
 - `RATE_LIMITS`
 
-## `src/lib/realized-fx-engine.ts` (274 سطر)
+## `src/lib/realized-fx-engine.ts` (291 سطر)
 ### الفئات:
 - `RealizedFXEngine`
 ### الواجهات (Interfaces):
@@ -2864,6 +2898,19 @@
 ### الفئات:
 - `ScheduledActionEngine`
 
+## `src/lib/security/financial-policy-engine.ts` (42 سطر)
+### الفئات:
+- `FinancialPolicyEngine`
+
+## `src/lib/security/journal-validation-layer.ts` (26 سطر)
+### الفئات:
+- `JournalValidationLayer`
+
+## `src/lib/security/tenant-guard.ts` (34 سطر)
+### الدوال المُصدّرة:
+- `assertTenant(tenantId?: string | null)`
+- `validateTenantAccess(req: Request | NextRequest)`
+
 ## `src/lib/security-headers.ts` (153 سطر)
 ### الدوال المُصدّرة:
 - `applySecurityHeaders(
@@ -2919,6 +2966,12 @@
 ### الفئات:
 - `ServiceSLAEngine`
 
+## `src/lib/services/accounting-journal.service.ts` (185 سطر)
+### الفئات:
+- `AccountingJournalService`
+### الأنواع (Types):
+- `CreateJournalEntryDTO`
+
 ## `src/lib/services/accounting.service.ts` (269 سطر)
 ### الفئات:
 - `AccountingService`
@@ -2932,9 +2985,38 @@
 
 ## `src/lib/services/index.ts` (12 سطر)
 
+## `src/lib/services/inventory-adjustment.service.ts` (83 سطر)
+### الفئات:
+- `InventoryAdjustmentService`
+
+## `src/lib/services/inventory.service.ts` (97 سطر)
+### الفئات:
+- `InventoryService`
+### الواجهات (Interfaces):
+- `StockAdjustmentPayload`
+- `StockMovementPayload`
+### الأنواع (Types):
+- `TxClient`
+
+## `src/lib/services/manufacturing.service.ts` (119 سطر)
+### الفئات:
+- `ManufacturingService`
+
+## `src/lib/services/payroll.service.ts` (22 سطر)
+### الفئات:
+- `PayrollService`
+
 ## `src/lib/services/sales.service.ts` (155 سطر)
 ### الفئات:
 - `SalesService`
+
+## `src/lib/services/transfer.service.ts` (59 سطر)
+### الفئات:
+- `TransferService`
+
+## `src/lib/services/treasury-posting.service.ts` (81 سطر)
+### الفئات:
+- `TreasuryPostingService`
 
 ## `src/lib/shift-schedule-engine.ts` (15 سطر)
 ### الفئات:
@@ -3090,11 +3172,15 @@
 ### الفئات:
 - `SupplierPortalEngine`
 
+## `src/lib/system-audit.ts` (121 سطر)
+### الدوال المُصدّرة:
+- `runSystemReconciliation(prisma: any)`
+
 ## `src/lib/tax-regime-engine.ts` (14 سطر)
 ### الفئات:
 - `TaxRegimeEngine`
 
-## `src/lib/telegram-bot.ts` (452 سطر)
+## `src/lib/telegram-bot.ts` (492 سطر)
 ### الدوال المُصدّرة:
 - `getBotToken()`
 - `getGeminiKey()`
@@ -3263,7 +3349,7 @@
 
 ## `src/lib/validations.test.ts` (170 سطر)
 
-## `src/lib/validations.ts` (243 سطر)
+## `src/lib/validations.ts` (247 سطر)
 ### الثوابت المُصدّرة:
 - `amountSchema`
 - `treasuryCreateSchema`
@@ -3429,6 +3515,14 @@
 ## `src/lib/webhooks/manager.ts` (76 سطر)
 ### الفئات:
 - `WebhookManager`
+
+## `src/lib/webhooks/webhook-orchestrator.ts` (112 سطر)
+### الفئات:
+- `WebhookOrchestrator`
+### الواجهات (Interfaces):
+- `WebhookPayload`
+### الأنواع (Types):
+- `WebhookSource`
 
 ## `src/lib/webhooks.ts` (171 سطر)
 ### الثوابت المُصدّرة:
@@ -3689,7 +3783,7 @@
 
 ## `src/lib/__tests__/gosi-rates.test.ts` (49 سطر)
 
-## `src/lib/__tests__/idempotency.test.ts` (119 سطر)
+## `src/lib/__tests__/idempotency.test.ts` (118 سطر)
 
 ## `src/lib/__tests__/open-items-engine.test.ts` (145 سطر)
 
