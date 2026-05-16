@@ -1,4 +1,5 @@
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { runInventoryTx } from '@/lib/db/transaction';
 /**
  * Pharmacy Drugs API — إدارة الأدوية
  * GET  /api/pharmacy/drugs  — قائمة الأدوية
@@ -99,7 +100,7 @@ export const POST = withRoute(async ({ req, prisma }) => {
 
   const body = parsed.data;
 
-  const result = await (prisma as any).$transaction(async (tx: any) => {
+  const result = await runInventoryTx(prisma, async (tx: any) => {
     // 1. Create Product first
     const product = await tx.product.create({
       data: {
@@ -136,7 +137,7 @@ export const POST = withRoute(async ({ req, prisma }) => {
     });
     
     return drug;
-  });
+  }, 'PHARMACY_DRUG_CREATE');
 
   return NextResponse.json(result, { status: 201 });
 }, { rateLimit: 'DEFAULT' });
