@@ -40,9 +40,24 @@ function auditFile(filePath: string) {
         return;
     }
 
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+
+    if (filePath.includes('/api/') && filePath.endsWith('route.ts')) {
+        if (!fileContent.includes('requireTenantId') && !fileContent.includes('requireTenantFilter') && !fileContent.includes('assertTenant')) {
+             results.push({
+                file: filePath,
+                line: 1,
+                model: 'ROUTE',
+                operation: 'MISSING_GUARD',
+                status: 'P0_CONFIRMED',
+                reason: 'No tenant guard found in route file'
+            });
+        }
+    }
+
     const sourceFile = ts.createSourceFile(
         filePath,
-        fs.readFileSync(filePath, 'utf8'),
+        fileContent,
         ts.ScriptTarget.Latest,
         true
     );
