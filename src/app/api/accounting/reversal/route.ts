@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { createJournalEntry } from '@/lib/auto-journal';
 import { assertReversible, DocumentType } from '@/lib/document-state-machine';
 import { n } from '@/lib/decimal-utils';
@@ -14,12 +15,13 @@ async function _POST(request: Request) {
     const prisma = getPrisma(request as any);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(request as any);
 
     try {
         const { journalEntryId, reversalDate, reason } = await request.json();
 
-        const originalEntry = await prisma.journalEntry.findUnique({
-            where: { id: parseInt(journalEntryId) },
+        const originalEntry = await prisma.journalEntry.findFirst({
+            where: { id: parseInt(journalEntryId), tenantId },
             include: {
                 lines: { include: { account: { select: { code: true } } } },
             },
@@ -63,9 +65,9 @@ async function _POST(request: Request) {
         }
 
         // Mark original as reversed (does NOT touch account.balance — handled by createJournalEntry)
-        const reversalEntry = await prisma.journalEntry.findUnique({ where: { id: result.entryId } });
+        const reversalEntry = await prisma.journalEntry.findFirst({ where: { id: result.entryId, tenantId } });
         await prisma.journalEntry.update({
-            where: { id: originalEntry.id },
+            where: { id: originalEntry.id, tenantId },
             data: {
                 status: 'reversed',
                 description: `${originalEntry.description} [تم عكسه بقيد ${reversalEntry?.entryNumber || result.entryId}]`,

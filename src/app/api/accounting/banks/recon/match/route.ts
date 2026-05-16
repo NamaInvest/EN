@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -16,6 +17,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
 
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -29,7 +31,7 @@ async function _POST(req: NextRequest) {
         }
 
         const line = await prisma.bankStatementLine.update({
-            where: { id: parseInt(lineId, 10) },
+            where: { id: parseInt(lineId, 10), tenantId },
             data: {
                 matchStatus: 'MANUAL_MATCHED',
                 matchedToType: targetType,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import prisma from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -25,8 +26,9 @@ async function _POST(req: NextRequest) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const { segment, dateFrom, dateTo, templateId, userId } = body;
+        const tenantId = requireTenantId(req as any);
 
-        let customerWhere: any = { active: true };
+        let customerWhere: any = { active: true, tenantId };
         if (segment === 'OVERDUE') {
             customerWhere = { ...customerWhere, salesInvoices: { some: { remaining: { gt: 0 } } } };
         } else if (segment === 'VIP') {
@@ -45,6 +47,7 @@ async function _POST(req: NextRequest) {
         // Create the Batch record
         const batch = await prisma.statementBatch.create({
             data: {
+                tenantId,
                 batchNumber: `BCH-${Date.now()}`,
                 triggeredBy: 'MANUAL_BULK',
                 dateFrom: new Date(dateFrom),
@@ -68,6 +71,7 @@ async function _POST(req: NextRequest) {
                     // Create the log
                     await prisma.statementDispatchLog.create({
                         data: {
+                            tenantId,
                             batchId: batch.id,
                             customerId: customer.id,
                             deliveryChannel: 'EMAIL',
@@ -93,7 +97,7 @@ async function _POST(req: NextRequest) {
 
             // Mark batch as completed
             await prisma.statementBatch.update({
-                where: { id: batch.id },
+                where: { id: batch.id, tenantId },
                 data: {
                     status: 'COMPLETED',
                     successCount,

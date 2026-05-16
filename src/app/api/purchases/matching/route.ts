@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -12,7 +13,9 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = requireTenantId(req as any);
         const matches = await prisma.threeWayMatch.findMany({ take: 100,
+            where: { tenantId },
             include: {
                 invoice: {
                     include: { supplier: true }
@@ -35,9 +38,11 @@ async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = requireTenantId(req as any);
         // 1. Find pending PurchaseInvoices that have a PO but no ThreeWayMatch record
         const pendingInvoices = await prisma.purchaseInvoice.findMany({ take: 100,
             where: {
+                tenantId,
                 purchaseOrderId: { not: null },
                 ThreeWayMatch: null
             },
@@ -50,7 +55,7 @@ async function _POST(req: Request) {
 
         // Fetch tolerance policy (for simplicity we use defaults if not found)
         const policy = await prisma.tolerancePolicy.findFirst({
-            where: { isActive: true }
+            where: { isActive: true, tenantId }
         });
 
         const qtyTolerance = policy ? Number(policy.quantityTolerancePercent) : 5.0; // 5%
@@ -58,14 +63,14 @@ async function _POST(req: Request) {
 
         for (const invoice of pendingInvoices) {
             const po = await prisma.purchaseOrder.findUnique({
-                where: { id: invoice.purchaseOrderId! },
+                where: { id: invoice.purchaseOrderId!, tenantId },
                 include: { details: true }
             });
 
             if (!po) continue;
 
             const grns = await prisma.goodsReceiptNote.findMany({ take: 100,
-                where: { orderId: po.id },
+                where: { orderId: po.id, tenantId },
                 include: { details: true }
             });
 
@@ -153,6 +158,7 @@ async function _POST(req: Request) {
             await runFinancialTx(prisma, async (tx: any) => {
                 await tx.threeWayMatch.create({
                     data: {
+                        tenantId,
                         invoiceId: invoice.id,
                         purchaseOrderId: po.id,
                         poTotalAmount: poTotalAmt,
@@ -177,7 +183,7 @@ async function _POST(req: Request) {
                 });
                 if (status === 'MATCHED') {
                     await tx.purchaseInvoice.update({
-                        where: { id: invoice.id },
+                        where: { id: invoice.id, tenantId },
                         data: { status: 'APPROVED_FOR_PAYMENT' }
                     });
                 }

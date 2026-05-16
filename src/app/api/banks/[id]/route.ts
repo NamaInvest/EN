@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { apiError } from '@/lib/api-error';
 
 import { getUserFromRequest } from '@/lib/auth';
@@ -22,6 +23,7 @@ const _PUTSchema = z.object({
 async function _PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const prisma = getPrisma(request);
     try {
+        const tenantId = requireTenantId(request as any);
         const resolvedParams = await params;
         const id = parseInt(resolvedParams.id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
@@ -45,7 +47,7 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         if (branchId !== undefined) data.branchId = branchId;
 
         const bank = await prisma.bankAccount.update({
-            where: { id },
+            where: { id, tenantId },
             data
         });
 
@@ -64,13 +66,14 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
     const prisma = getPrisma(request);
     try {
+        const tenantId = requireTenantId(request as any);
         const resolvedParams = await params;
         const id = parseInt(resolvedParams.id);
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
 
         // Check if there are transactions other than opening balance
         const transactionsCount = await prisma.bankTransaction.count({
-            where: { bankAccountId: id }
+            where: { bankAccountId: id, tenantId }
         });
 
         if (transactionsCount > 1) {
@@ -79,11 +82,11 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         // Delete opening balance transaction if it exists
         await prisma.bankTransaction.deleteMany({
-            where: { bankAccountId: id }
+            where: { bankAccountId: id, tenantId }
         });
 
         await prisma.bankAccount.delete({
-            where: { id }
+            where: { id, tenantId }
         });
 
         return NextResponse.json({ success: true });

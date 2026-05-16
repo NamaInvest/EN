@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -14,8 +15,9 @@ const _POSTSchema = z.object({
 
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = await params;
+  const { id: paramId } = await params;
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -23,10 +25,10 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const { formats, userId } = body;
-        const runId = parseInt((await params).id, 10);
+        const runId = parseInt(paramId, 10);
 
         const run = await prisma.paymentRun.findUnique({
-            where: { id: runId },
+            where: { id: runId, tenantId },
             include: { lines: true }
         });
 
@@ -38,6 +40,7 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         for (const format of formats) {
             await prisma.paymentRunBankFile.create({
                 data: {
+                    tenantId,
                     runId,
                     fileFormat: format,
                     bankAccountId: run.bankAccountId,
@@ -54,7 +57,7 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         }
 
         const updatedRun = await prisma.paymentRun.update({
-            where: { id: runId },
+            where: { id: runId, tenantId },
             data: {
                 status: 'FILE_GENERATED',
                 filesGeneratedAt: new Date()

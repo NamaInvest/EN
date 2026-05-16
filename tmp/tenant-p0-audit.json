@@ -1,0 +1,3139 @@
+{
+  "summary": {
+    "P0_CONFIRMED": 294,
+    "P0_REVIEW": 9,
+    "SAFE": 86,
+    "EXEMPTED": 58
+  },
+  "results": [
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\accounts\\route.ts",
+      "line": 100,
+      "model": "account",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\accounts\\route.ts",
+      "line": 137,
+      "model": "account",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\banks\\recon\\create-je\\route.ts",
+      "line": 53,
+      "model": "bankStatementLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\banks\\recon\\match\\route.ts",
+      "line": 33,
+      "model": "bankStatementLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\chart-of-accounts-import\\route.ts",
+      "line": 167,
+      "model": "account",
+      "operation": "upsert",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\closing\\route.ts",
+      "line": 44,
+      "model": "fiscalPeriod",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\cost-centers\\route.ts",
+      "line": 107,
+      "model": "costCenter",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\cost-centers\\route.ts",
+      "line": 137,
+      "model": "costCenter",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\bulk\\run\\route.ts",
+      "line": 99,
+      "model": "statementBatch",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\templates\\route.ts",
+      "line": 59,
+      "model": "customerStatementTemplate",
+      "operation": "updateMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\templates\\[id]\\route.ts",
+      "line": 35,
+      "model": "customerStatementTemplate",
+      "operation": "updateMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\templates\\[id]\\route.ts",
+      "line": 41,
+      "model": "customerStatementTemplate",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\templates\\[id]\\route.ts",
+      "line": 66,
+      "model": "customerStatementTemplate",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\dunning\\promise-to-pay\\route.ts",
+      "line": 51,
+      "model": "customer",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\inter-company\\route.ts",
+      "line": 160,
+      "model": "iCNettingLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\[id]\\route.ts",
+      "line": 119,
+      "model": "journalLine",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\[id]\\route.ts",
+      "line": 121,
+      "model": "journalEntry",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\[id]\\route.ts",
+      "line": 210,
+      "model": "account",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\[id]\\route.ts",
+      "line": 218,
+      "model": "journalEntry",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\lc\\route.ts",
+      "line": 105,
+      "model": "bankAccount",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\generate-files\\route.ts",
+      "line": 59,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\post-journal\\route.ts",
+      "line": 71,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\upload-confirmation\\route.ts",
+      "line": 41,
+      "model": "paymentRunLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\upload-confirmation\\route.ts",
+      "line": 51,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\revenue-recognition\\route.ts",
+      "line": 97,
+      "model": "deferredRevenueSchedule",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\reversal\\route.ts",
+      "line": 69,
+      "model": "journalEntry",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\adjustments\\route.ts",
+      "line": 215,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\admin\\nodes\\billing\\route.ts",
+      "line": 37,
+      "model": "tenantAccount",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\admin\\nodes\\sync\\route.ts",
+      "line": 87,
+      "model": "tenantAccount",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ap\\three-way-match\\route.ts",
+      "line": 64,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ap\\three-way-match\\route.ts",
+      "line": 75,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\approvals\\[id]\\approve\\route.ts",
+      "line": 58,
+      "model": "unknown",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\approvals\\[id]\\reject\\route.ts",
+      "line": 55,
+      "model": "unknown",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\attendance\\face-id\\route.ts",
+      "line": 63,
+      "model": "attendance",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\attendance\\route.ts",
+      "line": 73,
+      "model": "attendance",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\2fa\\backup-codes\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\2fa\\login\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\2fa\\setup\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\2fa\\verify\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\auto-login\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\find-tenant-by-email\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\login\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\login-by-email\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\me\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\audit-log\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\backup-verify\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\confirm\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\disable\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\enroll\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\qr-code\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\regenerate-codes\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\status\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\trust-device\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\trusted-devices\\[id]\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\mfa\\verify\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\sso\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\sso-redirect\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\auth\\sync\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\banks\\[id]\\route.ts",
+      "line": 49,
+      "model": "bankAccount",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\banks\\[id]\\route.ts",
+      "line": 84,
+      "model": "bankTransaction",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\banks\\[id]\\route.ts",
+      "line": 88,
+      "model": "bankAccount",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\banks\\[id]\\transactions\\route.ts",
+      "line": 91,
+      "model": "bankAccount",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\route.ts",
+      "line": 77,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\[id]\\route.ts",
+      "line": 37,
+      "model": "productBatch",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\[id]\\route.ts",
+      "line": 68,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\[id]\\route.ts",
+      "line": 72,
+      "model": "stockMovement",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\[id]\\route.ts",
+      "line": 75,
+      "model": "productBatch",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\batches\\[id]\\route.ts",
+      "line": 80,
+      "model": "productBatch",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\bookings\\invoice\\route.ts",
+      "line": 40,
+      "model": "booking",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\bookings\\invoice\\route.ts",
+      "line": 99,
+      "model": "booking",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\bookings\\route.ts",
+      "line": 74,
+      "model": "booking",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\branches\\route.ts",
+      "line": 152,
+      "model": "branch",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\branches\\route.ts",
+      "line": 205,
+      "model": "branch",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\budgets\\scenarios\\route.ts",
+      "line": 80,
+      "model": "budgetScenario",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\budgets\\scenarios\\route.ts",
+      "line": 97,
+      "model": "budgetScenarioLine",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\budgets\\scenarios\\route.ts",
+      "line": 98,
+      "model": "budgetScenario",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\categories\\route.ts",
+      "line": 80,
+      "model": "product",
+      "operation": "updateMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\categories\\route.ts",
+      "line": 84,
+      "model": "category",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\categories\\[id]\\route.ts",
+      "line": 29,
+      "model": "category",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\categories\\[id]\\route.ts",
+      "line": 59,
+      "model": "category",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\check-env\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\clinic\\lab\\route.ts",
+      "line": 127,
+      "model": "labResult",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\clinic\\lab\\route.ts",
+      "line": 141,
+      "model": "labOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\clinic\\lab\\route.ts",
+      "line": 146,
+      "model": "labOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cmms\\work-orders\\route.ts",
+      "line": 34,
+      "model": "maintenanceWorkOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\compliance\\risks\\route.ts",
+      "line": 36,
+      "model": "riskRegister",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\contracts\\renewals\\route.ts",
+      "line": 68,
+      "model": "contractRenewal",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\contracts\\templates\\route.ts",
+      "line": 78,
+      "model": "contractTemplate",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\contracts\\templates\\route.ts",
+      "line": 95,
+      "model": "contractClause",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\contracts\\templates\\route.ts",
+      "line": 96,
+      "model": "contractTemplate",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\coupons\\[id]\\route.ts",
+      "line": 34,
+      "model": "coupon",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\coupons\\[id]\\route.ts",
+      "line": 62,
+      "model": "coupon",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\campaigns\\route.ts",
+      "line": 96,
+      "model": "crmCampaign",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\campaigns\\route.ts",
+      "line": 114,
+      "model": "crmCampaign",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\leads\\route.ts",
+      "line": 71,
+      "model": "lead",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\leads\\route.ts",
+      "line": 81,
+      "model": "lead",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\opportunities\\route.ts",
+      "line": 99,
+      "model": "opportunity",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\sla\\route.ts",
+      "line": 83,
+      "model": "slaPolicy",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\tickets\\route.ts",
+      "line": 121,
+      "model": "supportTicket",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\crm\\whatsapp\\webhook\\route.ts",
+      "line": 214,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\ar-collection-dunning\\route.ts",
+      "line": 84,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\contract-expiry\\route.ts",
+      "line": 28,
+      "model": "supplierContract",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\contracts\\route.ts",
+      "line": 42,
+      "model": "supplierContract",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\contracts\\route.ts",
+      "line": 49,
+      "model": "supplierContract",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\debts\\route.ts",
+      "line": 43,
+      "model": "installment",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\debts\\route.ts",
+      "line": 67,
+      "model": "customer",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\hr\\route.ts",
+      "line": 75,
+      "model": "salary",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\payment-reminders\\route.ts",
+      "line": 143,
+      "model": "customer",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\prepayments-amortization\\route.ts",
+      "line": 99,
+      "model": "accrualEntry",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\self-healer\\route.ts",
+      "line": 38,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\self-healer\\route.ts",
+      "line": 42,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\shifts\\route.ts",
+      "line": 49,
+      "model": "shift",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\trigger-invoices\\route.ts",
+      "line": 85,
+      "model": "salesOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\zatca-batch-submit\\route.ts",
+      "line": 168,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\zatca-batch-submit\\route.ts",
+      "line": 197,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\zatca-worker\\route.ts",
+      "line": 56,
+      "model": "zATCARecord",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\cron\\zatca-worker\\route.ts",
+      "line": 69,
+      "model": "zATCARecord",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\customers\\route.ts",
+      "line": 105,
+      "model": "customer",
+      "operation": "deleteMany",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\gdpr-delete\\route.ts",
+      "line": 34,
+      "model": "customer",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\hold\\route.ts",
+      "line": 23,
+      "model": "customer",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\route.ts",
+      "line": 58,
+      "model": "customer",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\route.ts",
+      "line": 99,
+      "model": "customer",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\desktop\\verify-license\\route.ts",
+      "line": 29,
+      "model": "desktopLicense",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\desktop\\verify-license\\route.ts",
+      "line": 38,
+      "model": "desktopLicense",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\desktop\\verify-license\\route.ts",
+      "line": 46,
+      "model": "desktopLicense",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\docs\\openapi.json\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\docs\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\documents\\transition\\route.ts",
+      "line": 82,
+      "model": "unknown",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\documents\\[id]\\route.ts",
+      "line": 29,
+      "model": "documentArchive",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ecommerce\\orders\\route.ts",
+      "line": 50,
+      "model": "onlineOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ecommerce\\stores\\route.ts",
+      "line": 72,
+      "model": "storeFront",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\employees\\route.ts",
+      "line": 129,
+      "model": "employee",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\employees\\[id]\\route.ts",
+      "line": 41,
+      "model": "employee",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\employees\\[id]\\route.ts",
+      "line": 82,
+      "model": "employee",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\legal\\route.ts",
+      "line": 133,
+      "model": "promissoryNote",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\mrp\\route.ts",
+      "line": 130,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\mrp\\route.ts",
+      "line": 140,
+      "model": "machine",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\projects\\budget\\route.ts",
+      "line": 117,
+      "model": "projectBudgetLine",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\projects\\route.ts",
+      "line": 120,
+      "model": "project",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\projects\\route.ts",
+      "line": 146,
+      "model": "project",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\projects\\tasks\\route.ts",
+      "line": 99,
+      "model": "projectTask",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\projects\\tasks\\route.ts",
+      "line": 123,
+      "model": "projectTask",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\events\\registrations\\route.ts",
+      "line": 28,
+      "model": "event",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 159,
+      "model": "expense",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 171,
+      "model": "treasury",
+      "operation": "updateMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 225,
+      "model": "treasury",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 226,
+      "model": "journalEntry",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 227,
+      "model": "expense",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 246,
+      "model": "treasury",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 247,
+      "model": "journalEntry",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\expenses\\route.ts",
+      "line": 248,
+      "model": "expense",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\field-service\\orders\\route.ts",
+      "line": 38,
+      "model": "fieldServiceOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\field-service\\route.ts",
+      "line": 165,
+      "model": "serviceTicket",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\bank-recon\\rules\\route.ts",
+      "line": 94,
+      "model": "bankReconRule",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\bank-recon\\rules\\route.ts",
+      "line": 112,
+      "model": "bankReconRule",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\budget\\route.ts",
+      "line": 68,
+      "model": "budgetVersion",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\budget-upload\\route.ts",
+      "line": 87,
+      "model": "budgetLine",
+      "operation": "upsert",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\checks\\[id]\\process\\route.ts",
+      "line": 52,
+      "model": "checkTransaction",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\ifrs16\\route.ts",
+      "line": 165,
+      "model": "ifrsLeaseContract",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\approve\\route.ts",
+      "line": 15,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\confirm\\route.ts",
+      "line": 37,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\confirm\\route.ts",
+      "line": 46,
+      "model": "purchaseInvoice",
+      "operation": "updateMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\send-bank\\route.ts",
+      "line": 15,
+      "model": "paymentRun",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\period-close\\[id]\\step\\route.ts",
+      "line": 28,
+      "model": "periodCloseChecklist",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\petty-cash\\[id]\\process\\route.ts",
+      "line": 82,
+      "model": "pettyCashTransaction",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\reconciliations\\[id]\\route.ts",
+      "line": 47,
+      "model": "journalLine",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\finance\\reconciliations\\[id]\\route.ts",
+      "line": 68,
+      "model": "bankReconciliation",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fiscal-periods\\route.ts",
+      "line": 87,
+      "model": "fiscalPeriod",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fixed-assets\\[id]\\depreciate\\route.ts",
+      "line": 65,
+      "model": "fixedAsset",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fixed-assets\\[id]\\route.ts",
+      "line": 60,
+      "model": "fixedAsset",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fixed-assets\\[id]\\route.ts",
+      "line": 84,
+      "model": "fixedAsset",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fng\\budgets\\route.ts",
+      "line": 79,
+      "model": "budget",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fng\\budgets\\route.ts",
+      "line": 107,
+      "model": "budget",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fng\\petty-cash-funds\\route.ts",
+      "line": 91,
+      "model": "pettyCashFund",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fng\\petty-cash-funds\\route.ts",
+      "line": 119,
+      "model": "pettyCashFund",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\fsm\\complete\\route.ts",
+      "line": 36,
+      "model": "serviceTicket",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\gift-cards\\[id]\\route.ts",
+      "line": 32,
+      "model": "giftCard",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\gift-cards\\[id]\\route.ts",
+      "line": 59,
+      "model": "giftCard",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\health\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\attendance\\route.ts",
+      "line": 67,
+      "model": "attendance",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\attendance\\route.ts",
+      "line": 79,
+      "model": "attendance",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\gosi\\route.ts",
+      "line": 128,
+      "model": "salary",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\calculate\\route.ts",
+      "line": 197,
+      "model": "employeeLoan",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\config\\route.ts",
+      "line": 55,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\generate\\route.ts",
+      "line": 85,
+      "model": "employeeLoan",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\generate\\route.ts",
+      "line": 149,
+      "model": "account",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\generate\\route.ts",
+      "line": 153,
+      "model": "account",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\admin\\2fa\\disable\\route.ts",
+      "line": 25,
+      "model": "iceAdmin",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\admin\\2fa\\enable\\route.ts",
+      "line": 43,
+      "model": "iceAdmin",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\auth\\2fa\\verify\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\auth\\login\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\auth\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\subscriptions\\route.ts",
+      "line": 41,
+      "model": "iceTenantSubscription",
+      "operation": "upsert",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\tenant-features\\route.ts",
+      "line": 35,
+      "model": "tenantFeatureFlag",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\tenants\\route.ts",
+      "line": 30,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\ice\\toggle\\route.ts",
+      "line": 34,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\integrations\\mudad\\route.ts",
+      "line": 113,
+      "model": "wPSBatch",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\abc-analysis\\route.ts",
+      "line": 117,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\clear-all\\route.ts",
+      "line": 12,
+      "model": "productStock",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\clear-all\\route.ts",
+      "line": 13,
+      "model": "product",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\quality-control\\route.ts",
+      "line": 57,
+      "model": "qualityInspection",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\knowledge\\articles\\route.ts",
+      "line": 34,
+      "model": "kBArticle",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\license\\verify\\route.ts",
+      "line": 52,
+      "model": "desktopLicense",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\license\\verify\\route.ts",
+      "line": 67,
+      "model": "desktopLicense",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\license\\verify\\route.ts",
+      "line": 88,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\maintenance\\route.ts",
+      "line": 74,
+      "model": "maintenance",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\blockchain-trace\\route.ts",
+      "line": 35,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\boms\\versions\\[versionId]\\activate\\route.ts",
+      "line": 41,
+      "model": "bOMVersion",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\boms\\versions\\[versionId]\\activate\\route.ts",
+      "line": 48,
+      "model": "bOMVersion",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\capa\\route.ts",
+      "line": 106,
+      "model": "correctiveAction",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\capacity\\route.ts",
+      "line": 55,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\kanban\\route.ts",
+      "line": 66,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\route.ts",
+      "line": 243,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\route.ts",
+      "line": 271,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\route.ts",
+      "line": 312,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\[id]\\route.ts",
+      "line": 36,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\[id]\\route.ts",
+      "line": 62,
+      "model": "manufacturingOrder",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\quality-control\\route.ts",
+      "line": 78,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\recipes\\[id]\\route.ts",
+      "line": 33,
+      "model": "recipeIngredient",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\recipes\\[id]\\route.ts",
+      "line": 37,
+      "model": "recipe",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\recipes\\[id]\\route.ts",
+      "line": 57,
+      "model": "recipe",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\recipes\\[id]\\route.ts",
+      "line": 85,
+      "model": "recipeIngredient",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\recipes\\[id]\\route.ts",
+      "line": 86,
+      "model": "recipe",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\route.ts",
+      "line": 159,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\route.ts",
+      "line": 188,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\route.ts",
+      "line": 218,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\routing\\route.ts",
+      "line": 76,
+      "model": "recipeOperation",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\shopfloor\\route.ts",
+      "line": 83,
+      "model": "shopFloorSession",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\shopfloor\\route.ts",
+      "line": 91,
+      "model": "shopFloorSession",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\shopfloor\\route.ts",
+      "line": 99,
+      "model": "shopFloorSession",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\shopfloor\\route.ts",
+      "line": 141,
+      "model": "andonCall",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\work-orders\\route.ts",
+      "line": 178,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\work-orders\\route.ts",
+      "line": 201,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\work-orders\\route.ts",
+      "line": 255,
+      "model": "manufacturingOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\work-orders\\route.ts",
+      "line": 282,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\master-panel\\auth\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\master-panel\\deploy\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\master-panel\\licenses\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\master-panel\\servers\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\insurance\\journal\\route.ts",
+      "line": 76,
+      "model": "insuranceClaim",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\insurance\\route.ts",
+      "line": 120,
+      "model": "insuranceClaim",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\patients\\route.ts",
+      "line": 99,
+      "model": "pharmacyPatient",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\prescriptions\\route.ts",
+      "line": 139,
+      "model": "prescriptionItem",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\prescriptions\\route.ts",
+      "line": 149,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\prescriptions\\route.ts",
+      "line": 184,
+      "model": "prescription",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\planning\\slots\\route.ts",
+      "line": 35,
+      "model": "planningSlot",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\platform\\webhooks\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\portal\\vendor\\rfq\\[id]\\bid\\route.ts",
+      "line": 54,
+      "model": "vendorBidDetail",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\portal\\vendor\\rfq\\[id]\\bid\\route.ts",
+      "line": 55,
+      "model": "vendorBid",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\checkout\\route.ts",
+      "line": 106,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\checkout\\route.ts",
+      "line": 125,
+      "model": "coupon",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\checkout\\route.ts",
+      "line": 145,
+      "model": "loyaltyPoint",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\checkout\\route.ts",
+      "line": 218,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\pending-orders\\route.ts",
+      "line": 49,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\pending-orders\\route.ts",
+      "line": 61,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\pending-orders\\route.ts",
+      "line": 71,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 66,
+      "model": "restaurantTable",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 74,
+      "model": "restaurantTable",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 89,
+      "model": "restaurantTable",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 93,
+      "model": "restaurantSession",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 103,
+      "model": "restaurantSession",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 104,
+      "model": "waiterCall",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 106,
+      "model": "restaurantTable",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 107,
+      "model": "restaurantZone",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 112,
+      "model": "restaurantSession",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 113,
+      "model": "waiterCall",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts",
+      "line": 114,
+      "model": "restaurantTable",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\kds\\route.ts",
+      "line": 98,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\tables\\route.ts",
+      "line": 59,
+      "model": "waiterCall",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\tables\\route.ts",
+      "line": 67,
+      "model": "restaurantTable",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\route.ts",
+      "line": 123,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\pos\\route.ts",
+      "line": 129,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rfq\\[id]\\award\\route.ts",
+      "line": 42,
+      "model": "requestForQuotation",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rfq\\[id]\\award\\route.ts",
+      "line": 48,
+      "model": "vendorBid",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rfq\\[id]\\award\\route.ts",
+      "line": 53,
+      "model": "vendorBid",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rfq\\[id]\\invite\\route.ts",
+      "line": 60,
+      "model": "requestForQuotation",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\product-stocks\\location\\route.ts",
+      "line": 33,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\import\\route.ts",
+      "line": 311,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\import\\route.ts",
+      "line": 318,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts",
+      "line": 120,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts",
+      "line": 233,
+      "model": "productStock",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts",
+      "line": 234,
+      "model": "product",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts",
+      "line": 241,
+      "model": "product",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts",
+      "line": 250,
+      "model": "product",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts",
+      "line": 63,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts",
+      "line": 111,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts",
+      "line": 156,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts",
+      "line": 173,
+      "model": "productStock",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts",
+      "line": 174,
+      "model": "product",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\milestones\\route.ts",
+      "line": 88,
+      "model": "projectMilestone",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\milestones\\route.ts",
+      "line": 112,
+      "model": "projectMilestone",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\phases\\route.ts",
+      "line": 94,
+      "model": "projectPhase",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\phases\\route.ts",
+      "line": 121,
+      "model": "projectPhase",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\resources\\route.ts",
+      "line": 75,
+      "model": "projectResource",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\risks\\route.ts",
+      "line": 88,
+      "model": "projectRisk",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\risks\\route.ts",
+      "line": 105,
+      "model": "projectRisk",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\projects\\time-entries\\route.ts",
+      "line": 75,
+      "model": "projectTimeEntry",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\promotions\\route.ts",
+      "line": 78,
+      "model": "promotion",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\public\\call-waiter\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\public\\menu\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\public\\order\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\public\\table\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchase-orders\\[id]\\route.ts",
+      "line": 62,
+      "model": "purchaseOrder",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchase-orders\\[id]\\route.ts",
+      "line": 116,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchase-orders\\[id]\\route.ts",
+      "line": 122,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchase-returns\\route.ts",
+      "line": 91,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchase-returns\\route.ts",
+      "line": 97,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\drop-ship\\route.ts",
+      "line": 119,
+      "model": "unknown",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\drop-ship\\route.ts",
+      "line": 124,
+      "model": "unknown",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\grn\\route.ts",
+      "line": 128,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\letters-of-credit\\landed-costs\\route.ts",
+      "line": 88,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\letters-of-credit\\[id]\\route.ts",
+      "line": 45,
+      "model": "letterOfCredit",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\letters-of-credit\\[id]\\route.ts",
+      "line": 84,
+      "model": "letterOfCredit",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\matching\\route.ts",
+      "line": 185,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\matching\\[id]\\resolve\\route.ts",
+      "line": 53,
+      "model": "threeWayMatch",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\matching\\[id]\\resolve\\route.ts",
+      "line": 59,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\po\\[id]\\landed-costs\\[costId]\\allocate\\route.ts",
+      "line": 67,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\po\\[id]\\landed-costs\\[costId]\\allocate\\route.ts",
+      "line": 75,
+      "model": "landedCost",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 150,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 155,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 315,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 416,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 422,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 434,
+      "model": "treasury",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts",
+      "line": 437,
+      "model": "purchaseInvoice",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\three-way-match\\route.ts",
+      "line": 58,
+      "model": "threeWayMatch",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\[id]\\receive\\route.ts",
+      "line": 39,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\[id]\\receive\\route.ts",
+      "line": 44,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\[id]\\receive\\route.ts",
+      "line": 52,
+      "model": "purchaseInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\rental\\agreements\\route.ts",
+      "line": 38,
+      "model": "rentalAgreement",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\rental\\returns\\route.ts",
+      "line": 25,
+      "model": "rentalAgreement",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\delivery-notes\\route.ts",
+      "line": 88,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\returns\\[id]\\[action]\\route.ts",
+      "line": 62,
+      "model": "salesReturn",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 276,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 288,
+      "model": "productUnit",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 292,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 299,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 327,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 332,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 414,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 419,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 488,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 560,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 564,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 597,
+      "model": "salesInvoiceDetail",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 598,
+      "model": "treasury",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 599,
+      "model": "salesInvoice",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 617,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 622,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 651,
+      "model": "treasury",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts",
+      "line": 665,
+      "model": "salesInvoice",
+      "operation": "delete",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales-orders\\[id]\\process\\route.ts",
+      "line": 37,
+      "model": "salesOrder",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales-orders\\[id]\\process\\route.ts",
+      "line": 67,
+      "model": "salesOrder",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales-orders\\[id]\\process\\route.ts",
+      "line": 105,
+      "model": "salesOrder",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales-returns\\route.ts",
+      "line": 141,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sales-returns\\route.ts",
+      "line": 148,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\api-keys\\[id]\\route.ts",
+      "line": 35,
+      "model": "apiKey",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\api-keys\\[id]\\route.ts",
+      "line": 60,
+      "model": "apiKey",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\approvals\\[id]\\route.ts",
+      "line": 35,
+      "model": "approvalRule",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\approvals\\[id]\\route.ts",
+      "line": 62,
+      "model": "approvalRule",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\route.ts",
+      "line": 78,
+      "model": "currency",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\[id]\\route.ts",
+      "line": 37,
+      "model": "currency",
+      "operation": "updateMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\[id]\\route.ts",
+      "line": 43,
+      "model": "currency",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\[id]\\route.ts",
+      "line": 70,
+      "model": "currency",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\email-templates\\route.ts",
+      "line": 39,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\exchange-rates\\route.ts",
+      "line": 58,
+      "model": "currency",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\exchange-rates\\[id]\\route.ts",
+      "line": 17,
+      "model": "exchangeRate",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\generate-barcode\\route.ts",
+      "line": 19,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\generate-keys\\route.ts",
+      "line": 67,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\number-sequences\\route.ts",
+      "line": 65,
+      "model": "unknown",
+      "operation": "upsert",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\permissions\\fields\\route.ts",
+      "line": 47,
+      "model": "roleFieldPermission",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\roles\\route.ts",
+      "line": 45,
+      "model": "userPermission",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\route.ts",
+      "line": 42,
+      "model": "setting",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\route.ts",
+      "line": 84,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\upload-logo\\route.ts",
+      "line": 36,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\zatca-onboard\\route.ts",
+      "line": 56,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\settings\\[key]\\route.ts",
+      "line": 39,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\shifts\\route.ts",
+      "line": 141,
+      "model": "shift",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\shifts\\route.ts",
+      "line": 172,
+      "model": "shift",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\smart-transfers\\route.ts",
+      "line": 115,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\smart-transfers\\route.ts",
+      "line": 192,
+      "model": "stockMovement",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\smart-transfers\\route.ts",
+      "line": 203,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock\\adjustments\\route.ts",
+      "line": 92,
+      "model": "product",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock\\adjustments\\route.ts",
+      "line": 98,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock-movements\\route.ts",
+      "line": 54,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock-movements\\route.ts",
+      "line": 56,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock-transfers\\route.ts",
+      "line": 98,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stock-transfers\\route.ts",
+      "line": 108,
+      "model": "productStock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stocktake\\route.ts",
+      "line": 81,
+      "model": "product",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\stocktake\\route.ts",
+      "line": 86,
+      "model": "productStock",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscription-status\\route.ts",
+      "line": 42,
+      "model": "subscription",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\plans\\route.ts",
+      "line": 73,
+      "model": "subscriptionPlan",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 61,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 66,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 73,
+      "model": "tenantAccount",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 87,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 93,
+      "model": "tenantAccount",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 102,
+      "model": "tenantAccount",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\subscriptions\\route.ts",
+      "line": 119,
+      "model": "unknown",
+      "operation": "update",
+      "status": "P0_REVIEW"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\sys\\health\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\comments\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\dashboard-builder\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\dms\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\import-export\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\kanban\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\notifications\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\numbering\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\pivot\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\print-templates\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\reset\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\search\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\system\\workflow\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\telegram\\webhook\\route.ts",
+      "line": 45,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\provision\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-import\\route.ts",
+      "line": 66,
+      "model": "bankStatementLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-import\\route.ts",
+      "line": 70,
+      "model": "treasury",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-recon\\route.ts",
+      "line": 109,
+      "model": "bankStatementLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-recon\\route.ts",
+      "line": 117,
+      "model": "bankStatementLine",
+      "operation": "update",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\liquidity\\forecast\\generate\\route.ts",
+      "line": 36,
+      "model": "liquidityForecast",
+      "operation": "deleteMany",
+      "status": "SAFE"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\units\\route.ts",
+      "line": 57,
+      "model": "unit",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 197,
+      "model": "user",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 204,
+      "model": "userPermission",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 219,
+      "model": "userPermission",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 248,
+      "model": "user",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 276,
+      "model": "userPermission",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts",
+      "line": 277,
+      "model": "user",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\vacations\\route.ts",
+      "line": 67,
+      "model": "vacation",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\warehouses\\[id]\\route.ts",
+      "line": 46,
+      "model": "stock",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\warehouses\\[id]\\route.ts",
+      "line": 70,
+      "model": "stock",
+      "operation": "delete",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\salla\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\zid\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\[id]\\rotate-secret\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\[id]\\route.ts",
+      "line": 0,
+      "model": "N/A",
+      "operation": "N/A",
+      "status": "EXEMPTED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\whatsapp\\interactive\\route.ts",
+      "line": 66,
+      "model": "approvalStep",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\whatsapp\\interactive\\route.ts",
+      "line": 72,
+      "model": "approvalRequest",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\whatsapp\\interactive\\route.ts",
+      "line": 84,
+      "model": "approvalStep",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\whatsapp\\interactive\\route.ts",
+      "line": 89,
+      "model": "approvalRequest",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\late-submissions\\route.ts",
+      "line": 44,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\onboard\\route.ts",
+      "line": 40,
+      "model": "setting",
+      "operation": "deleteMany",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\onboard\\route.ts",
+      "line": 156,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\qr\\route.ts",
+      "line": 84,
+      "model": "salesInvoice",
+      "operation": "update",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\route.ts",
+      "line": 56,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\route.ts",
+      "line": 57,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\route.ts",
+      "line": 58,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\route.ts",
+      "line": 86,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    },
+    {
+      "file": "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\route.ts",
+      "line": 87,
+      "model": "setting",
+      "operation": "upsert",
+      "status": "P0_CONFIRMED"
+    }
+  ]
+}

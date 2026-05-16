@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { checkQuota, quotaErrorResponse } from '@/lib/quotaGuard';
 import { logDelete, auditContextFromRequest } from '@/lib/field-audit';
 import { logger } from '@/lib/logger';
-
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 const log = logger.child({ route: 'sales' });
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
@@ -61,8 +61,9 @@ async function _GET(request: NextRequest) {
 
         const auth = getUserFromRequest(request as any);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
+        const tenantId = requireTenantId(request as any);
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = { tenantId };
         if (from || to) {
             where.date = {};
             if (from) (where.date as Record<string, unknown>).gte = new Date(from);
@@ -96,6 +97,7 @@ export async function _POST(request: Request) {
 
     const prisma = getPrisma(request);
     try {
+        const tenantId = requireTenantId(request as any);
         const rawBody = await request.json();
         
         const parsed = SalesInvoiceSchema.safeParse(rawBody);
@@ -197,6 +199,7 @@ export async function _POST(request: Request) {
 
             const createdInvoice = await tx.salesInvoice.create({
                 data: {
+                    tenantId,
                     date: invoiceDate,
                     branchId,
                     invoiceNo,
@@ -401,22 +404,23 @@ export async function _POST(request: Request) {
 
             if (finalSettings['zatca_enabled'] === '1') {
                 // Defer ZATCA Phase 2 (Generation, Signing, Reporting) to Background Queue
-                await tx.eventLog.create({
+                await tx.outboxEvent.create({
                     data: {
+                        aggregateId: String(createdInvoice.id),
+                        aggregateType: 'sales_invoice',
                         eventType: 'ZATCA_REPORT_JOB',
-                        sourceModule: 'sales_invoice',
                         payload: { invoiceId: createdInvoice.id, idempotencyKey },
                         status: 'PENDING'
                     }
                 });
                 
                 await tx.salesInvoice.update({
-                    where: { id: createdInvoice.id },
+                    where: { id: createdInvoice.id, tenantId },
                     data: { zatcaStatus: 'ZATCA_PENDING', status: 'POSTED', zatcaQr: zatcaQRStr }
                 });
             } else {
                 await tx.salesInvoice.update({ 
-                    where: { id: createdInvoice.id }, 
+                    where: { id: createdInvoice.id, tenantId }, 
                     data: { zatcaQr: zatcaQRStr, status: 'POSTED' } 
                 });
             }
@@ -466,7 +470,8 @@ async function _PUT(request: Request) {
             userId: z.union([z.string(), z.number()]).optional().nullable(),
         }).parse(rawBody);
 
-        const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId) } });
+        const tenantId = requireTenantId(request as any);
+        const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
         if (invoice.status === 'completed') {
@@ -484,7 +489,7 @@ async function _PUT(request: Request) {
 
         const updated = await runFinancialTx(prisma, async (tx: any) => {
             const updatedInvoice = await tx.salesInvoice.update({
-                where: { id: Number(invoiceId) },
+                where: { id: Number(invoiceId), tenantId },
                 data: {
                     paid: newPaid,
                     remaining: newRemaining,
@@ -593,8 +598,8 @@ async function _DELETE(request: NextRequest) {
                 }
 
                 await tx.salesInvoiceDetail.deleteMany({});
-                await tx.treasury.deleteMany({ where: { referenceType: 'sale' } });
-                return await tx.salesInvoice.deleteMany({});
+                await tx.treasury.deleteMany({ where: { referenceType: 'sale', tenantId } });
+                return await tx.salesInvoice.deleteMany({ where: { tenantId } });
             });
             return NextResponse.json({ success: true, message: `تم حذف ${result.count} فاتورة مبيعات مع عكس المخزون والقيود المحاسبية` });
         }
@@ -605,7 +610,8 @@ async function _DELETE(request: NextRequest) {
 
         if (!id) return NextResponse.json({ error: 'معرف الفاتورة مطلوب' }, { status: 400 });
 
-        const invoice = await prisma.salesInvoice.findUnique({ where: { id }, include: { details: true } });
+        const tenantId = requireTenantId(request as any);
+        const invoice = await prisma.salesInvoice.findUnique({ where: { id, tenantId }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
         await runFinancialTx(prisma, async (tx: any) => {
@@ -645,7 +651,7 @@ async function _DELETE(request: NextRequest) {
             }
 
             // Remove related treasury entries
-            await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id } });
+            await tx.treasury.deleteMany({ where: { referenceType: 'sale', referenceId: id, tenantId } });
 
             // Write to AuditLog for AI Fraud Engine
             await tx.auditLog.create({
@@ -659,7 +665,7 @@ async function _DELETE(request: NextRequest) {
             });
 
             // Delete invoice (cascade deletes details)
-            await tx.salesInvoice.delete({ where: { id } });
+            await tx.salesInvoice.delete({ where: { id, tenantId } });
         });
 
         // Field-level audit trail (post-transaction)

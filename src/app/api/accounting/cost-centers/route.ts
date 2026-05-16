@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -102,8 +103,9 @@ async function _PUT(request: NextRequest) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     }
 
+    const tenantId = requireTenantId(request as any);
     const updated = await prisma.costCenter.update({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), tenantId },
       data: {
         name,
         code,
@@ -131,8 +133,9 @@ async function _DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     }
 
+    const tenantId = requireTenantId(request as any);
     await prisma.costCenter.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), tenantId },
     });
 
     return NextResponse.json({ success: true });

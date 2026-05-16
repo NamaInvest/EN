@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -19,9 +20,10 @@ const _PUTSchema = z.object({
 
 async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = await params;
+  const { id: paramId } = await params;
     try {
-        const id = parseInt((await params).id, 10);
+        const id = parseInt(paramId, 10);
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _PUTSchema.safeParse(body);
@@ -31,13 +33,13 @@ async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> 
         
         if (body.isDefault) {
             await prisma.customerStatementTemplate.updateMany({
-                where: { isDefault: true, id: { not: id } },
+                where: { isDefault: true, id: { not: id }, tenantId },
                 data: { isDefault: false }
             });
         }
 
         const template = await prisma.customerStatementTemplate.update({
-            where: { id },
+            where: { id, tenantId },
             data: {
                 name: body.name,
                 isDefault: body.isDefault,
@@ -57,11 +59,12 @@ async function _PUT(req: Request, { params }: { params: Promise<{ id: string }> 
 
 async function _DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = await params;
+  const { id: paramId } = await params;
     try {
-        const id = parseInt((await params).id, 10);
+        const id = parseInt(paramId, 10);
+        const tenantId = requireTenantId(req as any);
         await prisma.customerStatementTemplate.delete({
-            where: { id }
+            where: { id, tenantId }
         });
         return NextResponse.json({ success: true });
     } catch (e: any) {

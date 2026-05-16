@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -98,14 +99,15 @@ async function _PUT(request: NextRequest) {
         }
         const { lineId, action } = body;
 
+        const tenantId = requireTenantId(request as any);
         if (action === 'auto-match') {
             // Mock auto-matching logic: match all lines that have 'auto' in description or similar heuristics
-            const lines = await (prisma as any).bankStatementLine.findMany({ take: 100, where: { matchStatus: 'UNMATCHED' } });
+            const lines = await (prisma as any).bankStatementLine.findMany({ take: 100, where: { matchStatus: 'UNMATCHED', tenantId } });
             let matchedCount = 0;
             for (const line of lines) {
                 // If it's a generic outward transfer or fee, mock it as matched
                 await (prisma as any).bankStatementLine.update({
-                    where: { id: line.id },
+                    where: { id: line.id, tenantId },
                     data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 95 }
                 });
                 matchedCount++;
@@ -113,7 +115,7 @@ async function _PUT(request: NextRequest) {
             return NextResponse.json({ success: true, matchedCount });
         } else if (lineId) {
             await (prisma as any).bankStatementLine.update({
-                where: { id: lineId },
+                where: { id: lineId, tenantId },
                 data: { matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
             });
             return NextResponse.json({ success: true });

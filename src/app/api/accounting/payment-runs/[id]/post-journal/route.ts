@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -13,8 +14,9 @@ const _POSTSchema = z.object({
 
 async function _POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = await params;
+  const { id: paramId } = await params;
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -22,10 +24,10 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const { userId } = body;
-        const runId = parseInt((await params).id, 10);
+        const runId = parseInt(paramId, 10);
 
         const run = await prisma.paymentRun.findUnique({
-            where: { id: runId },
+            where: { id: runId, tenantId },
             include: { lines: true }
         });
 
@@ -36,6 +38,7 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         // Journal Entry Creation using schema fields
         const newJe = await prisma.journalEntry.create({
             data: {
+                tenantId,
                 entryNumber: `JE-PRUN-${run.runNumber}`,
                 entryDate: new Date().toISOString().split('T')[0], // e.g. "2026-05-04"
                 description: `Payment Run ${run.runNumber} via Bank`,
@@ -47,12 +50,14 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
                 lines: {
                     create: [
                         {
+                            tenantId,
                             accountId: 2010, // Accounts Payable
                             debit: Number(run.totalAmount),
                             credit: 0,
                             description: 'Payment Run Settled'
                         },
                         {
+                            tenantId,
                             accountId: run.bankAccountId, // Bank Account
                             debit: 0,
                             credit: Number(run.totalAmount),
@@ -64,7 +69,7 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         });
 
         const updatedRun = await prisma.paymentRun.update({
-            where: { id: runId },
+            where: { id: runId, tenantId },
             data: {
                 status: 'POSTED',
                 postedAt: new Date(),

@@ -7,28 +7,38 @@ import { n } from '@/lib/decimal-utils';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
+import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'accounting.lc' });
-async function _GET(request: NextRequest) {
+
+async function _GET(request: NextRequest, auth: any) {
     const prisma = getPrisma(request);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
-        const lcs = await prisma.letterOfCredit.findMany({ take: 100,
+        const lcs = await prisma.letterOfCredit.findMany({ 
+            take: 100,
+            where: requireTenantFilter({ tenantId }),
             include: { bank: true, supplier: true },
             orderBy: { id: 'desc' }
         });
         
-        const banks = await prisma.bankAccount.findMany({ take: 100, where: { isActive: true } });
-        const suppliers = await prisma.customer.findMany({ take: 100, where: { type: { in: [1, 2] } } });
+        const banks = await prisma.bankAccount.findMany({ 
+            take: 100, 
+            where: { isActive: true, ...requireTenantFilter({ tenantId }) } 
+        });
+        const suppliers = await prisma.customer.findMany({ 
+            take: 100, 
+            where: { type: { in: [1, 2] }, ...requireTenantFilter({ tenantId }) } 
+        });
 
         return NextResponse.json({ lcs, banks, suppliers }, { status: 200 });
     } catch (error: any) {
-        log.error('src/app/api/accounting/lc/route.ts', { error: error instanceof Error ? error.message : error });
-
+        log.error('accounting.lc.GET', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'فشل جلب الاعتمادات المستندية', { context: 'accounting/lc' });
     }
 }
-
 
 const _POSTSchema = z.object({
   lcNumber: z.any().optional(),
@@ -42,11 +52,14 @@ const _POSTSchema = z.object({
   marginPercent: z.any().optional(),
   marginPaid: z.union([z.string(), z.number()]).optional(),
   portOfLoading: z.any().optional(),
-  port: z.any().optional(),
+  portOfDischarge: z.any().optional(),
+  notes: z.any().optional(),
 }).passthrough();
 
-async function _POST(request: NextRequest) {
+async function _POST(request: NextRequest, auth: any) {
     const prisma = getPrisma(request);
+    const tenantId = assertTenant(auth?.tenantId);
+
     try {
         const body = await request.json();
 
@@ -55,30 +68,32 @@ async function _POST(request: NextRequest) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         
-        const newLc = await prisma.letterOfCredit.create({
-            data: {
-                lcNumber: body.lcNumber,
-                bankId: parseInt(body.bankId),
-                supplierId: parseInt(body.supplierId),
-                amount: parseFloat(body.amount),
-                currencyId: body.currencyId ? parseInt(body.currencyId) : 1,
-                exchangeRate: parseFloat(body.exchangeRate) || 3.75,
-                openDate: body.openDate ? new Date(body.openDate) : new Date(),
-                expiryDate: new Date(body.expiryDate),
-                marginPercent: parseFloat(body.marginPercent) || 0,
-                marginPaid: parseFloat(body.marginPaid) || 0,
-                portOfLoading: body.portOfLoading,
-                portOfDischarge: body.portOfDischarge,
-                notes: body.notes,
-                status: 'draft'
-            }
-        });
+        const result = await runFinancialTx(prisma, async (tx) => {
+            const newLc = await tx.letterOfCredit.create({
+                data: {
+                    tenantId,
+                    lcNumber: body.lcNumber,
+                    bankId: parseInt(body.bankId),
+                    supplierId: parseInt(body.supplierId),
+                    amount: parseFloat(body.amount),
+                    currencyId: body.currencyId ? parseInt(body.currencyId) : 1,
+                    exchangeRate: parseFloat(body.exchangeRate) || 3.75,
+                    openDate: body.openDate ? new Date(body.openDate) : new Date(),
+                    expiryDate: new Date(body.expiryDate),
+                    marginPercent: parseFloat(body.marginPercent) || 0,
+                    marginPaid: parseFloat(body.marginPaid) || 0,
+                    portOfLoading: body.portOfLoading,
+                    portOfDischarge: body.portOfDischarge,
+                    notes: body.notes,
+                    status: 'draft'
+                }
+            });
 
-        // Auto-Generate a Journal Entry for Margin Payment (Cash out from Bank)
-        if (n(newLc.marginPaid) > 0) {
-            await prisma.$transaction(async (tx) => {
+            // Auto-Generate a Journal Entry for Margin Payment (Cash out from Bank)
+            if (n(newLc.marginPaid) > 0) {
                  await tx.bankTransaction.create({
                      data: {
+                         tenantId,
                          bankAccountId: newLc.bankId,
                          type: 'out',
                          amount: n(newLc.marginPaid),
@@ -88,20 +103,21 @@ async function _POST(request: NextRequest) {
                      }
                  });
                  await tx.bankAccount.update({
-                     where: { id: newLc.bankId },
+                     where: { id: newLc.bankId, tenantId },
                      data: { currentBalance: { decrement: n(newLc.marginPaid) } }
                  });
-            });
-        }
+            }
+            return newLc;
+        }, 'LETTER_OF_CREDIT_CREATE');
 
-        return NextResponse.json(newLc, { status: 201 });
+        return NextResponse.json(result, { status: 201 });
     } catch (error: any) {
-        log.error('src/app/api/accounting/lc/route.ts', { error: error instanceof Error ? error.message : error });
-
+        log.error('accounting.lc.POST', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'Error opening LC', { context: 'accounting/lc' });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req, auth }) => _GET(req as any, auth), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req, auth }) => _POST(req as any, auth), { rateLimit: 'FINANCIAL' });
+

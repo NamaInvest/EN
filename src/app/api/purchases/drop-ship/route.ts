@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction } from '@/lib/db/transaction';
@@ -14,11 +15,12 @@ async function _POST(req: Request) {
         const auth = await getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const tenantId = requireTenantId(req as any);
         const { purchaseOrderId } = await req.json();
 
         // 1. Fetch PO and linked SO
         const po: any = await (prisma.purchaseOrder as any).findUnique({
-            where: { id: parseInt(purchaseOrderId) },
+            where: { id: parseInt(purchaseOrderId), tenantId },
             include: { details: true, salesOrder: { include: { details: true } } }
         });
 
@@ -47,6 +49,7 @@ async function _POST(req: Request) {
             // 2. Generate Purchase Invoice
             (prisma.purchaseInvoice as any).create({
                 data: {
+                    tenantId,
                     invoiceNo: newPiNo,
                     supplierId: po.supplierId,
                     total: po.total,
@@ -69,6 +72,7 @@ async function _POST(req: Request) {
             // 3. Generate Sales Invoice
             (prisma.salesInvoice as any).create({
                 data: {
+                    tenantId,
                     invoiceNo: newSiNo,
                     customerId: po.salesOrder.customerId,
                     total: po.salesOrder.total,
@@ -92,6 +96,7 @@ async function _POST(req: Request) {
             // 4. Create Direct Journal Entry (COGS to AP, AR to Sales)
             (prisma.journalEntry as any).create({
                 data: {
+                    tenantId,
                     entryNumber: `DS-${po.orderNo}-${Date.now()}`,
                     entryDate: new Date().toISOString().split('T')[0],
                     description: `قيد شحن مباشر - Drop Ship (PO #${po.orderNo})`,
@@ -112,12 +117,12 @@ async function _POST(req: Request) {
 
             // 5. Update Statuses
             (prisma.purchaseOrder as any).update({
-                where: { id: po.id },
+                where: { id: po.id, tenantId },
                 data: { status: 'completed' }
             }),
 
             (prisma.salesOrder as any).update({
-                where: { id: po.salesOrder.id },
+                where: { id: po.salesOrder.id, tenantId },
                 data: { status: 'invoiced' }
             })
         ]);

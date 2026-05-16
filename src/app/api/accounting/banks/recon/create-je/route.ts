@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -16,6 +17,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
 
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -29,26 +31,27 @@ async function _POST(req: NextRequest) {
         }
 
         // Simplistic logic for mock purposes:
-        const line = await prisma.bankStatementLine.findUnique({ where: { id: parseInt(lineId, 10) } });
+        const line = await prisma.bankStatementLine.findUnique({ where: { id: parseInt(lineId, 10), tenantId } });
         if (!line) return NextResponse.json({ error: 'Line not found' }, { status: 404 });
 
         // Mock create JE
         const je = await prisma.journalEntry.create({
             data: {
+                tenantId,
                 entryNumber: `JE-RECON-${Date.now()}`,
                 entryDate: line.transactionDate?.toISOString().split('T')[0] ?? new Date().toISOString().split('T')[0],
                 description,
                 status: 'POSTED',
                 lines: {
                     create: [
-                        { accountId: parseInt(accountId, 10), debit: line.type === 'DEBIT' ? line.amount : 0, credit: line.type === 'CREDIT' ? line.amount : 0 }
+                        { tenantId, accountId: parseInt(accountId, 10), debit: line.type === 'DEBIT' ? line.amount : 0, credit: line.type === 'CREDIT' ? line.amount : 0 }
                     ]
                 }
             }
         });
 
         const updatedLine = await prisma.bankStatementLine.update({
-            where: { id: parseInt(lineId, 10) },
+            where: { id: parseInt(lineId, 10), tenantId },
             data: {
                 matchStatus: 'MANUAL_MATCHED',
                 matchedToType: 'JE',

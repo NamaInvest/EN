@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { z } from 'zod';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'api.inter-company' });
@@ -94,6 +95,7 @@ async function _GET(req: NextRequest) {
 }
 
 async function _POST(req: NextRequest) {
+  const tenantId = requireTenantId(req as any);
   const body   = await req.json();
   const parsed = PostSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
@@ -155,7 +157,7 @@ async function _POST(req: NextRequest) {
 
     // Mark lines as netted
     for (const l of lines) {
-      await p.iCNettingLine?.update?.({ where: { id: l.id }, data: { status: 'NETTED', nettedAt: now } }).catch(() => null);
+      await p.iCNettingLine?.update?.({ where: { id: l.id, tenantId }, data: { status: 'NETTED', nettedAt: now } }).catch(() => null);
     }
 
     log.info('IC Netting completed', { fromTenantId, toTenantId, net, lines: lines.length });

@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -12,8 +13,10 @@ async function _GET(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const tenantId = requireTenantId(request as any);
 
         let schedules = await (prisma as any).deferredRevenueSchedule.findMany({ take: 100,
+            where: { tenantId },
             include: { invoice: true, lines: true },
             orderBy: { id: 'desc' }
         });
@@ -21,10 +24,11 @@ async function _GET(request: NextRequest) {
         // Seed if empty
         if (schedules.length === 0) {
             // Check if there is an invoice
-            let invoice = await prisma.salesInvoice.findFirst();
+            let invoice = await prisma.salesInvoice.findFirst({ where: { tenantId } });
             if (!invoice) {
                 invoice = await prisma.salesInvoice.create({
                     data: {
+                        tenantId,
                         invoiceNo: Math.floor(Math.random() * 100000),
                         customerId: 1, // Assume customer 1 exists
                         date: new Date(),
@@ -38,6 +42,7 @@ async function _GET(request: NextRequest) {
 
             const schedule = await (prisma as any).deferredRevenueSchedule.create({
                 data: {
+                    tenantId,
                     invoiceId: invoice.id,
                     totalAmount: 120000,
                     recognizedAmount: 50000,
@@ -75,10 +80,11 @@ async function _POST(request: NextRequest) {
     try {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const tenantId = requireTenantId(request as any);
 
         // Mock running monthly recognition
         const schedules = await (prisma as any).deferredRevenueSchedule.findMany({ take: 100,
-            where: { status: 'ACTIVE' }
+            where: { status: 'ACTIVE', tenantId }
         });
 
         let recognizedCount = 0;
@@ -89,7 +95,7 @@ async function _POST(request: NextRequest) {
                 const newRemaining = schedule.totalAmount - newRecognized;
                 
                 await (prisma as any).deferredRevenueSchedule.update({
-                    where: { id: schedule.id },
+                    where: { id: schedule.id, tenantId },
                     data: {
                         recognizedAmount: newRecognized,
                         remainingAmount: newRemaining,

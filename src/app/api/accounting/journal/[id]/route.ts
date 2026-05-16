@@ -116,10 +116,10 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
         await runFinancialTx(prisma, async (tx: any) => {
             await checkFiscalPeriodOpen(tx, tenantId, date || entry.entryDate);
 
-            await tx.journalLine.deleteMany({ where: { entryId: id } });
+            await tx.journalLine.deleteMany({ where: { entryId: id, tenantId } });
 
             await tx.journalEntry.update({
-                where: { id },
+                where: { id, tenantId },
                 data: {
                     description,
                     reference,
@@ -128,6 +128,7 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
                     totalCredit: Math.round(totalCredit * 100) / 100,
                     lines: {
                         create: lines.map((l: any) => ({
+                            tenantId,
                             accountId: l.accountId,
                             costCenterId: l.costCenterId || null,
                             debit: l.debit || 0,
@@ -207,7 +208,7 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
                                     balanceChange = n(line.credit) - n(line.debit);
                                 }
                                 await tx.account.update({
-                                    where: { id: line.accountId },
+                                    where: { id: line.accountId, tenantId },
                                     data: { balance: { increment: Math.round(balanceChange * 100) / 100 } },
                                 });
                             }
@@ -215,7 +216,7 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
                     }
                     
                     await tx.journalEntry.update({
-                        where: { id },
+                        where: { id, tenantId },
                         data: { status }
                     });
                 }

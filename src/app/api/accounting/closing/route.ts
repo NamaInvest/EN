@@ -32,17 +32,17 @@ async function _POST(request: Request) {
             // 2. Perform Soft-Close Validations
             // Ensure no "draft" journal entries exist for this month
             const draftEntries = await tx.journalEntry.count({
-                where: {
-                    ...requireTenantFilter(tenantId),
+                where: requireTenantFilter({
+                    tenantId,
                     status: 'draft',
                     entryDate: { startsWith: `${year}-${String(month).padStart(2, '0')}` }
-                }
+                })
             });
             if (draftEntries > 0) throw new Error(`يوجد ${draftEntries} قيود يومية غير مرحلة. يجب ترحيلها قبل الإغلاق.`);
 
             // 3. Lock the Period
             await tx.fiscalPeriod.update({
-                where: { id: period.id },
+                where: { id: period.id, tenantId },
                 data: {
                     status: 'closed',
                     closedBy: user.userId,

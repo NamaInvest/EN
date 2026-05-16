@@ -11,6 +11,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { validateRequest } from '@/lib/api/validate-request';
 import { BankStatementImporter } from '@/lib/bank-statement-importer';
 import { checkRateLimit, getClientIp } from '@/lib/api/rate-limit';
+import { assertTenant } from '@/lib/security/tenant-guard';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'treasury.bank-import' });
@@ -31,7 +32,8 @@ export const GET = withRoute(async ({ req, prisma, auth }) => {
   const page          = parseInt(params.get('page') ?? '1');
   const take          = 50;
 
-  const where: any = {};
+  const tenantId = assertTenant(auth?.tenantId);
+  const where: any = { tenantId };
   if (bankAccountId) where.bankAccountId = bankAccountId;
   if (status) where.status = status;
 
@@ -53,6 +55,8 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
 
   const path = req.nextUrl.pathname;
 
+  const tenantId = assertTenant(auth?.tenantId);
+
   // ── Manual match ────────────────────────────────────────────────────────────
   if (path.endsWith('/match')) {
     const { data: body, error } = await validateRequest(req, MatchSchema);
@@ -60,11 +64,11 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
 
     await Promise.all([
       (prisma as any).bankStatementLine.update({
-        where: { id: body.lineId },
+        where: { id: body.lineId, tenantId },
         data:  { status: 'MATCHED', matchedTreasuryId: body.treasuryId },
       }),
       (prisma as any).treasury.update({
-        where: { id: body.treasuryId },
+        where: { id: body.treasuryId, tenantId },
         data:  { reconStatus: 'MATCHED' },
       }).catch(() => null),
     ]);

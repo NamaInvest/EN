@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { getNextNumber } from '@/lib/numbering';
 import jwt from 'jsonwebtoken';
 import { postGRN } from '@/lib/auto-journal';
@@ -59,6 +60,7 @@ async function _POST(req: Request) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const { supplierId, orderId, stockId, notes, items } = body;
+        const tenantId = requireTenantId(req as any);
 
         const seqResult = await getNextNumber(prisma, 'GRN');
         const nextNo = seqResult.current;
@@ -72,6 +74,7 @@ async function _POST(req: Request) {
             // P5: Status starts as 'pending_qc' — QC must approve before closing
             const newGrn = await tx.goodsReceiptNote.create({
                 data: {
+                    tenantId,
                     grnNo: nextNo,
                     supplierId: supplierId ? parseInt(supplierId) : null,
                     orderId: orderId ? parseInt(orderId) : null,
@@ -93,6 +96,7 @@ async function _POST(req: Request) {
                 if (item.batchNumber && accepted > 0) {
                     const batch = await tx.productBatch.create({
                         data: {
+                            tenantId,
                             productId: parseInt(item.productId),
                             batchNumber: item.batchNumber,
                             productionDate: item.productionDate ? new Date(item.productionDate) : null,
@@ -107,6 +111,7 @@ async function _POST(req: Request) {
 
                 await tx.goodsReceiptNoteDetail.create({
                     data: {
+                        tenantId,
                         grnId: newGrn.id,
                         productId: parseInt(item.productId),
                         productName: item.productName,
@@ -121,12 +126,13 @@ async function _POST(req: Request) {
                     totalGrnCost += accepted * (productObj?.buyPrice || 0);
 
                     await tx.product.update({
-                        where: { id: parseInt(item.productId) },
+                        where: { id: parseInt(item.productId), tenantId },
                         data: { currentStock: { increment: accepted } },
                     });
 
                     await tx.stockMovement.create({
                         data: {
+                            tenantId,
                             productId: parseInt(item.productId),
                             stockId: stockId ? parseInt(stockId) : 1,
                             type: 'in',
@@ -147,6 +153,7 @@ async function _POST(req: Request) {
                     if (prod?.minStock && prod.currentStock <= prod.minStock) {
                         await tx.systemAlert.create({
                             data: {
+                                tenantId,
                                 userId: decoded.userId,
                                 title: `⚠️ مخزون منخفض: ${prod.name}`,
                                 message: `المخزون الحالي ${prod.currentStock} وصل لحد إعادة الطلب (${prod.minStock}). يُنصح بإنشاء أمر شراء.`,
@@ -176,6 +183,7 @@ async function _POST(req: Request) {
             // P5: Auto-create QualityInspection linked to this GRN
             await tx.qualityInspection.create({
                 data: {
+                    tenantId,
                     referenceNumber: `GRN-${nextNo}`,
                     inspectorId: decoded.userId,
                     status: 'PENDING',

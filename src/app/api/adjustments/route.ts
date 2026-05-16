@@ -65,7 +65,7 @@ async function _GET(req: NextRequest, auth: any) {
 
   const action = q.get('action');
 
-  const tenantFilter = requireTenantFilter(tenantId);
+  const tenantFilter = requireTenantFilter({ tenantId });
 
   // ── Stats endpoint ──────────────────────────────────────────────────────────
   if (action === 'stats') {
@@ -128,7 +128,7 @@ async function _POST(req: NextRequest, auth: any) {
     }
 
     const { items, reason, branchId, date } = parsed.data;
-    const results = [];
+    const results: any[] = [];
 
     await runInventoryTx(prisma, async (tx: any) => {
       for (const item of items) {
@@ -213,7 +213,7 @@ async function _POST(req: NextRequest, auth: any) {
       });
 
       await tx.product.update({
-        where: { id: item.productId },
+        where: { id: item.productId, tenantId },
         data:  { currentStock: { increment: diff } },
       }).catch(() => null);
     }

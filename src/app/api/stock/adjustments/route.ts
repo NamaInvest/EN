@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import jwt from 'jsonwebtoken';
 import { postInventoryAdjustment } from '@/lib/auto-journal';
 import { getUserFromRequest } from '@/lib/auth';
@@ -21,8 +22,10 @@ async function _GET(req: Request) {
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
         // Get past adjustments
+        const tenantId = requireTenantId(req as any);
         const adjustments = await prisma.stockMovement.findMany({ take: 100,
             where: {
+                tenantId,
                 type: { in: ['adjustment', 'adjustment_in', 'adjustment_out'] }
             },
             include: {
@@ -73,8 +76,9 @@ async function _POST(req: Request) {
             return NextResponse.json({ error: 'المعلومات غير مكتملة' }, { status: 400 });
         }
 
+        const tenantId = requireTenantId(req as any);
         const adjustment = await runInventoryTx(prisma, async (tx: any) => {
-            const product = await tx.product.findUnique({ where: { id: parseInt(productId) } });
+            const product = await tx.product.findUnique({ where: { id: parseInt(productId), tenantId } });
             if (!product) throw new Error('المنتج غير موجود');
 
             const current = n(product.currentStock);
@@ -86,7 +90,7 @@ async function _POST(req: Request) {
 
             // Update product to absolute new quantity
             await tx.product.update({
-                where: { id: product.id },
+                where: { id: product.id, tenantId },
                 data: { currentStock: parseFloat(actualQuantity) }
             });
 

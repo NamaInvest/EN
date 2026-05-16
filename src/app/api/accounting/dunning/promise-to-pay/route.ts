@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -20,6 +21,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
 
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -30,6 +32,7 @@ async function _POST(req: NextRequest) {
 
         const promise = await prisma.promiseToPay.create({
             data: {
+                tenantId,
                 customerId,
                 openItemIds,
                 promisedAmount: amount,
@@ -46,7 +49,7 @@ async function _POST(req: NextRequest) {
         snoozeDate.setDate(snoozeDate.getDate() + 1);
 
         await prisma.customer.update({
-            where: { id: customerId },
+            where: { id: customerId, tenantId },
             data: {
                 dunningSnoozeUntil: snoozeDate,
                 dunningSnoozeReason: 'Promise to pay active'

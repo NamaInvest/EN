@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { prisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -9,7 +10,9 @@ const log = logger.child({ service: 'accounting.customer-statements.templates' }
 async function _GET(req: Request) {
 
     try {
+        const tenantId = requireTenantId(req as any);
         const templates = await prisma.customerStatementTemplate.findMany({ take: 100,
+            where: { tenantId },
             orderBy: { createdAt: 'desc' }
         });
         return NextResponse.json(templates);
@@ -33,6 +36,7 @@ const _POSTSchema = z.object({
 async function _POST(req: Request) {
 
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -53,13 +57,14 @@ async function _POST(req: Request) {
         // If setting as default, unset others first
         if (isDefault) {
             await prisma.customerStatementTemplate.updateMany({
-                where: { isDefault: true },
+                where: { isDefault: true, tenantId },
                 data: { isDefault: false }
             });
         }
 
         const template = await prisma.customerStatementTemplate.create({
             data: {
+                tenantId,
                 name,
                 isDefault: isDefault || false,
                 headerMessage,

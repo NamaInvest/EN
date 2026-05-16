@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 
 // GET - شجرة الحسابات
 import { getUserFromRequest } from '@/lib/auth';
@@ -93,10 +94,11 @@ async function _PUT(request: Request) {
         const body = await request.json();
         const { id, name, nameEn, isActive } = body;
 
+        const tenantId = requireTenantId(request as any);
         if (!id) return NextResponse.json({ error: 'معرف الحساب مطلوب' }, { status: 400 });
 
         const account = await prisma.account.update({
-            where: { id },
+            where: { id, tenantId },
             data: {
                 ...(name && { name }),
                 ...(nameEn !== undefined && { nameEn }),
@@ -125,13 +127,14 @@ async function _DELETE(request: Request) {
 
         if (!id) return NextResponse.json({ error: 'معرف الحساب مطلوب' }, { status: 400 });
 
+        const tenantId = requireTenantId(request as any);
         // Check if account has journal lines
-        const lines = await prisma.journalLine.count({ where: { accountId: id } });
+        const lines = await prisma.journalLine.count({ where: { accountId: id, tenantId } });
         if (lines > 0) {
             return NextResponse.json({ error: 'لا يمكن حذف حساب له حركات محاسبية' }, { status: 400 });
         }
 
-        await prisma.account.delete({ where: { id } });
+        await prisma.account.delete({ where: { id, tenantId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
         log.error('Account delete error:', error);

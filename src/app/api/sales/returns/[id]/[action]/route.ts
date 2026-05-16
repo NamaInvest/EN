@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { StateMachine } from '@/lib/state-machine';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -30,8 +31,9 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, a
         const targetState = action.toUpperCase();
 
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+        const tenantId = requireTenantId(req as any);
 
-        const salesReturn = await prisma.salesReturn.findUnique({ where: { id }, include: { details: true } });
+        const salesReturn = await prisma.salesReturn.findUnique({ where: { id, tenantId }, include: { details: true } });
         if (!salesReturn) return NextResponse.json({ error: 'Return not found' }, { status: 404 });
 
         const currentState = (salesReturn as any).status || 'REQUESTED';
@@ -58,7 +60,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, a
 
         // Update the state in DB
         const updated = await prisma.salesReturn.update({
-            where: { id },
+            where: { id, tenantId },
             data: { status: targetState }
         });
 
