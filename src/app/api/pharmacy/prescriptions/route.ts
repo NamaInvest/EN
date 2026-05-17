@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
 import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { OutboxService } from '@/lib/services/outbox.service';
+import { PharmacyPayloadSanitizer } from '@/lib/services/pharmacy.service';
 
 const log = logger.child({ service: 'pharmacy.prescriptions' });
 
@@ -208,6 +210,38 @@ async function _PUT(req: NextRequest, auth: any) {
                     dispensedAt: new Date(),
                     pharmacistId: auth.userId,
                 },
+            });
+
+            // Prepare safe Outbox Payload
+            const safeItems = items.map((item: any) => ({
+                drugId: parseInt(item.drugId),
+                productId: parseInt(item.productId),
+                stockId: item.stockId ? parseInt(item.stockId) : 0,
+                dispensedQty: parseFloat(item.dispensedQty)
+            }));
+
+            const rawPayload = {
+                tenantId,
+                prescriptionId: parseInt(prescriptionId),
+                status: rx.status,
+                pharmacistId: auth.userId,
+                timestamp: rx.dispensedAt ? rx.dispensedAt.toISOString() : new Date().toISOString(),
+                items: safeItems
+            };
+
+            const safePayload = PharmacyPayloadSanitizer.sanitize(rawPayload);
+
+            const idempotencyHeader = req.headers.get('Idempotency-Key') || req.headers.get('x-idempotency-key');
+            const totalDispensed = items.reduce((sum: number, item: any) => sum + parseFloat(item.dispensedQty), 0);
+            const idempotencyKey = `pharmacy-dispense:${tenantId}:${prescriptionId}:${idempotencyHeader || totalDispensed}`;
+
+            await OutboxService.emit(tx, {
+                tenantId,
+                eventType: 'PHARMACY_PRESCRIPTION_DISPENSED',
+                aggregateType: 'Prescription',
+                aggregateId: prescriptionId.toString(),
+                payload: safePayload as any,
+                idempotencyKey
             });
 
             return rx;
