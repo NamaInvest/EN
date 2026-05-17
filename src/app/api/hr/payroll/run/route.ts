@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { runFinancialTx } from '@/lib/db/transaction';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
+import { OutboxService } from '@/lib/services/outbox.service';
 
 const log = logger.child({ service: 'hr.payroll.run' });
 
@@ -153,6 +154,21 @@ async function _POST(req: Request, auth: any) {
                 tenantId,
                 { month, year, totalNet }
             );
+
+            await OutboxService.emit(tx, {
+                tenantId,
+                aggregateId: `${year}-${month}`,
+                aggregateType: 'PayrollRun',
+                eventType: 'HR_PAYROLL_RUN_COMPLETED',
+                payload: {
+                    tenantId,
+                    month,
+                    year,
+                    salaryCount: salariesToCreate.length,
+                    totalAmount: totalNet
+                },
+                idempotencyKey: `hr-payroll-run:${tenantId}:${year}:${month}`
+            });
 
         }, 'PAYROLL_RUN');
 
