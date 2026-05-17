@@ -37,7 +37,7 @@ export class MultiCountryPayrollEngine {
     return config;
   }
 
-  static calculate(country: string, basicSalary: number, allowances = 0, overtimePay = 0): PayrollCalculation {
+  static calculate(country: string, basicSalary: number, allowances = 0, overtimePay = 0, tenantId: string): PayrollCalculation {
     const cfg = this.getConfig(country);
     const grossPay    = basicSalary + allowances + overtimePay;
     const gosiBase    = basicSalary; // GOSI on basic only
@@ -45,15 +45,15 @@ export class MultiCountryPayrollEngine {
     const gosiEmployer = gosiBase * cfg.gosiEmployerRate;
     const incomeTax   = country === 'EG' ? Math.max(0, (grossPay - 15000) * cfg.incomeTaxRate) : 0;
     const netPay      = grossPay - gosiEmployee - incomeTax;
-    log.info(`${country} payroll: gross=${grossPay}, net=${netPay.toFixed(2)}, currency=${cfg.currency}`);
+    log.info(`[Tenant: ${tenantId}] ${country} payroll: gross=${grossPay}, net=${netPay.toFixed(2)}, currency=${cfg.currency}`);
     return { country, currency: cfg.currency, grossPay, gosiEmployee, gosiEmployer, incomeTax, netPay };
   }
 
   /** Bulk calculate from array of employee records */
-  static calculateBatch(country: string, employees: Array<{ id: number; basicSalary: number; allowances?: number; overtimePay?: number }>) {
+  static calculateBatch(country: string, employees: Array<{ id: number; basicSalary: number; allowances?: number; overtimePay?: number }>, tenantId: string) {
     return employees.map(e => ({
       employeeId: e.id,
-      ...this.calculate(country, e.basicSalary, e.allowances, e.overtimePay),
+      ...this.calculate(country, e.basicSalary, e.allowances, e.overtimePay, tenantId),
     }));
   }
 }

@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr.payroll.config' });
 
 async function _GET(req: Request) {
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req as any);
     try {
-        const setting = await prisma.setting.findUnique({
-            where: { key: 'payroll_accounting_config' }
+        const setting = await prisma.setting.findFirst({
+            where: { key: 'payroll_accounting_config', tenantId }
         });
 
         const accounts = await prisma.account.findMany({ take: 100,
-            where: { isActive: true },
+            where: { isActive: true, tenantId },
             select: { id: true, code: true, name: true, type: true }
         });
 
@@ -41,6 +46,9 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req as any);
     try {
@@ -52,11 +60,25 @@ async function _POST(req: Request) {
         }
         const { config } = body;
 
-        await prisma.setting.upsert({
-            where: { key: 'payroll_accounting_config' },
-            update: { value: JSON.stringify(config) },
-            create: { key: 'payroll_accounting_config', value: JSON.stringify(config), description: 'Mapping of payroll components to GL Accounts' }
+        const existing = await prisma.setting.findFirst({
+            where: { key: 'payroll_accounting_config', tenantId }
         });
+
+        if (existing) {
+            await prisma.setting.update({
+                where: { id: existing.id },
+                data: { value: JSON.stringify(config) }
+            });
+        } else {
+            await prisma.setting.create({
+                data: { 
+                    key: 'payroll_accounting_config', 
+                    value: JSON.stringify(config), 
+                    description: 'Mapping of payroll components to GL Accounts',
+                    tenantId
+                }
+            });
+        }
 
         return NextResponse.json({ success: true, message: 'تم حفظ إعدادات الرواتب المحاسبية بنجاح' });
     } catch (e: any) {
