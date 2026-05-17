@@ -44,4 +44,39 @@ export class OutboxService {
       }
     });
   }
+
+  /**
+   * Retrieves read-only observability statistics for the Outbox system.
+   * Does NOT modify any event state.
+   */
+  static async getDiagnostics(prismaClient: any): Promise<{
+    pendingCount: number;
+    processingCount: number;
+    processedCount: number;
+    failedCount: number;
+    oldestPendingEvent: { id: number | string; createdAt: Date; eventType: string } | null;
+    exceededRetryLimitCount: number;
+  }> {
+    const [pendingCount, processingCount, processedCount, failedCount, oldestPending, exceededRetry] = await Promise.all([
+      prismaClient.outboxEvent.count({ where: { status: 'PENDING' } }),
+      prismaClient.outboxEvent.count({ where: { status: 'PROCESSING' } }),
+      prismaClient.outboxEvent.count({ where: { status: 'PROCESSED' } }),
+      prismaClient.outboxEvent.count({ where: { status: 'FAILED' } }),
+      prismaClient.outboxEvent.findFirst({
+        where: { status: 'PENDING' },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, createdAt: true, eventType: true }
+      }),
+      prismaClient.outboxEvent.count({ where: { status: 'FAILED', attempts: { gte: 5 } } }) // MAX_ATTEMPTS is 5 in the worker
+    ]);
+
+    return {
+      pendingCount,
+      processingCount,
+      processedCount,
+      failedCount,
+      oldestPendingEvent: oldestPending,
+      exceededRetryLimitCount: exceededRetry
+    };
+  }
 }
