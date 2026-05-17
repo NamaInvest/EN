@@ -23,9 +23,29 @@ export const outboxRelayWorker = new Worker(
         const MAX_ATTEMPTS = 5;
 
         for (const event of pendingEvents) {
+            // Concurrency Lock: Claim the event atomically
+            const lock = await prisma.outboxEvent.updateMany({
+                where: { id: event.id, status: 'PENDING' },
+                data: { status: 'PROCESSING' }
+            });
+
+            if (lock.count === 0) {
+                // Event was already claimed by another worker or is no longer PENDING
+                continue;
+            }
+
             try {
                 const currentAttempt = event.attempts + 1;
                 logger.info({ tenantId: event.tenantId, eventType: event.eventType, attempts: currentAttempt }, `[OutboxRelayWorker] Dispatching event ${event.id}`);
+
+                // PII/PHI Safety Check (Fail-fast before dispatch)
+                const payloadString = JSON.stringify(event.payload || {}).toLowerCase();
+                if (payloadString.includes('nationalid') || payloadString.includes('patient') || payloadString.includes('doctor')) {
+                    // We only block generic un-sanitized keys to prevent leaks. 
+                    if (event.eventType.startsWith('PHARMACY_')) {
+                         throw new Error(`CRITICAL SECURITY ALERT: PII/PHI leak detected in Outbox payload for event ${event.id}. Dispatch aborted.`);
+                    }
+                }
 
                 const jobId = event.idempotencyKey || `outbox-event-${event.id}`;
 
@@ -35,9 +55,8 @@ export const outboxRelayWorker = new Worker(
                     await syncQueue.add('zatca_submit', {
                         tenantId: event.tenantId,
                         recordId: payload.invoiceId,
-                        // Note: If invoiceXml is not in payload, ZATCA worker must generate it
                         ...payload
-                    }, { jobId });
+                    }, { jobId, attempts: MAX_ATTEMPTS, backoff: { type: 'exponential', delay: 2000 } });
                 } else {
                     // Generic EventBus dispatch
                     await syncQueue.add('process_event', {
@@ -45,12 +64,12 @@ export const outboxRelayWorker = new Worker(
                         eventId: event.id,
                         eventType: event.eventType,
                         payload: event.payload
-                    }, { jobId });
+                    }, { jobId, attempts: MAX_ATTEMPTS, backoff: { type: 'exponential', delay: 2000 } });
                 }
 
                 await prisma.outboxEvent.update({
                     where: { id: event.id },
-                    data: { status: 'PROCESSED', processedAt: new Date(), attempts: { increment: 1 } }
+                    data: { status: 'PROCESSED', processedAt: new Date(), attempts: { increment: 1 }, error: null }
                 });
                 dispatched++;
             } catch (error: any) {
