@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr/performance' });
@@ -10,13 +11,14 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = requireTenantId(req as any);
         const { searchParams } = new URL(req.url);
         // If employeeId is passed, get reviews specific to them. Otherwise get all (Admin view)
         const employeeId = searchParams.get('employeeId');
 
-        let where = {};
+        let where: any = { tenantId };
         if (employeeId) {
-            where = { employeeId: Number(employeeId) };
+            where.employeeId = Number(employeeId);
         }
 
         const evaluations = await prisma.employeeEvaluation.findMany({ take: 100,
@@ -30,7 +32,7 @@ async function _GET(req: Request) {
 
         // Get employees list for the select dropdowns
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId } as any,
             select: { id: true, name: true, position: true, department: true } as any
         });
 
@@ -55,6 +57,7 @@ async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = requireTenantId(req as any);
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -65,9 +68,12 @@ async function _POST(req: Request) {
 
         // In a real 360 review, we'd check if evaluatorId == employeeId for Self-Assessment, 
         // or check managerId, or check peer selection.
+        await prisma.employee.findUniqueOrThrow({ where: { id: Number(employeeId), tenantId } } as any);
+        await prisma.employee.findUniqueOrThrow({ where: { id: Number(evaluatorId), tenantId } } as any);
 
         const newEval = await prisma.employeeEvaluation.create({
             data: {
+                tenantId,
                 employeeId: Number(employeeId),
                 evaluatorId: Number(evaluatorId),
                 evaluationDate: new Date(),
@@ -76,7 +82,7 @@ async function _POST(req: Request) {
                 strengths,
                 weaknesses,
                 recommendations
-            }
+            } as any
         });
 
         return NextResponse.json({ success: true, data: newEval });

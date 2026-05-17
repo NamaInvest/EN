@@ -15,25 +15,27 @@ export class LMSEngine {
     });
   }
 
-  static async updateProgress(enrollmentId: number, score: number) {
+  static async updateProgress(tenantId: string, enrollmentId: number, score: number) {
+    await prisma.trainingEnrollment.findUniqueOrThrow({ where: { id: enrollmentId, tenantId } });
     const status = score >= 70 ? 'COMPLETED' : 'IN_PROGRESS';
     log.info(`Training enrollment ${enrollmentId}: score=${score} → ${status}`);
     return prisma.trainingEnrollment.update({ where: { id: enrollmentId }, data: { score, status } });
   }
 
-  static async complete(enrollmentId: number) {
+  static async complete(tenantId: string, enrollmentId: number) {
+    await prisma.trainingEnrollment.findUniqueOrThrow({ where: { id: enrollmentId, tenantId } });
     return prisma.trainingEnrollment.update({ where: { id: enrollmentId }, data: { status: 'COMPLETED' } });
   }
 
   /** Get enrollments for all direct reports of a manager (Employee.managerId) */
-  static async getTeamEnrollments(managerId: number) {
+  static async getTeamEnrollments(tenantId: string, managerId: number) {
     const employees = await prisma.employee.findMany({
-      where: { managerId },
+      where: { managerId, tenantId },
       select: { id: true, name: true },
     });
     const empIds = employees.map(e => e.id);
     if (!empIds.length) return [];
-    return prisma.trainingEnrollment.findMany({ where: { employeeId: { in: empIds } } });
+    return prisma.trainingEnrollment.findMany({ where: { employeeId: { in: empIds }, tenantId } });
   }
 
   /** Active courses = status SCHEDULED */

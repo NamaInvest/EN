@@ -8,11 +8,14 @@ export class OKREngine {
     return prisma.objective.create({ data: { tenantId, ownerEmpId, title, period, level, parentObjectiveId } });
   }
 
-  static async addKeyResult(objectiveId: number, title: string, targetValue: number) {
+  static async addKeyResult(tenantId: string, objectiveId: number, title: string, targetValue: number) {
+    await prisma.objective.findUniqueOrThrow({ where: { id: objectiveId, tenantId } });
     return prisma.keyResult.create({ data: { objectiveId, title, targetValue, currentValue: 0, confidence: 3 } });
   }
 
-  static async updateProgress(keyResultId: number, currentValue: number, confidence: 1|2|3|4|5) {
+  static async updateProgress(tenantId: string, keyResultId: number, currentValue: number, confidence: 1|2|3|4|5) {
+    const kr = await prisma.keyResult.findUniqueOrThrow({ where: { id: keyResultId }, include: { objective: true } } as any);
+    if ((kr as any).objective?.tenantId !== tenantId) throw new Error("Unauthorized");
     log.info(`KR ${keyResultId} updated: value=${currentValue}, confidence=${confidence}`);
     return prisma.keyResult.update({ where: { id: keyResultId }, data: { currentValue, confidence } });
   }
