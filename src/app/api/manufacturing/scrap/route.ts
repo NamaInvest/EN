@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
 import { InventoryService } from '@/lib/services/inventory.service';
+import { ManufacturingService } from '@/lib/services/manufacturing.service';
 import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
 
 const log = logger.child({ service: 'manufacturing.scrap' });
@@ -88,44 +89,36 @@ async function _POST(req: NextRequest, auth: any) {
 
         const wastedCost = n(product.buyPrice) * Number(lostQuantity);
 
-        // Transaction for Wastage creation + Inventory Adjustment
-        const result = await runInventoryTx(prisma, async (tx) => {
-            const wastage = await tx.manufacturingWastage.create({
-                data: {
-                    tenantId,
-                    manufacturingOrderId: mo.id,
-                    rawProductId: product.id,
-                    lostQuantity: Number(lostQuantity),
-                    wastedCost: wastedCost,
-                    reason,
-                    wastagePhotoUrl,
-                    serialOrBatchNumber
-                }
-            });
+        const reqId = req.headers.get('x-request-id') || Date.now().toString();
+        const idempotencyKey = req.headers.get('idempotency-key') || req.headers.get('x-idempotency-key') || `mfg-scrap:${tenantId}:${mo.id}:${reqId}`;
 
-            // Adjust inventory atomically using InventoryService
-            await InventoryService.adjustStock(tx, {
+        // Create wastage record directly
+        const wastage = await prisma.manufacturingWastage.create({
+            data: {
                 tenantId,
+                manufacturingOrderId: mo.id,
+                rawProductId: product.id,
+                lostQuantity: Number(lostQuantity),
+                wastedCost: wastedCost,
+                reason,
+                wastagePhotoUrl,
+                serialOrBatchNumber
+            }
+        });
+
+        // Delegate inventory logic & Outbox emission to the dedicated service
+        await ManufacturingService.postScrap(prisma as any, {
+            tenantId,
+            workOrderId: mo.id,
+            scrapItems: [{
                 productId: product.id,
                 stockId: stockId,
-                quantityChange: -Number(lostQuantity),
-                reason: `Scrap for MO-${mo.orderNumber}. Reason: ${reason}`,
-                sourceType: 'MANUFACTURING_SCRAP'
-            });
+                quantity: Number(lostQuantity)
+            }],
+            idempotencyKey
+        });
 
-            await InventoryService.recordMovement(tx, {
-                tenantId,
-                productId: product.id,
-                stockId: stockId,
-                quantity: -Number(lostQuantity),
-                type: 'OUT',
-                referenceId: wastage.id,
-                referenceType: 'MANUFACTURING_WASTAGE',
-                notes: `Manufacturing Scrap MO-${mo.orderNumber}`
-            });
-
-            return wastage;
-        }, 'MANUFACTURING_SCRAP');
+        const result = wastage;
 
         // Optional: Auto-Journal if applicable (can be done asynchronously or explicitly via a Financial service)
         // Here we just log for now as the original code did.
