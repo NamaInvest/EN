@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { InventoryService, StockMovementPayload, StockAdjustmentPayload, TxClient } from './inventory.service';
 import { runInventoryTx, runFinancialTx } from '../db/transaction';
-
+import { OutboxService } from './outbox.service';
 export class ManufacturingService {
   /**
    * Posts manufacturing consumption (Raw Materials).
@@ -11,6 +11,7 @@ export class ManufacturingService {
     tenantId: string;
     manufacturingOrderId: number;
     components: { productId: number; stockId: number; quantity: number }[];
+    idempotencyKey?: string;
   }) {
     return await runInventoryTx(prisma, async (tx: TxClient) => {
       const results = [];
@@ -38,6 +39,24 @@ export class ManufacturingService {
         });
         results.push(movement);
       }
+
+      await OutboxService.emit(tx as any, {
+        tenantId: payload.tenantId,
+        aggregateId: `${payload.manufacturingOrderId}`,
+        aggregateType: 'ManufacturingOrder',
+        eventType: 'MANUFACTURING_CONSUMPTION_POSTED',
+        payload: {
+          tenantId: payload.tenantId,
+          manufacturingOrderId: payload.manufacturingOrderId,
+          components: payload.components.map(c => ({
+            productId: c.productId,
+            stockId: c.stockId,
+            quantity: c.quantity
+          }))
+        },
+        idempotencyKey: payload.idempotencyKey
+      });
+
       return results;
     }, `MFG_CONSUME_${payload.manufacturingOrderId}`);
   }
@@ -50,6 +69,7 @@ export class ManufacturingService {
     tenantId: string;
     manufacturingOrderId: number;
     finishedGoods: { productId: number; stockId: number; quantity: number }[];
+    idempotencyKey?: string;
   }) {
     return await runInventoryTx(prisma, async (tx: TxClient) => {
       const results = [];
@@ -75,6 +95,24 @@ export class ManufacturingService {
         });
         results.push(movement);
       }
+
+      await OutboxService.emit(tx as any, {
+        tenantId: payload.tenantId,
+        aggregateId: `${payload.manufacturingOrderId}`,
+        aggregateType: 'ManufacturingOrder',
+        eventType: 'MANUFACTURING_PRODUCTION_POSTED',
+        payload: {
+          tenantId: payload.tenantId,
+          manufacturingOrderId: payload.manufacturingOrderId,
+          finishedGoods: payload.finishedGoods.map(fg => ({
+            productId: fg.productId,
+            stockId: fg.stockId,
+            quantity: fg.quantity
+          }))
+        },
+        idempotencyKey: payload.idempotencyKey
+      });
+
       return results;
     }, `MFG_PRODUCE_${payload.manufacturingOrderId}`);
   }
@@ -86,6 +124,7 @@ export class ManufacturingService {
     tenantId: string;
     workOrderId: number;
     scrapItems: { productId: number; stockId: number; quantity: number }[];
+    idempotencyKey?: string;
   }) {
     return await runInventoryTx(prisma, async (tx: TxClient) => {
       const results = [];
@@ -112,6 +151,24 @@ export class ManufacturingService {
         });
         results.push(movement);
       }
+
+      await OutboxService.emit(tx as any, {
+        tenantId: payload.tenantId,
+        aggregateId: `${payload.workOrderId}`,
+        aggregateType: 'WorkOrder',
+        eventType: 'MANUFACTURING_SCRAP_POSTED',
+        payload: {
+          tenantId: payload.tenantId,
+          workOrderId: payload.workOrderId,
+          scrapItems: payload.scrapItems.map(item => ({
+            productId: item.productId,
+            stockId: item.stockId,
+            quantity: item.quantity
+          }))
+        },
+        idempotencyKey: payload.idempotencyKey
+      });
+
       return results;
     }, `MFG_SCRAP_${payload.workOrderId}`);
   }
