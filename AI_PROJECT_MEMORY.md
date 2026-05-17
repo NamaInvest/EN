@@ -122,4 +122,21 @@
 - **HR and Manufacturing routes fully service-driven for critical inventory/payroll flows** ✅
 
 ### TODO للمرحلة القادمة:
-- [ ] **Phase 3.2: Pharmacy Secure Outbox Payloads** (يتطلب تصميم payload آمن وممتثل لمعايير PII/HIPAA بسبب حساسية البيانات الطبية).
+- [x] **Phase 3.2: Pharmacy Secure Outbox Payloads** (يتطلب تصميم payload آمن وممتثل لمعايير PII/HIPAA بسبب حساسية البيانات الطبية).
+
+## Phase 3.2: Pharmacy Secure Outbox Payloads Snapshot
+**Date:** 2026-05-18
+**Status:** CLOSED
+
+### إغلاق Phase 3.2 بالكامل
+تم إنجاز نظام Outbox Reliability وتطبيقه على قطاع الصيدلية (Pharmacy Dispensing) بشكل يضمن سلامة البيانات الصحية والأتمتة التامة بدون التأثير على Business Logic الأساسي.
+
+### Pharmacy & Outbox Reliability Commits:
+- **Commit 1 (`7b354404`):** Pharmacy Payload Sanitizer (PII/PHI Guard).
+- **Commit 2 (`b7635b16`):** Pharmacy Dispense Outbox Event (`PHARMACY_PRESCRIPTION_DISPENSED`) inside `runInventoryTx`.
+- **Commit 3 (`1f560f44`):** Outbox Relay Worker Hardening (Atomic Lock + Exponential Retry + PII fail-fast Guard).
+
+### تفاصيل البنية الآمنة:
+1. **Concurrency Control:** استخدام `updateMany` بحالة `status: PROCESSING` كقفل ذري لمنع Double Processing عبر عدة عمال (Workers).
+2. **Fail-Fast PII/PHI Guard:** العامل (`outbox-relay.worker.ts`) مزود بصمام أمان يرفض أي payload لقطاع الصيدلية يحتوي على أسماء، هويات، أو معلومات طبيب، ويجهض الإرسال للـ Redis قبل وقوع التسريب (HIPAA compliance).
+3. **Idempotency & Retry-safe:** العامل يتعامل بفاعلية مع الحدث، وإذا فشل لسبب خارجي يقوم بعمل Retry بحد أقصى 5 محاولات.
