@@ -134,6 +134,7 @@ async function _PUT(request: Request) {
 
         if (status === 'in_progress' && order.status === 'draft') {
             const targetStockId = body.stockId ? parseInt(body.stockId) : 1;
+            const componentsToConsume: { productId: number; stockId: number; quantity: number }[] = [];
 
             await runFinancialTx(prisma, async (tx: any) => {
                 let totalCost = 0;
@@ -156,26 +157,13 @@ async function _PUT(request: Request) {
                     totalCost += cost;
                     materialCost += cost;
 
-                    await InventoryService.adjustStock(tx, {
-                        tenantId,
+                    componentsToConsume.push({
                         productId: item.rawProductId,
                         stockId: targetStockId,
-                        quantityChange: -qtyNeeded,
-                        reason: `صرف خامات لأمر التصنيع ${order.orderNumber}`,
-                        sourceType: 'MANUFACTURING_CONSUMPTION',
-                        reference: `MO-${order.id}`
+                        quantity: qtyNeeded
                     });
 
-                    await InventoryService.recordMovement(tx, {
-                        tenantId,
-                        productId: item.rawProductId,
-                        stockId: targetStockId,
-                        quantity: -qtyNeeded,
-                        type: 'OUT',
-                        referenceType: 'manufacturing_order',
-                        referenceId: order.id,
-                        notes: `صرف خامات لأمر التصنيع ${order.orderNumber}`
-                    });
+                    // Inventory logic delegated to ManufacturingService outside this financial tx
 
                     await tx.product.update({
                         where: { id: item.rawProductId , tenantId },
@@ -231,7 +219,19 @@ async function _PUT(request: Request) {
                     ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
             }, `WO_START_${order.id}`);
-            
+
+            const idempotencyKey = request.headers.get('idempotency-key') || request.headers.get('x-idempotency-key') || `mfg-consume:${tenantId}:${order.id}:${order.quantityToProduce}`;
+
+            // Delegate inventory consumption & Outbox emission to the dedicated service
+            if (componentsToConsume.length > 0) {
+                await ManufacturingService.postConsumption(prisma as any, {
+                    tenantId,
+                    manufacturingOrderId: order.id,
+                    components: componentsToConsume,
+                    idempotencyKey
+                });
+            }
+
             EnterpriseLogger.traceInventoryTx(
                 `WO_START_${order.id}`,
                 'WORK_ORDER_STARTED',
