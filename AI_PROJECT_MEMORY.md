@@ -28,3 +28,24 @@
 - No financial posting outside tx.
 - Tenant isolation enforced strictly.
 - Idempotency implemented for all external integrations.
+
+## HR Tenant Isolation Completion Snapshot
+**Date:** 2026-05-17
+**Last Commit Hash:** `cdb1d5bc`
+
+### حالة قطاع الموارد البشرية (HR Status)
+- قطاع HR بالكامل مغلق ومؤمن (Strict Tenant Isolation) ✅
+- TypeScript Zero-Error ✅
+- Working Tree Clean ✅
+- لا يوجد `body/query tenantId` (استبعاد الطرق غير الآمنة) ✅
+- لا يوجد `tenantId default/1` (تطبيق صارم لهوية المستأجر) ✅
+- لا يوجد `prisma.$transaction` مكشوف ومباشر ✅
+- جميع HR routes تستخدم `requireTenantId` بنجاح ✅
+
+### أهم المخاطر التي أُغلقت:
+- Payroll race condition
+- Double payroll run
+- GOSI runtime error
+- Expense reports atomicity
+- Mudad tenant isolation
+- HR engines tenant leakage
