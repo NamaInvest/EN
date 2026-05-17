@@ -49,3 +49,23 @@
 - Expense reports atomicity
 - Mudad tenant isolation
 - HR engines tenant leakage
+
+## Phase 3.1.4: Outbox Integration Snapshot
+**Date:** 2026-05-17
+**Last Commit Hash:** `4dd8b39d`
+
+### قائمة Commits المنجزة
+- Schema: `1c89d825`
+- Worker: `3cdb89b0`
+- Helper: `92716c4a`
+- Payroll Integration: `4dd8b39d`
+
+### تفاصيل البنية الآمنة المكتملة
+- حقل `tenantId` إلزامي تماماً في `OutboxEvent` (تم إزالة `default`).
+- خاصية `idempotencyKey` مدعومة لتأمين Event-Idempotency.
+- الـ Relay Worker أصبح `tenant-aware` (ينقل هوية المستأجر داخل الـ Queue Payload).
+- تم تفعيل نظام الإعادة (Retry Logic) بحد أقصى `MAX_ATTEMPTS = 5`.
+- نظام الرواتب (`Payroll`) يولد بنجاح حدث `HR_PAYROLL_RUN_COMPLETED` **داخل نفس `runFinancialTx`**.
+
+### القاعدة الجديدة الخاصة بالـ Outbox:
+أي حدث (OutboxEvent) مستقبلي **يجب أن يُنشأ فقط** داخل نفس معاملة قاعدة البيانات (Domain Transaction) عبر تمرير `tx` لـ `OutboxService.emit`.
