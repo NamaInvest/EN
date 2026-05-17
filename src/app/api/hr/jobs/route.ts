@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -10,10 +11,12 @@ const log = logger.child({ service: 'hr.jobs' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
+    const tenantId = requireTenantId(req as any);
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const jobs = await prisma.jobPosting.findMany({ take: 100,
+      where: { tenantId } as any,
       include: {
         applicants: true,
       },
@@ -37,6 +40,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
+    const tenantId = requireTenantId(req as any);
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -48,12 +52,13 @@ async function _POST(req: NextRequest) {
         }
     const job = await prisma.jobPosting.create({
       data: {
+        tenantId,
         title: data.title,
         department: data.department,
         description: data.description,
         requirements: data.requirements,
         status: data.status || 'OPEN',
-      },
+      } as any,
     });
 
     return NextResponse.json(job, { status: 201 });

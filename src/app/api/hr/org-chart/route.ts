@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 
 const log = logger.child({ service: 'hr.org-chart' });
 
@@ -9,8 +10,9 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = requireTenantId(req as any);
         const employees = await prisma.employee.findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId } as any,
             select: {
                 id: true,
                 name: true,

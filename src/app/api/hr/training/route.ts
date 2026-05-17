@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -10,10 +11,12 @@ const log = logger.child({ service: 'hr.training' });
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
+    const tenantId = requireTenantId(req as any);
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const courses = await prisma.trainingCourse.findMany({ take: 100,
+      where: { tenantId } as any,
       include: {
         enrollments: {
           include: {
@@ -42,6 +45,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
   try {
+    const tenantId = requireTenantId(req as any);
     const auth = getUserFromRequest(req as any);
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -53,13 +57,14 @@ async function _POST(req: NextRequest) {
         }
     const course = await prisma.trainingCourse.create({
       data: {
+        tenantId,
         title: data.title,
         provider: data.provider,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
         cost: parseFloat(data.cost) || 0,
         status: data.status || 'SCHEDULED'
-      }
+      } as any
     });
 
     return NextResponse.json(course, { status: 201 });

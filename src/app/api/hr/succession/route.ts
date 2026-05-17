@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { SuccessionEngine } from '@/lib/succession-engine';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const tenantId = searchParams.get('tenantId') || 'default';
+    const tenantId = requireTenantId(request as any);
 
     const report = await SuccessionEngine.generateNineBox(tenantId);
 
