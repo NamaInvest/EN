@@ -6,6 +6,7 @@ import { getNextNumber } from '@/lib/numbering';
 import { postManufacturingCompletion, postMaterialIssueToWIP } from '@/lib/auto-journal';
 import { canTransition, DocumentType } from '@/lib/document-state-machine';
 import { InventoryService } from '@/lib/services/inventory.service';
+import { ManufacturingService } from '@/lib/services/manufacturing.service';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -285,26 +286,7 @@ async function _PUT(request: Request) {
                         data: { currentStock: (fp.currentStock || 0) + yieldQty }
                     });
 
-                    await InventoryService.adjustStock(tx, {
-                        tenantId,
-                        productId: fp.id,
-                        stockId: targetStockId,
-                        quantityChange: yieldQty,
-                        reason: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`,
-                        sourceType: 'MANUFACTURING_PRODUCTION',
-                        reference: `MO-${order.id}`
-                    });
-
-                    await InventoryService.recordMovement(tx, {
-                        tenantId,
-                        productId: fp.id,
-                        stockId: targetStockId,
-                        quantity: yieldQty,
-                        type: 'IN',
-                        referenceType: 'manufacturing_order',
-                        referenceId: order.id,
-                        notes: `استلام منتج تام من أمر التصنيع ${order.orderNumber} ${serialOrBatchNumber ? '(دفعة: ' + serialOrBatchNumber + ')' : ''}`
-                    });
+                    // Inventory logic delegated to ManufacturingService outside this financial tx
                 }
 
                 const journalResult = await postManufacturingCompletion({
@@ -334,6 +316,20 @@ async function _PUT(request: Request) {
                     ipAddress: request.headers.get('x-forwarded-for') || null,
                 });
             }, `WO_COMPLETE_${order.id}`);
+
+            const idempotencyKey = request.headers.get('idempotency-key') || request.headers.get('x-idempotency-key') || `mfg-production:${tenantId}:${order.id}:${yieldQty}`;
+            
+            // Delegate inventory logic & Outbox emission to the dedicated service
+            await ManufacturingService.postProduction(prisma as any, {
+                tenantId,
+                manufacturingOrderId: order.id,
+                finishedGoods: [{
+                    productId: order.recipe.finishedProductId,
+                    stockId: targetStockId,
+                    quantity: yieldQty
+                }],
+                idempotencyKey
+            });
 
             EnterpriseLogger.traceInventoryTx(
                 `WO_COMPLETE_${order.id}`,
