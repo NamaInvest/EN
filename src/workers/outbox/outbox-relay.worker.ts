@@ -20,27 +20,32 @@ export const outboxRelayWorker = new Worker(
         }
 
         let dispatched = 0;
+        const MAX_ATTEMPTS = 5;
+
         for (const event of pendingEvents) {
             try {
+                const currentAttempt = event.attempts + 1;
+                logger.info({ tenantId: event.tenantId, eventType: event.eventType, attempts: currentAttempt }, `[OutboxRelayWorker] Dispatching event ${event.id}`);
+
+                const jobId = event.idempotencyKey || `outbox-event-${event.id}`;
+
                 // Determine which queue/job handles this eventType
                 if (event.eventType === 'ZATCA_REPORT_JOB') {
                     const payload: any = event.payload || {};
-                    // We need invoiceHash and invoiceXml, but they might be generated in the worker?
-                    // Currently, the syncWorker 'zatca_submit' expects { recordId, invoiceHash, invoiceXml }.
-                    // Let's pass the eventId so the worker can fetch it, or just pass payload
                     await syncQueue.add('zatca_submit', {
+                        tenantId: event.tenantId,
                         recordId: payload.invoiceId,
                         // Note: If invoiceXml is not in payload, ZATCA worker must generate it
-                        // This implies we need a dedicated ZATCA generation worker job, or modify 'zatca_submit'
                         ...payload
-                    });
+                    }, { jobId });
                 } else {
                     // Generic EventBus dispatch
                     await syncQueue.add('process_event', {
+                        tenantId: event.tenantId,
                         eventId: event.id,
                         eventType: event.eventType,
                         payload: event.payload
-                    });
+                    }, { jobId });
                 }
 
                 await prisma.outboxEvent.update({
@@ -49,10 +54,15 @@ export const outboxRelayWorker = new Worker(
                 });
                 dispatched++;
             } catch (error: any) {
-                logger.error({}, `[OutboxRelayWorker] Error dispatching event ${event.id}: ${error.message}`);
+                const nextAttempt = event.attempts + 1;
+                const isFailed = nextAttempt >= MAX_ATTEMPTS;
+                const newStatus = isFailed ? 'FAILED' : 'PENDING';
+
+                logger.error({ tenantId: event.tenantId, eventType: event.eventType, attempts: nextAttempt }, `[OutboxRelayWorker] Error dispatching event ${event.id}: ${error.message}. Status -> ${newStatus}`);
+
                 await prisma.outboxEvent.update({
                     where: { id: event.id },
-                    data: { status: 'FAILED', error: error.message, attempts: { increment: 1 } }
+                    data: { status: newStatus, error: error.message, attempts: { increment: 1 } }
                 });
             }
         }
