@@ -11956,18 +11956,20 @@ model IdempotencyRecord {
 
 // ==================== Outbox Pattern (Phase 2.1) ====================
 model OutboxEvent {
-  id            Int       @id @default(autoincrement())
-  tenantId      String    @default("default") @map("tenant_id")
-  aggregateId   String    @map("aggregate_id")
-  aggregateType String    @map("aggregate_type")
-  eventType     String    @map("event_type")
-  payload       Json
-  status        String    @default("PENDING") // PENDING, PROCESSED, FAILED
-  error         String?   @db.Text
-  createdAt     DateTime  @default(now()) @map("created_at")
-  processedAt   DateTime? @map("processed_at")
-  attempts      Int       @default(0)
+  id             Int       @id @default(autoincrement())
+  tenantId       String    @map("tenant_id")
+  idempotencyKey String?   @map("idempotency_key")
+  aggregateId    String    @map("aggregate_id")
+  aggregateType  String    @map("aggregate_type")
+  eventType      String    @map("event_type")
+  payload        Json
+  status         String    @default("PENDING") // PENDING, PROCESSED, FAILED
+  error          String?   @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  processedAt    DateTime? @map("processed_at")
+  attempts       Int       @default(0)
 
   @@index([status, createdAt])
+  @@unique([tenantId, idempotencyKey])
   @@map("outbox_events")
 }
