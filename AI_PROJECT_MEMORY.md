@@ -90,3 +90,36 @@
    - كل `OutboxEvent` في قطاع الـ Manufacturing يُنشأ **فقط** داخل `ManufacturingService` وداخل معاملة الجرد (`runInventoryTx`).
    - ممنوع على الـ `routes` إنشاء `OutboxEvent` بشكل مباشر.
    - الـ `idempotencyKey` يمر من Header إن وجد، أو يُبنى بشكل `deterministic` عند غيابه (مثل `tenantId + orderId + qty`).
+
+## Final Closure Snapshot: Phase 3.1.4
+**Date:** 2026-05-17
+**Status:** CLOSED
+
+### إغلاق Phase 3.1.4 بالكامل
+تم إغلاق المرحلة رسمياً بعد التأكد من اكتمال واستقرار قطاعات HR و Manufacturing من حيث تناسق البيانات، عزل المستأجرين (Tenant Isolation)، والـ Outbox Integration.
+
+### HR Outbox Commits:
+- `1c89d825`
+- `3cdb89b0`
+- `92716c4a`
+- `4dd8b39d`
+- `101749c0`
+
+### Manufacturing Outbox Commits:
+- `6fcbf6b7`
+- `b2686726`
+- `be7e525f`
+- `29f66b0a`
+- `8ee9568b`
+
+### الحالة النهائية:
+- **Zero-Error TypeScript** ✅
+- **Clean Working Tree** ✅
+- **Tenant Isolation enforced** ✅
+- **No exposed prisma.$transaction** ✅
+- **Outbox transactional guarantees active** ✅
+- **Retry + idempotency active** ✅
+- **HR and Manufacturing routes fully service-driven for critical inventory/payroll flows** ✅
+
+### TODO للمرحلة القادمة:
+- [ ] **Phase 3.2: Pharmacy Secure Outbox Payloads** (يتطلب تصميم payload آمن وممتثل لمعايير PII/HIPAA بسبب حساسية البيانات الطبية).
