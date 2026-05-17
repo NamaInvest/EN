@@ -69,3 +69,24 @@
 
 ### القاعدة الجديدة الخاصة بالـ Outbox:
 أي حدث (OutboxEvent) مستقبلي **يجب أن يُنشأ فقط** داخل نفس معاملة قاعدة البيانات (Domain Transaction) عبر تمرير `tx` لـ `OutboxService.emit`.
+
+## Manufacturing Outbox Integration Snapshot
+**Date:** 2026-05-17
+**Last Commit Hash:** `29f66b0a`
+
+### Manufacturing Outbox Integration completed
+1. **Commits:**
+   - Service events: `6fcbf6b7`
+   - Scrap route: `b2686726`
+   - Production route: `be7e525f`
+   - Consumption route: `29f66b0a`
+
+2. **الأحداث المدعومة:**
+   - `MANUFACTURING_CONSUMPTION_POSTED`
+   - `MANUFACTURING_PRODUCTION_POSTED`
+   - `MANUFACTURING_SCRAP_POSTED`
+
+3. **القاعدة المعمارية:**
+   - كل `OutboxEvent` في قطاع الـ Manufacturing يُنشأ **فقط** داخل `ManufacturingService` وداخل معاملة الجرد (`runInventoryTx`).
+   - ممنوع على الـ `routes` إنشاء `OutboxEvent` بشكل مباشر.
+   - الـ `idempotencyKey` يمر من Header إن وجد، أو يُبنى بشكل `deterministic` عند غيابه (مثل `tenantId + orderId + qty`).
