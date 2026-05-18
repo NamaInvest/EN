@@ -13,10 +13,16 @@ const _POSTSchema = z.object({
   bankAccountId: z.union([z.string(), z.number()]).optional(),
 }).passthrough();
 
+import { getUserFromRequest } from '@/lib/auth';
+
 async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -25,9 +31,9 @@ async function _POST(req: Request) {
         }
         const { dueBefore, currency, bankAccountId } = body;
 
-        // Fetch pending approved invoices
         const pendingInvoices = await prisma.purchaseInvoice.findMany({ take: 100,
             where: {
+                tenantId: auth.tenantId,
                 status: 'APPROVED_FOR_PAYMENT',
                 date: { lte: new Date(dueBefore) },
                 supplierId: { not: null },
@@ -63,6 +69,7 @@ async function _POST(req: Request) {
         // Create PaymentRun
         const run = await prisma.paymentRun.create({
             data: {
+                tenantId: auth.tenantId,
                 status: 'PROPOSED',
                 dueDateUntil: new Date(dueBefore),
                 currency: currency || 'SAR',

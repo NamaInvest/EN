@@ -22,7 +22,7 @@ async function _PUT(
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const params = await context.params;
         const id = parseInt((await params).id);
@@ -40,18 +40,18 @@ async function _PUT(
         }
 
         // @ts-ignore
-        const recon = await prisma.bankReconciliation.findUnique({ where: { id } });
+        const recon = await prisma.bankReconciliation.findFirst({ where: { id, tenantId: auth.tenantId } });
         if (!recon) return NextResponse.json({ error: 'التسوية غير موجودة' }, { status: 404 });
 
         // Update lines
         await prisma.journalLine.updateMany({
-            where: { id: { in: reconciledLineIds }, accountId: recon.bankAccountId },
+            where: { id: { in: reconciledLineIds }, accountId: recon.bankAccountId, tenantId: auth.tenantId },
             data: { isReconciled: true, reconciliationId: id }
         });
 
         // Calculate reconciled sum
         const sumAggr = await prisma.journalLine.aggregate({
-            where: { id: { in: reconciledLineIds } },
+            where: { id: { in: reconciledLineIds }, tenantId: auth.tenantId },
             _sum: { debit: true, credit: true }
         });
         

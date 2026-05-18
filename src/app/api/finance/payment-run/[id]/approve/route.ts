@@ -6,12 +6,29 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'finance.payment-run.id.approve' });
 
+import { getUserFromRequest } from '@/lib/auth';
+
+const _POSTSchema = z.object({}).passthrough();
+
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
 
-  const { id } = await params;
+  const { id: paramId } = await params;
     const prisma = getPrisma(req as any);
     try {
-        const id = Number((await params).id);
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+
+        const bodyText = await req.text();
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        _POSTSchema.safeParse(body);
+
+        const id = Number(paramId);
+        
+        // Verify tenant
+        const run = await prisma.paymentRun.findFirst({ where: { id, tenantId: auth.tenantId } });
+        if (!run) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
         const updated = await prisma.paymentRun.update({
             where: { id },
             data: {

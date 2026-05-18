@@ -14,12 +14,12 @@ async function _GET(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const searchParams = request.nextUrl.searchParams;
         const bankAccountId = searchParams.get('bankAccountId');
         
-        const conditions: any = {};
+        const conditions: any = { tenantId: auth.tenantId };
         if (bankAccountId) conditions.bankAccountId = parseInt(bankAccountId);
 
         // @ts-ignore
@@ -48,7 +48,7 @@ async function _POST(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await request.json();
 
@@ -68,6 +68,7 @@ async function _POST(request: NextRequest) {
         // 1. Get all journal lines for this account where date <= statementDate
         const aggr = await prisma.journalLine.aggregate({
             where: {
+                tenantId: auth.tenantId,
                 accountId: parseInt(body.bankAccountId),
                 entry: {
                     entryDate: { lte: body.statementDate } // entryDate is string YYYY-MM-DD
@@ -85,6 +86,7 @@ async function _POST(request: NextRequest) {
         // @ts-ignore
         const record = await prisma.bankReconciliation.create({
             data: {
+                tenantId: auth.tenantId,
                 bankAccountId: parseInt(body.bankAccountId),
                 statementDate: date,
                 statementBalance: parseFloat(body.statementBalance),
@@ -97,6 +99,7 @@ async function _POST(request: NextRequest) {
         // Fetch uncleared lines to return them for matching
         const unclearedLines = await prisma.journalLine.findMany({ take: 100,
             where: {
+                tenantId: auth.tenantId,
                 accountId: parseInt(body.bankAccountId),
                 isReconciled: false,
                 entry: { entryDate: { lte: body.statementDate } }
