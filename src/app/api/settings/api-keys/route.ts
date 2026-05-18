@@ -18,6 +18,10 @@ const CreateApiKeySchema = z.object({
 });
 
 async function handler(ctx: any) {
+  if (!['admin', 'owner'].includes(ctx.auth?.role)) {
+    return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+  }
+
   const body = await ctx.req.json().catch(() => ({}));
   const parsed = CreateApiKeySchema.safeParse(body);
   if (!parsed.success) {

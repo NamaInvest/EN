@@ -25,9 +25,8 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
         const user = getUserFromRequest(req as any);
-        if (!user || user.role !== 'admin') {
-            // Optional: fallback auth guard for testing
-            // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user || !['admin', 'owner'].includes(user.role)) {
+            return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
         }
 
         const body = await req.json();
@@ -52,13 +51,21 @@ async function _POST(req: NextRequest) {
             { key: 'zatca_environment', value: 'simulation' }
         ];
 
-        const updateTasks = settingsToSave.map(s => 
-            prisma.setting.upsert({
-                where: { key: s.key },
-                update: { value: String(s.value) },
-                create: { key: s.key, value: String(s.value) }
-            })
-        );
+        const updateTasks = settingsToSave.map(async (s) => {
+            const existing = await prisma.setting.findFirst({
+                where: { key: s.key, tenantId: user.tenantId }
+            });
+            if (existing) {
+                return prisma.setting.update({
+                    where: { id: existing.id },
+                    data: { value: String(s.value) }
+                });
+            } else {
+                return prisma.setting.create({
+                    data: { key: s.key, value: String(s.value), tenantId: user.tenantId }
+                });
+            }
+        });
         
         await Promise.all(updateTasks);
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ZATCA Phase 2 Onboarding API
  * Handles: CSR â†’ Compliance CSID â†’ Compliance Check â†’ Production CSID
  */
@@ -24,8 +24,8 @@ async function _POST(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 403 });
         
-        const isAdmin = await hasPermission(auth.userId, 'admin', prisma);
-        if (!isAdmin) return NextResponse.json({ error: 'طµظ„ط§ط­ظٹط§طھ ط§ظ„ظ…ط¯ظٹط± ظ…ط·ظ„ظˆط¨ط©' }, { status: 403 });
+        const isAdmin = ['admin', 'owner'].includes(auth.role) || await hasPermission(auth.userId, 'admin', prisma);
+        if (!isAdmin) return NextResponse.json({ error: 'صلاحيات المدير مطلوبة' }, { status: 403 });
 
         const body = await request.json();
 
@@ -39,6 +39,7 @@ async function _POST(request: NextRequest) {
             // Clear all ZATCA settings
             await prisma.setting.deleteMany({
                 where: {
+                    tenantId: auth.tenantId,
                     key: {
                         in: [
                             'zatca_production_token', 'zatca_private_key',
@@ -48,7 +49,7 @@ async function _POST(request: NextRequest) {
                     },
                 },
             });
-            return NextResponse.json({ success: true, message: 'طھظ… ط­ط°ظپ ط¨ظٹط§ظ†ط§طھ ZATCA ط¨ظ†ط¬ط§ط­' });
+            return NextResponse.json({ success: true, message: 'تم حذف بيانات ZATCA بنجاح' });
         }
 
         if (action === 'onboard') {
@@ -56,13 +57,13 @@ async function _POST(request: NextRequest) {
 
             // Get company settings
             const settings = await prisma.setting.findMany({ take: 100,
-                where: { key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_environment'] } }
+                where: { tenantId: auth.tenantId, key: { in: ['company_name', 'company_name_en', 'tax_number', 'zatca_crn', 'zatca_street', 'zatca_building', 'zatca_district', 'zatca_city', 'zatca_city_en', 'zatca_postal_code', 'zatca_environment'] } }
             });
             const s: Record<string, string> = {};
             settings.forEach((st: any) => { s[st.key] = st.value ?? ''; });
 
             if (!s['tax_number'] || !s['company_name']) {
-                return NextResponse.json({ error: 'ظٹط±ط¬ظ‰ طھط¹ط¨ط¦ط© ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…ظ†ط´ط£ط© ط£ظˆظ„ط§ظ‹ (ط§ظ„ط§ط³ظ… + ط§ظ„ط±ظ‚ظ… ط§ظ„ط¶ط±ظٹط¨ظٹ)' }, { status: 400 });
+                return NextResponse.json({ error: 'يرجى تعبئة بيانات المنشأة أولاً (الاسم + الرقم الضريبي)' }, { status: 400 });
             }
 
             try {
@@ -153,16 +154,24 @@ async function _POST(request: NextRequest) {
                 ];
 
                 for (const u of upserts) {
-                    await prisma.setting.upsert({
-                        where: { key: u.key },
-                        update: { value: u.value },
-                        create: { key: u.key, value: u.value, description: u.description },
+                    const existing = await prisma.setting.findFirst({
+                        where: { key: u.key, tenantId: auth.tenantId }
                     });
+                    if (existing) {
+                        await prisma.setting.update({
+                            where: { id: existing.id },
+                            data: { value: u.value }
+                        });
+                    } else {
+                        await prisma.setting.create({
+                            data: { key: u.key, value: u.value, description: u.description, tenantId: auth.tenantId }
+                        });
+                    }
                 }
 
                 return NextResponse.json({
                     success: true,
-                    message: 'طھظ… ط§ظ„طھظپط¹ظٹظ„ ط¨ظ†ط¬ط§ط­! ط§ظ„ط¢ظ† ظٹظ…ظƒظ†ظƒ ط¥طµط¯ط§ط± ظپظˆط§طھظٹط± ط¥ظ„ظƒطھط±ظˆظ†ظٹط© ظ…طھظˆط§ظپظ‚ط© ظ…ط¹ ZATCA',
+                    message: 'تم التفعيل بنجاح! الآن يمكنك إصدار فواتير إلكترونية متوافقة مع ZATCA',
                     data: {
                         crn: finalEgs.CRN_number,
                         vatName: finalEgs.VAT_name,

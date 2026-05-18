@@ -17,6 +17,10 @@ const UpdateApiKeySchema = z.object({
 
 // ── PATCH /api/settings/api-keys/[id] ────────────────────────────────────────
 async function patchHandler(ctx: any) {
+  if (!['admin', 'owner'].includes(ctx.auth?.role)) {
+    return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+  }
+
   const id       = Number(ctx.params?.id);
   const prisma   = ctx.prisma as any;
   const tenantId = ctx.auth.tenantId;
@@ -47,6 +51,10 @@ async function patchHandler(ctx: any) {
 
 // ── DELETE /api/settings/api-keys/[id] ───────────────────────────────────────
 async function deleteHandler(ctx: any) {
+  if (!['admin', 'owner'].includes(ctx.auth?.role)) {
+    return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+  }
+
   const id       = Number(ctx.params?.id);
   const prisma   = ctx.prisma as any;
   const tenantId = ctx.auth.tenantId;
