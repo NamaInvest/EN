@@ -17,7 +17,8 @@ async function _GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const stockId = searchParams.get('stock_id');
-        const where: Record<string, unknown> = {};
+        const tenantId = requireTenantId(request as any);
+        const where: Record<string, unknown> = { tenantId };
         if (stockId) where.stockId = parseInt(stockId);
         const movements = await prisma.stockMovement.findMany({ where, include: { product: true, stock: true }, orderBy: { date: 'desc' }, take: 100 });
         return NextResponse.json(movements);
@@ -55,10 +56,11 @@ async function _POST(request: Request) {
             await periodService.requireOpenPeriod(new Date());
 
             const mov = await tx.stockMovement.create({
-                data: { productId, stockId, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId ? parseInt(body.userId as any) : null },
+                data: { tenantId, productId, stockId, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId ? parseInt(body.userId as any) : null },
             });
             
-            const prod = await tx.product.update({ where: { id: productId }, data: { currentStock: { increment } } });
+            await tx.product.updateMany({ where: { id: productId, tenantId }, data: { currentStock: { increment } } });
+            const prod = await tx.product.findFirst({ where: { id: productId, tenantId } });
             
             await (tx as any).productStock.upsert({
                 where: { productId_stockId: { productId, stockId } },

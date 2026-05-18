@@ -83,7 +83,7 @@ async function _POST(req: Request) {
             const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
             await periodService.requireOpenPeriod(new Date());
 
-            const product = await tx.product.findUnique({ where: { id: parseInt(productId), tenantId } });
+            const product = await tx.product.findFirst({ where: { id: parseInt(productId), tenantId } });
             if (!product) throw new Error('المنتج غير موجود');
 
             const current = n(product.currentStock);
@@ -93,8 +93,7 @@ async function _POST(req: Request) {
 
             const targetStockId = stockId ? parseInt(stockId) : 1;
 
-            // Update product to absolute new quantity
-            await tx.product.update({
+            await tx.product.updateMany({
                 where: { id: product.id, tenantId },
                 data: { currentStock: parseFloat(actualQuantity) }
             });
@@ -109,6 +108,7 @@ async function _POST(req: Request) {
             // Log adjustment
             const mov = await tx.stockMovement.create({
                 data: {
+                    tenantId,
                     productId: product.id,
                     stockId: targetStockId,
                     type: diff > 0 ? 'adjustment_in' : 'adjustment_out',

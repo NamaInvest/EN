@@ -27,8 +27,9 @@ async function _GET(req: Request) {
         // In a real scenario we'd query StockMovement where type is 'OUT' or 'ISSUE' or 'SALES'
         // For NamaSoft V3, stock movements are in `StockMovement`.
         
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const products: any[] = await (prisma.product as any).findMany({ take: 100,
-            where: { active: true },
+            where: { active: true, tenantId },
             select: {
                 id: true,
                 name: true,
@@ -111,11 +112,12 @@ async function _POST(req: Request) {
         }
         const { items } = body; // [{ id, recommendedClass }]
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         // Update abcClass for all items
         await runInventoryTx(prisma, async (tx: any) => {
             const promises = items.map((item: any) => 
-                tx.product.update({
-                    where: { id: item.id },
+                tx.product.updateMany({
+                    where: { id: item.id, tenantId },
                     data: { abcClass: item.recommendedClass }
                 })
             );

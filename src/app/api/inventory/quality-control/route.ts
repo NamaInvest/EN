@@ -13,15 +13,16 @@ async function _GET(req: NextRequest) {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         // Get PENDING inspections
         const pending = await prisma.qualityInspection.findMany({ take: 100,
-            where: { status: 'PENDING' },
+            where: { status: 'PENDING', tenantId },
             orderBy: { createdAt: 'desc' }
         });
 
         // Get recent completed
         const completed = await prisma.qualityInspection.findMany({
-            where: { status: { in: ['PASSED', 'FAILED', 'REWORK'] } },
+            where: { status: { in: ['PASSED', 'FAILED', 'REWORK'] }, tenantId },
             orderBy: { updatedAt: 'desc' },
             take: 20
         });
@@ -54,8 +55,12 @@ async function _POST(req: NextRequest) {
         }
         const { id, status, notes } = body;
 
-        const inspection = await prisma.qualityInspection.update({
-            where: { id },
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
+        const inspectionRecord = await prisma.qualityInspection.findFirst({ where: { id, tenantId } });
+        if (!inspectionRecord) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+        await prisma.qualityInspection.updateMany({
+            where: { id, tenantId },
             data: {
                 status,
                 notes,
@@ -66,10 +71,10 @@ async function _POST(req: NextRequest) {
         // Depending on status, trigger CAPA/NCR or move stock
         if (status === 'FAILED') {
             // Log logic for NCR (Non-Conformance Report)
-            log.info('NCR Triggered for', inspection.referenceNumber);
+            log.info('NCR Triggered for', inspectionRecord.referenceNumber);
         }
 
-        return NextResponse.json({ message: 'Inspection updated', inspection });
+        return NextResponse.json({ message: 'Inspection updated' });
     } catch (e: any) {
         log.error(e);
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 500 });

@@ -28,7 +28,8 @@ const StockTransferSchema = z.object({
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
-        const transfers = await prisma.stockTransfer.findMany({ take: 100, include: { details: true }, orderBy: { id: 'desc' } });
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
+        const transfers = await prisma.stockTransfer.findMany({ take: 100, where: { tenantId }, include: { details: true }, orderBy: { id: 'desc' } });
         return NextResponse.json(transfers);
     } catch (e: any) {
         return NextResponse.json([], { status: 500 });
@@ -52,7 +53,8 @@ async function _POST(request: NextRequest) {
         }
 
         const body        = parsed.data;
-        const last        = await prisma.stockTransfer.findFirst({ orderBy: { transferNo: 'desc' } });
+        const tenantId    = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
+        const last        = await prisma.stockTransfer.findFirst({ where: { tenantId }, orderBy: { transferNo: 'desc' } });
         const transferNo  = (last?.transferNo || 0) + 1;
         const fromStockId = body.fromStockId ? Number(body.fromStockId) : null;
         const toStockId   = body.toStockId   ? Number(body.toStockId)   : null;
@@ -61,8 +63,8 @@ async function _POST(request: NextRequest) {
         // ── Stock Availability Check ─────────────────────────────────────────
         if (fromStockId && toStockId) {
             for (const item of items) {
-                const src = await prisma.productStock.findUnique({
-                    where: { productId_stockId: { productId: item.productId, stockId: fromStockId } }
+                const src = await prisma.productStock.findFirst({
+                    where: { productId: item.productId, stockId: fromStockId, tenantId }
                 });
                 if (!src || n(src.quantity) < item.quantity) {
                     return NextResponse.json(
@@ -77,6 +79,7 @@ async function _POST(request: NextRequest) {
         const transfer = await runInventoryTx(prisma, async (tx: any) => {
             const tr = await tx.stockTransfer.create({
                 data: {
+                    tenantId,
                     transferNo,
                     fromStockId,
                     toStockId,
@@ -95,23 +98,23 @@ async function _POST(request: NextRequest) {
 
             if (fromStockId && toStockId) {
                 for (const item of items) {
-                    await tx.productStock.update({
-                        where: { productId_stockId: { productId: item.productId, stockId: fromStockId } },
+                    await tx.productStock.updateMany({
+                        where: { productId: item.productId, stockId: fromStockId, tenantId },
                         data:  { quantity: { decrement: item.quantity } }
                     });
 
-                    const existingTarget = await tx.productStock.findUnique({
-                        where: { productId_stockId: { productId: item.productId, stockId: toStockId } }
+                    const existingTarget = await tx.productStock.findFirst({
+                        where: { productId: item.productId, stockId: toStockId, tenantId }
                     });
 
                     if (existingTarget) {
-                        await tx.productStock.update({
-                            where: { productId_stockId: { productId: item.productId, stockId: toStockId } },
+                        await tx.productStock.updateMany({
+                            where: { productId: item.productId, stockId: toStockId, tenantId },
                             data:  { quantity: { increment: item.quantity } }
                         });
                     } else {
                         await tx.productStock.create({
-                            data: { productId: item.productId, stockId: toStockId, quantity: item.quantity }
+                            data: { tenantId, productId: item.productId, stockId: toStockId, quantity: item.quantity }
                         });
                     }
                 }

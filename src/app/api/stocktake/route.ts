@@ -12,7 +12,9 @@ const log = logger.child({ service: 'stocktake' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
         const stocktakes = await prisma.stocktake.findMany({ take: 100,
+            where: { tenantId },
             include: { items: true },
             orderBy: { id: 'desc' },
         });
@@ -34,7 +36,8 @@ async function _POST(request: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
-        const products = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true, buyPrice: true } });
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
+        const products = await prisma.product.findMany({ take: 100, where: { active: true, tenantId }, select: { id: true, name: true, currentStock: true, buyPrice: true } });
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {
             const product = products.find(p => p.id === item.productId);
@@ -56,6 +59,7 @@ async function _POST(request: Request) {
         const result = await runInventoryTx(prisma, async (tx: any) => {
             const stocktake = await tx.stocktake.create({
                 data: {
+                    tenantId,
                     stocktakeDate: new Date().toISOString().split('T')[0],
                     totalItems: items.length, matched, over, short,
                     status: body.applyAdjustment ? 'applied' : 'completed',
@@ -78,19 +82,26 @@ async function _POST(request: Request) {
                         const product = products.find(p => p.id === item.productId);
                         if (!product) continue;
 
-                        await tx.product.update({
-                            where: { id: item.productId },
+                        await tx.product.updateMany({
+                            where: { id: item.productId, tenantId },
                             data: { currentStock: item.actualQty },
                         });
 
-                        await (tx as any).productStock.upsert({
-                            where: { productId_stockId: { productId: item.productId, stockId: targetStockId } },
-                            create: { productId: item.productId, stockId: targetStockId, quantity: item.difference },
-                            update: { quantity: { increment: item.difference } }
-                        });
+                        const pStock = await tx.productStock.findFirst({ where: { productId: item.productId, stockId: targetStockId, tenantId } });
+                        if (pStock) {
+                            await tx.productStock.updateMany({
+                                where: { productId: item.productId, stockId: targetStockId, tenantId },
+                                data: { quantity: { increment: item.difference } }
+                            });
+                        } else {
+                            await tx.productStock.create({
+                                data: { tenantId, productId: item.productId, stockId: targetStockId, quantity: item.difference }
+                            });
+                        }
 
                         await tx.stockMovement.create({
                             data: {
+                                tenantId,
                                 productId: item.productId,
                                 stockId: targetStockId,
                                 type: item.difference > 0 ? 'adjustment_in' : 'adjustment_out',
