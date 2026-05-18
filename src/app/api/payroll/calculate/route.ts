@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
 
 import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -25,12 +26,18 @@ async function _POST(request: Request) {
         }
         const { employeeId, period } = body; // period e.g., '2026-05'
 
+        const auth = getUserFromRequest(request as any);
+        if (!auth || !['admin', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) {
+            return NextResponse.json({ error: 'Unauthorized to view salary data' }, { status: 403 });
+        }
+        const tenantId = requireTenantId(request as any);
+
         if (!employeeId || !period) {
             return NextResponse.json({ error: 'Missing employeeId or period' }, { status: 400 });
         }
 
-        const employee = await prisma.employee.findUnique({
-            where: { id: parseInt(employeeId) },
+        const employee = await prisma.employee.findFirst({
+            where: { id: parseInt(employeeId), tenantId },
         });
 
         if (!employee) {
@@ -49,7 +56,7 @@ async function _POST(request: Request) {
 
         // 2. Loan Deductions (Active loans)
         const activeLoans = await prisma.employeeLoan.findMany({ take: 100,
-            where: { employeeId: parseInt(employeeId), status: 'active', remainingAmount: { gt: 0 } }
+            where: { employeeId: parseInt(employeeId), tenantId, status: 'active', remainingAmount: { gt: 0 } }
         });
 
         for (const loan of activeLoans) {
@@ -74,6 +81,7 @@ async function _POST(request: Request) {
         const attendanceRecords = await prisma.attendance.findMany({ take: 100,
             where: {
                 employeeId: parseInt(employeeId),
+                tenantId,
                 date: { startsWith: period }
             }
         });

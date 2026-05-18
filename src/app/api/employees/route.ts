@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from "@/lib/prisma";
 import { encrypt, decrypt, maskSensitive } from "@/lib/encryption";
 
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -15,12 +16,14 @@ async function _GET(request: Request) {
   if (!_auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   const prisma = getPrisma(request);
+  const tenantId = requireTenantId(request as any);
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
-    const where = search
-      ? { name: { contains: search, mode: "insensitive" as const } }
-      : {};
+    const where: any = { tenantId };
+    if (search) {
+      where.name = { contains: search, mode: "insensitive" as const };
+    }
     const employees = await prisma.employee.findMany({ take: 100,
       where,
       include: { branch: true },
@@ -58,6 +61,7 @@ async function _POST(request: Request) {
   if (!_auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   const prisma = getPrisma(request);
+  const tenantId = requireTenantId(request as any);
   try {
     const body = await request.json();
 
@@ -82,6 +86,7 @@ async function _POST(request: Request) {
     );
     const employee = await prisma.employee.create({
       data: {
+        tenantId,
         employeeNo: seqResult.formatted,
         name: body.name,
         phone: body.phone || null,
@@ -117,6 +122,7 @@ async function _PUT(request: Request) {
   if (!_auth) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
 
   const prisma = getPrisma(request);
+  const tenantId = requireTenantId(request as any);
   try {
     const body = await request.json();
     if (!body.employeeId || !body.faceDescriptor) {
@@ -126,8 +132,8 @@ async function _PUT(request: Request) {
       );
     }
 
-    const updated = await prisma.employee.update({
-      where: { id: parseInt(body.employeeId) },
+    const updated = await prisma.employee.updateMany({
+      where: { id: parseInt(body.employeeId), tenantId },
       data: {
         faceDescriptor: body.faceDescriptor,
       },
