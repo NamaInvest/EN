@@ -1,10 +1,12 @@
 import { getUserFromRequest } from '@/lib/auth';
 import { withRoute } from '@/lib/api/with-route';
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
-import { createJournalEntry } from '@/lib/auto-journal';
+import { createJournalEntry, ACCOUNTS } from '@/lib/auto-journal';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { MfaEngine } from '@/lib/mfa-engine';
+import { buildOverrideContextFromRequest } from '@/lib/governance/override-context';
 
 const log = logger.child({ service: 'accounting.journal' });
 
@@ -55,7 +57,6 @@ const _POSTSchema = z.object({
 
 async function _POST(request: Request) {
     // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
     const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 401 });
 
@@ -80,7 +81,6 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: `ط§ظ„ظ‚ظٹط¯ ط؛ظٹط± ظ…طھظˆط§ط²ظ†: ظ…ط¯ظٹظ† ${totalDebit} â‰  ط¯ط§ط¦ظ† ${totalCredit}` }, { status: 400 });
         }
 
-        const { ACCOUNTS } = require('@/lib/auto-journal');
         const CONTROL_ACCOUNTS = [ACCOUNTS.RECEIVABLES, ACCOUNTS.PAYABLES, ACCOUNTS.INVENTORY, ACCOUNTS.WIP, ACCOUNTS.FINISHED_GOODS, ACCOUNTS.VAT_INPUT, ACCOUNTS.VAT_OUTPUT]; 
         const isRestricted = lines.some((l: any) => CONTROL_ACCOUNTS.includes(l.accountCode));
         if (isRestricted) {
@@ -100,22 +100,27 @@ async function _POST(request: Request) {
 
         // --- MFA Step-Up Auth for large amounts ---
         if (totalDebit > 100000) {
-            const { MfaEngine } = require('@/lib/mfa-engine');
             if (!body.mfaToken) {
                 try {
-                    const stepUpRes = await MfaEngine.requireStepUpAuth(auth.userId, 'ط¥ط¯ط®ط§ظ„ ظ‚ظٹط¯ ظٹطھط¬ط§ظˆط² 100,000');
+                    const stepUpRes = await (MfaEngine as any).requireStepUpAuth(auth.userId, 'إدخال قيد يتجاوز 100,000');
                     return NextResponse.json({ requiresStepUpMFA: true, message: stepUpRes.message }, { status: 403 });
                 } catch (e: any) {
                     return NextResponse.json({ error: e.message }, { status: 403 });
                 }
             }
 
-            const isValidMfa = await MfaEngine.verifyToken(auth.userId, body.mfaToken);
+            const isValidMfa = await (MfaEngine as any).verifyToken(auth.userId, body.mfaToken);
             if (!isValidMfa) {
-                return NextResponse.json({ error: 'ط±ظ…ط² ط§ظ„طھط­ظ‚ظ‚ ط§ظ„ط«ظ†ط§ط¦ظٹ (2FA) ط؛ظٹط± طµط­ظٹط­' }, { status: 401 });
+                return NextResponse.json({ error: 'رمز التحقق الثنائي (2FA) غير صحيح' }, { status: 401 });
             }
         }
         // ------------------------------------------
+
+        const overrideContext = buildOverrideContextFromRequest(request, {
+            tenantId: auth.tenantId || 'default',
+            actorId: String(auth.userId),
+            actorRole: auth.role || 'USER'
+        });
 
         const result = await createJournalEntry({
             description,
@@ -130,6 +135,7 @@ async function _POST(request: Request) {
             })),
             userId,
             status: body.status || 'draft',
+            overrideContext
         });
 
         if (!result.success) {
@@ -138,8 +144,8 @@ async function _POST(request: Request) {
 
         return NextResponse.json({ success: true, entryId: result.entryId }, { status: 201 });
     } catch (error: any) {
-        log.error('Journal create error:', error);
-        return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¥ظ†ط´ط§ط، ط§ظ„ظ‚ظٹط¯' }, { status: 500 });
+        console.error('DEBUG ERROR:', error);
+        throw error; // Rethrow to surface the error in vitest
     }
 }
 

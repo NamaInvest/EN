@@ -7,7 +7,8 @@
  * - Rate limiting (configurable per route)
  * - Request ID tracking
  * - Response time measurement
- * 
+ * - RequestContext injection via AsyncLocalStorage (Phase 9.2)
+ *
  * Usage:
  *   export const POST = withApiHandler(async (req, ctx) => {
  *     const body = ctx.parseBody(salesCreateSchema);
@@ -19,8 +20,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodSchema, ZodError } from 'zod';
 import { logger } from './logger';
+import { requestContextStore } from './observability/request-context';
 
-const log = logger.child({ service: "api-handler" });
+const log = logger.child({ service: 'api-handler' });
 import { rateLimit } from './rate-limit';
 
 // ── Prisma error codes → user-friendly Arabic messages ──
@@ -66,7 +68,10 @@ interface HandlerOptions {
 type RouteHandler = (req: NextRequest, ctx: HandlerContext) => Promise<NextResponse>;
 
 /**
- * withApiHandler — wrap any API route with production-grade middleware
+ * withApiHandler — wrap any API route with production-grade middleware.
+ * Phase 9.2: Injects RequestContext into AsyncLocalStorage so that every
+ * downstream logger, financial trace, and outbox call automatically carries
+ * requestId, tenantId, and actorRole without needing explicit prop-drilling.
  */
 export function withApiHandler(handler: RouteHandler, options: HandlerOptions = {}) {
   return async (req: NextRequest) => {
@@ -75,106 +80,118 @@ export function withApiHandler(handler: RouteHandler, options: HandlerOptions = 
     const pathname = new URL(req.url).pathname;
     const tenantId = req.headers.get('x-tenant-id') || 'default';
 
-    try {
-      // ── Rate Limiting ──
-      if (options.rateLimit !== null) {
-        const rlOpts = options.rateLimit || { max: 60, windowMs: 60_000 };
-        const result = await rateLimit(req, rlOpts);
-        if (!result.allowed) {
-          log.warn('Rate limit exceeded');
+    // ── Phase 9.2: Build RequestContext and run within AsyncLocalStorage ──
+    const requestContext = {
+      requestId,
+      tenantId,
+      actorId: req.headers.get('x-actor-id') ?? undefined,
+      actorRole: req.headers.get('x-actor-role') ?? undefined,
+      module: pathname.split('/')[3] ?? 'unknown', // e.g. /api/sales/... → sales
+    };
+
+    // All downstream code (services, loggers, traces) automatically inherits context
+    return requestContextStore.run(requestContext, async () => {
+      try {
+        // ── Rate Limiting ──
+        if (options.rateLimit !== null) {
+          const rlOpts = options.rateLimit || { max: 60, windowMs: 60_000 };
+          const result = await rateLimit(req, rlOpts);
+          if (!result.allowed) {
+            log.warn('Rate limit exceeded');
+            return NextResponse.json(
+              { error: 'طلبات كثيرة، حاول بعد قليل', retryAfter: Math.ceil((result.resetAt - Date.now()) / 1000) },
+              {
+                status: 429,
+                headers: {
+                  'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+                  'X-Request-Id': requestId,
+                },
+              }
+            );
+          }
+        }
+
+        // ── Build context ──
+        const ctx: HandlerContext = {
+          requestId,
+          tenantId,
+          log,
+          parseBody: async <T>(schema: ZodSchema<T>): Promise<T> => {
+            const raw = await req.json();
+            return schema.parse(raw);
+          },
+          parseQuery: <T>(schema: ZodSchema<T>): T => {
+            const params = Object.fromEntries(new URL(req.url).searchParams.entries());
+            return schema.parse(params);
+          },
+          success: (data?: any, status = 200) => {
+            return NextResponse.json(data ?? { success: true }, {
+              status,
+              headers: { 'X-Request-Id': requestId },
+            });
+          },
+        };
+
+        // ── Execute handler ──
+        const response = await handler(req, ctx);
+
+        // ── Log success ──
+        const duration = Date.now() - startTime;
+        log.info(`${req.method} ${pathname} → ${response.status}`, { duration });
+
+        // Attach request ID to response
+        response.headers.set('X-Request-Id', requestId);
+        return response;
+
+      } catch (error: any) {
+        const duration = Date.now() - startTime;
+
+        // ── Zod validation errors → 400 with field details ──
+        if (error instanceof ZodError) {
+          const messages = error.issues.map((e) => `${(e.path as any[]).join('.')}: ${e.message}`).join('، ');
+          log.warn(`Validation failed: ${messages}`, { duration });
           return NextResponse.json(
-            { error: 'طلبات كثيرة، حاول بعد قليل', retryAfter: Math.ceil((result.resetAt - Date.now()) / 1000) },
-            {
-              status: 429,
-              headers: {
-                'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
-                'X-Request-Id': requestId,
-              },
-            }
+            { error: `خطأ في البيانات: ${messages}`, fields: error.issues },
+            { status: 400, headers: { 'X-Request-Id': requestId } }
           );
         }
-      }
 
-      // ── Build context ──
-      const ctx: HandlerContext = {
-        requestId,
-        tenantId,
-        log,
-        parseBody: async <T>(schema: ZodSchema<T>): Promise<T> => {
-          const raw = await req.json();
-          return schema.parse(raw);
-        },
-        parseQuery: <T>(schema: ZodSchema<T>): T => {
-          const params = Object.fromEntries(new URL(req.url).searchParams.entries());
-          return schema.parse(params);
-        },
-        success: (data?: any, status = 200) => {
-          return NextResponse.json(data ?? { success: true }, {
-            status,
-            headers: { 'X-Request-Id': requestId },
-          });
-        },
-      };
+        // ── AppError (intentional) → known status ──
+        if (error instanceof AppError) {
+          log.warn(`AppError: ${error.message}`, { duration });
+          return NextResponse.json(
+            { error: error.message },
+            { status: error.status, headers: { 'X-Request-Id': requestId } }
+          );
+        }
 
-      // ── Execute handler ──
-      const response = await handler(req, ctx);
+        // ── Prisma errors → mapped status ──
+        if (error?.code && PRISMA_ERRORS[error.code]) {
+          const pe = PRISMA_ERRORS[error.code];
+          log.warn(`Prisma ${error.code}: ${pe.message}`, { duration });
+          return NextResponse.json(
+            { error: pe.message },
+            { status: pe.status, headers: { 'X-Request-Id': requestId } }
+          );
+        }
 
-      // ── Log success ──
-      const duration = Date.now() - startTime;
-      log.info(`${req.method} ${pathname} → ${response.status}`, { duration });
+        // ── Legacy knownError pattern ──
+        if (error?.isKnownError && error?.message) {
+          log.warn(`Known: ${error.message}`, { duration });
+          return NextResponse.json(
+            { error: error.message },
+            { status: error.statusCode || 400, headers: { 'X-Request-Id': requestId } }
+          );
+        }
 
-      // Attach request ID to response
-      response.headers.set('X-Request-Id', requestId);
-      return response;
-
-    } catch (error: any) {
-      const duration = Date.now() - startTime;
-
-      // ── Zod validation errors → 400 with field details ──
-      if (error instanceof ZodError) {
-        const messages = error.issues.map((e) => `${(e.path as any[]).join('.')}: ${e.message}`).join('، ');
-        log.warn(`Validation failed: ${messages}`, { duration });
+        // ── Unknown error → 500 (don't leak details) ──
+        log.error(`Unhandled: ${error?.message || 'Unknown'}`, { duration, stack: error?.stack?.slice(0, 500) });
         return NextResponse.json(
-          { error: `خطأ في البيانات: ${messages}`, fields: error.issues },
-          { status: 400, headers: { 'X-Request-Id': requestId } }
+          { error: 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.' },
+          { status: 500, headers: { 'X-Request-Id': requestId } }
         );
       }
-
-      // ── AppError (intentional) → known status ──
-      if (error instanceof AppError) {
-        log.warn(`AppError: ${error.message}`, { duration });
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.status, headers: { 'X-Request-Id': requestId } }
-        );
-      }
-
-      // ── Prisma errors → mapped status ──
-      if (error?.code && PRISMA_ERRORS[error.code]) {
-        const pe = PRISMA_ERRORS[error.code];
-        log.warn(`Prisma ${error.code}: ${pe.message}`, { duration });
-        return NextResponse.json(
-          { error: pe.message },
-          { status: pe.status, headers: { 'X-Request-Id': requestId } }
-        );
-      }
-
-      // ── Legacy knownError pattern ──
-      if (error?.isKnownError && error?.message) {
-        log.warn(`Known: ${error.message}`, { duration });
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.statusCode || 400, headers: { 'X-Request-Id': requestId } }
-        );
-      }
-
-      // ── Unknown error → 500 (don't leak details) ──
-      log.error(`Unhandled: ${error?.message || 'Unknown'}`, { duration, stack: error?.stack?.slice(0, 500) });
-      return NextResponse.json(
-        { error: 'حدث خطأ داخلي في الخادم. يرجى المحاولة لاحقاً.' },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
-      );
-    }
+    });
   };
 }
 
@@ -197,4 +214,3 @@ export function handleApiError(error: unknown): NextResponse {
   const msg = error instanceof Error ? error.message : 'حدث خطأ داخلي في الخادم.';
   return NextResponse.json({ error: msg }, { status: 500 });
 }
-

@@ -1,12 +1,13 @@
-'use client';
-import ComingSoonModule from '@/components/ui/ComingSoonModule';
+﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
-export default function Page() {
+export default function DisabledModulePage() {
   return (
-    <ComingSoonModule 
-        title="مدرب المبيعات الذكي" 
-        englishTitle="AI Sales Coach" 
-        icon="🎯" 
+    <FeatureDisabledPanel 
+      moduleName="ai/sales-coach"
+      apiExists={true}
+      apiPath="/api/ai/sales-coach"
+      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
+      reportLink="/reports"
     />
   );
 }

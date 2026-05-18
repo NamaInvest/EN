@@ -3,6 +3,7 @@ import { withRoute } from '@/lib/api/with-route';
 /**
  * Leave Balance API
  * GET /api/hr/leaves/balance?employeeId=X — رصيد إجازات الموظف
+ */
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
 import { getHrScope } from '@/lib/hr-scope';

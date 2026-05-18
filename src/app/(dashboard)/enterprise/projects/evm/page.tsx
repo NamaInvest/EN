@@ -1,12 +1,13 @@
-'use client';
-import ComingSoonModule from '@/components/ui/ComingSoonModule';
+﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
-export default function Page() {
+export default function DisabledModulePage() {
   return (
-    <ComingSoonModule 
-        title="إدارة القيمة المكتسبة EVM" 
-        englishTitle="Earned Value Management" 
-        icon="📈" 
+    <FeatureDisabledPanel 
+      moduleName="enterprise/projects/evm"
+      apiExists={false}
+      apiPath="/api/enterprise/projects/evm"
+      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
+      reportLink="/reports"
     />
   );
 }

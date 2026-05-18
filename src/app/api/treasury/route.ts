@@ -61,6 +61,14 @@ async function _POST(request: NextRequest) {
 
         const { runFinancialTx } = await import('@/lib/db/transaction');
         const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+
+        const auth = getUserFromRequest(request as any);
+        const overrideContext = buildOverrideContextFromRequest(request, {
+            tenantId: auth?.tenantId || 'default',
+            actorId: String(auth?.userId || userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
 
         // Transactions inside Treasury to align with architecture constraints
         const entry = await runFinancialTx(prisma, async (tx) => {
@@ -68,7 +76,8 @@ async function _POST(request: NextRequest) {
                 tx,
                 body,
                 userId ? Number(userId) : null,
-                branchId ? Number(branchId) : null
+                branchId ? Number(branchId) : null,
+                overrideContext
             );
         }, `treasury-posting-${userId || 'sys'}`);
         

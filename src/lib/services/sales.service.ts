@@ -32,6 +32,7 @@ interface CreateSalesInput {
   userId?: number;
   branchId?: number;
   costCenterId?: number;
+  overrideContext?: any;
 }
 
 export class SalesService {
@@ -114,6 +115,7 @@ export class SalesService {
         ],
         userId: input.userId,
         status: 'posted',
+        overrideContext: input.overrideContext,
       });
     } catch (e: any) {
       log.warn(`Auto-journal failed for SI-${invoice.id}: ${e.message}`);

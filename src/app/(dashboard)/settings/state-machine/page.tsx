@@ -1,12 +1,13 @@
-'use client';
-import ComingSoonModule from '@/components/ui/ComingSoonModule';
+﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
-export default function Page() {
+export default function DisabledModulePage() {
   return (
-    <ComingSoonModule 
-        title="محرك سير العمل" 
-        englishTitle="State Machine" 
-        icon="⚡" 
+    <FeatureDisabledPanel 
+      moduleName="settings/state-machine"
+      apiExists={true}
+      apiPath="/api/settings/state-machine"
+      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
+      reportLink="/reports"
     />
   );
 }

@@ -1,12 +1,13 @@
-'use client';
-import ComingSoonModule from '@/components/ui/ComingSoonModule';
+﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
-export default function Page() {
+export default function DisabledModulePage() {
   return (
-    <ComingSoonModule 
-        title="نموذج ضريبة الاستقطاع 14" 
-        englishTitle="WHT Form 14" 
-        icon="📄" 
+    <FeatureDisabledPanel 
+      moduleName="finance/wht/form14"
+      apiExists={false}
+      apiPath="/api/finance/wht/form14"
+      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
+      reportLink="/reports"
     />
   );
 }

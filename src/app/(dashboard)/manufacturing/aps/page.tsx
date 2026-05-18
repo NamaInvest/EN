@@ -1,12 +1,13 @@
-'use client';
-import ComingSoonModule from '@/components/ui/ComingSoonModule';
+﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
-export default function Page() {
+export default function DisabledModulePage() {
   return (
-    <ComingSoonModule 
-        title="جدولة الإنتاج المتقدمة APS" 
-        englishTitle="Advanced Planning & Scheduling" 
-        icon="⚙️" 
+    <FeatureDisabledPanel 
+      moduleName="manufacturing/aps"
+      apiExists={true}
+      apiPath="/api/manufacturing/aps"
+      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
+      reportLink="/reports"
     />
   );
 }

@@ -7,7 +7,11 @@
 
 import { prisma, resolveTenant, withTenant } from './prisma';
 import { getNextNumber } from './numbering';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/observability/logger';
+import { assertPeriodWritable } from './governance/period-lock';
+import { PeriodLockViolation } from './governance/period-lock';
+import { traceFinancialOperation } from '@/lib/observability/financial-trace';
+import { getCorrelationId } from '@/lib/observability/correlation';
 
 const log = logger.child({ service: 'auto-journal' });
 
@@ -76,28 +80,83 @@ async function createJournalEntry(params: {
     exchangeRate?: number;
     status?: string;
     txClient?: any;
+    overrideContext?: any;
+    // Phase 10: optional caller-supplied context for richer traces
+    operationType?: string;
+    module?: string;
 }): Promise<{ success: boolean; entryId?: number; error?: string }> {
     // 🛡️ 1. Capture tenant BEFORE any await to prevent context leakage
     const activeTenant = resolveTenant();
-    
+
+    // Phase 10: Build trace context from available params
+    const traceOperationType = params.operationType || 'CREATE_JOURNAL_ENTRY';
+    const traceModule = params.module || 'accounting';
+    const correlationId = getCorrelationId(); // from AsyncLocalStorage if available
+
     // 🛡️ 2. Wrap all DB interactions in withTenant
     return withTenant(activeTenant, async () => {
-        try {
-            const executeLogic = async (tx: any) => {
-            const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
-            const je = await AccountingJournalService.createEntry(tx, params as any);
-            return je;
-        };
+        // Phase 10: Outer trace wraps the full operation including period check
+        return traceFinancialOperation(
+            {
+                operationType: traceOperationType,
+                module: traceModule,
+                aggregateId: params.reference,             // e.g. SALE-123, TREAS-456 — non-sensitive
+                overrideUsed: !!params.overrideContext,     // boolean only — no override details here
+                // periodState determined inside after assertPeriodWritable
+            },
+            async (traceId) => {
+                try {
+                    // Period Lock Check
+                    const targetDate = params.date ? new Date(params.date) : new Date();
 
-        const entry = params.txClient 
-            ? await executeLogic(params.txClient) 
-            : await prisma.$transaction(executeLogic);
+                    // Enrich override context with the current operation details if present
+                    const finalOverrideContext = params.overrideContext ? {
+                        ...params.overrideContext,
+                        operationType: traceOperationType,
+                        module: traceModule,
+                        postingDate: targetDate
+                    } : undefined;
 
-        return { success: true, entryId: entry.id };
-    } catch (error: any) {
-        log.error('Auto-journal error:', error);
-        return { success: false, error: String(error.message || error) };
-    }
+                    let periodState: 'OPEN' | 'SOFT_LOCKED' | 'HARD_LOCKED' = 'OPEN';
+
+                    try {
+                        const periodResult = await assertPeriodWritable({
+                            tenantId: activeTenant,
+                            postingDate: targetDate,
+                            operationType: traceOperationType,
+                            module: traceModule,
+                            actor: params.userId ? String(params.userId) : 'SYSTEM',
+                            overrideContext: finalOverrideContext
+                        });
+                        if (periodResult === 'ALLOWED_WITH_OVERRIDE') {
+                            periodState = 'SOFT_LOCKED';
+                        }
+                    } catch (periodErr) {
+                        if (periodErr instanceof PeriodLockViolation) {
+                            // tracePeriodLockRejection already called inside assertPeriodWritable
+                            // Just surface the structured outcome and re-throw
+                            return { success: false, error: periodErr.message };
+                        }
+                        throw periodErr;
+                    }
+
+                    const executeLogic = async (tx: any) => {
+                        const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+                        const je = await AccountingJournalService.createEntry(tx, params as any);
+                        return je;
+                    };
+
+                    const entry = params.txClient
+                        ? await executeLogic(params.txClient)
+                        : await prisma.$transaction(executeLogic);
+
+                    return { success: true, entryId: entry.id };
+                } catch (error: any) {
+                    log.error('Auto-journal error', { errorMessage: error?.message, reference: params.reference });
+                    return { success: false, error: String(error.message || error) };
+                }
+            }
+        ) as Promise<{ success: boolean; entryId?: number; error?: string }>;
     });
 }
 
@@ -123,6 +182,7 @@ export async function postSalesInvoice(invoice: {
     discountValue?: number;
     totalCost?: number; // تكلفة البضاعة المباعة
     txClient?: any;
+    overrideContext?: any;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
 
@@ -211,6 +271,7 @@ export async function postSalesInvoice(invoice: {
         branchId: invoice.branchId,
         date: invoice.date,
         txClient: invoice.txClient,
+        overrideContext: invoice.overrideContext,
     });
 }
 
@@ -238,6 +299,7 @@ export async function postPurchaseInvoice(invoice: {
     ppvAmount?: number; // Purchase Price Variance
     hasGRN?: boolean; // [EG-02] true = GRN exists, clear GRNI; false = direct to Inventory
     txClient?: any;
+    overrideContext?: any;
 }) {
     const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
@@ -311,6 +373,7 @@ export async function postPurchaseInvoice(invoice: {
         branchId: invoice.branchId,
         date: invoice.date,
         txClient: invoice.txClient,
+        overrideContext: invoice.overrideContext,
     });
 }
 
@@ -535,6 +598,7 @@ export async function postGRN(grn: {
     branchId?: number | null;
     date?: string;
     txClient?: any;
+    overrideContext?: any;
 }) {
     // Dr Inventory
     // Cr GRNI (Goods Received Not Invoiced)
@@ -549,6 +613,7 @@ export async function postGRN(grn: {
         branchId: grn.branchId,
         date: grn.date,
         txClient: grn.txClient,
+        overrideContext: grn.overrideContext,
     });
 }
 
@@ -1197,6 +1262,7 @@ export async function postPurchasePayment(params: {
     branchId?: number | null;
     date?: string;
     txClient?: any;
+    overrideContext?: any;
 }) {
     const payAccount = params.paymentType === 'bank' ? ACCOUNTS.BANK : ACCOUNTS.CASH;
 
@@ -1211,6 +1277,7 @@ export async function postPurchasePayment(params: {
         branchId: params.branchId,
         date: params.date,
         txClient: params.txClient,
+        overrideContext: params.overrideContext,
     });
 
     if (result && (result as any).success === false) {
@@ -1234,6 +1301,7 @@ export async function postSalesPayment(params: {
     branchId?: number | null;
     date?: string;
     txClient?: any;
+    overrideContext?: any;
 }) {
     const payAccount = params.paymentType === 'bank' ? ACCOUNTS.BANK : ACCOUNTS.CASH;
 
@@ -1248,6 +1316,7 @@ export async function postSalesPayment(params: {
         branchId: params.branchId,
         date: params.date,
         txClient: params.txClient,
+        overrideContext: params.overrideContext,
     });
 
     if (result && (result as any).success === false) {

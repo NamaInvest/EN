@@ -4,6 +4,7 @@ import { withRoute } from '@/lib/api/with-route';
  * Leave API Routes
  * GET  /api/hr/leaves — قائمة طلبات الإجازات
  * POST /api/hr/leaves — إنشاء طلب إجازة
+ */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { LeaveEngine } from '@/lib/leave-engine';

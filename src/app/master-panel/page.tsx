@@ -5,7 +5,7 @@ import { Server, Users, Key, RefreshCcw, Power } from 'lucide-react';
 
 export default function MasterPanelPage() {
     const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'SaaS' | 'Servers' | 'Desktop'>('SaaS');
+    const [activeTab, setActiveTab] = useState<'SaaS' | 'Servers' | 'Desktop' | 'AuditLogs'>('SaaS');
     
     // SaaS State
     const [tenants, setTenants] = useState<any[]>([]);
@@ -13,6 +13,8 @@ export default function MasterPanelPage() {
     const [licenses, setLicenses] = useState<any[]>([]);
     // Server State
     const [serverStatus, setServerStatus] = useState<any[]>([]);
+    // Audit Logs State
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
@@ -40,6 +42,13 @@ export default function MasterPanelPage() {
                 if (res.ok) {
                     const data = await res.json();
                     setLicenses(Array.isArray(data.licenses) ? data.licenses : []);
+                }
+            } else if (activeTab === 'AuditLogs') {
+                const res = await fetch('/api/admin/audit-logs?action=SOFT_LOCK_OVERRIDE&limit=100');
+                if (res.status === 401 || res.status === 403) { window.location.href = '/master-panel/login'; return; }
+                if (res.ok) {
+                    const data = await res.json();
+                    setAuditLogs(data.data || []);
                 }
             }
         } catch (e) {
@@ -119,6 +128,9 @@ export default function MasterPanelPage() {
                 </button>
                 <button onClick={() => setActiveTab('Desktop')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-bold transition-all ${activeTab === 'Desktop' ? 'bg-[#0066cc] text-white shadow-lg' : 'text-neutral-400 hover:bg-white/5'}`}>
                     <Key className="w-5 h-5"/> التراخيص المكتبية
+                </button>
+                <button onClick={() => setActiveTab('AuditLogs')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-bold transition-all ${activeTab === 'AuditLogs' ? 'bg-[#0066cc] text-white shadow-lg' : 'text-neutral-400 hover:bg-white/5'}`}>
+                    <Server className="w-5 h-5"/> سجلات التجاوز
                 </button>
             </div>
 
@@ -243,6 +255,36 @@ export default function MasterPanelPage() {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'AuditLogs' && (
+                        <div className="bg-[#1a1c23] rounded-xl border border-white/10 overflow-hidden">
+                            <table className="w-full text-right text-white font-bold">
+                                <thead className="bg-white/5 border-b border-white/10 text-neutral-400 text-sm">
+                                    <tr>
+                                        <th className="p-4">الشركة (Tenant)</th>
+                                        <th className="p-4">المستخدم</th>
+                                        <th className="p-4">تاريخ العملية</th>
+                                        <th className="p-4">القسم (Module)</th>
+                                        <th className="p-4">سبب التجاوز</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {auditLogs.map((log: any, i: number) => (
+                                        <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                                            <td className="p-4 text-[#0066cc]">{log.tenantId}</td>
+                                            <td className="p-4">{log.user?.name || log.userId || 'غير محدد'}</td>
+                                            <td className="p-4 text-neutral-400" dir="ltr">{new Date(log.createdAt).toLocaleString()}</td>
+                                            <td className="p-4 text-purple-400">{log.metadata?.module || 'N/A'}</td>
+                                            <td className="p-4 text-yellow-400 max-w-xs truncate" title={log.metadata?.reason}>{log.metadata?.reason || 'بدون سبب'}</td>
+                                        </tr>
+                                    ))}
+                                    {auditLogs.length === 0 && (
+                                        <tr><td colSpan={5} className="p-8 text-center text-neutral-500">لا يوجد تجاوزات مسجلة</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </>
