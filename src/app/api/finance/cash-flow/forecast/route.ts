@@ -6,21 +6,27 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'finance.cash-flow.forecast' });
 
+import { getUserFromRequest } from '@/lib/auth';
+
 async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+
         const { searchParams } = new URL(req.url);
         const weeks = Number(searchParams.get('weeks')) || 12; // Default 12 weeks horizon
 
         // Fetch AR and AP
         const customers = await prisma.customer.findMany({ take: 100,
-            where: { balance: { gt: 0 } },
+            where: { tenantId: auth.tenantId, balance: { gt: 0 } },
             select: { id: true, balance: true }
         });
         
         const vendors = await prisma.customer.findMany({ take: 100,
-            where: { type: { in: [1, 2] }, balance: { gt: 0 } },
+            where: { tenantId: auth.tenantId, type: { in: [1, 2] }, balance: { gt: 0 } },
             select: { id: true, balance: true }
         });
 
@@ -29,7 +35,7 @@ async function _GET(req: Request) {
 
         // Fetch Current Bank Balances
         const bankAccounts = await prisma.bankAccount.findMany({ take: 100,
-            where: { isActive: true },
+            where: { tenantId: auth.tenantId, isActive: true },
             select: { currentBalance: true }
         });
         const currentCash = bankAccounts.reduce((sum: number, b: any) => sum + Number(b.currentBalance || 0), 0);
@@ -118,6 +124,10 @@ async function _POST(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -129,6 +139,7 @@ async function _POST(req: Request) {
         // Save Snapshot
         const forecast = await prisma.cashFlowForecast.create({
             data: {
+                tenantId: auth.tenantId,
                 forecastDate: new Date(),
                 period,
                 scenario: 'REALISTIC',

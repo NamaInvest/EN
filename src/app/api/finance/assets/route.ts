@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
-import jwt from 'jsonwebtoken';
+import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -11,12 +11,12 @@ async function _GET(req: NextRequest) {
     const prisma = getPrisma(req as Request);
 
     try {
-        const authHeader = req.headers.get('Authorization');
-        if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
-        if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const assets = await prisma.fixedAsset.findMany({ take: 100,
+            where: { tenantId: auth.tenantId },
             orderBy: { id: 'desc' },
         });
 
@@ -40,10 +40,9 @@ async function _POST(req: NextRequest) {
     const prisma = getPrisma(req as Request);
 
     try {
-        const authHeader = req.headers.get('Authorization');
-        if (!authHeader) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        const decoded = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
-        if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
+        const auth = await getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await req.json();
 
@@ -64,6 +63,7 @@ async function _POST(req: NextRequest) {
         const asset = await prisma.fixedAsset.create({
             // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
             data: {
+                tenantId: auth.tenantId,
                 assetNumber: seqResult.formatted,
                 name,
                 acquisitionDate,
