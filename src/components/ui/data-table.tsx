@@ -141,7 +141,7 @@ export function DataTable<T extends Record<string, any>>({
               {visibleColumns.map(col => (
                 <th key={col.key} onClick={() => col.sortable !== false && handleSort(col.key)}
                   style={{
-                    padding: '0.6rem 0.75rem', textAlign: col.align || 'right', fontWeight: 600,
+                    padding: '0.6rem 0.75rem', textAlign: col.align || 'start', fontWeight: 600,
                     cursor: col.sortable !== false ? 'pointer' : 'default', userSelect: 'none',
                     color: 'var(--text-primary, #111827)', borderBottom: '2px solid var(--border-color, #e5e7eb)',
                     width: col.width, whiteSpace: 'nowrap',
@@ -167,7 +167,7 @@ export function DataTable<T extends Record<string, any>>({
                     </td>
                   )}
                   {visibleColumns.map(col => (
-                    <td key={col.key} style={{ padding: '0.5rem 0.75rem', textAlign: col.align || 'right', color: 'var(--text-primary, #111827)' }}>
+                    <td key={col.key} style={{ padding: '0.5rem 0.75rem', textAlign: col.align || 'start', color: 'var(--text-primary, #111827)' }}>
                       {col.accessor(row)}
                     </td>
                   ))}

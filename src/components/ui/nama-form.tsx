@@ -4,7 +4,7 @@
  * Form System — React Hook Form + Zod Pattern
  * ──────────────────────────────────────────────────────────
  * Reusable form components with built-in validation,
- * error messages in Arabic, and consistent styling.
+ * error messages in Arabic, and consistent styling using Tailwind CSS.
  */
 
 import React, { useState, useCallback } from 'react';
@@ -32,8 +32,9 @@ interface FormProps {
   onSubmit: (data: Record<string, unknown>) => void | Promise<void>;
   submitLabel?: string;
   loading?: boolean;
-  direction?: 'rtl' | 'ltr';
-  columns?: 1 | 2 | 3;
+  direction?: 'rtl' | 'ltr' | 'auto';
+  columns?: 1 | 2 | 3 | 4;
+  className?: string;
 }
 
 // ── Arabic Error Messages ──
@@ -64,56 +65,52 @@ function FormField({ field, value, error, onChange }: {
   field: FieldConfig; value: unknown; error: string | null;
   onChange: (name: string, value: unknown) => void;
 }) {
-  const baseStyle: React.CSSProperties = {
-    width: '100%', padding: '0.6rem 0.75rem', border: `1px solid ${error ? '#ef4444' : 'var(--border-color, #e5e7eb)'}`,
-    borderRadius: '6px', fontSize: '0.875rem', outline: 'none', background: 'var(--bg-primary, #fff)',
-    color: 'var(--text-primary, #111827)', transition: 'border-color 0.2s',
-  };
+  const baseClasses = `w-full px-3 py-2 border rounded-md text-sm outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${error ? 'border-red-500' : 'border-slate-300 dark:border-slate-700'}`;
 
   const renderInput = () => {
     switch (field.type) {
       case 'textarea':
         return <textarea value={value as string || ''} onChange={e => onChange(field.name, e.target.value)}
-          placeholder={field.placeholder} disabled={field.disabled} rows={3} style={baseStyle} />;
+          placeholder={field.placeholder} disabled={field.disabled} rows={3} className={baseClasses} />;
       case 'select':
         return (
           <select value={value as string || ''} onChange={e => onChange(field.name, e.target.value)}
-            disabled={field.disabled} style={baseStyle}>
+            disabled={field.disabled} className={baseClasses}>
             <option value="">{field.placeholder || 'اختر...'}</option>
             {field.options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
         );
       case 'checkbox':
         return (
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
             <input type="checkbox" checked={!!value} onChange={e => onChange(field.name, e.target.checked)}
-              disabled={field.disabled} style={{ width: '18px', height: '18px' }} />
-            <span style={{ fontSize: '0.875rem' }}>{field.placeholder}</span>
+              disabled={field.disabled} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
+            <span className="text-sm text-slate-700 dark:text-slate-300">{field.placeholder || field.label}</span>
           </label>
         );
       default:
         return <input type={field.type} value={value as string || ''} onChange={e => onChange(field.name, field.type === 'number' ? Number(e.target.value) : e.target.value)}
           placeholder={field.placeholder} disabled={field.disabled} min={field.min} max={field.max}
-          minLength={field.minLength} maxLength={field.maxLength} style={baseStyle} />;
+          minLength={field.minLength} maxLength={field.maxLength} className={baseClasses} />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <div className="flex flex-col gap-1.5">
       {field.type !== 'checkbox' && (
-        <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary, #111827)' }}>
-          {field.label} {field.required && <span style={{ color: '#ef4444' }}>*</span>}
+        <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          {field.label} {field.required && <span className="text-red-500">*</span>}
         </label>
       )}
       {renderInput()}
-      {error && <span style={{ fontSize: '0.75rem', color: '#ef4444' }}>{error}</span>}
-      {field.helpText && !error && <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary, #9ca3af)' }}>{field.helpText}</span>}
+      {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+      {field.helpText && !error && <span className="text-xs text-slate-500 dark:text-slate-400">{field.helpText}</span>}
     </div>
   );
 }
 
 // ── Main Form Component ──
-export function NamaForm({ fields, onSubmit, submitLabel = 'حفظ', loading = false, direction = 'rtl', columns = 2 }: FormProps) {
+export function NamaForm({ fields, onSubmit, submitLabel = 'حفظ', loading = false, direction = 'auto', columns = 2, className = '' }: FormProps) {
   const [values, setValues] = useState<Record<string, unknown>>(() => {
     const defaults: Record<string, unknown> = {};
     fields.forEach(f => { if (f.defaultValue !== undefined) defaults[f.name] = f.defaultValue; });
@@ -143,22 +140,25 @@ export function NamaForm({ fields, onSubmit, submitLabel = 'حفظ', loading = f
     finally { setSubmitting(false); }
   }, [fields, values, onSubmit]);
 
+  const gridColsClass = {
+    1: 'grid-cols-1',
+    2: 'grid-cols-1 md:grid-cols-2',
+    3: 'grid-cols-1 md:grid-cols-3',
+    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+  }[columns];
+
   return (
-    <form onSubmit={handleSubmit} dir={direction} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: '1rem' }}>
+    <form onSubmit={handleSubmit} dir={direction} className={`flex flex-col gap-4 w-full ${className}`}>
+      <div className={`grid gap-4 ${gridColsClass}`}>
         {fields.map(field => (
           <FormField key={field.name} field={field} value={values[field.name]}
             error={errors[field.name] || null} onChange={handleChange} />
         ))}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-start', paddingTop: '0.5rem' }}>
+      <div className="flex justify-start pt-2">
         <button type="submit" disabled={submitting || loading}
-          style={{
-            padding: '0.6rem 2rem', background: submitting ? '#9ca3af' : '#6366f1', color: '#fff',
-            border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer',
-            transition: 'background 0.2s', opacity: submitting ? 0.7 : 1,
-          }}>
-          {submitting ? '⏳ جاري الحفظ...' : submitLabel}
+          className="px-8 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition-all shadow-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          {submitting || loading ? '⏳ جاري الحفظ...' : submitLabel}
         </button>
       </div>
     </form>
