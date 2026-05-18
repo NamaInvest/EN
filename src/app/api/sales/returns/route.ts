@@ -10,7 +10,9 @@ async function _GET(req: Request) {
 
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const returns = await prisma.salesReturn.findMany({ take: 100,
+            where: { tenantId },
             orderBy: { id: 'desc' },
             include: {
                 details: {
@@ -48,8 +50,10 @@ async function _POST(req: Request) {
         // Note: in a real environment, we'd pull these from the original invoice
         const total = details.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0);
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const rma = await prisma.salesReturn.create({
             data: {
+                tenantId,
                 returnNo: Math.floor(Math.random() * 1000000), // Should use numbering engine
                 originalInvoiceId: parseInt(originalInvoiceId) || null,
                 customerId: parseInt(customerId) || null,
@@ -75,6 +79,7 @@ async function _POST(req: Request) {
         // Log state
         await prisma.documentStateLog.create({
             data: {
+                tenantId,
                 entityType: 'RMA',
                 entityId: rma.id,
                 fromState: 'NEW',

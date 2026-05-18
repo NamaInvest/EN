@@ -19,7 +19,9 @@ async function _GET(req: Request) {
         const decoded: any = jwt.verify(authHeader.split(' ')[1], (process.env.JWT_SECRET as string));
         if (!decoded) return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
 
+        const tenantId = requireTenantId(req as any);
         const grns = await prisma.goodsReceiptNote.findMany({ take: 100,
+            where: { tenantId },
             include: {
                 supplier: { select: { name: true } },
                 order: { select: { orderNo: true } },
@@ -62,12 +64,19 @@ async function _POST(req: Request) {
         const { supplierId, orderId, stockId, notes, items } = body;
         const tenantId = requireTenantId(req as any);
 
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(decoded.userId || '0'),
+            actorRole: decoded.role || 'USER'
+        });
+
         const seqResult = await getNextNumber(prisma, 'GRN');
         const nextNo = seqResult.current;
 
         // P1: Fetch supplier name for auto-journal
         const supplierRecord = supplierId
-            ? await prisma.customer.findUnique({ where: { id: parseInt(supplierId) }, select: { name: true } })
+            ? await prisma.customer.findFirst({ where: { id: parseInt(supplierId), tenantId }, select: { name: true } })
             : null;
 
         const grn = await runFinancialTx(prisma, async (tx: any) => {
@@ -90,7 +99,7 @@ async function _POST(req: Request) {
             for (const item of items) {
                 const accepted = parseFloat(item.acceptedQty) || parseFloat(item.quantity);
                 const rejected = parseFloat(item.rejectedQty) || 0;
-                const productObj = await tx.product.findUnique({ where: { id: parseInt(item.productId) } });
+                const productObj = await tx.product.findFirst({ where: { id: parseInt(item.productId), tenantId } });
                 
                 let createdBatchId = null;
                 if (item.batchNumber && accepted > 0) {
@@ -125,7 +134,7 @@ async function _POST(req: Request) {
                 if (accepted > 0) {
                     totalGrnCost += accepted * (productObj?.buyPrice || 0);
 
-                    await tx.product.update({
+                    await tx.product.updateMany({
                         where: { id: parseInt(item.productId), tenantId },
                         data: { currentStock: { increment: accepted } },
                     });
@@ -146,8 +155,8 @@ async function _POST(req: Request) {
                     });
 
                     // P2: Reorder point alert
-                    const prod = await tx.product.findUnique({
-                        where: { id: parseInt(item.productId) },
+                    const prod = await tx.product.findFirst({
+                        where: { id: parseInt(item.productId), tenantId },
                         select: { name: true, currentStock: true, minStock: true },
                     });
                     if (prod?.minStock && prod.currentStock <= prod.minStock) {
@@ -174,8 +183,13 @@ async function _POST(req: Request) {
                         supplierName: supplierRecord?.name || 'مورد',
                         userId: decoded.userId,
                         txClient: tx,
+                        overrideContext,
                     });
                 } catch (je: unknown) {
+                    // Let the period lock error bubble up
+                    if (je instanceof Error && je.name === 'PeriodLockViolation') {
+                        throw je;
+                    }
                     log.error('Auto Journal Error (GRN):', je);
                 }
             }

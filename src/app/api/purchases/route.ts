@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { reverseJournalByReference } from '@/lib/auto-journal';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
@@ -56,17 +57,26 @@ async function _POST(request: Request) {
         const body = purchaseCreateSchema.parse(rawBody);
 
         const userId = body.userId ? Number(body.userId) : null;
+        const tenantId = requireTenantId(request as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const auth = getUserFromRequest(request as any);
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
 
         // ── Auto-resolve stockId + branchId from warehouse ─────────────────
         const userBranchFallback = body.branchId ? Number(body.branchId) : (
-            userId ? (await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
+            userId ? (await prisma.user.findFirst({ where: { id: userId, tenantId }, select: { branchId: true } }))?.branchId ?? null : null
         );
         const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
             body.stockId,
             userBranchFallback
         );
 
-        const last = await prisma.purchaseInvoice.findFirst({ orderBy: { invoiceNo: 'desc' } });
+        const last = await prisma.purchaseInvoice.findFirst({ where: { tenantId }, orderBy: { invoiceNo: 'desc' } });
         const invoiceNo = (last?.invoiceNo || 0) + 1;
         const items = body.items || [];
         const isManual = body.isManual === true;
@@ -79,8 +89,8 @@ async function _POST(request: Request) {
         let invoiceTotalQuantity = 0;
 
         if (purchaseOrderId && !isManual) {
-            const po = await (prisma.purchaseOrder as any).findUnique({
-                where: { id: purchaseOrderId },
+            const po = await (prisma.purchaseOrder as any).findFirst({
+                where: { id: purchaseOrderId, tenantId },
                 include: { details: true }
             });
             if (po) {
@@ -115,6 +125,7 @@ async function _POST(request: Request) {
         const invoice = await runFinancialTx(prisma, async (tx: any) => {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
+                    tenantId,
                     invoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
                     stockId: resolvedStockId,
                     subtotal, taxValue, total, paid, remaining,
@@ -147,8 +158,8 @@ async function _POST(request: Request) {
                 for (const item of items) {
                     const qty = Number(item.quantity) || 1;
                     const productId = Number(item.productId);
-                    await tx.product.update({
-                        where: { id: productId },
+                    await tx.product.updateMany({
+                        where: { id: productId, tenantId },
                         data: { currentStock: { increment: qty } },
                     });
                     
@@ -161,6 +172,7 @@ async function _POST(request: Request) {
                     // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
                     await tx.stockMovement.create({
                         data: {
+                            tenantId,
                             productId: productId,
                             stockId: createdInvoice.stockId,
                             type: 'in',
@@ -192,6 +204,7 @@ async function _POST(request: Request) {
 
                 await (tx as any).threeWayMatch.create({
                     data: {
+                        tenantId,
                         invoiceId: createdInvoice.id,
                         purchaseOrderId,
                         poTotalAmount,
@@ -217,6 +230,7 @@ async function _POST(request: Request) {
             try {
                 await tx.auditLog.create({
                     data: {
+                        tenantId,
                         userId: userId ?? 0,
                         action: `transition:draft→${createdInvoice.status}`,
                         tableName: 'purchaseinvoices',
@@ -241,6 +255,7 @@ async function _POST(request: Request) {
                 ppvAmount: calculatedPpv,
                 hasGRN: receiptStatus === 'received', // [EG-02] GRN already posted → clear GRNI
                 txClient: tx,
+                overrideContext
             });
 
             if (journalResult && (journalResult as any).success === false) {
@@ -259,6 +274,7 @@ async function _POST(request: Request) {
                         branchId: branchId || undefined,
                         date: new Date().toISOString().split('T')[0],
                         txClient: tx,
+                        overrideContext
                     });
                 }
             }
@@ -295,7 +311,17 @@ async function _PUT(request: Request) {
         const rawBody = await request.json();
         const { invoiceId, amount, paymentType, userId } = purchasePaymentSchema.parse(rawBody);
 
-        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id: Number(invoiceId) } });
+        const tenantId = requireTenantId(request as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const auth = getUserFromRequest(request as any);
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        const invoice = await prisma.purchaseInvoice.findFirst({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
         if (invoice.status === 'completed') {
@@ -343,6 +369,7 @@ async function _PUT(request: Request) {
                 branchId: branchId,
                 date: new Date().toISOString().split('T')[0],
                 txClient: tx,
+                overrideContext
             });
 
             const { logAuditEvent } = await import('@/lib/audit-trail');
@@ -376,6 +403,7 @@ async function _DELETE(request: NextRequest) {
 
     const prisma = getPrisma(request);
     try {
+        const tenantId = requireTenantId(request as any);
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         const allowed = await hasPermission(auth.userId, 'delete_invoices', prisma);
@@ -385,7 +413,7 @@ async function _DELETE(request: NextRequest) {
         const id = Number(searchParams.get('id'));
         if (!id) return NextResponse.json({ error: 'معرف الفاتورة مطلوب' }, { status: 400 });
 
-        const invoice = await prisma.purchaseInvoice.findUnique({ where: { id }, include: { details: true } });
+        const invoice = await prisma.purchaseInvoice.findFirst({ where: { id, tenantId }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
         await runFinancialTx(prisma, async (tx: any) => {
@@ -413,8 +441,8 @@ async function _DELETE(request: NextRequest) {
             // 3. Reverse stock (decrement what was added from purchase) ONLY IF it was actually received
             if (invoice.receiptStatus === 'received') {
                 for (const detail of invoice.details) {
-                    await tx.product.update({
-                        where: { id: detail.productId },
+                    await tx.product.updateMany({
+                        where: { id: detail.productId, tenantId },
                         data: { currentStock: { decrement: detail.quantity } },
                     });
                     
@@ -431,10 +459,10 @@ async function _DELETE(request: NextRequest) {
             }
 
             // 4. Remove related treasury entries
-            await tx.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id } });
+            await tx.treasury.deleteMany({ where: { referenceType: { in: ['purchase', 'purchase_payment'] }, referenceId: id, tenantId } });
 
             // Delete invoice (cascade deletes details)
-            await tx.purchaseInvoice.delete({ where: { id } });
+            await tx.purchaseInvoice.deleteMany({ where: { id, tenantId } });
 
             const { logAuditEvent } = await import('@/lib/audit-trail');
             await logAuditEvent(tx as any, {

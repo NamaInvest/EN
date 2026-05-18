@@ -24,6 +24,7 @@ async function _POST(req: Request) {
         if (!_parsed.success) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const { customerId, totalAmount, bypassCreditLimit } = body;
 
         if (!customerId || totalAmount === undefined) {
@@ -47,6 +48,7 @@ async function _POST(req: Request) {
         // 2. Proceed to create invoice
         const invoice = await prisma.salesInvoice.create({
             data: {
+                tenantId,
                 customerId,
                 total: totalAmount,
                 invoiceNo: Math.floor(Math.random() * 1000000), // Should use numbering engine in reality
@@ -59,6 +61,7 @@ async function _POST(req: Request) {
         if (hasBypassPermission && creditResult.totalExposure > creditResult.creditLimit) {
             await prisma.documentStateLog.create({
                 data: {
+                    tenantId,
                     entityType: 'INVOICE',
                     entityId: invoice.id,
                     fromState: 'NEW',

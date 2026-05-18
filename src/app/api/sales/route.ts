@@ -108,6 +108,14 @@ export async function _POST(request: Request) {
 
         log.debug('Received sales payload', { manualDate: body.manualDate, manualInvoiceNo: body.manualInvoiceNo });
 
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const auth = getUserFromRequest(request as any);
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
         // --- Quota Guard (Trial + Invoice Limit) ---
         const tenant = (request as any).headers?.get?.('x-tenant') ||
             (request instanceof Request ? request.headers.get('x-tenant') : null);
@@ -119,6 +127,7 @@ export async function _POST(request: Request) {
 
         // Get next invoice number
         const lastInvoice = await prisma.salesInvoice.findFirst({
+            where: { tenantId },
             orderBy: { invoiceNo: 'desc' },
         });
         const invoiceNo = body.manualInvoiceNo ? Number(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
@@ -126,8 +135,8 @@ export async function _POST(request: Request) {
 
         // ── Credit Limit Enforcement ────────────────────────────────────────
         if (body.customerId) {
-            const customer = await prisma.customer.findUnique({
-                where: { id: Number(body.customerId) },
+            const customer = await prisma.customer.findFirst({
+                where: { id: Number(body.customerId), tenantId },
                 select: { creditLimit: true, balance: true, name: true },
             });
             if (customer && n(customer.creditLimit) > 0) {
@@ -185,7 +194,7 @@ export async function _POST(request: Request) {
         // ── Auto-resolve stockId + branchId from warehouse ─────────────────
         // branchId is always derived from Stock.branchId to prevent accounting mix-ups
         const userBranchFallback = body.branchId ? Number(body.branchId) : (
-            userId ? (await prisma.user.findUnique({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
+            userId ? (await prisma.user.findFirst({ where: { id: userId, tenantId }, select: { branchId: true } }))?.branchId ?? null : null
         );
         const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
             body.stockId,
@@ -249,7 +258,7 @@ export async function _POST(request: Request) {
             });
 
             // Update stock with smart auto-decompose
-            const allowNegativeStock = await tx.setting.findUnique({ where: { key: 'POS_ALLOW_NEGATIVE_STOCK' } });
+            const allowNegativeStock = await tx.setting.findFirst({ where: { key: 'POS_ALLOW_NEGATIVE_STOCK', tenantId } });
             const canGoNegative = allowNegativeStock?.value === 'true';
 
             let totalCost = 0;
@@ -265,7 +274,7 @@ export async function _POST(request: Request) {
                     orderBy: { factor: 'asc' },
                 });
 
-                const prod = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true, buyPrice: true } });
+                const prod = await tx.product.findFirst({ where: { id: productId, tenantId }, select: { currentStock: true, buyPrice: true } });
                 const baseStock = n(prod?.currentStock);
                 const unitsStock = pUnits.reduce((s: any, u: any) => s + Number((u as any).unitStock || 0) * u.factor, 0);
                 const totalBase = baseStock + unitsStock;
@@ -276,12 +285,12 @@ export async function _POST(request: Request) {
                     throw new Error(`نفد مخزون الصنف ${item.productName}`);
                 }
 
-                await tx.product.update({
-                    where: { id: productId },
+                await tx.product.updateMany({
+                    where: { id: productId, tenantId },
                     data: { currentStock: { decrement: qtyInBase } },
                 });
 
-                const refreshed = await tx.product.findUnique({ where: { id: productId }, select: { currentStock: true } });
+                const refreshed = await tx.product.findFirst({ where: { id: productId, tenantId }, select: { currentStock: true } });
                 let deficit = Math.abs(Math.min(0, n(refreshed?.currentStock || 0)));
 
                 for (const pu of pUnits) {
@@ -292,8 +301,8 @@ export async function _POST(request: Request) {
                         where: { id: pu.id },
                         data: { unitStock: { decrement: toBreak } } as any,
                     });
-                    await tx.product.update({
-                        where: { id: productId },
+                    await tx.product.updateMany({
+                        where: { id: productId, tenantId },
                         data: { currentStock: { increment: toBreak * n(pu.factor) } },
                     });
                     deficit = Math.max(0, deficit - toBreak * n(pu.factor));
@@ -307,6 +316,7 @@ export async function _POST(request: Request) {
                 
                 await tx.stockMovement.create({
                     data: {
+                        tenantId,
                         productId: productId,
                         stockId: createdInvoice.stockId,
                         type: 'out',
@@ -319,7 +329,7 @@ export async function _POST(request: Request) {
                 });
 
                 const activeRecipe = await tx.recipe.findFirst({
-                    where: { finishedProductId: Number(item.productId), isActive: true },
+                    where: { finishedProductId: Number(item.productId), isActive: true, tenantId },
                     include: { ingredients: true }
                 });
 
@@ -327,8 +337,8 @@ export async function _POST(request: Request) {
                     for (const ing of activeRecipe.ingredients) {
                         const requiredQty = ing.quantity * qty;
                         
-                        await tx.product.update({
-                            where: { id: ing.rawProductId },
+                        await tx.product.updateMany({
+                            where: { id: ing.rawProductId, tenantId },
                             data: { currentStock: { decrement: requiredQty } }
                         });
 
@@ -345,6 +355,7 @@ export async function _POST(request: Request) {
             try {
                 await tx.auditLog.create({
                     data: {
+                        tenantId,
                         userId: userId ?? 0,
                         action: `transition:draft→${createdInvoice.status}`,
                         tableName: 'salesinvoices',
@@ -386,7 +397,7 @@ export async function _POST(request: Request) {
             const finalSettings: Record<string, string> = {};
             const zatcaSettings = await tx.setting.findMany({ 
                 take: 100,
-                where: { key: { in: ['company_name', 'tax_number', 'zatca_enabled'] } }
+                where: { key: { in: ['company_name', 'tax_number', 'zatca_enabled'] }, tenantId }
             });
             zatcaSettings.forEach((st: any) => { finalSettings[st.key] = st.value ?? ''; });
 
@@ -406,6 +417,7 @@ export async function _POST(request: Request) {
                 // Defer ZATCA Phase 2 (Generation, Signing, Reporting) to Background Queue
                 await tx.outboxEvent.create({
                     data: {
+                        tenantId,
                         aggregateId: String(createdInvoice.id),
                         aggregateType: 'sales_invoice',
                         eventType: 'ZATCA_REPORT_JOB',
@@ -440,7 +452,8 @@ export async function _POST(request: Request) {
                 discountValue,
                 totalCost: totalCost,
                 date: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString().split('T')[0],
-                txClient: tx
+                txClient: tx,
+                overrideContext
             });
 
             if (!journalResult.success) {
@@ -471,6 +484,14 @@ async function _PUT(request: Request) {
         }).parse(rawBody);
 
         const tenantId = requireTenantId(request as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const auth = getUserFromRequest(request as any);
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
         const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
@@ -519,6 +540,7 @@ async function _PUT(request: Request) {
                 branchId: branchId,
                 date: new Date().toISOString().split('T')[0],
                 txClient: tx,
+                overrideContext
             });
 
             return updatedInvoice;
@@ -560,8 +582,8 @@ async function _DELETE(request: NextRequest) {
                 for (const inv of allSales) {
                     for (const detail of inv.details) {
                         try {
-                            await tx.product.update({
-                                where: { id: detail.productId },
+                            await tx.product.updateMany({
+                                where: { id: detail.productId, tenantId },
                                 data: { currentStock: { increment: detail.quantity } }
                             });
                             await tx.productStock.upsert({
@@ -617,8 +639,8 @@ async function _DELETE(request: NextRequest) {
         await runFinancialTx(prisma, async (tx: any) => {
             // Reverse stock (re-increment what was sold) safely for both global and warehouse stock
             for (const detail of invoice.details) {
-                await tx.product.update({
-                    where: { id: detail.productId },
+                await tx.product.updateMany({
+                    where: { id: detail.productId, tenantId },
                     data: { currentStock: { increment: detail.quantity } },
                 });
                 
@@ -656,6 +678,7 @@ async function _DELETE(request: NextRequest) {
             // Write to AuditLog for AI Fraud Engine
             await tx.auditLog.create({
                 data: {
+                    tenantId,
                     userId: auth.userId,
                     action: 'DELETE_SALES_INVOICE',
                     tableName: 'SalesInvoice',

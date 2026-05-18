@@ -11,9 +11,10 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
   const { id } = await params;
     const prisma = getPrisma(req as any);
     try {
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const poId = Number((await params).id);
         const costs = await prisma.landedCost.findMany({ take: 100,
-            where: { purchaseOrderId: poId },
+            where: { purchaseOrderId: poId, tenantId },
             include: { expenseAccount: true }
         });
         
@@ -45,8 +46,10 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         }
         const { description, amount, expenseAccountId, allocationMethod } = body;
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const cost = await prisma.landedCost.create({
             data: {
+                tenantId,
                 purchaseOrderId: poId,
                 description,
                 amount: Number(amount),
