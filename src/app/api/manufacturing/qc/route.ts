@@ -17,12 +17,14 @@ async function _GET(request: Request) {
     try {
         if (type === 'maintenance') {
             const logs = await prisma.machineMaintenance.findMany({ take: 100,
+                where: { tenantId },
                 include: { machine: true },
                 orderBy: { id: 'desc' }
             });
             return NextResponse.json(logs);
         } else {
             const checks = await prisma.qualityCheck.findMany({ take: 100,
+                where: { tenantId },
                 include: { order: { include: { recipe: true } } },
                 orderBy: { id: 'desc' }
             });
@@ -64,6 +66,7 @@ async function _POST(request: Request) {
             const { orderId, inspectorName, checkType, status, notes } = body;
             const check = await prisma.qualityCheck.create({
                 data: {
+                    tenantId,
                     manufacturingOrderId: parseInt(orderId),
                     inspectorName,
                     checkType,
@@ -77,6 +80,7 @@ async function _POST(request: Request) {
             const { machineId, maintenanceType, description, cost, scheduledDate } = body;
             const log = await prisma.machineMaintenance.create({
                 data: {
+                    tenantId,
                     machineId: parseInt(machineId),
                     maintenanceType,
                     description,

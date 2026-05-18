@@ -83,7 +83,7 @@ async function _POST(request: Request) {
             }
 
             case 'pause': {
-                await prisma.shopFloorSession.update({
+                await prisma.shopFloorSession.updateMany({
                     where: { id: body.sessionId , tenantId },
                     data: { status: 'PAUSED', pausedAt: new Date() }
                 });
@@ -91,7 +91,7 @@ async function _POST(request: Request) {
             }
 
             case 'resume': {
-                await prisma.shopFloorSession.update({
+                await prisma.shopFloorSession.updateMany({
                     where: { id: body.sessionId , tenantId },
                     data: { status: 'ACTIVE', pausedAt: null }
                 });
@@ -99,7 +99,7 @@ async function _POST(request: Request) {
             }
 
             case 'complete': {
-                await prisma.shopFloorSession.update({
+                await prisma.shopFloorSession.updateMany({
                     where: { id: body.sessionId , tenantId },
                     data: {
                         status: 'COMPLETED',
@@ -115,7 +115,7 @@ async function _POST(request: Request) {
                 const goodQty  = Number(body.goodQty  || 0);
                 const scrapQty = Number(body.scrapQty || 0);
                 if ((goodQty + scrapQty) > 0) {
-                    const sessionData = await (prisma as any).shopFloorSession.findUnique({ where: { id: body.sessionId , tenantId }, include: { manufacturingOrder: true } }).catch(() => null);
+                    const sessionData = await (prisma as any).shopFloorSession.findFirst({ where: { id: body.sessionId , tenantId }, include: { manufacturingOrder: true } }).catch(() => null);
                     const unitCost = Number((sessionData as any)?.manufacturingOrder?.unitCost || 0);
                     const fgCost = goodQty * unitCost;
                     const scrapCost = scrapQty * unitCost;
@@ -141,7 +141,7 @@ async function _POST(request: Request) {
             }
 
             case 'andon-resolve': {
-                await prisma.andonCall.update({
+                await prisma.andonCall.updateMany({
                     where: { id: body.callId , tenantId },
                     data: {
                         respondedBy: auth.userId.toString(),

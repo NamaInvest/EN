@@ -35,8 +35,13 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         if (body.status === 'completed') data.endDate = new Date();
         if (body.status === 'in_progress' && !body.startDate) data.startDate = new Date();
 
-        const order = await prisma.manufacturingOrder.update({
+        const existingOrder = await prisma.manufacturingOrder.findFirst({
             where: { id: orderId , tenantId },
+        });
+        if (!existingOrder) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+
+        const order = await prisma.manufacturingOrder.update({
+            where: { id: orderId },
             data,
             include: { recipe: { include: { finishedProduct: true } } }
         });
@@ -58,11 +63,11 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
     try {
         const { id } = await params;
         const orderId = parseInt(id);
-        const order = await prisma.manufacturingOrder.findUnique({ where: { id: orderId , tenantId } });
+        const order = await prisma.manufacturingOrder.findFirst({ where: { id: orderId , tenantId } });
         if (order && order.status === 'completed') {
             return NextResponse.json({ error: 'لا يمكن حذف أمر تصنيع مكتمل' }, { status: 400 });
         }
-        await prisma.manufacturingOrder.delete({ where: { id: orderId , tenantId } });
+        await prisma.manufacturingOrder.deleteMany({ where: { id: orderId , tenantId } });
         return NextResponse.json({ success: true });
     } catch (error: any) {
         log.error(error);

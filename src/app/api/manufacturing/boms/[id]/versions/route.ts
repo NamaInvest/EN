@@ -17,7 +17,7 @@ async function _GET(req: Request, { params }: { params: Promise<{ id: string }> 
 
         // Fetch Product and its associated BOM versions
         // A product has multiple recipes, each recipe might have a BOMVersion
-        const product = await prisma.product.findUnique({
+        const product = await prisma.product.findFirst({
             where: { id: productId , tenantId },
             include: {
                 finishedRecipes: {
@@ -84,6 +84,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
 
         const newRecipe = await prisma.recipe.create({
             data: {
+                tenantId,
                 finishedProductId: productId,
                 name: `BOM ${newVersionNumber} for Product ${productId}`,
                 ingredients: {
@@ -99,6 +100,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
 
         const newVersion = await prisma.bOMVersion.create({
             data: {
+                tenantId,
                 recipeId: newRecipe.id,
                 versionNumber: newVersionNumber,
                 effectiveFrom: new Date(),
@@ -109,6 +111,7 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
         if (ecrReference && sourceVersionId) {
             await prisma.engineeringChangeOrder.create({
                 data: {
+                    tenantId,
                     ecoNumber: `ECO-${Date.now()}`,
                     productId: productId,
                     fromBomVersionId: Number(sourceVersionId),

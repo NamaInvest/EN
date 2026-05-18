@@ -241,7 +241,7 @@ async function _PUT(request: NextRequest, auth: any) {
                 // 4. Finalize the Finished Good by INCREMENTING its stock
                 const singleUnitCost = totalMaterialCost / n(currentOrder.quantityToProduce);
                 
-                await tx.product.update({
+                await tx.product.updateMany({
                     where: { id: currentOrder.recipe.finishedProductId , tenantId },
                     data: {
                         buyPrice: singleUnitCost // Recalibrates average valuation automatically
@@ -269,7 +269,7 @@ async function _PUT(request: NextRequest, auth: any) {
                 });
 
                 // Update the original order state natively
-                const updatedMfgOrder = await tx.manufacturingOrder.update({
+                const updatedMfgOrder = await tx.manufacturingOrder.updateMany({
                     where: { id: currentOrder.id , tenantId },
                     data: {
                         status: 'completed',
@@ -310,7 +310,7 @@ async function _PUT(request: NextRequest, auth: any) {
             return NextResponse.json({ success: true, message: 'Manufacturing Order Completed successfully with stock mutations' });
         } else {
             // Simple status tracking transition (e.g. Draft -> Processing -> Quality)
-            const updated = await prisma.manufacturingOrder.update({
+            const updated = await prisma.manufacturingOrder.updateMany({
                 where: { id: parseInt(id) , tenantId }, // No need to check tenant again if currentOrder matched
                 data: { status }
             });

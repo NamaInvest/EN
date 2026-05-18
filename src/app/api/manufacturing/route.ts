@@ -49,7 +49,7 @@ async function _GET(req: NextRequest) {
   const take   = Math.min(parseInt(q.get('take') || '50'), 200);
   const page   = parseInt(q.get('page') || '1');
 
-  const where: any = {};
+  const where: any = { tenantId };
   if (status) where.status = status;
 
   try {
@@ -96,7 +96,7 @@ async function _POST(req: NextRequest, auth: any) {
   const body = parsed.data;
 
   // Get recipe to compute standard cost
-  const recipe = await prisma.recipe.findUnique({
+  const recipe = await prisma.recipe.findFirst({
     where: { id: body.recipeId , tenantId },
     include: { ingredients: { include: { rawProduct: true } } }
   }).catch(() => null);
@@ -112,11 +112,12 @@ async function _POST(req: NextRequest, auth: any) {
   }, 0);
 
   // Generate order number
-  const last = await prisma.manufacturingOrder.findFirst({ orderBy: { id: 'desc' } });
+  const last = await prisma.manufacturingOrder.findFirst({ where: { tenantId }, orderBy: { id: 'desc' } });
   const orderNumber = `MO-${String((last?.id || 0) + 1).padStart(5, '0')}`;
 
   const order = await prisma.manufacturingOrder.create({
     data: {
+      tenantId,
       recipeId:          body.recipeId,
       quantityToProduce: body.quantityToProduce,
       status:            'draft',
@@ -149,7 +150,7 @@ async function _PUT(req: NextRequest, auth: any) {
 
   const { orderId, action, actualCost, completedQty, notes } = parsed.data;
 
-  const order = await prisma.manufacturingOrder.findUnique({
+  const order = await prisma.manufacturingOrder.findFirst({
     where: { id: orderId , tenantId },
     include: { recipe: { include: { ingredients: true } } }
   }).catch(() => null);
@@ -160,7 +161,7 @@ async function _PUT(req: NextRequest, auth: any) {
 
   // â”€â”€ action: start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (action === 'start') {
-    await prisma.manufacturingOrder.update({
+    await prisma.manufacturingOrder.updateMany({
       where: { id: orderId , tenantId },
       data:  { status: 'in_progress', startDate: new Date() },
     });
@@ -189,7 +190,7 @@ async function _PUT(req: NextRequest, auth: any) {
     const actCost = actualCost ?? stdCost;
     const orderNum = (order as any).orderNumber || `MO-${order.id}`;
 
-    await prisma.manufacturingOrder.update({
+    await prisma.manufacturingOrder.updateMany({
       where: { id: orderId , tenantId },
       data:  {
         status:    'completed',
@@ -219,7 +220,7 @@ async function _PUT(req: NextRequest, auth: any) {
 
   // â”€â”€ action: cancel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (action === 'cancel' || action === 'pause') {
-    await prisma.manufacturingOrder.update({
+    await prisma.manufacturingOrder.updateMany({
       where: { id: orderId , tenantId },
       data:  { status: action === 'cancel' ? 'cancelled' : 'draft', notes: notes || undefined },
     });
