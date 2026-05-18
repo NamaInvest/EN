@@ -21,6 +21,10 @@ async function _POST(request: Request, auth: any) {
     const prisma = getPrisma(request);
     const tenantId = requireTenantId(request as any);
 
+    if (!['admin', 'owner', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) {
+        return NextResponse.json({ error: 'غير مصرح للوصول إلى هذا المسار' }, { status: 403 });
+    }
+
     try {
         const raw    = await request.json();
         const parsed = GeneratePayrollSchema.safeParse(raw);

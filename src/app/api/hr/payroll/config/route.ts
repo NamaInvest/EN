@@ -9,8 +9,8 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'hr.payroll.config' });
 
 async function _GET(req: Request) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const auth = getUserFromRequest(req as any);
+    if (!auth || !['admin', 'owner', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req as any);
@@ -46,8 +46,8 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const auth = getUserFromRequest(req as any);
+    if (!auth || !['admin', 'owner', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
     const tenantId = requireTenantId(req as any);
 
     const prisma = getPrisma(req as any);
@@ -86,6 +86,6 @@ async function _POST(req: Request) {
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', roles: ['admin', 'owner', 'hr', 'hr_manager', 'payroll_admin'] });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL', roles: ['admin', 'owner', 'hr', 'hr_manager', 'payroll_admin'] });

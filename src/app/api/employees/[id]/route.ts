@@ -3,8 +3,9 @@ import { withRoute } from '@/lib/api/with-route';
 import type { NextRequest } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
-
 import { getUserFromRequest } from '@/lib/auth';
+import { getHrScope } from '@/lib/hr-scope';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -27,6 +28,8 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         const { id } = await params;
         const employeeId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        const tenantId = requireTenantId(request as any);
         const body = await request.json();
 
         const _parsed = _PUTSchema.safeParse(body);
@@ -35,8 +38,11 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         }
         body.salary = typeof body.salary === 'string' ? body.salary.replace(/,/g, '') : body.salary;
 
+        const baseWhere = await getHrScope(auth, tenantId, true) as any;
+
         // Read before state for audit
-        const before = await prisma.employee.findUnique({ where: { id: employeeId } });
+        const before = await prisma.employee.findFirst({ where: { id: employeeId, tenantId, ...baseWhere } });
+        if (!before) return NextResponse.json({ error: 'غير موجود أو غير مصرح' }, { status: 404 });
 
         const employee = await prisma.employee.update({
             where: { id: employeeId },
@@ -67,16 +73,21 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    const tenantId = requireTenantId(request as any);
 
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
         const employeeId = parseInt(id);
 
+        const baseWhere = await getHrScope(auth, tenantId, true) as any;
+
         // Audit trail — log deletion
+        const before = await prisma.employee.findFirst({ where: { id: employeeId, tenantId, ...baseWhere } });
+        if (!before) return NextResponse.json({ error: 'غير موجود أو غير مصرح' }, { status: 404 });
+
         try {
-            const before = await prisma.employee.findUnique({ where: { id: employeeId } });
-            if (before) await logDelete(prisma, 'Employee', employeeId, before as any, auditContextFromRequest(request, auth));
+            await logDelete(prisma, 'Employee', employeeId, before as any, auditContextFromRequest(request, auth));
         } catch (e: any) { log.error('[audit] Employee delete audit failed:', e); }
 
         await prisma.employee.delete({ where: { id: employeeId } });
