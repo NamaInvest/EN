@@ -19,7 +19,9 @@ async function _GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
   try {
-    const periods = await (prisma as any).fiscalPeriod?.findMany?.({ take: 100,
+    const periods = await (prisma as any).fiscalPeriod?.findMany?.({ 
+      take: 100,
+      where: { tenantId: user.tenantId },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
 
@@ -85,9 +87,10 @@ async function _POST(req: Request) {
     }
 
     const period = await (prisma as any).fiscalPeriod?.upsert?.({
-      where: { year_month: { year: parseInt(year), month: parseInt(month) } },
+      where: { tenantId_year_month: { tenantId: user.tenantId, year: parseInt(year), month: parseInt(month) } },
       update: data,
       create: {
+        tenantId: user.tenantId,
         year: parseInt(year),
         month: parseInt(month),
         ...data,
