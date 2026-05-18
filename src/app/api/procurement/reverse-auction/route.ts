@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { ReverseAuctionEngine } from '@/lib/reverse-auction-engine';
 
-export async function POST(req: NextRequest) {
+export const POST = withRoute(async ({ req, prisma, auth, tenant }) => {
   const body = await req.json();
   if (body.type === 'create') {
-    const auction = await ReverseAuctionEngine.createAuction(body.tenantId, body.rfqId, body.title, new Date(body.startTime), new Date(body.endTime));
+    const auction = await ReverseAuctionEngine.createAuction(tenant, body.rfqId, body.title, new Date(body.startTime), new Date(body.endTime));
     return NextResponse.json({ auction }, { status: 201 });
   }
   if (body.type === 'bid') {
@@ -16,4 +17,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result });
   }
   return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });

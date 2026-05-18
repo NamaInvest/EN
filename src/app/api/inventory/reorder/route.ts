@@ -5,19 +5,15 @@
  * POST /api/inventory/reorder { action: 'generate-po', productIds: [...] }
  */
 import { NextResponse, NextRequest } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 import { ReorderEngine } from '@/lib/reorder-engine';
-import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'api.inventory.reorder' });
 
-export async function GET(request: NextRequest) {
+export const GET = withRoute(async ({ req, prisma, auth }) => {
   try {
-    const auth = getUserFromRequest(request as any);
-    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const action   = searchParams.get('action');
     const format   = searchParams.get('format') || 'json';
     const stockId  = searchParams.get('stockId') ? parseInt(searchParams.get('stockId')!) : undefined;
@@ -95,14 +91,11 @@ export async function GET(request: NextRequest) {
     log.error('Reorder GET error:', error);
     return NextResponse.json({ error: error.message || 'خطأ داخلي' }, { status: 500 });
   }
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });
 
-export async function POST(request: NextRequest) {
+export const POST = withRoute(async ({ req, prisma, auth }) => {
   try {
-    const auth = getUserFromRequest(request as any);
-    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
-
-    const body   = await request.json();
+    const body   = await req.json();
     const action = body.action;
 
     // Auto-generate Purchase Order for reorder items
@@ -159,4 +152,4 @@ export async function POST(request: NextRequest) {
     log.error('Reorder POST error:', error);
     return NextResponse.json({ error: error.message || 'خطأ داخلي' }, { status: 500 });
   }
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });

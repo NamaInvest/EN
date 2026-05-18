@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRoute } from '@/lib/api/with-route';
 import { DropShipEngine } from '@/lib/dropship-engine';
 
-export async function POST(req: NextRequest) {
+export const POST = withRoute(async ({ req, prisma, auth, tenant }) => {
   const body = await req.json();
   if (body.type === 'link') {
     const link = await DropShipEngine.linkSOtoPO(body.soId, body.poId);
@@ -12,11 +13,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result });
   }
   return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });
 
-export async function GET(req: NextRequest) {
+export const GET = withRoute(async ({ req, prisma, auth, tenant }) => {
   const { searchParams } = new URL(req.url);
   const soId = Number(searchParams.get('soId'));
   const link = await DropShipEngine.getLink(soId);
   return NextResponse.json({ link });
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });

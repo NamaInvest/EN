@@ -6,12 +6,11 @@
  * GET  /api/treasury/bank-statements?id=X&export=csv — Export lines as CSV
  */
 import { NextResponse, NextRequest } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
+import { withRoute } from '@/lib/api/with-route';
 import {
   MT940Parser, CAMT053Parser, CSVBankParser,
   detectFormat, ParseResult,
 } from '@/lib/bank-statement-parser';
-import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'api.treasury.bank-statements' });
@@ -33,12 +32,10 @@ function parseContent(content: string, hint: string): ParseResult {
   });
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withRoute(async ({ req, prisma, auth }) => {
   try {
-    const auth = getUserFromRequest(request as any);
-    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const id        = searchParams.get('id')            ? parseInt(searchParams.get('id')!)            : null;
     const acctId    = searchParams.get('bankAccountId') ? parseInt(searchParams.get('bankAccountId')!) : null;
     const exportFmt = searchParams.get('export');
@@ -105,21 +102,19 @@ export async function GET(request: NextRequest) {
     log.error('Bank statement GET error:', error);
     return NextResponse.json({ error: error.message || 'خطأ داخلي' }, { status: 500 });
   }
-}
+}, { rateLimit: 'DEFAULT', tenantRequired: true });
 
-export async function POST(request: NextRequest) {
+export const POST = withRoute(async ({ req, prisma, auth }) => {
   try {
-    const auth = getUserFromRequest(request as any);
-    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-    const contentType = request.headers.get('content-type') || '';
+    const contentType = req.headers.get('content-type') || '';
     let fileContent: string;
     let fileName: string;
     let bankAccountId: number;
     let fileFormat: string = 'AUTO';
 
     if (contentType.includes('multipart/form-data')) {
-      const formData  = await request.formData();
+      const formData  = await req.formData();
       const file      = formData.get('file') as File | null;
       if (!file) return NextResponse.json({ error: 'الملف مطلوب' }, { status: 400 });
       fileContent   = await file.text();
@@ -127,7 +122,7 @@ export async function POST(request: NextRequest) {
       bankAccountId = parseInt(String(formData.get('bankAccountId') || '0'));
       fileFormat    = String(formData.get('format') || 'AUTO');
     } else {
-      const body    = await request.json();
+      const body    = await req.json();
       fileContent   = body.content || '';
       fileName      = body.fileName || 'statement.txt';
       bankAccountId = parseInt(body.bankAccountId || '0');
@@ -211,4 +206,4 @@ export async function POST(request: NextRequest) {
     log.error('Bank statement POST error:', error);
     return NextResponse.json({ error: error.message || 'فشل الاستيراد' }, { status: 500 });
   }
-}
+}, { rateLimit: 'FINANCIAL', tenantRequired: true });
