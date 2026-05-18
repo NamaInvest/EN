@@ -2,6 +2,7 @@ import { PrismaClient, JournalEntry } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { BaseService } from '../shared/base.service';
 import { BusinessContext, eventBus } from '../shared/event-bus.service';
+import { FinancialPeriodService } from './financial-period.service';
 
 export interface CreateJournalEntryInput {
   bookId?: string;
@@ -32,7 +33,8 @@ export class JournalService extends BaseService {
     this.requirePermission('accounting:journal:create');
 
     // 2. Period check
-    this.requireOpenFiscalPeriod();
+    const periodService = new FinancialPeriodService(this.db, this.ctx);
+    await periodService.requireOpenPeriod(input.date);
 
     // 3. Execute in transaction
     return await this.db.$transaction(async (tx: any) => {
@@ -99,11 +101,19 @@ export class JournalService extends BaseService {
          throw new Error('Journal entry must be in draft status to post.');
       }
 
-      // Update status
-      await tx.journalEntry.update({
-        where: { id: journalEntryId },
+      // 2. Period check
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(entry.entryDate);
+
+      // Update status with tenant isolation
+      const result = await tx.journalEntry.updateMany({
+        where: { id: journalEntryId, tenantId: this.tenantId, status: 'draft' },
         data: { status: 'posted', postedAt: new Date(), postedBy: this.ctx.user.id },
       });
+
+      if (result.count === 0) {
+        throw new Error('Failed to post journal entry. It may not exist, belong to another tenant, or is not in draft status.');
+      }
 
       // Update actual account balances (Implementation detail)
       // await this.updateAccountBalances(entry, tx);

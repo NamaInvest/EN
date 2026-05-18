@@ -12,6 +12,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'open-items-engine' });
 
@@ -60,6 +61,10 @@ export class OpenItemsEngine {
       const payment = await (tx as any).openItem.findUnique({ where: { id: paymentOpenItemId } });
       if (!payment) throw new Error(`OpenItem ${paymentOpenItemId} غير موجود`);
       if (payment.status === 'CLEARED') throw new Error('الدفعة مسوّاة بالكامل مسبقاً');
+
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, { tenant: { id: payment.tenantId } } as any);
+      await periodService.requireOpenPeriod(payment.documentDate || new Date());
 
       let remainingPayment = Number(payment.openAmount ?? payment.originalAmount);
       const results: any[] = [];
@@ -163,6 +168,10 @@ export class OpenItemsEngine {
     if (!item) throw new Error('OpenItem غير موجود');
 
     return prisma.$transaction(async tx => {
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, { tenant: { id: item.tenantId } } as any);
+      await periodService.requireOpenPeriod(new Date());
+
       const updated = await (tx as any).openItem.update({
         where: { id: openItemId },
         data:  {
@@ -203,6 +212,10 @@ export class OpenItemsEngine {
     if (app.reversedAt) throw new Error('هذا التطبيق مُعكوس مسبقاً');
 
     return prisma.$transaction(async tx => {
+      // Phase 3: Period Lock Enforcement inside transaction (Reversal)
+      const periodService = new FinancialPeriodService(tx, { tenant: { id: app.tenantId } } as any);
+      await periodService.requireOpenPeriod(new Date());
+
       // Reverse the open amounts
       await (tx as any).openItem.update({
         where: { id: app.invoiceOpenItemId },

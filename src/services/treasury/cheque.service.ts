@@ -10,6 +10,7 @@
 import { Decimal } from '@prisma/client/runtime/library';
 import type { PrismaClient } from '@prisma/client';
 import type { BusinessContext } from '@/services/shared/event-bus.service';
+import { FinancialPeriodService } from '../accounting/financial-period.service';
 
 export type ChequeType   = 'OUTGOING' | 'INCOMING';
 export type ChequeStatus = 'ISSUED' | 'DELIVERED' | 'CLEARED' | 'BOUNCED' | 'STOPPED';
@@ -30,127 +31,145 @@ export class ChequeService {
     invoiceIds?: string[];
   }) {
     const tenantId  = this.ctx.tenant.id;
-    const prisma    = this.prisma as any;
-    const amount    = new Decimal(data.amount);
+    return await this.prisma.$transaction(async (tx: any) => {
+      const prisma    = tx;
+      const amount    = new Decimal(data.amount);
 
-    const cheque = await prisma.cheque?.create?.({
-      data: {
-        tenantId,
-        type:          'OUTGOING',
-        vendorId:      data.vendorId,
-        amount,
-        dueDate:       data.dueDate,
-        bankAccountId: data.bankAccountId,
-        memo:          data.memo,
-        status:        'ISSUED' as ChequeStatus,
-        issuedAt:      new Date(),
-      },
-    }).catch(() => ({ id: `CHQ-${Date.now()}`, status: 'ISSUED' }));
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date());
 
-    // قيد: DR AP 2110 / CR Cheques Payable 2130
-    await prisma.journalEntry?.create?.({
-      data: {
-        tenantId,
-        reference:   `CHQ-ISS-${cheque.id}`,
-        description: `إصدار شيك رقم ${cheque.id} للمورد`,
-        date:        new Date(),
-        status:      'POSTED',
-        sourceType:  'CHEQUE',
-        sourceId:    String(cheque.id),
-        lines: {
-          create: [
-            { tenantId, accountCode: '2110', debit: amount,           credit: new Decimal(0), description: 'تسوية ذمم دائنة' },
-            { tenantId, accountCode: '2130', debit: new Decimal(0), credit: amount,           description: 'شيك مستحق الدفع' },
-          ],
+      const cheque = await prisma.cheque?.create?.({
+        data: {
+          tenantId,
+          type:          'OUTGOING',
+          vendorId:      data.vendorId,
+          amount,
+          dueDate:       data.dueDate,
+          bankAccountId: data.bankAccountId,
+          memo:          data.memo,
+          status:        'ISSUED' as ChequeStatus,
+          issuedAt:      new Date(),
         },
-      },
-    }).catch(() => null);
+      }).catch(() => ({ id: `CHQ-${Date.now()}`, status: 'ISSUED' }));
 
-    return { chequeId: String(cheque?.id), status: 'ISSUED', amount: data.amount };
+      // قيد: DR AP 2110 / CR Cheques Payable 2130
+      await prisma.journalEntry?.create?.({
+        data: {
+          tenantId,
+          reference:   `CHQ-ISS-${cheque.id}`,
+          description: `إصدار شيك رقم ${cheque.id} للمورد`,
+          date:        new Date(),
+          status:      'POSTED',
+          sourceType:  'CHEQUE',
+          sourceId:    String(cheque.id),
+          lines: {
+            create: [
+              { tenantId, accountCode: '2110', debit: amount,           credit: new Decimal(0), description: 'تسوية ذمم دائنة' },
+              { tenantId, accountCode: '2130', debit: new Decimal(0), credit: amount,           description: 'شيك مستحق الدفع' },
+            ],
+          },
+        },
+      }).catch(() => null);
+
+      return { chequeId: String(cheque?.id), status: 'ISSUED', amount: data.amount };
+    });
   }
 
   /** تحصيل / صرف الشيك من البنك */
   async clearCheque(chequeId: string) {
     const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
+    return await this.prisma.$transaction(async (tx: any) => {
+      const prisma   = tx;
 
-    const cheque = await prisma.cheque?.findFirst?.({
-      where: { id: chequeId, tenantId },
-      select: { id: true, amount: true, type: true, status: true },
-    }).catch(() => null);
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date());
 
-    if (!cheque || cheque.status === 'CLEARED') throw new Error('الشيك غير موجود أو محصَّل مسبقاً');
+      const cheque = await prisma.cheque?.findFirst?.({
+        where: { id: chequeId, tenantId },
+        select: { id: true, amount: true, type: true, status: true },
+      }).catch(() => null);
 
-    const amount = new Decimal(cheque.amount);
-    const isOutgoing = cheque.type === 'OUTGOING';
+      if (!cheque || cheque.status === 'CLEARED') throw new Error('الشيك غير موجود أو محصَّل مسبقاً');
 
-    // قيد التحصيل
-    await prisma.journalEntry?.create?.({
-      data: {
-        tenantId,
-        reference:   `CHQ-CLR-${chequeId}`,
-        description: `تحصيل شيك ${chequeId}`,
-        date:        new Date(),
-        status:      'POSTED',
-        sourceType:  'CHEQUE_CLEAR',
-        lines: {
-          create: isOutgoing
-            ? [
-                { tenantId, accountCode: '2130', debit: amount,           credit: new Decimal(0), description: 'إلغاء شيك مستحق الدفع' },
-                { tenantId, accountCode: '1112', debit: new Decimal(0), credit: amount,           description: 'خصم من البنك' },
-              ]
-            : [
-                { tenantId, accountCode: '1112', debit: amount,           credit: new Decimal(0), description: 'تحصيل شيك وارد' },
-                { tenantId, accountCode: '1113', debit: new Decimal(0), credit: amount,           description: 'إلغاء شيك تحت التحصيل' },
-              ],
+      const amount = new Decimal(cheque.amount);
+      const isOutgoing = cheque.type === 'OUTGOING';
+
+      // قيد التحصيل
+      await prisma.journalEntry?.create?.({
+        data: {
+          tenantId,
+          reference:   `CHQ-CLR-${chequeId}`,
+          description: `تحصيل شيك ${chequeId}`,
+          date:        new Date(),
+          status:      'POSTED',
+          sourceType:  'CHEQUE_CLEAR',
+          lines: {
+            create: isOutgoing
+              ? [
+                  { tenantId, accountCode: '2130', debit: amount,           credit: new Decimal(0), description: 'إلغاء شيك مستحق الدفع' },
+                  { tenantId, accountCode: '1112', debit: new Decimal(0), credit: amount,           description: 'خصم من البنك' },
+                ]
+              : [
+                  { tenantId, accountCode: '1112', debit: amount,           credit: new Decimal(0), description: 'تحصيل شيك وارد' },
+                  { tenantId, accountCode: '1113', debit: new Decimal(0), credit: amount,           description: 'إلغاء شيك تحت التحصيل' },
+                ],
+          },
         },
-      },
-    }).catch(() => null);
+      }).catch(() => null);
 
-    await prisma.cheque?.update?.({ where: { id: chequeId }, data: { status: 'CLEARED', clearedAt: new Date() } }).catch(() => null);
+      await prisma.cheque?.update?.({ where: { id: chequeId }, data: { status: 'CLEARED', clearedAt: new Date() } }).catch(() => null);
 
-    return { chequeId, status: 'CLEARED', amount: amount.toNumber() };
+      return { chequeId, status: 'CLEARED', amount: amount.toNumber() };
+    });
   }
 
   /** إيقاف / رفض شيك */
   async bounceCheque(chequeId: string, reason: string) {
     const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
+    return await this.prisma.$transaction(async (tx: any) => {
+      const prisma   = tx;
 
-    const cheque = await prisma.cheque?.findFirst?.({
-      where: { id: chequeId, tenantId },
-      select: { amount: true, vendorId: true, customerId: true, type: true },
-    }).catch(() => null);
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date());
 
-    if (!cheque) throw new Error(`الشيك ${chequeId} غير موجود`);
+      const cheque = await prisma.cheque?.findFirst?.({
+        where: { id: chequeId, tenantId },
+        select: { amount: true, vendorId: true, customerId: true, type: true },
+      }).catch(() => null);
 
-    const amount = new Decimal(cheque.amount);
+      if (!cheque) throw new Error(`الشيك ${chequeId} غير موجود`);
 
-    // عكس القيد الأصلي
-    await prisma.journalEntry?.create?.({
-      data: {
-        tenantId,
-        reference:   `CHQ-BNC-${chequeId}`,
-        description: `رجوع شيك ${chequeId} — ${reason}`,
-        date:        new Date(),
-        status:      'POSTED',
-        sourceType:  'CHEQUE_BOUNCE',
-        lines: {
-          create: cheque.type === 'OUTGOING'
-            ? [
-                { tenantId, accountCode: '2130', debit: amount,           credit: new Decimal(0), description: 'إلغاء شيك مستحق' },
-                { tenantId, accountCode: '2110', debit: new Decimal(0), credit: amount,           description: 'إعادة فتح ذمة المورد' },
-              ]
-            : [
-                { tenantId, accountCode: '1210', debit: amount,           credit: new Decimal(0), description: 'إعادة فتح ذمة العميل' },
-                { tenantId, accountCode: '1113', debit: new Decimal(0), credit: amount,           description: 'إلغاء شيك وارد مرجوع' },
-              ],
+      const amount = new Decimal(cheque.amount);
+
+      // عكس القيد الأصلي
+      await prisma.journalEntry?.create?.({
+        data: {
+          tenantId,
+          reference:   `CHQ-BNC-${chequeId}`,
+          description: `رجوع شيك ${chequeId} — ${reason}`,
+          date:        new Date(),
+          status:      'POSTED',
+          sourceType:  'CHEQUE_BOUNCE',
+          lines: {
+            create: cheque.type === 'OUTGOING'
+              ? [
+                  { tenantId, accountCode: '2130', debit: amount,           credit: new Decimal(0), description: 'إلغاء شيك مستحق' },
+                  { tenantId, accountCode: '2110', debit: new Decimal(0), credit: amount,           description: 'إعادة فتح ذمة المورد' },
+                ]
+              : [
+                  { tenantId, accountCode: '1210', debit: amount,           credit: new Decimal(0), description: 'إعادة فتح ذمة العميل' },
+                  { tenantId, accountCode: '1113', debit: new Decimal(0), credit: amount,           description: 'إلغاء شيك وارد مرجوع' },
+                ],
+          },
         },
-      },
-    }).catch(() => null);
+      }).catch(() => null);
 
-    await prisma.cheque?.update?.({ where: { id: chequeId }, data: { status: 'BOUNCED', bounceReason: reason, bouncedAt: new Date() } }).catch(() => null);
+      await prisma.cheque?.update?.({ where: { id: chequeId }, data: { status: 'BOUNCED', bounceReason: reason, bouncedAt: new Date() } }).catch(() => null);
 
-    return { chequeId, status: 'BOUNCED', reason };
+      return { chequeId, status: 'BOUNCED', reason };
+    });
   }
 }

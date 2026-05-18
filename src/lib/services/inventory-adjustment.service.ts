@@ -1,5 +1,6 @@
 import { InventoryTxClient } from '@/lib/db/transaction';
 import { logAuditEvent } from '@/lib/audit-trail';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 export class InventoryAdjustmentService {
     /**
@@ -15,6 +16,10 @@ export class InventoryAdjustmentService {
         if (stocktake.status === 'approved') {
             throw new Error('Already approved');
         }
+
+        // Phase 2: Period Lock Enforcement inside the transaction
+        const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+        await periodService.requireOpenPeriod(stocktake.date || new Date());
 
         let totalMatched = 0;
         let totalShort = 0;

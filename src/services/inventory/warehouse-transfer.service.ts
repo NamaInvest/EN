@@ -4,6 +4,7 @@
  */
 import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { FinancialPeriodService } from '../accounting/financial-period.service';
 
 export class WarehouseTransferService {
   constructor(private prisma: PrismaClient) {}
@@ -47,52 +48,58 @@ export class WarehouseTransferService {
    * Execute a transfer (create stock movements)
    */
   async executeTransfer(tenantId: string, transferId: number): Promise<void> {
-    const transfer = await this.prisma.stockTransfer.findFirstOrThrow({
-      where: { id: transferId, tenantId },
-      include: { details: true },
-    });
-
-    for (const detail of transfer.details) {
-      if (!detail.productId) continue;
-
-      // Outbound from source
-      await this.prisma.stockMovement.create({
-        data: {
-          tenantId,
-          productId: detail.productId,
-          stockId: transfer.fromStockId ?? 1,
-          type: 'transfer',
-          quantity: new Decimal(-Number(detail.quantity)),
-          referenceType: 'stock_transfer',
-          referenceId: transferId,
-          date: new Date(),
-        },
+    await this.prisma.$transaction(async (tx: any) => {
+      const transfer = await tx.stockTransfer.findFirstOrThrow({
+        where: { id: transferId, tenantId },
+        include: { details: true },
       });
 
-      // Inbound to destination
-      await this.prisma.stockMovement.create({
+      // Phase 2: Period Lock Enforcement inside the transaction
+      const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+      await periodService.requireOpenPeriod(new Date());
+
+      for (const detail of transfer.details) {
+        if (!detail.productId) continue;
+
+        // Outbound from source
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            productId: detail.productId,
+            stockId: transfer.fromStockId ?? 1,
+            type: 'transfer',
+            quantity: new Decimal(-Number(detail.quantity)),
+            referenceType: 'stock_transfer',
+            referenceId: transferId,
+            date: new Date(),
+          },
+        });
+
+        // Inbound to destination
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            productId: detail.productId,
+            stockId: transfer.toStockId ?? 1,
+            type: 'transfer',
+            quantity: new Decimal(Number(detail.quantity)),
+            referenceType: 'stock_transfer',
+            referenceId: transferId,
+            date: new Date(),
+          },
+        });
+      }
+
+      // StockTransfer has no status field — log completion via AuditLog
+      await tx.auditLog.create({
         data: {
           tenantId,
-          productId: detail.productId,
-          stockId: transfer.toStockId ?? 1,
-          type: 'transfer',
-          quantity: new Decimal(Number(detail.quantity)),
-          referenceType: 'stock_transfer',
-          referenceId: transferId,
-          date: new Date(),
+          action: 'UPDATE',
+          tableName: 'stock_transfers',
+          recordId: String(transferId),
+          details: JSON.stringify({ executedAt: new Date(), itemCount: transfer.details.length }),
         },
       });
-    }
-
-    // StockTransfer has no status field — log completion via AuditLog
-    await this.prisma.auditLog.create({
-      data: {
-        tenantId,
-        action: 'UPDATE',
-        tableName: 'stock_transfers',
-        recordId: String(transferId),
-        details: JSON.stringify({ executedAt: new Date(), itemCount: transfer.details.length }),
-      },
     });
   }
 

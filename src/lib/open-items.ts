@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { prisma } from './prisma';
-import { logger } from '@/lib/logger';
 import { createJournalEntry, ACCOUNTS } from '@/lib/auto-journal';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'open-items' });
 
@@ -55,6 +55,10 @@ export class OpenItemsEngine {
         return prisma.$transaction(async (tx) => {
             const payment = await tx.openItem.findFirst({ where: { id: paymentOpenItemId, tenantId }});
             if (!payment || payment.openAmount <= 0) throw new Error("Invalid payment");
+
+            // Phase 3: Period Lock Enforcement inside transaction
+            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+            await periodService.requireOpenPeriod(payment.documentDate || new Date());
 
             let remainingPaymentAmount = Number(payment.originalOpenAmount);
             const appliedList = [];

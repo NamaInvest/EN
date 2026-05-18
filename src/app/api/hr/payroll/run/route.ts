@@ -9,6 +9,7 @@ import { runFinancialTx } from '@/lib/db/transaction';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
 import { OutboxService } from '@/lib/services/outbox.service';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'hr.payroll.run' });
 
@@ -116,6 +117,11 @@ async function _POST(req: Request, auth: any) {
         });
 
         await runFinancialTx(prisma, async (tx: any) => {
+            // Phase 4: Period Lock Enforcement inside transaction
+            const payrollDate = new Date(year, month, 0); // Last day of the payroll month
+            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+            await periodService.requireOpenPeriod(payrollDate);
+
             const txExisting = await tx.salary.findFirst({ where: { tenantId, month, year } });
             if (txExisting) {
                 throw new Error('تم إصدار مسير الرواتب لهذا الشهر مسبقاً.');
@@ -130,7 +136,7 @@ async function _POST(req: Request, auth: any) {
                 data: {
                     tenantId,
                     reference: `PAYROLL-${year}-${month}`,
-                    date: new Date(),
+                    date: payrollDate,
                     description: `استحقاق مسير رواتب شهر ${month} لسنة ${year}`,
                     status: 'POSTED',
                     jeNo

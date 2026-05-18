@@ -1,27 +1,52 @@
-# Enterprise Upgrade Roadmap
+# ENTERPRISE UPGRADE ROADMAP
 
-## PHASE 1: Critical Protections & Isolation (Months 1-2)
-- **PostgreSQL Row-Level Security (RLS)**: Enforce `tenantId` at the database level to mathematically eliminate cross-tenant data leaks.
-- **Strict Rate Limiting**: Implement Redis-based rate limiting per tenant/IP to prevent noisy neighbor problems.
-- **Database Connection Pooling**: Migrate to PgBouncer or Prisma Accelerate to handle 800+ API concurrent connections gracefully.
+## Overview
+Based on the `ERP_GAP_ANALYSIS.md`, this roadmap defines the modernization phases required to elevate Nama Invest ERP to a Tier-1 SaaS Enterprise platform.
 
-## PHASE 2: Financial Hardening (Months 2-3)
-- **The Outbox Pattern**: Remove all external API calls (e.g., ZATCA) from inside `runFinancialTx`. Write to an `OutboxEvent` table instead, and process asynchronously.
-- **Optimistic Locking**: Add `@updatedAt` / `version` fields to `ProductStock` and `CustomerBalance` to prevent race conditions during concurrent POS sales.
-- **Immutable Ledger Enforcement**: Hard database triggers preventing `DELETE` or `UPDATE` on `JournalEntry` once posted.
+---
 
-## PHASE 3: Event-Driven & Scalability (Months 3-4)
-- **Background Job Queue (BullMQ/Redis)**: Offload PDF generation, Statement generation, and ZATCA reporting to background workers.
-- **Dead-Letter Queues**: Automatic retry strategies for failed webhooks and integrations.
-- **Caching Layer**: Redis caching for `Categories`, `Products` (read-heavy), and `Permissions`.
+### PHASE 1 — Critical Protections (Immediate Priority)
+**Goal**: Lock down financial boundaries and protect against noisy neighbors.
+1. **Accounting Period Locks**:
+   - Implement `PeriodLock` schema.
+   - Enforce check in `runFinancialTx`.
+2. **API Rate Limiting**:
+   - Implement Redis-based rate limiting in Next.js middleware.
+   - Separate limits for `GET` vs `POST/PUT`.
 
-## PHASE 4: Enterprise Workflows (Months 4-5)
-- **Dynamic Approval Engine**: Configurable n-level approvals for PRs, POs, and GL Adjustments.
-- **Document Versioning**: Track changes to Sales Orders and Purchase Orders (e.g., PO-1001-v1, PO-1001-v2).
-- **Audit Pipeline**: Stream audit logs to a cold-storage analytical database (ClickHouse/Elasticsearch) to keep the transactional DB lean.
+### PHASE 2 — Financial Hardening & Approvals
+**Goal**: Implement separation of duties.
+1. **Maker-Checker Workflows**:
+   - Create generic `ApprovalWorkflow` engine.
+   - Integrate with High-Value Purchase Orders and Manual Journal Entries.
+2. **Granular Audit Trails**:
+   - Deploy Prisma Extension for field-level delta logging (CDC).
 
-## PHASE 5: Observability & Monitoring (Month 6)
-- **Centralized APM**: Datadog or Sentry APM for tracing slow Prisma queries.
-- **Business Dashboards**: Real-time observability of ZATCA failure rates, failed logins, and sync conflicts.
+### PHASE 3 — Scalability Improvements
+**Goal**: Reduce OLTP database load.
+1. **Master Data Caching**:
+   - Cache Tenant Settings, Tax Regimes, and Pricing Rules in Redis.
+   - Implement cache invalidation on save.
+2. **Read-Replica Routing**:
+   - Direct all heavy reporting endpoints (`/api/reports/**`) to a read-replica database connection.
 
-*Implementation of this roadmap will position Nama Invest ERP alongside tier-1 SaaS providers in terms of reliability, security, and scale.*
+### PHASE 4 — Enterprise Workflows
+**Goal**: Automate cross-module coordination.
+1. **Automated Dunning & Collections**:
+   - Background workers to evaluate overdue AR and dispatch email/SMS reminders automatically.
+2. **Advanced Inventory Allocations**:
+   - Implement Soft vs Hard stock reservations for e-commerce/POS integrations.
+
+### PHASE 5 — Observability & Monitoring
+**Goal**: Proactive failure detection.
+1. **Dead-Letter Queue (DLQ) Management**:
+   - Build an Admin UI to inspect, edit, and requeue `FAILED` Outbox events.
+2. **Application Performance Monitoring (APM)**:
+   - Integrate Datadog or Sentry for slow-query tracking and trace correlation across background workers.
+
+### PHASE 6 — Advanced ERP Architecture (Long-term)
+**Goal**: Future-proof the data layer.
+1. **CQRS / Event Sourcing**:
+   - Separate the write models from complex read models entirely.
+2. **Micro-Frontend / Module Splitting**:
+   - If the codebase grows beyond Next.js limits, explore module federation for Medical vs Manufacturing vs Core Accounting.

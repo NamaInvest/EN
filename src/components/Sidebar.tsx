@@ -930,6 +930,7 @@ const menuItems = [
     { icon: '🧪', lk: 'i.e2e_tester', href: '/admin/e2e-tester', module: 'admin' },
     { icon: '⚖️', lk: 'i.audit_grc', href: '/admin/grc', module: 'audit_logs' },
     { icon: '⚡', lk: 'i.v2_orchestration', href: '/admin/orchestration', module: 'settings' },
+    { icon: 'OB', lk: 'Outbox Diagnostics', href: '/admin/outbox', module: 'settings' },
     { icon: '🛡️', lk: 'i.compliance_matrix', href: '/admin/compliance', module: 'settings' },
     { icon: '🔧', lk: 'i.support', href: '/maintenance', module: 'maintenance' },
     { icon: '💓', lk: 'i.sys_health', href: '/sys/health', module: 'maintenance' },

@@ -2,6 +2,7 @@ import { PrismaClient, SalesInvoice } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { BaseService } from '../shared/base.service';
 import { BusinessContext, eventBus } from '../shared/event-bus.service';
+import { FinancialPeriodService } from '../accounting/financial-period.service';
 
 export interface CreateInvoiceInput {
   customerId?: string;
@@ -41,6 +42,10 @@ export class SalesInvoiceService extends BaseService {
 
     // 3. Execute in transaction
     return await this.db.$transaction(async (tx: any) => {
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(input.date);
+
       // 4. Calculate totals
       const totals = this.calculateTotals(input.items);
 
@@ -93,6 +98,10 @@ export class SalesInvoiceService extends BaseService {
       if (invoice.status !== 'draft') {
          throw new Error('Invoice must be in draft status to post.');
       }
+
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(invoice.date);
 
       // Update
       await tx.salesInvoice.update({

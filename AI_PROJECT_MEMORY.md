@@ -1,142 +1,53 @@
-# AI Project Memory
+# AI PROJECT MEMORY
+*Nama Invest ERP - Master Technical Knowledge Base*
+*Last Update: 2026-05-18*
 
-## Stabilization Completion Snapshot
-**Date:** 2026-05-17
-**Last Commit Hash:** `ded1350cbf9972ceedc71db2e76d419ec8938e29`
+## Welcome, AI Agent
+You are operating within **Nama Invest ERP**, a massive multi-tenant, financially critical enterprise system built on Next.js, Prisma, and PostgreSQL. 
+This file is the **Root Memory**. It serves as your index and operating manual.
 
-### قائمة Commits المنجزة (Stabilization Phase)
-1. `docs: update enterprise governance roadmap`
-2. `governance: enhance tenant isolation and middlewares`
-3. `phase reliability add outbox relay infrastructure`
-4. `manufacturing harden inventory transaction boundaries`
-5. `hr assets enforce financial atomicity and idempotency`
-6. `financial core enforce atomic posting boundaries`
-7. `integrations enforce transactional consistency`
-8. `schema package add outbox infrastructure setup`
+**MANDATORY RULE**: Do NOT rely on guessing. Do NOT rely on standard CRUD patterns. This system has highly specialized, strictly enforced rules regarding financial atomicity, tenant isolation, and asynchronous event processing. 
 
-### الحالة الحالية للنظام
-- TypeScript Zero-Error ✅
-- Working Tree Clean ✅
-- لا توجد `prisma.$transaction` مكشوفة ✅
-- `OutboxEvent` موجود في Schema ✅
-- `db:setup` يشغل سكربت `setup-db-triggers` تلقائياً ✅
+### How to use this Memory System
+Before modifying any code, you MUST perform a **DEEP SCAN LEVEL 3**:
+1. Read the relevant links below based on the user's request.
+2. Formulate a safe, transactional execution plan.
+3. Treat all previously stabilized phases (Treasury, Sales/Purchase Returns, FX Gains, ZATCA Phase 2, Pharmacy Outbox, **Financial Period Lock Architecture Phase 1-4**) as **Baseline Stable**. Do not propose rewrites for them unless a true regression is found (Incremental Consistency Audit Mode).
 
-### القاعدة الجديدة والمستمرة للنظام
-أي مرحلة قادمة (مثل Phase 3.1.4 وما بعدها) يجب أن تحافظ بصرامة على:
-- No exposed `prisma.$transaction`.
-- All mutations through domain tx wrappers (`runFinancialTx`, `runInventoryTx`, etc.).
-- No financial posting outside tx.
-- Tenant isolation enforced strictly.
-- Idempotency implemented for all external integrations.
+---
 
-## HR Tenant Isolation Completion Snapshot
-**Date:** 2026-05-17
-**Last Commit Hash:** `cdb1d5bc`
+## 📚 Project Brain Index
+All detailed documentation resides in `docs/ai-brain/`. Read these files when touching their respective domains:
 
-### حالة قطاع الموارد البشرية (HR Status)
-- قطاع HR بالكامل مغلق ومؤمن (Strict Tenant Isolation) ✅
-- TypeScript Zero-Error ✅
-- Working Tree Clean ✅
-- لا يوجد `body/query tenantId` (استبعاد الطرق غير الآمنة) ✅
-- لا يوجد `tenantId default/1` (تطبيق صارم لهوية المستأجر) ✅
-- لا يوجد `prisma.$transaction` مكشوف ومباشر ✅
-- جميع HR routes تستخدم `requireTenantId` بنجاح ✅
+### Core Architecture
+- [PROJECT_BRAIN.md](./docs/ai-brain/PROJECT_BRAIN.md) - Executive overview and critical risks.
+- [SYSTEM_MAP.md](./docs/ai-brain/SYSTEM_MAP.md) - Folder structure, entry points, and runtime flow.
+- [DOMAIN_MAP.md](./docs/ai-brain/DOMAIN_MAP.md) - Complete list of business domains (Accounting, Pharmacy, Manufacturing, etc.).
+- [DATABASE_MAP.md](./docs/ai-brain/DATABASE_MAP.md) - Prisma ORM patterns, relations, and strict isolation rules.
+- [API_MAP.md](./docs/ai-brain/API_MAP.md) - Next.js App Router rules and `requireTenantId` guardrails.
+- [WORKFLOWS.md](./docs/ai-brain/WORKFLOWS.md) - Step-by-step guides for Outbox, Inventory, and Financial workflows.
 
-### أهم المخاطر التي أُغلقت:
-- Payroll race condition
-- Double payroll run
-- GOSI runtime error
-- Expense reports atomicity
-- Mudad tenant isolation
-- HR engines tenant leakage
+### Security, Integrity, & Operations
+- [SECURITY_AND_TENANT_ISOLATION.md](./docs/ai-brain/SECURITY_AND_TENANT_ISOLATION.md) - The inviolable rules of `tenantId` checking and RBAC.
+- [FINANCIAL_INTEGRITY.md](./docs/ai-brain/FINANCIAL_INTEGRITY.md) - Rules for `runFinancialTx`, double-entry balancing, and ledger immutability.
+- [INTEGRATIONS.md](./docs/ai-brain/INTEGRATIONS.md) - ZATCA, BullMQ background jobs, and Desktop Sync.
+- [ENVIRONMENT_AND_CONFIG.md](./docs/ai-brain/ENVIRONMENT_AND_CONFIG.md) - Environment variables and secrets handling.
+- [TESTING_STRATEGY.md](./docs/ai-brain/TESTING_STRATEGY.md) - Testing requirements and Baseline Stable features.
+- [PERFORMANCE_AND_SCALING.md](./docs/ai-brain/PERFORMANCE_AND_SCALING.md) - Bottlenecks and Redis caching strategy.
 
-## Phase 3.1.4: Outbox Integration Snapshot
-**Date:** 2026-05-17
-**Last Commit Hash:** `4dd8b39d`
+### Auditing & Future Work
+- [ERP_GAP_ANALYSIS.md](./docs/ai-brain/ERP_GAP_ANALYSIS.md) - Architectural benchmarking against Tier-1 enterprise systems.
+- [ENTERPRISE_UPGRADE_ROADMAP.md](./docs/ai-brain/ENTERPRISE_UPGRADE_ROADMAP.md) - The strategic modernization phases.
+- [KNOWN_RISKS_AND_TECH_DEBT.md](./docs/ai-brain/KNOWN_RISKS_AND_TECH_DEBT.md) - Unstable areas and dangerous patterns.
+- [OPEN_QUESTIONS.md](./docs/ai-brain/OPEN_QUESTIONS.md) - Ambiguities requiring human clarification.
 
-### قائمة Commits المنجزة
-- Schema: `1c89d825`
-- Worker: `3cdb89b0`
-- Helper: `92716c4a`
-- Payroll Integration: `4dd8b39d`
+### Governance
+- [AI_AGENT_RULES.md](./docs/ai-brain/AI_AGENT_RULES.md) - The absolute laws you must follow.
+- [CHANGELOG_AI_BRAIN.md](./docs/ai-brain/CHANGELOG_AI_BRAIN.md) - History of this documentation.
 
-### تفاصيل البنية الآمنة المكتملة
-- حقل `tenantId` إلزامي تماماً في `OutboxEvent` (تم إزالة `default`).
-- خاصية `idempotencyKey` مدعومة لتأمين Event-Idempotency.
-- الـ Relay Worker أصبح `tenant-aware` (ينقل هوية المستأجر داخل الـ Queue Payload).
-- تم تفعيل نظام الإعادة (Retry Logic) بحد أقصى `MAX_ATTEMPTS = 5`.
-- نظام الرواتب (`Payroll`) يولد بنجاح حدث `HR_PAYROLL_RUN_COMPLETED` **داخل نفس `runFinancialTx`**.
+---
 
-### القاعدة الجديدة الخاصة بالـ Outbox:
-أي حدث (OutboxEvent) مستقبلي **يجب أن يُنشأ فقط** داخل نفس معاملة قاعدة البيانات (Domain Transaction) عبر تمرير `tx` لـ `OutboxService.emit`.
-
-## Manufacturing Outbox Integration Snapshot
-**Date:** 2026-05-17
-**Last Commit Hash:** `29f66b0a`
-
-### Manufacturing Outbox Integration completed
-1. **Commits:**
-   - Service events: `6fcbf6b7`
-   - Scrap route: `b2686726`
-   - Production route: `be7e525f`
-   - Consumption route: `29f66b0a`
-
-2. **الأحداث المدعومة:**
-   - `MANUFACTURING_CONSUMPTION_POSTED`
-   - `MANUFACTURING_PRODUCTION_POSTED`
-   - `MANUFACTURING_SCRAP_POSTED`
-
-3. **القاعدة المعمارية:**
-   - كل `OutboxEvent` في قطاع الـ Manufacturing يُنشأ **فقط** داخل `ManufacturingService` وداخل معاملة الجرد (`runInventoryTx`).
-   - ممنوع على الـ `routes` إنشاء `OutboxEvent` بشكل مباشر.
-   - الـ `idempotencyKey` يمر من Header إن وجد، أو يُبنى بشكل `deterministic` عند غيابه (مثل `tenantId + orderId + qty`).
-
-## Final Closure Snapshot: Phase 3.1.4
-**Date:** 2026-05-17
-**Status:** CLOSED
-
-### إغلاق Phase 3.1.4 بالكامل
-تم إغلاق المرحلة رسمياً بعد التأكد من اكتمال واستقرار قطاعات HR و Manufacturing من حيث تناسق البيانات، عزل المستأجرين (Tenant Isolation)، والـ Outbox Integration.
-
-### HR Outbox Commits:
-- `1c89d825`
-- `3cdb89b0`
-- `92716c4a`
-- `4dd8b39d`
-- `101749c0`
-
-### Manufacturing Outbox Commits:
-- `6fcbf6b7`
-- `b2686726`
-- `be7e525f`
-- `29f66b0a`
-- `8ee9568b`
-
-### الحالة النهائية:
-- **Zero-Error TypeScript** ✅
-- **Clean Working Tree** ✅
-- **Tenant Isolation enforced** ✅
-- **No exposed prisma.$transaction** ✅
-- **Outbox transactional guarantees active** ✅
-- **Retry + idempotency active** ✅
-- **HR and Manufacturing routes fully service-driven for critical inventory/payroll flows** ✅
-
-### TODO للمرحلة القادمة:
-- [x] **Phase 3.2: Pharmacy Secure Outbox Payloads** (يتطلب تصميم payload آمن وممتثل لمعايير PII/HIPAA بسبب حساسية البيانات الطبية).
-
-## Phase 3.2: Pharmacy Secure Outbox Payloads Snapshot
-**Date:** 2026-05-18
-**Status:** CLOSED
-
-### إغلاق Phase 3.2 بالكامل
-تم إنجاز نظام Outbox Reliability وتطبيقه على قطاع الصيدلية (Pharmacy Dispensing) بشكل يضمن سلامة البيانات الصحية والأتمتة التامة بدون التأثير على Business Logic الأساسي.
-
-### Pharmacy & Outbox Reliability Commits:
-- **Commit 1 (`7b354404`):** Pharmacy Payload Sanitizer (PII/PHI Guard).
-- **Commit 2 (`b7635b16`):** Pharmacy Dispense Outbox Event (`PHARMACY_PRESCRIPTION_DISPENSED`) inside `runInventoryTx`.
-- **Commit 3 (`1f560f44`):** Outbox Relay Worker Hardening (Atomic Lock + Exponential Retry + PII fail-fast Guard).
-
-### تفاصيل البنية الآمنة:
-1. **Concurrency Control:** استخدام `updateMany` بحالة `status: PROCESSING` كقفل ذري لمنع Double Processing عبر عدة عمال (Workers).
-2. **Fail-Fast PII/PHI Guard:** العامل (`outbox-relay.worker.ts`) مزود بصمام أمان يرفض أي payload لقطاع الصيدلية يحتوي على أسماء، هويات، أو معلومات طبيب، ويجهض الإرسال للـ Redis قبل وقوع التسريب (HIPAA compliance).
-3. **Idempotency & Retry-safe:** العامل يتعامل بفاعلية مع الحدث، وإذا فشل لسبب خارجي يقوم بعمل Retry بحد أقصى 5 محاولات.
+## 🔄 The Permanent Documentation Rule
+**This is the most critical instruction for your operation:**
+After ANY implementation task, you must automatically update THIS FILE (`/AI_PROJECT_MEMORY.md`) and any relevant files inside `/docs/ai-brain/` to reflect the changes you made. 
+**The Project Brain must NEVER become outdated.**

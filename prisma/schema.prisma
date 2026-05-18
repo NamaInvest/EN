@@ -11358,22 +11358,29 @@ model EncryptedField {
 
 /// إقفال الفترات المحاسبية — Period Lock
 /// يُتتبع حالة الفترة: OPEN | LOCKED | TEMP_UNLOCKED
-model PeriodLock {
-  id         Int       @id @default(autoincrement())
-  tenantId   String    @map("tenant_id")
-  period     String // YYYY-MM
-  status     String    @default("OPEN") // OPEN | LOCKED | TEMP_UNLOCKED
-  lockedBy   String?   @map("locked_by")
-  lockedAt   DateTime? @map("locked_at")
-  unlockedBy String?   @map("unlocked_by")
-  unlockedAt DateTime? @map("unlocked_at")
-  reason     String?
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
+enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
 
-  @@unique([tenantId, period], name: "tenantId_period")
+/// إقفال الفترات المحاسبية — Financial Period Lock
+model FinancialPeriod {
+  id         Int                   @id @default(autoincrement())
+  tenantId   String                @map("tenant_id")
+  period     String                // YYYY-MM
+  status     FinancialPeriodStatus @default(OPEN)
+  lockedBy   String?               @map("locked_by")
+  lockedAt   DateTime?             @map("locked_at")
+  reopenedBy String?               @map("reopened_by")
+  reopenedAt DateTime?             @map("reopened_at")
+  reason     String?
+  createdAt  DateTime              @default(now()) @map("created_at")
+  updatedAt  DateTime              @updatedAt @map("updated_at")
+
+  @@unique([tenantId, period])
   @@index([tenantId, status])
-  @@map("period_locks")
+  @@map("financial_periods")
 }
 
 /// مصاريف مستحقة ومدفوعات مقدماً — Accruals & Prepayments

@@ -1,47 +1,4 @@
-# Database Map
-
-# Project Brain
-
-Generated: 2026-05-18 02:34:44 +03:00
-
-Scan facts:
-- API routes: 850
-- Prisma models: 609
-- Prisma enums: 2
-- Pages: 492
-- Tests: 83
-- Graphify files: 4576
-- Graphify words: 6562824
-- Sensitive skipped by graphify: 14
-- graph.html: 27.75 MB, updated 05/18/2026 02:21:51
-- graph.json: 29.84 MB, updated 05/18/2026 02:21:48
-
-## Executive Overview
-
-Nama Invest / 
-amaweb is a large Multi-Tenant SaaS ERP + POS + Electron Desktop + PWA repository. The stack detected from code/config includes Next.js, React, Prisma, PostgreSQL, TypeScript, Electron, Redis/BullMQ patterns, Sentry, Zod, and Saudi compliance/ZATCA modules.
-
-## Schema Source
-
-- Main schema: prisma/schema.prisma
-- Generated complete model inventory: [_PRISMA_MODEL_INVENTORY.md](./_PRISMA_MODEL_INVENTORY.md)
-
-## What Is Documented
-
-The generated inventory lists every detected Prisma model with:
-
-- field count
-- tenantId presence
-- status-like fields
-- Decimal/financial precision fields
-- relation count
-- unique/index directive counts
-- @@map table name when present
-- static risk flags
-
-## Model Inventory
-
-| Model | Fields | tenantId | Status fields | Decimal fields | Relations | Unique | Indexes | Map | Risks |
+﻿| Model | Fields | tenantId | Status fields | Decimal fields | Relations | Unique | Indexes | Map | Risks |
 |---|---:|---|---|---:|---:|---:|---:|---|---|
 | $name | 60 | NO | - | 0 | 11 | 1 | 0 | $mapValue | no tenantId or system/master model; high relation coupling |
 | $name | 11 | YES | - | 0 | 1 | 0 | 2 | $mapValue | - |
@@ -652,19 +609,3 @@ The generated inventory lists every detected Prisma model with:
 | $name | 5 | NO | - | 0 | 0 | 1 | 0 | $mapValue | no tenantId or system/master model |
 | $name | 12 | YES | status | 0 | 0 | 1 | 0 | $mapValue | - |
 | $name | 12 | YES | status | 0 | 0 | 1 | 1 | $mapValue | - |
-
-## Relationship Notes
-
-Relationships are identified through Prisma @relation counts in the inventory. Exact semantic relationship behavior must be checked in prisma/schema.prisma before changing relations, deletes, cascades, or migrations.
-
-## Tenant Fields
-
-Models with 	enantId = YES are tenant-scoped candidates. Models without 	enantId may be system/master tables or may require review; this brain does not assume either without code confirmation.
-
-## Financial Fields
-
-Models with Decimal fields are flagged because financial precision and rounding require special review.
-
-## Missing Constraints / Risky Schemas
-
-UNKNOWN until each model is reviewed with production requirements. Use the risk column as the starting point.

@@ -16,6 +16,7 @@
 import { Decimal } from '@prisma/client/runtime/library';
 import type { PrismaClient } from '@prisma/client';
 import type { BusinessContext } from '@/services/shared/event-bus.service';
+import { FinancialPeriodService } from '../accounting/financial-period.service';
 
 export interface PrLine {
   itemId: string;
@@ -125,134 +126,146 @@ export class ProcureToPayService {
     deliveryDate?: Date,
   ) {
     const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
+    return await this.prisma.$transaction(async (tx: any) => {
+      const prisma   = tx;
 
-    const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
-    const taxTotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice * (l.taxRate ?? 0.15), 0);
-    const total    = subtotal + taxTotal;
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date()); // orderDate is effectively now
 
-    const po = await prisma.purchaseOrder?.create?.({
-      data: {
-        tenantId,
-        prId,
-        vendorId,
-        status:       'CONFIRMED',
-        orderDate:    new Date(),
-        deliveryDate: deliveryDate ?? new Date(Date.now() + 14 * 86_400_000),
-        subtotal:     new Decimal(subtotal),
-        taxTotal:     new Decimal(taxTotal),
-        total:        new Decimal(total),
-        lines: {
-          create: lines.map(l => ({
-            tenantId,
-            itemId:     l.itemId,
-            quantity:   l.quantity,
-            unitPrice:  l.unitPrice,
-            taxRate:    l.taxRate ?? 0.15,
-            lineTotal:  l.quantity * l.unitPrice,
-          })),
+      const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+      const taxTotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice * (l.taxRate ?? 0.15), 0);
+      const total    = subtotal + taxTotal;
+
+      const po = await prisma.purchaseOrder?.create?.({
+        data: {
+          tenantId,
+          prId,
+          vendorId,
+          status:       'CONFIRMED',
+          orderDate:    new Date(),
+          deliveryDate: deliveryDate ?? new Date(Date.now() + 14 * 86_400_000),
+          subtotal:     new Decimal(subtotal),
+          taxTotal:     new Decimal(taxTotal),
+          total:        new Decimal(total),
+          lines: {
+            create: lines.map((l: any) => ({
+              tenantId,
+              itemId:     l.itemId,
+              quantity:   l.quantity,
+              unitPrice:  l.unitPrice,
+              taxRate:    l.taxRate ?? 0.15,
+              lineTotal:  l.quantity * l.unitPrice,
+            })),
+          },
         },
-      },
-    }).catch(() => ({
-      id: `PO-${Date.now()}`,
-      prId, vendorId, status: 'CONFIRMED', total,
-    }));
+      }).catch(() => ({
+        id: `PO-${Date.now()}`,
+        prId, vendorId, status: 'CONFIRMED', total,
+      }));
 
-    // قيد GR/IR مؤقت: DR Inventory Accrual / CR GR/IR 2150
-    await prisma.journalEntry?.create?.({
-      data: {
-        tenantId,
-        reference:   `PO-COMMIT-${po.id}`,
-        description: `التزام أمر شراء — ${po.id}`,
-        date:        new Date(),
-        status:      'POSTED',
-        sourceType:  'PURCHASE_ORDER',
-        sourceId:    String(po.id),
-        lines: {
-          create: [
-            { tenantId, accountCode: '1350', debit: new Decimal(subtotal), credit: new Decimal(0), description: 'دفعات مقدمة للموردين (Commitment)' },
-            { tenantId, accountCode: '2150', debit: new Decimal(0), credit: new Decimal(subtotal), description: 'GR/IR مؤقت' },
-          ],
+      // قيد GR/IR مؤقت: DR Inventory Accrual / CR GR/IR 2150
+      await prisma.journalEntry?.create?.({
+        data: {
+          tenantId,
+          reference:   `PO-COMMIT-${po.id}`,
+          description: `التزام أمر شراء — ${po.id}`,
+          date:        new Date(),
+          status:      'POSTED',
+          sourceType:  'PURCHASE_ORDER',
+          sourceId:    String(po.id),
+          lines: {
+            create: [
+              { tenantId, accountCode: '1350', debit: new Decimal(subtotal), credit: new Decimal(0), description: 'دفعات مقدمة للموردين (Commitment)' },
+              { tenantId, accountCode: '2150', debit: new Decimal(0), credit: new Decimal(subtotal), description: 'GR/IR مؤقت' },
+            ],
+          },
         },
-      },
-    }).catch(() => null);
+      }).catch(() => null);
 
-    return po;
+      return po;
+    });
   }
 
   // ─── 4. استلام البضاعة (GRN) ────────────────────────────────────────────
 
   async receiveGoods(poId: string, lines: GrnLine[]) {
     const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
+    return await this.prisma.$transaction(async (tx: any) => {
+      const prisma   = tx;
 
-    const po = await prisma.purchaseOrder?.findFirst?.({
-      where: { id: poId, tenantId },
-      include: { lines: true },
-    }).catch(() => null);
+      // Phase 3: Period Lock Enforcement inside transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date());
 
-    const grn = await prisma.goodsReceipt?.create?.({
-      data: {
-        tenantId,
-        poId,
-        receivedAt: new Date(),
-        status:     'RECEIVED',
-        lines: {
-          create: lines.map(l => ({
-            tenantId,
-            poLineId:         l.poLineId,
-            itemId:           l.itemId,
-            quantityReceived: l.quantityReceived,
-            lotNumber:        l.lotNumber,
-            expiryDate:       l.expiryDate,
-            locationId:       l.locationId,
-          })),
-        },
-      },
-    }).catch(() => ({ id: `GRN-${Date.now()}`, poId, status: 'RECEIVED' }));
-
-    // تحديث المخزون
-    for (const line of lines) {
-      await prisma.inventoryMovement?.create?.({
-        data: {
-          tenantId,
-          itemId:    line.itemId,
-          type:      'GRN_RECEIPT',
-          quantity:  line.quantityReceived,
-          reference: String(grn.id),
-          locationId: line.locationId,
-          date:      new Date(),
-        },
+      const po = await prisma.purchaseOrder?.findFirst?.({
+        where: { id: poId, tenantId },
+        include: { lines: true },
       }).catch(() => null);
-    }
 
-    // قيد: DR مخزون 1310 / CR GR/IR 2150 (تصفية الـ Accrual)
-    if (po) {
-      const receivedValue = lines.reduce((s, l) => {
-        const poLine = po.lines?.find((pl: any) => pl.itemId === l.itemId);
-        return s + l.quantityReceived * (poLine?.unitPrice ?? 0);
-      }, 0);
-
-      await prisma.journalEntry?.create?.({
+      const grn = await prisma.goodsReceipt?.create?.({
         data: {
           tenantId,
-          reference:   `GRN-${grn.id}`,
-          description: `استلام بضاعة — ${grn.id}`,
-          date:        new Date(),
-          status:      'POSTED',
-          sourceType:  'GRN',
-          sourceId:    String(grn.id),
+          poId,
+          receivedAt: new Date(),
+          status:     'RECEIVED',
           lines: {
-            create: [
-              { tenantId, accountCode: '1310', debit: new Decimal(receivedValue), credit: new Decimal(0), description: 'مخزون وارد' },
-              { tenantId, accountCode: '2150', debit: new Decimal(0), credit: new Decimal(receivedValue), description: 'تصفية GR/IR' },
-            ],
+            create: lines.map((l: any) => ({
+              tenantId,
+              poLineId:         l.poLineId,
+              itemId:           l.itemId,
+              quantityReceived: l.quantityReceived,
+              lotNumber:        l.lotNumber,
+              expiryDate:       l.expiryDate,
+              locationId:       l.locationId,
+            })),
           },
         },
-      }).catch(() => null);
-    }
+      }).catch(() => ({ id: `GRN-${Date.now()}`, poId, status: 'RECEIVED' }));
 
-    return grn;
+      // تحديث المخزون
+      for (const line of lines) {
+        await prisma.inventoryMovement?.create?.({
+          data: {
+            tenantId,
+            itemId:    line.itemId,
+            type:      'GRN_RECEIPT',
+            quantity:  line.quantityReceived,
+            reference: String(grn.id),
+            locationId: line.locationId,
+            date:      new Date(),
+          },
+        }).catch(() => null);
+      }
+
+      // قيد: DR مخزون 1310 / CR GR/IR 2150 (تصفية الـ Accrual)
+      if (po) {
+        const receivedValue = lines.reduce((s, l) => {
+          const poLine = po.lines?.find((pl: any) => pl.itemId === l.itemId);
+          return s + l.quantityReceived * (poLine?.unitPrice ?? 0);
+        }, 0);
+
+        await prisma.journalEntry?.create?.({
+          data: {
+            tenantId,
+            reference:   `GRN-${grn.id}`,
+            description: `استلام بضاعة — ${grn.id}`,
+            date:        new Date(),
+            status:      'POSTED',
+            sourceType:  'GRN',
+            sourceId:    String(grn.id),
+            lines: {
+              create: [
+                { tenantId, accountCode: '1310', debit: new Decimal(receivedValue), credit: new Decimal(0), description: 'مخزون وارد' },
+                { tenantId, accountCode: '2150', debit: new Decimal(0), credit: new Decimal(receivedValue), description: 'تصفية GR/IR' },
+              ],
+            },
+          },
+        }).catch(() => null);
+      }
+
+      return grn;
+    });
   }
 
   // ─── 5. 3-Way Match ─────────────────────────────────────────────────────

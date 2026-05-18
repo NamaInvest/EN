@@ -67,10 +67,10 @@ const CHECKLIST_TASKS: Omit<ChecklistTask, 'status'>[] = [
 export class YearEndCloseEngine {
 
   // ── 1. Validate Readiness ────────────────────────────────────────────────────
-  static async validateYearReadiness(prisma: PrismaClient, fiscalYearId: number): Promise<YearEndValidation> {
+  static async validateYearReadiness(prisma: PrismaClient, tenantId: string, fiscalYearId: number): Promise<YearEndValidation> {
     const errors: string[] = [];
 
-    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId }, include: { periods: true } });
+    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId, tenantId }, include: { periods: true } });
     if (!year) { errors.push('السنة المالية غير موجودة'); return { ready: false, errors }; }
     if (year.status === 'LOCKED') { errors.push('السنة مقفلة بالفعل'); return { ready: false, errors }; }
 
@@ -82,13 +82,13 @@ export class YearEndCloseEngine {
 
     // No draft journal entries
     const draftJEs = await prisma.journalEntry.count({
-      where: { status: 'draft', entryDate: { gte: year.startDate, lte: year.endDate } },
+      where: { tenantId, status: 'draft', entryDate: { gte: year.startDate, lte: year.endDate } },
     });
     if (draftJEs > 0) errors.push(`${draftJEs} قيد/قيود محاسبية في حالة مسودة — يجب ترحيلها أو حذفها`);
 
     // Trial balance must be zero (debits = credits)
     const tbAggr = await prisma.journalLine.aggregate({
-      where: { entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
+      where: { tenantId, entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
       _sum: { debit: true, credit: true },
     });
     const tbDiff = Math.abs(Number(tbAggr._sum.debit ?? 0) - Number(tbAggr._sum.credit ?? 0));
@@ -98,8 +98,8 @@ export class YearEndCloseEngine {
   }
 
   // ── 2. Build Checklist ───────────────────────────────────────────────────────
-  static async buildChecklist(prisma: PrismaClient, fiscalYearId: number): Promise<ChecklistTask[]> {
-    const validation = await this.validateYearReadiness(prisma, fiscalYearId);
+  static async buildChecklist(prisma: PrismaClient, tenantId: string, fiscalYearId: number): Promise<ChecklistTask[]> {
+    const validation = await this.validateYearReadiness(prisma, tenantId, fiscalYearId);
 
     return CHECKLIST_TASKS.map((task: any) => ({
       ...task,
@@ -112,16 +112,16 @@ export class YearEndCloseEngine {
   }
 
   // ── 3. Preview Closing JE ────────────────────────────────────────────────────
-  static async previewClosingJE(prisma: PrismaClient, fiscalYearId: number): Promise<ClosingJEPreview> {
-    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId } });
+  static async previewClosingJE(prisma: PrismaClient, tenantId: string, fiscalYearId: number): Promise<ClosingJEPreview> {
+    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId, tenantId } });
     if (!year) throw new Error('السنة المالية غير موجودة');
 
     // Get all P&L account balances (Revenue 4xxx, Expenses 5xxx)
     const plAccounts = await prisma.account.findMany({
-      where: { code: { startsWith: '4' }, isActive: true },
+      where: { tenantId, code: { startsWith: '4' }, isActive: true },
     });
     const expAccounts = await prisma.account.findMany({
-      where: { code: { startsWith: '5' }, isActive: true },
+      where: { tenantId, code: { startsWith: '5' }, isActive: true },
     });
     const allPLAccounts = [...plAccounts, ...expAccounts];
 
@@ -130,7 +130,7 @@ export class YearEndCloseEngine {
 
     for (const acc of allPLAccounts) {
       const aggr = await prisma.journalLine.aggregate({
-        where: { accountId: acc.id, entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
+        where: { tenantId, accountId: acc.id, entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
         _sum: { debit: true, credit: true },
       });
       const debit  = Number(aggr._sum.debit ?? 0);
@@ -158,17 +158,18 @@ export class YearEndCloseEngine {
   // ── 4. Post Closing JE ───────────────────────────────────────────────────────
   static async postClosingJE(
     prisma: PrismaClient,
+    tenantId: string,
     fiscalYearId: number,
     retainedEarningsAccountId: number,
     postedByUserId: number,
   ) {
-    const year    = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId } });
+    const year    = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId, tenantId } });
     if (!year) throw new Error('السنة المالية غير موجودة');
 
-    const preview = await this.previewClosingJE(prisma, fiscalYearId);
+    const preview = await this.previewClosingJE(prisma, tenantId, fiscalYearId);
     if (preview.lines.length === 0) throw new Error('لا توجد حسابات نتائج للإقفال');
 
-    const lastJE      = await prisma.journalEntry.findFirst({ orderBy: { entryNumber: 'desc' } });
+    const lastJE      = await prisma.journalEntry.findFirst({ where: { tenantId }, orderBy: { entryNumber: 'desc' } });
     const entryNumber = `YEC-${fiscalYearId}-${Date.now()}`;
 
     // Add Retained Earnings line (the balancing entry)
@@ -179,6 +180,7 @@ export class YearEndCloseEngine {
     return prisma.$transaction(async tx => {
       const je = await tx.journalEntry.create({
         data: {
+          tenantId,
           entryNumber,
           entryDate:   year.endDate,
           description: `إقفال السنة المالية ${year.name ?? fiscalYearId} — قيد ترحيل الأرباح`,
@@ -186,8 +188,8 @@ export class YearEndCloseEngine {
           createdBy:   postedByUserId,
           lines: {
             create: [
-              ...preview.lines.map((l: any) => ({ accountId: l.accountId, debit: l.debit, credit: l.credit, description: 'إقفال الحساب' })),
-              ...reLines.map((l: any) => ({ accountId: l.accountId, debit: l.debit, credit: l.credit, description: 'أرباح محتجزة' })),
+              ...preview.lines.map((l: any) => ({ tenantId, accountId: l.accountId, debit: l.debit, credit: l.credit, description: 'إقفال الحساب' })),
+              ...reLines.map((l: any) => ({ tenantId, accountId: l.accountId, debit: l.debit, credit: l.credit, description: 'أرباح محتجزة' })),
             ],
           },
         },
@@ -206,22 +208,24 @@ export class YearEndCloseEngine {
   // ── 5. Rollover Opening Balances ─────────────────────────────────────────────
   static async rolloverOpeningBalances(
     prisma: PrismaClient,
+    tenantId: string,
     fromFiscalYearId: number,
     toFiscalYearId: number,
     postedByUserId: number,
   ) {
-    const fromYear = await (prisma as any).fiscalYear.findUnique({ where: { id: fromFiscalYearId } });
+    const fromYear = await (prisma as any).fiscalYear.findUnique({ where: { id: fromFiscalYearId, tenantId } });
     if (!fromYear) throw new Error('السنة المالية المصدر غير موجودة');
 
     // Get all Balance Sheet accounts (Asset=1xxx, Liability=2xxx, Equity=3xxx)
     const bsAccounts = await prisma.account.findMany({
       where: {
+        tenantId,
         isActive: true,
         OR: [{ code: { startsWith: '1' } }, { code: { startsWith: '2' } }, { code: { startsWith: '3' } }],
       },
     });
 
-    const lastJE      = await prisma.journalEntry.findFirst({ orderBy: { entryNumber: 'desc' } });
+    const lastJE      = await prisma.journalEntry.findFirst({ where: { tenantId }, orderBy: { entryNumber: 'desc' } });
     const entryNumber = `OBF-${fromFiscalYearId}-${Date.now()}`;
 
     return prisma.$transaction(async tx => {
@@ -229,18 +233,19 @@ export class YearEndCloseEngine {
 
       for (const acc of bsAccounts) {
         const aggr = await tx.journalLine.aggregate({
-          where: { accountId: acc.id, entry: { entryDate: { lte: fromYear.endDate }, status: 'posted' } },
+          where: { tenantId, accountId: acc.id, entry: { entryDate: { lte: fromYear.endDate }, status: 'posted' } },
           _sum:  { debit: true, credit: true },
         });
         const debit  = Number(aggr._sum.debit ?? 0);
         const credit = Number(aggr._sum.credit ?? 0);
         if (Math.abs(debit - credit) < 0.01) continue;
 
-        lines.push({ accountId: acc.id, debit: debit > credit ? debit - credit : 0, credit: credit > debit ? credit - debit : 0, description: 'رصيد افتتاحي مرحّل' });
+        lines.push({ tenantId, accountId: acc.id, debit: debit > credit ? debit - credit : 0, credit: credit > debit ? credit - debit : 0, description: 'رصيد افتتاحي مرحّل' } as any);
       }
 
       const je = await tx.journalEntry.create({
         data: {
+          tenantId,
           entryNumber,
           entryDate:   fromYear.endDate,
           description: `أرصدة افتتاحية — مرحّلة من السنة ${fromYear.name ?? fromFiscalYearId}`,
@@ -260,25 +265,25 @@ export class YearEndCloseEngine {
   }
 
   // ── 6. Lock Fiscal Year ──────────────────────────────────────────────────────
-  static async lockFiscalYear(prisma: PrismaClient, fiscalYearId: number, lockedByUserId: number) {
+  static async lockFiscalYear(prisma: PrismaClient, tenantId: string, fiscalYearId: number, lockedByUserId: number) {
     return (prisma as any).fiscalYear.update({
-      where: { id: fiscalYearId },
+      where: { id: fiscalYearId, tenantId },
       data:  { status: 'LOCKED', closedAt: new Date(), closedByUserId: lockedByUserId },
     });
   }
 
   // ── 7. Generate Closing Reports (Immutable Snapshots) ───────────────────────
-  static async generateClosingReports(prisma: PrismaClient, fiscalYearId: number, userId: number) {
-    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId } });
+  static async generateClosingReports(prisma: PrismaClient, tenantId: string, fiscalYearId: number, userId: number) {
+    const year = await (prisma as any).fiscalYear.findUnique({ where: { id: fiscalYearId, tenantId } });
 
     // Aggregate trial balance
     const tbLines = await prisma.journalLine.groupBy({
       by:     ['accountId'],
-      where:  { entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
+      where:  { tenantId, entry: { entryDate: { gte: year.startDate, lte: year.endDate }, status: 'posted' } },
       _sum:   { debit: true, credit: true },
     });
 
-    const accounts = await prisma.account.findMany({ where: { id: { in: tbLines.map((l: any) => l.accountId) } } });
+    const accounts = await prisma.account.findMany({ where: { tenantId, id: { in: tbLines.map((l: any) => l.accountId) } } });
     const accMap   = new Map(accounts.map((a: any) => [a.id, a]));
 
     const trialBalance = tbLines.map((l: any) => ({
@@ -295,6 +300,7 @@ export class YearEndCloseEngine {
     // @ts-ignore — ImmutableReport model pending prisma generate
     const report = await (prisma as any).immutableReport.create({
       data: {
+        tenantId,
         fiscalYearId,
         reportType:        'TRIAL_BALANCE',
         generatedByUserId: String(userId),

@@ -1,48 +1,4 @@
-# API Map
-
-# Project Brain
-
-Generated: 2026-05-18 02:34:44 +03:00
-
-Scan facts:
-- API routes: 850
-- Prisma models: 609
-- Prisma enums: 2
-- Pages: 492
-- Tests: 83
-- Graphify files: 4576
-- Graphify words: 6562824
-- Sensitive skipped by graphify: 14
-- graph.html: 27.75 MB, updated 05/18/2026 02:21:51
-- graph.json: 29.84 MB, updated 05/18/2026 02:21:48
-
-## Executive Overview
-
-Nama Invest / 
-amaweb is a large Multi-Tenant SaaS ERP + POS + Electron Desktop + PWA repository. The stack detected from code/config includes Next.js, React, Prisma, PostgreSQL, TypeScript, Electron, Redis/BullMQ patterns, Sentry, Zod, and Saudi compliance/ZATCA modules.
-
-## Source
-
-- API route root: src/app/api
-- Generated complete route inventory: [_API_ROUTE_INVENTORY.md](./_API_ROUTE_INVENTORY.md)
-
-## What Is Documented
-
-The generated inventory lists every detected route with:
-
-- exported methods
-- route path
-- route boundary (withRoute, withGuard, or UNKNOWN)
-- DB access pattern
-- detected transaction markers
-- detected side effects
-- static payload/response hints
-- static risk flags
-- source file link
-
-## Route Inventory
-
-| Methods | Route | Boundary | DB access | Transactions | Side effects | Payload | Response | Risks | File |
+﻿| Methods | Route | Boundary | DB access | Transactions | Side effects | Payload | Response | Risks | File |
 |---|---|---|---|---|---|---|---|---|---|
 | POST | $api | withRoute | getPrisma | - | none detected | JSON/body or JSON response detected; exact request schema UNKNOWN unless validated in file | NextResponse.json detected; exact shape from code | - | [src/app/api/accounting/accounts/init/route.ts](../../src/app/api/accounting/accounts/init/route.ts) |
 | GET, POST, PUT, DELETE | $api | withRoute | getPrisma | - | none detected | JSON/body or JSON response detected; exact request schema UNKNOWN unless validated in file | NextResponse.json detected; exact shape from code | - | [src/app/api/accounting/accounts/route.ts](../../src/app/api/accounting/accounts/route.ts) |
@@ -894,10 +850,3 @@ The generated inventory lists every detected route with:
 | GET, POST | $api | withRoute | prisma reference | - | external fetch, ZATCA | JSON/body or JSON response detected; exact request schema UNKNOWN unless validated in file | NextResponse.json detected; exact shape from code | - | [src/app/api/zatca/route.ts](../../src/app/api/zatca/route.ts) |
 | GET | $api | withRoute | none detected | - | external fetch, ZATCA | JSON/body or JSON response detected; exact request schema UNKNOWN unless validated in file | NextResponse.json detected; exact shape from code | - | [src/app/api/zatca/test/route.ts](../../src/app/api/zatca/test/route.ts) |
 | GET | $api | withRoute | getPrisma | - | ZATCA | JSON/body or JSON response detected; exact request schema UNKNOWN unless validated in file | NextResponse.json detected; exact shape from code | - | [src/app/api/zatca/xml/route.ts](../../src/app/api/zatca/xml/route.ts) |
-
-## API-Wide Rules
-
-- New tenant APIs should use withRoute unless explicitly documented as system/public/master.
-- Financial APIs require transaction and idempotency review.
-- External side effects should use outbox/queue when durability matters.
-- Payload and response schemas are UNKNOWN unless route code clearly defines them.

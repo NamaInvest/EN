@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 export type TxClient = Omit<
   Prisma.TransactionClient,
@@ -10,9 +10,22 @@ export interface CreateOutboxEventInput {
   aggregateId: string;
   aggregateType: string;
   eventType: string;
-  payload: any;
+  payload: Prisma.InputJsonValue;
   idempotencyKey?: string;
 }
+
+type OutboxDiagnosticsClient = Pick<PrismaClient, 'outboxEvent'>;
+
+export interface OutboxDiagnostics {
+  pendingCount: number;
+  processingCount: number;
+  processedCount: number;
+  failedCount: number;
+  oldestPendingEvent: { id: number; createdAt: Date; eventType: string } | null;
+  exceededRetryLimitCount: number;
+}
+
+const OUTBOX_MAX_ATTEMPTS = 5;
 
 export class OutboxService {
   /**
@@ -49,25 +62,26 @@ export class OutboxService {
    * Retrieves read-only observability statistics for the Outbox system.
    * Does NOT modify any event state.
    */
-  static async getDiagnostics(prismaClient: any): Promise<{
-    pendingCount: number;
-    processingCount: number;
-    processedCount: number;
-    failedCount: number;
-    oldestPendingEvent: { id: number | string; createdAt: Date; eventType: string } | null;
-    exceededRetryLimitCount: number;
-  }> {
+  static async getDiagnostics(prismaClient: OutboxDiagnosticsClient, tenantId: string): Promise<OutboxDiagnostics> {
+    if (!tenantId || tenantId.trim() === '') {
+      throw new Error('TENANT_ISOLATION_VIOLATION: Missing tenantId for outbox diagnostics.');
+    }
+
+    const tenantWhere = { tenantId };
+
     const [pendingCount, processingCount, processedCount, failedCount, oldestPending, exceededRetry] = await Promise.all([
-      prismaClient.outboxEvent.count({ where: { status: 'PENDING' } }),
-      prismaClient.outboxEvent.count({ where: { status: 'PROCESSING' } }),
-      prismaClient.outboxEvent.count({ where: { status: 'PROCESSED' } }),
-      prismaClient.outboxEvent.count({ where: { status: 'FAILED' } }),
+      prismaClient.outboxEvent.count({ where: { ...tenantWhere, status: 'PENDING' } }),
+      prismaClient.outboxEvent.count({ where: { ...tenantWhere, status: 'PROCESSING' } }),
+      prismaClient.outboxEvent.count({ where: { ...tenantWhere, status: 'PROCESSED' } }),
+      prismaClient.outboxEvent.count({ where: { ...tenantWhere, status: 'FAILED' } }),
       prismaClient.outboxEvent.findFirst({
-        where: { status: 'PENDING' },
+        where: { ...tenantWhere, status: 'PENDING' },
         orderBy: { createdAt: 'asc' },
         select: { id: true, createdAt: true, eventType: true }
       }),
-      prismaClient.outboxEvent.count({ where: { status: 'FAILED', attempts: { gte: 5 } } }) // MAX_ATTEMPTS is 5 in the worker
+      prismaClient.outboxEvent.count({
+        where: { ...tenantWhere, status: 'FAILED', attempts: { gte: OUTBOX_MAX_ATTEMPTS } }
+      })
     ]);
 
     return {

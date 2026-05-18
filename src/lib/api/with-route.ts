@@ -1,97 +1,85 @@
 /**
- * withRoute — Unified API Route Higher-Order Function (P-Hardened)
- * ════════════════════════════════════════════════════════════════════
+ * Unified API Route Higher-Order Function.
  *
- * يُغلّف كل API route بـ:
- *  1. Authentication  (JWT verification + user extraction)
- *  2. Rate limiting   (in-memory sliding window per tenant/IP)
- *  3. Role guard      (optional roles[] check)
- *  4. Tenant isolation (via AsyncLocalStorage)
- *  5. Prisma injection (tenant-aware client)
- *  6. Error handling  (structured JSON errors)
- *  7. Prometheus metrics (http_requests_total + http_request_duration_seconds)
- *  8. Request ID header (X-Request-Id for tracing)
- *
- * Usage:
- *   export const GET = withRoute(async ({ req, prisma, auth }) => {
- *     const items = await prisma.product.findMany();
- *     return NextResponse.json(items);
- *   }, { rateLimit: 'DEFAULT' });
+ * withRoute is the API boundary where request tenant, authenticated tenant,
+ * rate limiting, route roles, Prisma, requestId, and metrics are bound together.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getPrisma, resolveTenant, currentRequestStore } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth';
-import { httpRequestsTotal, httpRequestDuration } from '@/lib/instrumentation/metrics';
 import crypto from 'crypto';
+import IORedis from 'ioredis';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrisma, resolveTenantContext, currentRequestStore } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { assertTenantContextMatch, TENANT_ISOLATION_ERROR, TenantContextInfo } from '@/lib/governance/tenant-guard';
+import { httpRequestsTotal, httpRequestDuration } from '@/lib/instrumentation/metrics';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'with-route' });
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 export interface RouteAuth {
-  userId:   number;
-  role:     string;
+  userId: number;
+  role: string;
   tenantId: string;
   username: string;
 }
 
 export interface RouteContext {
-  req:       NextRequest;
-  prisma:    ReturnType<typeof getPrisma>;
-  auth:      RouteAuth;
-  tenant:    string;
+  req: NextRequest;
+  prisma: ReturnType<typeof getPrisma>;
+  auth: RouteAuth;
+  /** Backward-compatible tenant slug used by existing routes. */
+  tenant: string;
+  /** Canonical request tenant context, including route slug and row tenantId. */
+  tenantContext: TenantContextInfo;
   requestId: string;
 }
 
 export type RouteHandler = (ctx: RouteContext, context?: any) => Promise<Response | NextResponse>;
 
 export type RateLimitTier =
-  | 'DEFAULT'    // 100 req/min
-  | 'FINANCIAL'  // 30 req/min (mutations on financial data)
-  | 'AI'         // 10 req/min (Gemini/LLM calls)
-  | 'AUTH'       // 5 req/min (login attempts)
-  | 'ADMIN'      // 20 req/min
-  | 'UPLOAD'     // 10 req/min
-  | 'CRON'       // Internal only
-  | 'PUBLIC';    // 200 req/min (no auth required)
+  | 'DEFAULT'
+  | 'FINANCIAL'
+  | 'AI'
+  | 'AUTH'
+  | 'ADMIN'
+  | 'UPLOAD'
+  | 'CRON'
+  | 'PUBLIC';
 
 export interface WithRouteOptions {
-  rateLimit?:   RateLimitTier;
-  requireAuth?: boolean;     // default: true
-  roles?:       string[];    // restrict to specific roles
+  rateLimit?: RateLimitTier;
+  requireAuth?: boolean;
+  roles?: string[];
+  /**
+   * Tenant-required routes reject missing tenant context instead of falling back
+   * to environment/default tenant. Defaults to authenticated routes only.
+   */
+  tenantRequired?: boolean;
 }
 
-// ── Rate limit configs ────────────────────────────────────────────────────────
-
 const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
-  DEFAULT:   { max: 100,  windowMs: 60_000 },
-  FINANCIAL: { max: 30,   windowMs: 60_000 },
-  AI:        { max: 10,   windowMs: 60_000 },
-  AUTH:      { max: 500,  windowMs: 60_000 },
-  ADMIN:     { max: 20,   windowMs: 60_000 },
-  UPLOAD:    { max: 10,   windowMs: 60_000 },
-  CRON:      { max: 1000, windowMs: 60_000 },
-  PUBLIC:    { max: 200,  windowMs: 60_000 },
+  DEFAULT: { max: 100, windowMs: 60_000 },
+  FINANCIAL: { max: 30, windowMs: 60_000 },
+  AI: { max: 10, windowMs: 60_000 },
+  AUTH: { max: 500, windowMs: 60_000 },
+  ADMIN: { max: 20, windowMs: 60_000 },
+  UPLOAD: { max: 10, windowMs: 60_000 },
+  CRON: { max: 1000, windowMs: 60_000 },
+  PUBLIC: { max: 200, windowMs: 60_000 },
 };
 
-// In-memory rate limiter fallback
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-import IORedis from 'ioredis';
-// Create a shared Redis client specifically for rate-limiting
 const redisRateLimiter = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
   maxRetriesPerRequest: 1,
   lazyConnect: true,
-  enableOfflineQueue: false
+  enableOfflineQueue: false,
 });
 
-redisRateLimiter.on('error', () => { /* ignore connection errors, let it fallback */ });
+redisRateLimiter.on('error', () => { /* memory fallback below handles Redis outages */ });
 
 async function checkRateLimit(key: string, tier: RateLimitTier): Promise<boolean> {
   const config = RATE_LIMITS[tier];
-  
+
   try {
     const redisKey = `ratelimit:${key}`;
     const count = await redisRateLimiter.incr(redisKey);
@@ -99,8 +87,7 @@ async function checkRateLimit(key: string, tier: RateLimitTier): Promise<boolean
       await redisRateLimiter.pexpire(redisKey, config.windowMs);
     }
     return count <= config.max;
-  } catch (err) {
-    // Memory fallback if Redis is down
+  } catch {
     const now = Date.now();
     const entry = rateLimitStore.get(key);
 
@@ -114,7 +101,6 @@ async function checkRateLimit(key: string, tier: RateLimitTier): Promise<boolean
   }
 }
 
-// Cleanup stale rate-limit entries every 10 minutes (for memory fallback)
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
@@ -124,23 +110,41 @@ if (typeof setInterval !== 'undefined') {
   }, 600_000).unref?.();
 }
 
-// ── Main HOF ──────────────────────────────────────────────────────────────────
+function requestHeader(req: NextRequest, name: string): string | null {
+  return req.headers.get(name);
+}
+
+function errorStatus(err: unknown): number {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes(TENANT_ISOLATION_ERROR)) return 403;
+  return 500;
+}
 
 export function withRoute(handler: RouteHandler, options: WithRouteOptions = {}) {
   const { rateLimit = 'DEFAULT', requireAuth = true, roles } = options;
+  const tenantRequired = options.tenantRequired ?? requireAuth;
 
   return async function routeWrapper(req: NextRequest, context?: any): Promise<Response> {
-    const startMs  = Date.now();
-    const method   = req.method;
+    const startMs = Date.now();
+    const method = req.method;
     const pathname = new URL(req.url).pathname;
     const requestId = crypto.randomUUID();
 
     try {
-      // 1. Resolve tenant
       const reqForTenant = { headers: { get: (k: string) => req.headers.get(k) } };
-      const tenant = resolveTenant(reqForTenant);
+      const tenantContext = resolveTenantContext(reqForTenant, {
+        requireTenant: tenantRequired,
+        allowEnvFallback: !tenantRequired,
+      });
+      const tenant = tenantContext.tenantSlug;
 
-      // 2. Rate limiting (Redis-backed Phase 1 implementation)
+      assertTenantContextMatch({
+        routeTenant: tenantContext,
+        headerTenant: requestHeader(req, 'x-tenant'),
+        headerTenantId: requestHeader(req, 'x-tenant-id'),
+        pathname,
+      });
+
       const rateLimitKey = `${tenant}:${method}:${pathname}`;
       if (!(await checkRateLimit(rateLimitKey, rateLimit))) {
         httpRequestsTotal.inc({ method, status: '429', route: pathname });
@@ -150,7 +154,6 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
         );
       }
 
-      // 3. Authentication
       let auth: RouteAuth;
 
       if (requireAuth) {
@@ -163,7 +166,12 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
           );
         }
 
-        // 4. Role check (optional)
+        assertTenantContextMatch({
+          routeTenant: tenantContext,
+          authTenantId: (user as any).tenantId,
+          pathname,
+        });
+
         if (roles && roles.length > 0 && !roles.includes((user as any).role)) {
           httpRequestsTotal.inc({ method, status: '403', route: pathname });
           return NextResponse.json(
@@ -174,8 +182,8 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
         const u = user as any;
         auth = {
-          userId:   u.userId ?? u.id ?? 0,
-          role:     u.role ?? 'user',
+          userId: u.userId ?? u.id ?? 0,
+          role: u.role ?? 'user',
           tenantId: tenant,
           username: u.username ?? u.email ?? '',
         };
@@ -183,33 +191,28 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
         auth = { userId: 0, role: 'guest', tenantId: tenant, username: 'anonymous' };
       }
 
-      // 5. Get tenant-aware Prisma client
-      const prisma = getPrisma(req as any);
+      const response = await currentRequestStore.run(tenant, async () => {
+        const prisma = getPrisma(req as any, { requireTenant: tenantRequired });
+        return handler({ req, prisma: prisma as any, auth, tenant, tenantContext, requestId }, context);
+      });
 
-      // 6. Run handler within tenant context
-      const response = await currentRequestStore.run(tenant, () =>
-        handler({ req, prisma: prisma as any, auth, tenant, requestId }, context)
-      );
-
-      // 7. Track metrics
       const durationSec = (Date.now() - startMs) / 1000;
       const status = String((response as any).status ?? 200);
       httpRequestsTotal.inc({ method, status, route: pathname });
       httpRequestDuration.observe({ method, route: pathname }, durationSec);
 
-      // 8. Inject tracing header
       const headers = new Headers((response as Response).headers);
       headers.set('X-Request-Id', requestId);
       headers.set('X-Response-Time', `${Date.now() - startMs}ms`);
 
       return new Response((response as Response).body, {
-        status:  (response as Response).status,
+        status: (response as Response).status,
         headers,
       });
-
     } catch (err: any) {
       const durationSec = (Date.now() - startMs) / 1000;
-      httpRequestsTotal.inc({ method, status: '500', route: pathname });
+      const status = errorStatus(err);
+      httpRequestsTotal.inc({ method, status: String(status), route: pathname });
       httpRequestDuration.observe({ method, route: pathname }, durationSec);
 
       const isDev = process.env.NODE_ENV === 'development';
@@ -217,12 +220,12 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
       return NextResponse.json(
         {
-          error:     'Internal Server Error',
-          message:   isDev ? err.message : 'حدث خطأ في المعالجة',
+          error: status === 403 ? TENANT_ISOLATION_ERROR : 'Internal Server Error',
+          message: isDev ? err.message : status === 403 ? 'Tenant isolation violation' : 'حدث خطأ في المعالجة',
           requestId,
           ...(isDev && { stack: err.stack }),
         },
-        { status: 500, headers: { 'X-Request-Id': requestId } }
+        { status, headers: { 'X-Request-Id': requestId } }
       );
     }
   };

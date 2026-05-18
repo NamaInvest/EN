@@ -8,6 +8,8 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'stock-movements' });
 async function _GET(request: Request) {
@@ -45,8 +47,13 @@ async function _POST(request: Request) {
         const increment = (body.type === 'in' || body.type === 'adjustment') ? parseFloat(body.quantity) : -parseFloat(body.quantity);
         const productId = parseInt(body.productId);
         const stockId = parseInt(body.stockId) || 1;
+        const tenantId = requireTenantId(request as any);
 
         const { movement, updatedProduct } = await runInventoryTx(prisma, async (tx: any) => {
+            // Phase 2: Period Lock Enforcement inside the transaction
+            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+            await periodService.requireOpenPeriod(new Date());
+
             const mov = await tx.stockMovement.create({
                 data: { productId, stockId, type: body.type, quantity: parseFloat(body.quantity), referenceType: body.referenceType || 'manual', notes: body.notes || null, userId: body.userId ? parseInt(body.userId as any) : null },
             });

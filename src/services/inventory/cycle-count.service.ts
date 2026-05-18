@@ -12,6 +12,7 @@
 import { Decimal } from '@prisma/client/runtime/library';
 import type { PrismaClient } from '@prisma/client';
 import type { BusinessContext } from '@/services/shared/event-bus.service';
+import { FinancialPeriodService } from '../accounting/financial-period.service';
 
 export type AbcClass = 'A' | 'B' | 'C';
 
@@ -102,72 +103,79 @@ export class CycleCountService {
 
   /** تسجيل نتائج الجرد الفعلي */
   async submitCount(planId: string, counts: { itemId: string; countedQty: number; countedBy: string }[]) {
-    const tenantId = this.ctx.tenant.id;
-    const prisma   = this.prisma as any;
-    const variances: { itemId: string; systemQty: number; countedQty: number; difference: number; jeId?: number }[] = [];
+    return await this.prisma.$transaction(async (tx: any) => {
+      const tenantId = this.ctx.tenant.id;
+      const prisma   = tx;
+      
+      // Phase 2: Period Lock Enforcement inside the transaction
+      const periodService = new FinancialPeriodService(tx, this.ctx);
+      await periodService.requireOpenPeriod(new Date());
 
-    for (const count of counts) {
-      const line = await prisma.cycleCountLine?.findFirst?.({
-        where: { planId, itemId: count.itemId, tenantId },
-        select: { id: true, systemQty: true },
-      }).catch(() => null);
+      const variances: { itemId: string; systemQty: number; countedQty: number; difference: number; jeId?: number }[] = [];
 
-      if (!line) continue;
-
-      const systemQty   = Number(line.systemQty ?? 0);
-      const countedQty  = count.countedQty;
-      const difference  = countedQty - systemQty;
-
-      if (Math.abs(difference) > 0) {
-        // تسوية المخزون
-        await prisma.inventoryItem?.update?.({
-          where: { id: count.itemId, tenantId },
-          data:  { currentStock: countedQty },
+      for (const count of counts) {
+        const line = await prisma.cycleCountLine?.findFirst?.({
+          where: { planId, itemId: count.itemId, tenantId },
+          select: { id: true, systemQty: true },
         }).catch(() => null);
 
-        // قيد التسوية
-        const unitCost = await prisma.inventoryItem?.findFirst?.({
-          where: { id: count.itemId, tenantId }, select: { unitCost: true },
-        }).catch(() => null);
+        if (!line) continue;
 
-        const costDiff = new Decimal(Math.abs(difference) * Number(unitCost?.unitCost ?? 0));
+        const systemQty   = Number(line.systemQty ?? 0);
+        const countedQty  = count.countedQty;
+        const difference  = countedQty - systemQty;
 
-        const je = await prisma.journalEntry?.create?.({
-          data: {
-            tenantId,
-            reference:   `COUNT-ADJ-${planId}-${count.itemId}`,
-            description: `تسوية جرد دوري — صنف ${count.itemId}`,
-            date:        new Date(),
-            status:      'POSTED',
-            sourceType:  'CYCLE_COUNT',
-            lines: {
-              create: difference > 0
-                ? [
-                    { tenantId, accountCode: '1310', debit: costDiff,         credit: new Decimal(0), description: 'زيادة مخزون من جرد' },
-                    { tenantId, accountCode: '5200', debit: new Decimal(0), credit: costDiff,         description: 'دخل تسوية مخزون' },
-                  ]
-                : [
-                    { tenantId, accountCode: '5200', debit: costDiff,         credit: new Decimal(0), description: 'مصروف عجز مخزون' },
-                    { tenantId, accountCode: '1310', debit: new Decimal(0), credit: costDiff,         description: 'تخفيض مخزون من جرد' },
-                  ],
+        if (Math.abs(difference) > 0) {
+          // تسوية المخزون
+          await prisma.inventoryItem?.update?.({
+            where: { id: count.itemId, tenantId },
+            data:  { currentStock: countedQty },
+          }).catch(() => null);
+
+          // قيد التسوية
+          const unitCost = await prisma.inventoryItem?.findFirst?.({
+            where: { id: count.itemId, tenantId }, select: { unitCost: true },
+          }).catch(() => null);
+
+          const costDiff = new Decimal(Math.abs(difference) * Number(unitCost?.unitCost ?? 0));
+
+          const je = await prisma.journalEntry?.create?.({
+            data: {
+              tenantId,
+              reference:   `COUNT-ADJ-${planId}-${count.itemId}`,
+              description: `تسوية جرد دوري — صنف ${count.itemId}`,
+              date:        new Date(),
+              status:      'POSTED',
+              sourceType:  'CYCLE_COUNT',
+              lines: {
+                create: difference > 0
+                  ? [
+                      { tenantId, accountCode: '1310', debit: costDiff,         credit: new Decimal(0), description: 'زيادة مخزون من جرد' },
+                      { tenantId, accountCode: '5200', debit: new Decimal(0), credit: costDiff,         description: 'دخل تسوية مخزون' },
+                    ]
+                  : [
+                      { tenantId, accountCode: '5200', debit: costDiff,         credit: new Decimal(0), description: 'مصروف عجز مخزون' },
+                      { tenantId, accountCode: '1310', debit: new Decimal(0), credit: costDiff,         description: 'تخفيض مخزون من جرد' },
+                    ],
+              },
             },
-          },
-        }).catch(() => null);
+          }).catch(() => null);
 
-        variances.push({ itemId: count.itemId, systemQty, countedQty, difference, jeId: je?.id });
+          variances.push({ itemId: count.itemId, systemQty, countedQty, difference, jeId: je?.id });
+        }
+
+        await prisma.cycleCountLine?.update?.({
+          where: { id: line.id },
+          data:  { countedQty: count.countedQty, countedBy: count.countedBy, status: 'COUNTED', countedAt: new Date() },
+        }).catch(() => null);
       }
 
-      await prisma.cycleCountLine?.update?.({
-        where: { id: line.id },
-        data:  { countedQty: count.countedQty, countedBy: count.countedBy, status: 'COUNTED', countedAt: new Date() },
+      await prisma.cycleCountPlan?.update?.({
+        where: { id: planId, tenantId },
+        data:  { status: 'COMPLETED', completedAt: new Date() },
       }).catch(() => null);
-    }
 
-    await prisma.cycleCountPlan?.update?.({
-      where: { id: planId, tenantId },
-      data:  { status: 'COMPLETED', completedAt: new Date() },
-    }).catch(() => null);
-
-    return { planId, counted: counts.length, variances, varianceCount: variances.length };
+      return { planId, counted: counts.length, variances, varianceCount: variances.length };
+    });
   }
 }

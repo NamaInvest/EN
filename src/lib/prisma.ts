@@ -1,334 +1,318 @@
 /**
- * Multi-Tenant Prisma Client — True Multi-Tenant Edition
- * ════════════════════════════════════════════════════════
+ * Multi-tenant Prisma access layer.
  *
- * كيف يعمل:
- *   1. middleware.ts يقرأ الـ subdomain من الـ Host header
- *   2. يحقن x-tenant header في كل request (مثلاً: "n11", "ice", "company123")
- *   3. الـ API routes تستخدم `import prisma from '@/lib/prisma'` كما هو
- *   4. لكن الـ default export أصبح Proxy يقرأ AsyncLocalStorage لمعرفة الـ tenant
- *   5. كل tenant يحصل على Prisma client مستقل متصل بـ DB الخاص به
- *
- * Database convention:
- *   tenant "n11"       → postgresql://...@localhost:5432/n11_db
- *   tenant "company1"  → postgresql://...@localhost:5432/company1_db
- *   tenant "ice"       → postgresql://...@localhost:5432/ice_db
+ * This file is the enforcement point between route tenant context and database
+ * access. API routes should use `getPrisma(req)` or the default smart proxy;
+ * tenant-scoped Prisma models are automatically constrained here.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { AsyncLocalStorage } from 'async_hooks';
 import { applySoftDeleteMiddleware } from './prisma-soft-delete';
 import { logger } from '@/lib/logger';
+import {
+  TENANT_ISOLATION_ERROR,
+  TenantContextInfo,
+  buildTenantContext,
+  getRecordTenantId,
+  normalizeTenantId,
+} from '@/lib/governance/tenant-guard';
 
 const log = logger.child({ service: 'prisma' });
 
-// ── Tenant context store ─────────────────────────────────────────
-// يخزّن اسم الـ tenant الحالي عبر Stack الطلب
 export const tenantContext = new AsyncLocalStorage<string>();
+export const currentRequestStore = new AsyncLocalStorage<string>();
 
-// ── Connection pool ─────────────────────────────────────────────
-// Client واحد لكل tenant — لا نُعيد الإنشاء في كل طلب
-// Use global object to prevent memory leaks during Next.js hot reloads
 const globalForPrisma = globalThis as unknown as {
-    prismaPool?: Map<string, PrismaClient>;
+  prismaPool?: Map<string, PrismaClient>;
 };
+
 const pool = globalForPrisma.prismaPool || new Map<string, PrismaClient>();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prismaPool = pool;
 
-// ── DB URL builder ──────────────────────────────────────────────
+const TENANT_SCOPED_MODELS = new Set(
+  Prisma.dmmf.datamodel.models
+    .filter((model) => model.fields.some((field) => field.name === 'tenantId'))
+    .map((model) => model.name)
+);
+
+const SYSTEM_MODELS = new Set(['Tenant', 'TenantAccount', 'Session', 'SystemSetting', 'DesktopLicense', 'TenantFeatureFlag']);
+const REAL_TENANT_ID_MODELS = new Set(['OutboxEvent', 'IdempotencyRecord']);
+const SCOPED_READ_WRITE_OPS = new Set([
+  'findUnique',
+  'findFirst',
+  'findMany',
+  'count',
+  'aggregate',
+  'groupBy',
+  'update',
+  'updateMany',
+  'delete',
+  'deleteMany',
+]);
+const SCOPED_CREATE_OPS = new Set(['create', 'createMany']);
+
+type TenantRequest = {
+  headers?: { get?: (k: string) => string | null; [k: string]: unknown };
+};
+type PrismaArgs = Record<string, unknown>;
+
+export interface ResolveTenantOptions {
+  requireTenant?: boolean;
+  allowEnvFallback?: boolean;
+}
+
+function isTenantScopedModel(model?: string): model is string {
+  return Boolean(model && TENANT_SCOPED_MODELS.has(model) && !SYSTEM_MODELS.has(model));
+}
+
+function expectedTenantIdForModel(model: string, routeTenant: string): string {
+  return REAL_TENANT_ID_MODELS.has(model) ? routeTenant : getRecordTenantId(routeTenant);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function assertTenantValueAllowed(value: unknown, model: string, operation: string, routeTenant: string, expectedTenantId: string) {
+  if (value === undefined || value === null || isPlainObject(value)) return;
+
+  const normalized = normalizeTenantId(String(value));
+  if (!normalized) return;
+
+  const allowed = new Set([routeTenant, expectedTenantId]);
+  if (!allowed.has(normalized)) {
+    throw new Error(
+      `${TENANT_ISOLATION_ERROR}: ${model}.${operation} attempted tenant '${normalized}' while request tenant is '${routeTenant}'.`
+    );
+  }
+}
+
+function scopeWhere(args: PrismaArgs, model: string, operation: string, routeTenant: string, expectedTenantId: string): PrismaArgs {
+  const where = isPlainObject(args.where) ? args.where : {};
+  assertTenantValueAllowed(where.tenantId, model, operation, routeTenant, expectedTenantId);
+  return { ...args, where: { ...where, tenantId: expectedTenantId } };
+}
+
+function scopeCreateData(data: unknown, model: string, operation: string, routeTenant: string, expectedTenantId: string): unknown {
+  if (Array.isArray(data)) {
+    return data.map((entry) => scopeCreateData(entry, model, operation, routeTenant, expectedTenantId));
+  }
+  if (!isPlainObject(data)) return { tenantId: expectedTenantId };
+
+  assertTenantValueAllowed(data.tenantId, model, operation, routeTenant, expectedTenantId);
+  return { ...data, tenantId: expectedTenantId };
+}
+
+function scopeTenantArgs(args: unknown, model: string | undefined, operation: string, routeTenant: string): unknown {
+  if (!isTenantScopedModel(model)) return args;
+
+  const expectedTenantId = expectedTenantIdForModel(model, routeTenant);
+  let scopedArgs: PrismaArgs = isPlainObject(args) ? { ...args } : {};
+
+  if (SCOPED_READ_WRITE_OPS.has(operation)) {
+    scopedArgs = scopeWhere(scopedArgs, model, operation, routeTenant, expectedTenantId);
+  } else if (SCOPED_CREATE_OPS.has(operation)) {
+    scopedArgs = { ...scopedArgs, data: scopeCreateData(scopedArgs.data, model, operation, routeTenant, expectedTenantId) };
+  } else if (operation === 'upsert') {
+    scopedArgs = scopeWhere(scopedArgs, model, operation, routeTenant, expectedTenantId);
+    scopedArgs = {
+      ...scopedArgs,
+      create: scopeCreateData(scopedArgs.create, model, operation, routeTenant, expectedTenantId),
+    };
+  }
+
+  return scopedArgs;
+}
+
 export function getDbUrl(tenant: string, isRead = false): string {
-    let base = process.env.DATABASE_URL;
-    if (isRead && process.env.DATABASE_REPLICA_URL) {
-        base = process.env.DATABASE_REPLICA_URL;
-    }
-    if (!base) {
-        throw new Error('DATABASE_URL environment variable is required (set in .env)');
-    }
+  let base = process.env.DATABASE_URL;
+  if (isRead && process.env.DATABASE_REPLICA_URL) {
+    base = process.env.DATABASE_REPLICA_URL;
+  }
+  if (!base) {
+    throw new Error('DATABASE_URL environment variable is required (set in .env)');
+  }
 
-    // 🛡️ Security & Performance Hardening:
-    // منع اختناق قاعدة البيانات عبر تحديد سقف الاتصالات (Connection Pooling & Starvation Prevention)
-    // إذا لم يكن الـ URL يحتوي بالفعل على بارامترات الاتصال، نقوم بإضافتها لتوافق PgBouncer.
-    try {
-        const urlObj = new URL(base);
-        if (!urlObj.searchParams.has('pgbouncer')) {
-            urlObj.searchParams.set('pgbouncer', 'true');
-        }
-        if (!urlObj.searchParams.has('connection_limit')) {
-            urlObj.searchParams.set('connection_limit', '5'); // 5 اتصالات لكل Tenant كحد أقصى
-        }
-        if (!urlObj.searchParams.has('pool_timeout')) {
-            urlObj.searchParams.set('pool_timeout', '10'); // مهلة 10 ثوانٍ لمنع تكدس الـ Event Loop
-        }
-        base = urlObj.toString();
-    } catch (e) {
-        // في حال كان الـ URL غير صالح (مثلاً استخدام Prisma Accelerate: prisma://) يتم تجاهل البناء
-        log.warn(`Failed to append connection limits to DB URL: ${(e as Error).message}`);
+  try {
+    const urlObj = new URL(base);
+    if (!urlObj.searchParams.has('pgbouncer')) {
+      urlObj.searchParams.set('pgbouncer', 'true');
     }
+    if (!urlObj.searchParams.has('connection_limit')) {
+      urlObj.searchParams.set('connection_limit', '5');
+    }
+    if (!urlObj.searchParams.has('pool_timeout')) {
+      urlObj.searchParams.set('pool_timeout', '10');
+    }
+    base = urlObj.toString();
+  } catch (e) {
+    log.warn(`Failed to append connection limits to DB URL: ${(e as Error).message}`);
+  }
 
-    // Desktop mode: use DATABASE_URL directly (single local DB, no multi-tenant)
-    if (process.env.DESKTOP_MODE === 'true') {
-        return base;
-    }
-    
-    // Legacy Phase 1 RLS tenants on single master database
-    const legacyTenants = ['n11', 'default'];
-    if (legacyTenants.includes(tenant)) {
-        return base;
-    }
+  if (process.env.DESKTOP_MODE === 'true') return base;
+  if (tenant === 'n11' || tenant === 'default') return base;
 
-    // Phase 2: Physical Database per Tenant
-    return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
+  return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
 }
 
-// ── RLS Extension ───────────────────────────────────────────────
-function withRLS(client: PrismaClient, tenantId: string) {
-    return client.$extends({
-        query: {
-            $allModels: {
-                async $allOperations({ model, operation, args, query }) {
-                    // Skip system models that don't have tenantId
-                    const sysModels = ['Tenant', 'User', 'Session', 'SystemSetting'];
-                    
-                    // Legacy tenants use RLS. New physical DB tenants use isolated DBs so they default to 'default' inside their own DB.
-                    const legacyTenants = ['n11', 'default'];
-                    const effectiveTenantId = legacyTenants.includes(tenantId) ? tenantId : 'default';
-
-                    if (sysModels.includes(model) || effectiveTenantId === 'default') {
-                        return query(args);
-                    }
-
-                    // For operations that read/write data, automatically inject effectiveTenantId
-                    if (['findUnique', 'findFirst', 'findMany', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
-                        // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                        args.where = { ...args.where, tenantId: effectiveTenantId };
-                    } else if (['create', 'createMany'].includes(operation)) {
-                        // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                        if (Array.isArray(args.data)) {
-                            // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                            args.data = args.data.map(d => ({ ...d, tenantId: effectiveTenantId }));
-                        } else {
-                            // @ts-expect-error [TS2339] Prisma schema field mismatch - fix after prisma migrate
-                            args.data = { ...args.data, tenantId: effectiveTenantId };
-                        }
-                    } else if (operation === 'upsert') {
-                        // @ts-expect-error [TS2322] Type assignment mismatch - pending strict types
-                        args.where = { ...args.where, tenantId: effectiveTenantId };
-                        args.create = { ...args.create, tenantId: effectiveTenantId };
-                    }
-                    
-                    return query(args);
-                }
+function withTenantScope(client: PrismaClient, tenantId: string) {
+  return client.$extends({
+    name: 'tenant-auto-scope',
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          // Central guardrail: every model with tenantId is scoped here before
+          // the underlying Prisma client sees the operation.
+          const scopedArgs = scopeTenantArgs(args, model, operation, tenantId) as typeof args;
+          if (isTenantScopedModel(model) && SCOPED_READ_WRITE_OPS.has(operation)) {
+            const guardedArgs: Record<string, unknown> = isPlainObject(scopedArgs as unknown)
+              ? (scopedArgs as unknown as Record<string, unknown>)
+              : {};
+            const where = isPlainObject(guardedArgs.where) ? guardedArgs.where : {};
+            if (where.tenantId === undefined || where.tenantId === null) {
+              throw new Error(
+                `${TENANT_ISOLATION_ERROR}: Operation '${operation}' on model '${model}' rejected. Missing tenantId after tenant auto-scope.`
+              );
             }
-        }
-    });
+          }
+          return query(scopedArgs);
+        },
+      },
+    },
+  });
 }
 
-// ── Get or create Prisma client for tenant ──────────────────────
 export function getClient(tenant: string, options: { read?: boolean } = {}) {
-    const isRead = !!options.read;
-    const dbUrl = getDbUrl(tenant, isRead);
-    
-    // Pool key must be unique per physical database URL to prevent cross-tenant data leaks
-    const poolKey = isRead ? `READ_${dbUrl}` : `WRITE_${dbUrl}`;
+  const isRead = !!options.read;
+  const dbUrl = getDbUrl(tenant, isRead);
+  const poolKey = isRead ? `READ_${dbUrl}` : `WRITE_${dbUrl}`;
 
-    if (!pool.has(poolKey)) {
-        const rawClient = new PrismaClient({
-            datasources: { db: { url: dbUrl } },
-            log: process.env.NODE_ENV === 'development' ? ['error'] : [],
-        });
-        
-        // Apply soft delete middleware BEFORE RLS wrapper
-        applySoftDeleteMiddleware(rawClient);
+  if (!pool.has(poolKey)) {
+    const rawClient = new PrismaClient({
+      datasources: { db: { url: dbUrl } },
+      log: process.env.NODE_ENV === 'development' ? ['error'] : [],
+    });
 
-        // Apply audit middleware for Immutable Tenant Tracking (Law 4)
-        const { applyAuditMiddleware } = require('./prisma-audit');
-        applyAuditMiddleware(rawClient);
+    applySoftDeleteMiddleware(rawClient);
 
-        // 🛡️ LAYER 2: GLOBAL TENANT GUARD EXTENSION
-        // This extension guarantees that NO query can execute on business data without a tenantId.
-        const guardedClient = rawClient.$extends({
-            name: 'tenant-guard',
-            query: {
-                $allModels: {
-                    async $allOperations({ model, operation, args, query }) {
-                        const sysModels = ['Tenant', 'User', 'Session', 'SystemSetting', 'EventLog', 'AuditLog', 'SyncConflict'];
-                        const sensitiveOps = ['findMany', 'findFirst', 'updateMany', 'deleteMany', 'count', 'groupBy', 'aggregate'];
-                        
-                        if (!sysModels.includes(model) && sensitiveOps.includes(operation)) {
-                            // Ensure args exists
-                            if (!args) args = {} as any;
-                            
-                            const argsAny = args as any;
-                            const hasTenantId = argsAny?.where && typeof argsAny.where === 'object' && 'tenantId' in argsAny.where && argsAny.where.tenantId !== undefined;
-                            
-                            if (!hasTenantId) {
-                                throw new Error(`[CRITICAL SECURITY] TENANT ISOLATION VIOLATION: Operation '${operation}' on model '${model}' rejected. Missing 'tenantId' in where clause. You MUST use getTenantPrisma(req) to auto-inject it.`);
-                            }
-                        }
-                        return query(args);
-                    }
-                }
-            }
-        }) as unknown as PrismaClient;
-        
-        pool.set(poolKey, guardedClient);
+    const { applyAuditMiddleware } = require('./prisma-audit');
+    applyAuditMiddleware(rawClient);
+
+    pool.set(poolKey, rawClient);
+  }
+
+  return withTenantScope(pool.get(poolKey)!, tenant) as unknown as PrismaClient;
+}
+
+function headerValue(headers: TenantRequest['headers'] | undefined, name: string): string | null {
+  if (!headers) return null;
+  if (typeof headers.get === 'function') return normalizeTenantId(headers.get(name));
+  return normalizeTenantId(headers[name] as string | undefined);
+}
+
+function tenantFromHost(host?: string | null): string | null {
+  const normalizedHost = normalizeTenantId(host);
+  if (!normalizedHost || !normalizedHost.endsWith('.namainvist.com')) return null;
+  const tenant = normalizedHost.replace('.namainvist.com', '').split(':')[0];
+  if (tenant === 'www' || tenant === 'app') return null;
+  return normalizeTenantId(tenant);
+}
+
+export function resolveTenantContext(req?: TenantRequest, options: ResolveTenantOptions = {}): TenantContextInfo {
+  const requireTenant = options.requireTenant ?? false;
+  const allowEnvFallback = options.allowEnvFallback ?? !requireTenant;
+
+  if (process.env.DESKTOP_MODE === 'true') {
+    return buildTenantContext('local', 'desktop-mode');
+  }
+
+  const ctx = normalizeTenantId(tenantContext.getStore());
+  if (ctx) return buildTenantContext(ctx, 'async-tenant-context');
+
+  const reqCtx = normalizeTenantId(currentRequestStore.getStore());
+  if (reqCtx) return buildTenantContext(reqCtx, 'request-context');
+
+  const headerTenant = headerValue(req?.headers, 'x-tenant');
+  const headerTenantId = headerValue(req?.headers, 'x-tenant-id');
+  const headerSubdomain = headerValue(req?.headers, 'x-tenant-subdomain');
+  const hostTenant = tenantFromHost(headerValue(req?.headers, 'host'));
+  const requestTenant = headerTenant || headerTenantId || headerSubdomain || hostTenant;
+
+  if (requestTenant) {
+    return buildTenantContext(requestTenant, 'request', {
+      headerTenant: headerTenant || headerTenantId || headerSubdomain,
+      subdomainTenant: hostTenant,
+    });
+  }
+
+  try {
+    const { headers } = require('next/headers');
+    const hObj = headers();
+    if (hObj && typeof hObj.get === 'function') {
+      const nextTenant =
+        normalizeTenantId(hObj.get('x-tenant')) ||
+        normalizeTenantId(hObj.get('x-tenant-id')) ||
+        normalizeTenantId(hObj.get('x-tenant-subdomain')) ||
+        tenantFromHost(hObj.get('host'));
+      if (nextTenant) return buildTenantContext(nextTenant, 'next-headers');
     }
-    
-    const baseClient = pool.get(poolKey)!;
-    
-    // 🛡️ LAYER 1: Tenant-Aware Auto-Injector (withRLS)
-    // Return the extended client for this specific tenant which auto-injects tenantId into args
-    return withRLS(baseClient, tenant);
+  } catch { /* ignore */ }
+
+  const envTenant = normalizeTenantId(process.env.TENANT) || normalizeTenantId(process.env.DEFAULT_TENANT);
+  if (allowEnvFallback && envTenant) return buildTenantContext(envTenant, 'environment');
+  if (allowEnvFallback) return buildTenantContext('n11', 'legacy-fallback');
+
+  throw new Error(`${TENANT_ISOLATION_ERROR}: Missing tenant context for tenant-required request.`);
 }
 
-// ── Global request store (set by middleware wrapper) ─────────────
-// يُخزَّن هنا الـ tenant الحالي من كل request عبر patch في middleware
-export const currentRequestStore = new AsyncLocalStorage<string>();
-
-// ── Resolve active tenant ───────────────────────────────────────
-/**
- * الأولوية:
- * 1. AsyncLocalStorage من withTenant()
- * 2. AsyncLocalStorage من middleware wrapper
- * 3. x-tenant header من الـ req المُمرَّر
- * 4. TENANT / DEFAULT_TENANT env var
- * 5. 'n11' fallback
- */
-export function resolveTenant(req?: {
-    headers?: { get?: (k: string) => string | null; [k: string]: unknown };
-}): string {
-    // Desktop mode: single database, no tenant resolution needed
-    if (process.env.DESKTOP_MODE === 'true') return 'local';
-
-    // 1. من الـ context الصريح (withTenant)
-    const ctx = tenantContext.getStore();
-    if (ctx) return ctx;
-
-    // 2. من الـ middleware request store
-    const reqCtx = currentRequestStore.getStore();
-    if (reqCtx) return reqCtx;
-
-    // 3. من header المُمرَّر صراحةً (getPrisma(req))
-    try {
-        if (req?.headers) {
-            const h =
-                typeof req.headers.get === 'function'
-                    ? req.headers.get('x-tenant')
-                    : (req.headers as Record<string, string>)['x-tenant'];
-            if (h) return h;
-
-            const host =
-                typeof req.headers.get === 'function'
-                    ? req.headers.get('host')
-                    : (req.headers as Record<string, string>)['host'];
-            if (host && host.endsWith('.namainvist.com')) {
-                const tenant = host.replace('.namainvist.com', '').split(':')[0];
-                if (tenant !== 'www' && tenant !== 'app') return tenant;
-            }
-        }
-    } catch { /* ignore */ }
-
-    // 4. محاولة قراءة next/headers (Next.js 14 sync headers)
-    try {
-        // @ts-ignore
-        const { headers } = require('next/headers');
-        const hObj = headers();
-        // في Next.js 15: headers() تُرجع Promise — نتجاهلها
-        if (hObj && typeof hObj.get === 'function') {
-            const h = hObj.get('x-tenant');
-            if (h && typeof h === 'string') return h;
-            
-            const host = hObj.get('host');
-            if (host && host.endsWith('.namainvist.com')) {
-                const tenant = host.replace('.namainvist.com', '').split(':')[0]; // strip port if present
-                if (tenant !== 'www' && tenant !== 'app') return tenant;
-            }
-        }
-    } catch { /* ignore */ }
-
-    // 5. من البيئة (PM2 per-process mode)
-    if (process.env.TENANT) return process.env.TENANT;
-    if (process.env.DEFAULT_TENANT) return process.env.DEFAULT_TENANT;
-
-    return 'n11';
+export function resolveTenant(req?: TenantRequest, options: ResolveTenantOptions = {}): string {
+  return resolveTenantContext(req, options).tenantSlug;
 }
 
-// ── Main helper for API routes ──────────────────────────────────
-/**
- * استخدم هذه الدالة في أي API route يحتاج Prisma ديناميكي:
- *
- *   export async function GET(req: NextRequest) {
- *     const prisma = getPrisma(req);
- *     const items = await prisma.product.findMany();
- *   }
- */
-export function getPrisma(req?: Request | { headers?: unknown }, options: { read?: boolean } = {}): PrismaClient {
-    // @ts-expect-error [TS2739] Missing required properties
-    return getClient(resolveTenant(req as Parameters<typeof resolveTenant>[0]), options);
+export function getPrisma(req?: Request | TenantRequest, options: { read?: boolean; requireTenant?: boolean } = {}): PrismaClient {
+  const tenant = resolveTenant(req as TenantRequest, {
+    requireTenant: options.requireTenant,
+    allowEnvFallback: options.requireTenant ? false : undefined,
+  });
+  return getClient(tenant, { read: options.read });
 }
 
-// Alias للتوافق مع الكود القديم
 export const getTenantPrisma = getPrisma;
 
-// ── withTenant: run a callback in a tenant context ──────────────
-/**
- * يُغلّف الكود بـ AsyncLocalStorage context لضمان صحة الـ tenant
- * مفيد جداً في الـ background jobs والـ cron tasks
- *
- * مثال:
- *   await withTenant('company123', async () => {
- *     await prisma.salesInvoice.findMany(); // → company123_db تلقائياً
- *   });
- */
-export async function withTenant<T>(
-    tenant: string,
-    fn: () => Promise<T>
-): Promise<T> {
-    return tenantContext.run(tenant, fn);
+export async function withTenant<T>(tenant: string, fn: () => Promise<T>): Promise<T> {
+  return tenantContext.run(tenant, fn);
 }
 
-// ── Helper: sync read of x-tenant from Next.js internal context ──
 function getTenantFromNextContext(): string | null {
-    try {
-        // Next.js 16 stores request context in a global
-        const workUnitStore = (globalThis as any).__NEXT_REQUEST_CONTEXT__?.get?.();
-        if (workUnitStore?.headers) {
-            const h = workUnitStore.headers.get?.('x-tenant') || workUnitStore.headers['x-tenant'];
-            if (h && typeof h === 'string') return h;
-        }
-    } catch { /* ignore */ }
-    return null;
+  try {
+    const workUnitStore = (globalThis as any).__NEXT_REQUEST_CONTEXT__?.get?.();
+    if (workUnitStore?.headers) {
+      const tenant =
+        workUnitStore.headers.get?.('x-tenant') ||
+        workUnitStore.headers.get?.('x-tenant-id') ||
+        workUnitStore.headers['x-tenant'] ||
+        workUnitStore.headers['x-tenant-id'];
+      return normalizeTenantId(tenant);
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
-// ── Default export: Smart Proxy ─────────────────────────────────
-/**
- * الـ Proxy يعترض كل استدعاء على `prisma` ويوجّهه للـ tenant الصحيح.
- * هذا يعني أن `import prisma from '@/lib/prisma'` يعمل لكل الـ API routes
- * بدون تعديل — فقط يحتاج x-tenant header أو TENANT env var.
- *
- * ملاحظة: يعمل في Node.js runtime فقط (مش edge).
- */
 const smartPrisma = new Proxy({} as PrismaClient, {
-    get(_target, prop) {
-        // أولوية: tenantContext → Next.js internal context → env → n11
-        let tenant: string | null | undefined = tenantContext.getStore() || currentRequestStore.getStore();
-        if (!tenant) tenant = getTenantFromNextContext();
-        if (!tenant) tenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
-        const client = getClient(tenant as string);
-        const value = (client as unknown as Record<string | symbol, unknown>)[prop];
-        if (typeof value === 'function') {
-            return value.bind(client);
-        }
-        return value;
-    },
+  get(_target, prop) {
+    let tenant: string | null | undefined = tenantContext.getStore() || currentRequestStore.getStore();
+    if (!tenant) tenant = getTenantFromNextContext();
+    if (!tenant) tenant = process.env.TENANT || process.env.DEFAULT_TENANT || 'n11';
+
+    const client = getClient(tenant);
+    const value = (client as unknown as Record<string | symbol, unknown>)[prop];
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  },
 });
 
-
-// ── Exports ─────────────────────────────────────────────────────
-// Named export (for: import { prisma } from '@/lib/prisma')
 export { smartPrisma as prisma };
-
-// Deprecate default export to prevent direct imports bypassing getTenantPrisma
 export default smartPrisma;
-
-// Trigger TS reload: ICE modules mapped

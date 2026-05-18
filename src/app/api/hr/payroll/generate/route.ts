@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { runFinancialTx } from '@/lib/db/transaction';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'hr.payroll.generate' });
 
@@ -54,6 +55,11 @@ async function _POST(request: Request, auth: any) {
         let generatedRecords = 0;
 
         await runFinancialTx(prisma, async (tx: any) => {
+            // Phase 4: Period Lock Enforcement inside transaction
+            const payrollDate = new Date(year, month, 0); // Last day of the payroll month
+            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+            await periodService.requireOpenPeriod(payrollDate);
+
             const existing = await tx.salary.findFirst({
                 where: { tenantId, month, year }
             });
@@ -110,8 +116,8 @@ async function _POST(request: Request, auth: any) {
                         gosiDeduction,
                         loanDeduction,
                         netSalary,
-                        paidDate: new Date(),
-                        notes: `غياب: ${absencePenalty.toFixed(2)}, تأمينات: ${gosiDeduction.toFixed(2)}, سلف: ${loanDeduction.toFixed(2)}`
+                        paidDate: payrollDate,
+                        notes: `غياب: ${absencePenalty.toFixed(2)}, تأمينات: ${gosiDeduction.toFixed(2)}, السلف: ${loanDeduction.toFixed(2)}`
                     }
                 });
 
@@ -129,7 +135,7 @@ async function _POST(request: Request, auth: any) {
                     data: {
                         tenantId,
                         entryNumber: `PAY-${year}-${month}`,
-                        entryDate: new Date().toISOString().split('T')[0],
+                        entryDate: payrollDate.toISOString().split('T')[0],
                         description: `قيد مسير رواتب الموظفين لشهر ${month}/${year}`,
                         reference: 'AUTO_PAYROLL',
                         totalDebit: totalGrossSalaries,

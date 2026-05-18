@@ -9,6 +9,7 @@ import { n } from '@/lib/decimal-utils';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'stock.adjustments' });
 
@@ -78,6 +79,10 @@ async function _POST(req: Request) {
 
         const tenantId = requireTenantId(req as any);
         const adjustment = await runInventoryTx(prisma, async (tx: any) => {
+            // Phase 2: Period Lock Enforcement inside the transaction
+            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+            await periodService.requireOpenPeriod(new Date());
+
             const product = await tx.product.findUnique({ where: { id: parseInt(productId), tenantId } });
             if (!product) throw new Error('المنتج غير موجود');
 

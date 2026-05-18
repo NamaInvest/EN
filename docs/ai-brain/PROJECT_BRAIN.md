@@ -1,27 +1,36 @@
-# PROJECT BRAIN: Nama Invest ERP
+# PROJECT BRAIN
 
 ## Executive Overview
-Nama Invest ERP is a multi-tenant Enterprise Resource Planning (ERP) and Point of Sale (POS) system built on Next.js, Prisma, and PostgreSQL. It unifies operations across accounting, sales, purchasing, inventory, HR, and manufacturing.
+Nama Invest ERP is a comprehensive, multi-tenant enterprise resource planning (ERP) and point-of-sale (POS) system. It seamlessly integrates accounting, inventory, human resources, payroll, medical clinic management (pharmacy, labs), manufacturing, and regional compliance (like ZATCA e-invoicing for Saudi Arabia). Built with scalability and security in mind, it targets medium to large enterprises needing robust financial integrity, deep compliance, and modular expandability.
 
 ## System Purpose
-To provide a reliable, ACID-compliant, ZATCA-ready financial and operational backend for businesses. The system uses strict tenant isolation (`tenantId`), enforcing data integrity across highly concurrent environments.
+The primary purpose of the system is to provide a unified operational backbone for diverse business domains. It ensures strict data isolation across tenants while enabling real-time financial reporting, compliance with local tax authorities (ZATCA Phase 1 & 2), and precise inventory/asset tracking. The system is designed to be highly reliable, utilizing transactional atomicity, idempotent integrations, and a robust Outbox pattern for event-driven workflows.
 
 ## Architecture Summary
-- **Frontend:** Next.js App Router, React, Tailwind, shadcn/ui.
-- **Backend:** Next.js Edge/Node API Routes.
-- **Database:** PostgreSQL (Prisma ORM).
-- **Authentication:** Clerk & Custom API Keys with rigorous JWT and middleware guards.
-- **Transactions:** Centralized `runFinancialTx` and `runInventoryTx` wrappers for atomicity.
+- **Backend**: Next.js App Router (API routes) with a modular service architecture, plus an Express fallback for legacy/monolith maintenance.
+- **Database**: PostgreSQL accessed via Prisma ORM.
+- **Background Processing**: BullMQ backed by Redis for asynchronous tasks (e.g., ZATCA reporting, Webhooks).
+- **Event Bus**: Outbox pattern implemented via Prisma transactions to guarantee atomic event dispatch without split-brain issues.
+- **Frontend**: Next.js (React) for the web application.
+- **Desktop**: Electron and Qt6 versions available for POS scenarios with offline sync capabilities.
+- **Tenant Management**: Granular isolation where `tenantId` is strictly enforced at the application and database levels. Master Admin (ICE) manages global tenants.
 
 ## Main Modules
-- Accounting & Treasury (GL, AR, AP, Recon)
-- Sales & POS (Web & Desktop offline sync)
-- Purchases & Inventory (WMS, Procurement)
-- HR & Payroll (WPS, GOSI)
-- Manufacturing (MRP, Shopfloor)
-- CRM & Specialized Verticals (Clinics, Schools, Real Estate)
+- **Accounting & Finance**: General Ledger, AP, AR, Budgeting, Bank Reconciliation, Asset Management.
+- **Sales & POS**: Retail and POS integration, order management, quotes, subscriptions.
+- **Purchases & Inventory**: Supplier management, purchase orders, advanced warehouse management (WMS), ATP checks.
+- **Human Resources (HR) & Payroll**: Employee lifecycle, attendance, payroll runs, GOSI sync, Mudad integration, ESS (Employee Self-Service).
+- **Manufacturing**: Bills of Material (BOM), Work Orders, production cycles, shop floor control.
+- **Medical / Pharmacy**: Patient records, prescriptions, medical dispensing with strict PII/HIPAA compliance, lab orders.
+- **Compliance & Localizations**: ZATCA E-Invoicing Phase 2, WHT, PDPL (Personal Data Protection Law).
 
 ## Critical Risks
-- **Financial Integrity:** Split-brain accounting if non-atomic writes occur. Always use `runFinancialTx`.
-- **Tenant Leakage:** Missing `tenantId` in WHERE clauses can expose cross-tenant data.
-- **ZATCA Compliance:** Phase 2 requires strict cryptographic sequencing. Do not delete posted journals or ZATCA cleared invoices.
+- **Financial Integrity (Split-Brain)**: Ensuring inventory/HR events perfectly align with general ledger postings. Protected via strict Domain Transactions (`runFinancialTx`, `runInventoryTx`).
+- **Tenant Leakage**: Unintended cross-tenant data exposure. Prevented by global `requireTenantId` guardrails and banning default tenant assumptions.
+- **PII/PHI Leakage**: Exposure of patient/employee sensitive data in asynchronous queues. Mitigated by `PharmacyPayloadSanitizer` and worker-level guards.
+- **Double Processing**: Duplicate job execution leading to double dispensing or duplicate journals. Managed via idempotent keys and pessimistic database locking (`updateMany` lock).
+
+## Important Notes
+- **Golden Rule**: No raw `prisma.$transaction` calls should be exposed directly in API routes. All transactions must be encapsulated within domain service classes.
+- **Outbox Rule**: All cross-domain events (e.g., Inventory -> Accounting, Pharmacy -> Notification) must utilize `OutboxEvent` creation inside the exact same database transaction as the primary mutation.
+- Future AI Agents must ALWAYS consult `/docs/ai-brain` before making architectural or transactional changes.

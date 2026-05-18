@@ -140,6 +140,11 @@ export class PeriodCloseService {
     const prisma = this.prisma as any;
 
     await prisma.$transaction(async (tx: any) => {
+      const period = await tx.fiscalPeriod.findFirst({
+        where: { id: fiscalPeriodId, tenantId },
+      });
+      if (!period) throw new Error('الفترة المحاسبية غير موجودة أو لا تتبع لك');
+
       await tx.fiscalPeriod.update({
         where: { id: fiscalPeriodId },
         data: { status: 'open', closedAt: null, closedBy: null },
