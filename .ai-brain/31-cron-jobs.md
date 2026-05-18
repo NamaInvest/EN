@@ -255,6 +255,7 @@ export function requireCronSecret(req: Request) {
 | `reportQueue` | CustomReportEngine | تقارير ثقيلة | 2 |
 | `aiAuditQueue` | dailyAuditWorker | تدقيق آلي | 2 |
 | `cfoReportQueue` | cfoReportWorker | AI CFO | 1 |
+| `outboxRelayQueue` | outboxRelayWorker | Dispatch OutboxEvent records every minute | 1 |
 
 ### الـ Queue Setup:
 ```typescript

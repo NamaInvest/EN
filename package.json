@@ -26,6 +26,7 @@
         "test:cov": "jest --coverage --passWithNoTests --forceExit",
         "openapi": "node scripts/generate-openapi.js",
         "audit:zod": "node scripts/audit-zod.js",
+        "audit:tenant": "node scripts/audit-tenant-isolation.js",
         "typecheck": "npx tsc --noEmit",
         "validate": "npx tsc --noEmit && npx eslint src/ --max-warnings 0 && jest --passWithNoTests --forceExit",
         "db:migrate": "npx prisma migrate deploy",

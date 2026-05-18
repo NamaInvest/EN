@@ -53,6 +53,7 @@
 - `/(dashboard)/admin/knowledge` — Client (98 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/admin/llm-costs` — Client (119 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/admin/orchestration` — Client (122 سطر) [useState, useEffect, fetch, i18n]
+- `/(dashboard)/admin/outbox` — Client (read-only diagnostics) [useState, useEffect, fetch]
 - `/(dashboard)/admin/prompts/cost` — Server (171 سطر)
 - `/(dashboard)/admin/prompts` — Client (105 سطر) [useState, useEffect, fetch, i18n]
 - `/(dashboard)/admin/security/mfa-audit` — Server (152 سطر) [i18n]
@@ -563,4 +564,3 @@
 
 ## 📂 `~offline` (1 صفحة)
 - `/~offline` — Client (14 سطر) [i18n]
-

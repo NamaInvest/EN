@@ -56,6 +56,16 @@ EventLog {
 
 ---
 
+## Outbox Pattern Observability
+
+- `OutboxEvent` stores external side-effect jobs atomically with business transactions.
+- `outboxRelayWorker` polls pending rows through `outboxRelayQueue` and dispatches to `syncQueue`.
+- Admin diagnostics endpoint: `GET /api/admin/outbox/diagnostics`.
+- Admin diagnostics page: `/(dashboard)/admin/outbox`.
+- Diagnostics are read-only, tenant-scoped, and never select or return `payload`.
+
+---
+
 ## 📡 أنواع الـ Events
 
 ### Sales Events:

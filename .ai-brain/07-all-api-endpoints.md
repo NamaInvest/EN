@@ -698,7 +698,7 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 
-## 📂 `/api/admin` (13 مسار)
+## 📂 `/api/admin` (14 مسار)
 
 ### `/api/admin/backups`
 - **Methods:** GET, POST
@@ -743,6 +743,16 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `ADMIN`
 - **جداول مستخدمة:** `promptUsageLog`
+
+### `/api/admin/outbox/diagnostics`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Roles:** `admin`, `owner`, `system_admin`
+- **Rate Limit:** `ADMIN`
+- **جداول مستخدمة:** `OutboxEvent`
+- **Tenant:** كل queries تستخدم `tenantId` صريح
+- **Payload Safety:** لا يتم اختيار أو إرسال `payload`
 
 ### `/api/admin/nodes/backup`
 - **Methods:** POST
@@ -6229,4 +6239,3 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `salesInvoice`
-
