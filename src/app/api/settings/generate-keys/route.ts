@@ -8,13 +8,19 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'settings.generate-keys' });
 
 async function _POST(req: NextRequest) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+    }
 
     try {
         // Fetch ZATCA settings from DB
         const settingsRaw = await prisma.setting.findMany({ take: 100,
-            where: { key: { startsWith: 'zatca_' } }
+            where: { tenantId: user.tenantId, key: { startsWith: 'zatca_' } }
         });
-        const taxNumberSetting = await prisma.setting.findUnique({ where: { key: 'tax_number' } });
+        const taxNumberSetting = await prisma.setting.findFirst({ where: { key: 'tax_number', tenantId: user.tenantId } });
         const taxNumber = taxNumberSetting?.value || '314122115700003';
 
         const s = settingsRaw.reduce((acc: any, curr: any) => {
@@ -64,11 +70,20 @@ businessCategory = ${s['zatca_industry'] || 'Technology'}
         const { encrypt } = await import('@/lib/encryption');
         const encryptedKey = encrypt(privateKey);
         
-        await prisma.setting.upsert({
-            where: { key: 'zatca_private_key' },
-            update: { value: encryptedKey },
-            create: { key: 'zatca_private_key', value: encryptedKey, description: 'ZATCA Private Key (Encrypted)' }
+        const existingKey = await prisma.setting.findFirst({
+            where: { key: 'zatca_private_key', tenantId: user.tenantId }
         });
+        
+        if (existingKey) {
+            await prisma.setting.update({
+                where: { id: existingKey.id },
+                data: { value: encryptedKey }
+            });
+        } else {
+            await prisma.setting.create({
+                data: { key: 'zatca_private_key', value: encryptedKey, description: 'ZATCA Private Key (Encrypted)', tenantId: user.tenantId }
+            });
+        }
 
         // The OpenSSL logic is typically handled by `openssl req -new -key ...`
         // We will return success for the scaffold

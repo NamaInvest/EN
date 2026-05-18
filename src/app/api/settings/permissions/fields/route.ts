@@ -7,10 +7,14 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'settings.permissions.fields' });
 
 async function _GET(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req as any);
     try {
         const permissions = await prisma.roleFieldPermission.findMany({ take: 100,
+            where: { tenantId: user.tenantId },
             orderBy: [{ roleName: 'asc' }, { modelName: 'asc' }, { fieldName: 'asc' }]
         });
         return NextResponse.json(permissions);
@@ -29,6 +33,12 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+    }
 
     const prisma = getPrisma(req as any);
     try {
@@ -44,17 +54,26 @@ async function _POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const upserted = await prisma.roleFieldPermission.upsert({
+        const existing = await prisma.roleFieldPermission.findFirst({
             where: {
-                roleName_modelName_fieldName: {
-                    roleName,
-                    modelName,
-                    fieldName
-                }
-            },
-            update: { permission },
-            create: { roleName, modelName, fieldName, permission }
+                roleName,
+                modelName,
+                fieldName,
+                tenantId: user.tenantId
+            }
         });
+
+        let upserted;
+        if (existing) {
+            upserted = await prisma.roleFieldPermission.update({
+                where: { id: existing.id },
+                data: { permission }
+            });
+        } else {
+            upserted = await prisma.roleFieldPermission.create({
+                data: { roleName, modelName, fieldName, permission, tenantId: user.tenantId }
+            });
+        }
 
         return NextResponse.json(upserted);
     } catch (error: any) {

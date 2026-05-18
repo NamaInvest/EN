@@ -23,6 +23,9 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner'].includes(user.role)) {
+            return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+        }
         
         const id = parseInt((await params).id);
         const data = await request.json();
@@ -35,9 +38,18 @@ async function _PUT(request: NextRequest, { params }: { params: Promise<{ id: st
         // Disable other defaults if this becomes default
         if (data.isDefault) {
              await prisma.currency.updateMany({
-                where: { isDefault: true, id: { not: id } },
+                where: { tenantId: user.tenantId, isDefault: true, id: { not: id } },
                 data: { isDefault: false }
             });
+        }
+        
+        // Verify ownership first
+        const existing = await prisma.currency.findFirst({
+            where: { id, tenantId: user.tenantId }
+        });
+        
+        if (!existing) {
+            return NextResponse.json({ error: 'العملة غير موجودة' }, { status: 404 });
         }
         
         const updated = await prisma.currency.update({
@@ -65,9 +77,12 @@ async function _DELETE(request: NextRequest, { params }: { params: Promise<{ id:
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner'].includes(user.role)) {
+            return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+        }
         
         const id = parseInt((await params).id);
-        await prisma.currency.delete({ where: { id } });
+        await prisma.currency.deleteMany({ where: { id, tenantId: user.tenantId } });
         
         return NextResponse.json({ success: true });
     } catch (error: any) {

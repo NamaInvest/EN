@@ -11,16 +11,23 @@ async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const user = getUserFromRequest(request as any);
-        if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!user || !['admin', 'owner'].includes(user.role)) {
+            return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+        }
 
-        const setting = await prisma.setting.findUnique({ where: { key: 'next_barcode' } });
+        const setting = await prisma.setting.findFirst({ where: { key: 'next_barcode', tenantId: user.tenantId } });
         const nextBarcode = setting && setting.value ? parseInt(String(setting.value), 10) : 1000;
         
-        await prisma.setting.upsert({
-            where: { key: 'next_barcode' },
-            update: { value: String(nextBarcode + 1) },
-            create: { key: 'next_barcode', value: String(nextBarcode + 1) },
-        });
+        if (setting) {
+            await prisma.setting.update({
+                where: { id: setting.id },
+                data: { value: String(nextBarcode + 1) }
+            });
+        } else {
+            await prisma.setting.create({
+                data: { key: 'next_barcode', value: String(nextBarcode + 1), tenantId: user.tenantId }
+            });
+        }
 
         return NextResponse.json({ barcode: String(nextBarcode) });
     } catch (error: any) {
