@@ -4,6 +4,7 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
 import crypto from 'crypto';
 
 const log = logger.child({ service: 'pos.restaurant.floor' });
@@ -34,13 +35,25 @@ async function _GET(req: NextRequest) {
     }
 }
 
+const ActionSchema = z.object({
+    action: z.string(),
+    payload: z.any().optional()
+});
+
 async function _POST(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         const prisma = getPrisma(req);
         const tenantId = requireTenantId(req as any);
-        const { action, payload } = await req.json();
+        const body = await req.json();
+        
+        const parsed = ActionSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });
+        }
+        
+        const { action, payload } = parsed.data;
 
         if (action === 'create_zone') {
             const zone = await prisma.restaurantZone.create({ 

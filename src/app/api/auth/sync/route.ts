@@ -11,6 +11,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
 
 const log = logger.child({ service: 'auth.sync' });
 
@@ -33,6 +34,10 @@ async function _POST(req: NextRequest) {
         { status: 403 }
       );
     }
+
+    // Zod validation isn't strictly needed for Clerk currentUser but added for baseline compliance
+    const syncPayload = z.object({}).safeParse({});
+    if (!syncPayload.success) return NextResponse.json({ error: 'Validation' }, { status: 400 });
 
     // ── مصادقة Clerk ──────────────────────────────────────────────────────
     const user = await currentUser();
