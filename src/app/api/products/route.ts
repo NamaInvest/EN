@@ -30,7 +30,7 @@ async function _GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '0');
         const limit = parseInt(searchParams.get('limit') || '0');
 
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = { tenantId: user.tenantId };
         if (!includeInactive) {
             where.active = true;
         }
@@ -97,6 +97,11 @@ async function _POST(request: Request) {
             if (!quotaCheck.allowed) return quotaErrorResponse(quotaCheck);
         }
         // -----------------------------------
+        const auth = getUserFromRequest(request as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'inventory_manager'].includes(auth.role)) {
+            return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        }
 
         // ── Input Validation ──────────────────────────────────────────────
         if (!body.name || String(body.name).trim().length === 0) {
@@ -120,7 +125,7 @@ async function _POST(request: Request) {
             await prisma.setting.upsert({
                 where: { key: 'next_barcode' },
                 update: { value: String(nextBarcode + 1) },
-                create: { key: 'next_barcode', value: String(nextBarcode + 1) },
+                create: { key: 'next_barcode', value: String(nextBarcode + 1), tenantId: auth.tenantId },
             });
         }
 
@@ -134,10 +139,10 @@ async function _POST(request: Request) {
         const curStock = parseFloat(body.currentStock) || 0;
 
         const result: any[] = await prisma.$queryRawUnsafe(`
-            INSERT INTO products (name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, tax_type, min_quantity, current_stock, description, active, name_en, brand_ar, brand_en, size_info, image_path, sell_by_weight, expiry_date, bin_location, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+            INSERT INTO products (tenant_id, name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, tax_type, min_quantity, current_stock, description, active, name_en, brand_ar, brand_en, size_info, image_path, sell_by_weight, expiry_date, bin_location, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
             RETURNING *`,
-            body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
+            auth.tenantId, body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
             body.description || null, true,
             body.nameEn || body.name || '',
             body.brandAr || '', body.brandEn || '', body.sizeInfo || '',
@@ -153,9 +158,9 @@ async function _POST(request: Request) {
                 const _uId_dup143 = parseInt(pu.unitId);
                 if (isNaN(uId)) continue; // Skip invalid units
                 await prisma.$queryRawUnsafe(`
-                    INSERT INTO product_units (product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-                    product.id, uId, pu.barcode || null,
+                    INSERT INTO product_units (tenant_id, product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+                    auth.tenantId, product.id, uId, pu.barcode || null,
                     parseFloat(pu.sellPrice) || 0, parseFloat(pu.buyPrice) || 0,
                     parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
                     Boolean(pu.isBase), parseFloat(pu.unitStock) || 0,
@@ -170,14 +175,15 @@ async function _POST(request: Request) {
         // Initialize stock in default warehouse (ID 1)
         try {
             const defaultStockId = 1;
-            const existingWarehouse = await prisma.stock.findUnique({ where: { id: defaultStockId } });
+            const existingWarehouse = await prisma.stock.findFirst({ where: { id: defaultStockId, tenantId: auth.tenantId } });
             if (!existingWarehouse) {
-                await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
+                await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true, tenantId: auth.tenantId } });
             }
             if (product.currentStock > 0) {
                 await runInventoryTx(prisma, async (tx: any) => {
                     await tx.productStock.create({
                         data: {
+                            tenantId: auth.tenantId,
                             productId: product.id,
                             stockId: defaultStockId,
                             quantity: product.currentStock,
@@ -185,16 +191,16 @@ async function _POST(request: Request) {
                     });
                     
                     // --- PHASE 1 AUTOMATION: AUDIT LOG CREATION ---
-                    const auth = getUserFromRequest(request as any);
                     await tx.stockMovement.create({
                         data: {
+                            tenantId: auth.tenantId,
                             productId: product.id,
                             stockId: defaultStockId,
                             type: 'adjustment_in',
                             quantity: product.currentStock,
                             referenceType: 'initial_stock',
                             referenceId: product.id,
-                            userId: auth?.userId || null,
+                            userId: auth.userId || null,
                             notes: 'رصيد افتتاحي عند الإنشاء'
                         }
                     });
@@ -223,31 +229,26 @@ async function _DELETE(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');
+        if (!['admin', 'owner', 'inventory_manager'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         if (action === 'delete_all') {
-            const allowed = await hasPermission(prisma, auth.userId, 'delete_products');
-            if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية حذف المنتجات' }, { status: 403 });
-
             try {
                 const result = await runInventoryTx(prisma, async (tx: any) => {
-                    await tx.productStock.deleteMany({});
-                    return await tx.product.deleteMany({});
+                    await tx.productStock.deleteMany({ where: { tenantId: auth.tenantId } });
+                    return await tx.product.deleteMany({ where: { tenantId: auth.tenantId } });
                 });
                 return NextResponse.json({ success: true, message: `تم حذف ${result.count} منتج نهائياً` });
             } catch (e: any) {
                 log.error('src/app/api/products/route.ts', { error: e instanceof Error ? e.message : e });
 
                 // Fallback to soft delete
-                const _result_dup228 = await prisma.product.updateMany({ data: { active: false } });
+                const _result_dup228 = await prisma.product.updateMany({ where: { tenantId: auth.tenantId }, data: { active: false } });
                 // @ts-expect-error [TS2448] Block-scoped variable ordering issue
                 return NextResponse.json({ success: true, message: `تم أرشفة ${result.count} منتج لوجود حركات مالية` });
             }
         }
 
-        const allowed = await hasPermission(prisma, auth.userId, 'reset_stock');
-        if (!allowed) return NextResponse.json({ error: 'غير مصرح - تحتاج صلاحية تصفير المخزون' }, { status: 403 });
-
-        const result = await prisma.product.updateMany({ data: { currentStock: 0 } });
+        const result = await prisma.product.updateMany({ where: { tenantId: auth.tenantId }, data: { currentStock: 0 } });
         return NextResponse.json({ success: true, message: `تم تصفير مخزون ${result.count} منتج` });
     } catch (error: any) {
         log.error('Products stock reset error:', error);

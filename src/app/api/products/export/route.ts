@@ -14,8 +14,8 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const allowed = await hasPermission(auth.userId, 'dashboard', prisma); // Basically any product viewer
-        if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const allowed = ['admin', 'owner', 'inventory_manager'].includes(auth.role); // Basically any product viewer
+        if (!allowed) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const user = await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } });
 
@@ -23,7 +23,7 @@ async function _GET(request: NextRequest) {
         const categoryFilter = searchParams.get('category_id');
         const includeInactive = searchParams.get('include_inactive') === 'true';
 
-        const where: any = {};
+        const where: any = { tenantId: auth.tenantId };
         if (categoryFilter) where.categoryId = parseInt(categoryFilter);
         if (!includeInactive) where.active = true;
 

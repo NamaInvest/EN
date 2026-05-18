@@ -16,8 +16,11 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
-        const product = await prisma.product.findUnique({
-            where: { id: parseInt(id) },
+        const auth = getUserFromRequest(request as unknown as NextRequest);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+        const product = await prisma.product.findFirst({
+            where: { id: parseInt(id), tenantId: auth.tenantId },
             include: { category: true, unit: true, productStocks: { include: { stock: true } }, productUnits: true },
         });
         if (!product) {
@@ -49,7 +52,10 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         const { id } = await params;
         const productId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
-        const tenantId = requireTenantId(request as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'inventory_manager'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+
+        const tenantId = auth.tenantId;
         const body = await request.json();
 
         const _parsed = _PUTSchema.safeParse(body);
@@ -58,7 +64,8 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         }
 
         // Read before state for audit trail
-        const before = await prisma.product.findUnique({ where: { id: productId } });
+        const before = await prisma.product.findFirst({ where: { id: productId, tenantId } });
+        if (!before) return NextResponse.json({ error: 'المنتج غير موجود' }, { status: 404 });
 
         const product = await prisma.product.update({
             where: { id: parseInt(id), tenantId },
@@ -103,15 +110,15 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         try {
             if (body.currentStock !== undefined) {
                 const defaultStockId = 1;
-                const existingWarehouse = await prisma.stock.findUnique({ where: { id: defaultStockId } });
+                const existingWarehouse = await prisma.stock.findFirst({ where: { id: defaultStockId, tenantId } });
                 if (!existingWarehouse) {
-                    await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true } });
+                    await prisma.stock.create({ data: { id: defaultStockId, name: 'المستودع الرئيسي', active: true, tenantId } });
                 }
                 await runInventoryTx(prisma, async (tx: any) => {
                     await tx.productStock.upsert({
                         where: { productId_stockId: { productId: product.id, stockId: defaultStockId } },
                         update: { quantity: product.currentStock },
-                        create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock },
+                        create: { productId: product.id, stockId: defaultStockId, quantity: product.currentStock, tenantId },
                     });
                 });
             }
@@ -137,7 +144,8 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const tenantId = requireTenantId(request as any);
+    if (!['admin', 'owner', 'inventory_manager'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+    const tenantId = auth.tenantId;
 
     const prisma = getPrisma(request);
     try {
@@ -146,9 +154,9 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         // STABLE ERP LOGIC: NEVER cascade delete financial records.
         // Check if the product is used in any transactions.
-        const usedInSales = await prisma.salesInvoiceDetail.count({ where: { productId } });
-        const usedInPurchases = await prisma.purchaseInvoiceDetail.count({ where: { productId } });
-        const usedInStockMovements = await prisma.stockMovement.count({ where: { productId } });
+        const usedInSales = await prisma.salesInvoiceDetail.count({ where: { productId, tenantId } });
+        const usedInPurchases = await prisma.purchaseInvoiceDetail.count({ where: { productId, tenantId } });
+        const usedInStockMovements = await prisma.stockMovement.count({ where: { productId, tenantId } });
 
         if (usedInSales > 0 || usedInPurchases > 0 || usedInStockMovements > 0) {
             // Soft delete: keep the product but mark it inactive so it doesn't appear in POS/Purchases
@@ -164,7 +172,7 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
         }
 
         // Only hard delete if STRICTLY unused anywhere — audit first
-        const beforeDel = await prisma.product.findUnique({ where: { id: productId } });
+        const beforeDel = await prisma.product.findFirst({ where: { id: productId, tenantId } });
         try {
             if (beforeDel) await logDelete(prisma, 'Product', productId, beforeDel as any, auditContextFromRequest(request, auth));
         } catch (e: any) { log.error('[audit] Product delete audit failed:', e); }

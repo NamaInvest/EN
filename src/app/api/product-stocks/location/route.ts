@@ -17,6 +17,12 @@ const _POSTSchema = z.object({
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
+        const auth = getUserFromRequest(request as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'inventory_manager'].includes(auth.role)) {
+            return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        }
+
         const body = await request.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -30,6 +36,9 @@ async function _POST(request: Request) {
         }
 
         const updated = await runInventoryTx(prisma, async (tx: any) => {
+            const existing = await tx.productStock.findFirst({ where: { id: parseInt(productStockId), tenantId: auth.tenantId } });
+            if (!existing) throw new Error('Not found or unauthorized');
+
             return await tx.productStock.update({
                 where: { id: parseInt(productStockId) },
                 data: { location: location || null }

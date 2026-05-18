@@ -15,8 +15,8 @@ async function _POST(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-        const allowed = await hasPermission(auth.userId, 'dashboard', prisma);
-        if (!allowed) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const allowed = ['admin', 'owner', 'inventory_manager'].includes(auth.role);
+        if (!allowed) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const formData = await request.formData();
         const file = formData.get('file') as Blob | null;
@@ -43,11 +43,11 @@ async function _POST(request: NextRequest) {
         // ══════════════════════════════════════════════════════════════
         let defaultUnitId = 1;
         try {
-            const firstUnit = await prisma.unit.findFirst({});
+            const firstUnit = await prisma.unit.findFirst({ where: { tenantId: auth.tenantId } });
             if (firstUnit) {
                 defaultUnitId = firstUnit.id;
             } else {
-                const newUnit = await prisma.unit.create({ data: { name: 'حبة' } });
+                const newUnit = await prisma.unit.create({ data: { name: 'حبة', tenantId: auth.tenantId } });
                 defaultUnitId = newUnit.id;
             }
         } catch (unitErr) {
@@ -58,6 +58,7 @@ async function _POST(request: NextRequest) {
         // STEP 2: Pre-fetch ALL existing products for this tenant (ONE query)
         // ══════════════════════════════════════════════════════════════
         const existingProducts = await prisma.product.findMany({
+            where: { tenantId: auth.tenantId },
             select: { id: true, barcode: true, name: true }
         });
         
@@ -74,6 +75,7 @@ async function _POST(request: NextRequest) {
         // STEP 3: Pre-fetch ALL categories (ONE query)
         // ══════════════════════════════════════════════════════════════
         const existingCategories = await prisma.category.findMany({
+            where: { tenantId: auth.tenantId },
             select: { id: true, name: true }
         });
         const categoryMap = new Map<string, number>();
@@ -187,6 +189,7 @@ async function _POST(request: NextRequest) {
                     unitId: defaultUnitId,
                     description,
                     active,
+                    tenantId: auth.tenantId,
                     _categoryName: categoryName, // Temporary field for post-processing
                 };
 
@@ -226,11 +229,11 @@ async function _POST(request: NextRequest) {
         if (categoriesToCreate.size > 0) {
             for (const catName of categoriesToCreate) {
                 try {
-                    const newCat = await prisma.category.create({ data: { name: catName } });
+                    const newCat = await prisma.category.create({ data: { name: catName, tenantId: auth.tenantId } });
                     categoryMap.set(catName, newCat.id);
                 } catch (e) {
                     // Category might already exist (race condition) — try to find it
-                    const existing = await prisma.category.findFirst({ where: { name: catName } });
+                    const existing = await prisma.category.findFirst({ where: { name: catName, tenantId: auth.tenantId } });
                     if (existing) categoryMap.set(catName, existing.id);
                 }
             }
