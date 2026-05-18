@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
@@ -31,6 +32,7 @@ async function _POST(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        const tenantId = requireTenantId(req as any);
 
         const body = await req.json();
 
@@ -62,6 +64,7 @@ async function _POST(req: NextRequest) {
             // Create Invoice Header
             const newInvoice = await tx.salesInvoice.create({
                 data: {
+                    tenantId,
                     invoiceNo,
                     date: new Date(),
                     customerId: customerId ? parseInt(customerId) : null,
@@ -90,6 +93,7 @@ async function _POST(req: NextRequest) {
 
                 await tx.salesInvoiceDetail.create({
                     data: {
+                        tenantId,
                         invoiceId: newInvoice.id,
                         productId: parseInt(item.id),
                         productName: item.name,
@@ -103,27 +107,29 @@ async function _POST(req: NextRequest) {
 
                 // Deduct Inventory safely considering Factor (Multi-Units)
                 const deductionQty = safeQty * validateMoney(item.factor || 1, 'المعامل');
-                const updatedProduct = await tx.product.update({
-                    where: { id: parseInt(item.id) },
+                const product = await tx.product.findFirst({ where: { id: parseInt(item.id), tenantId } });
+                await tx.product.updateMany({
+                    where: { id: parseInt(item.id), tenantId },
                     data: { currentStock: { decrement: deductionQty } }
                 });
                 
                 // Track cost of goods sold
-                totalCost += n(updatedProduct.buyPrice || 0) * deductionQty;
+                totalCost += n(product?.buyPrice || 0) * deductionQty;
             }
 
         // 3. Handle Coupon Usage if applicable
             if (couponId && discount > 0) {
                 await tx.couponUsage.create({
                     data: {
+                        tenantId,
                         couponId: parseInt(couponId),
                         invoiceId: newInvoice.id,
                         customerId: customerId ? parseInt(customerId) : null,
                         discountAmount: discount
                     }
                 });
-                await tx.coupon.update({
-                    where: { id: parseInt(couponId) },
+                await tx.coupon.updateMany({
+                    where: { id: parseInt(couponId), tenantId },
                     data: { usedCount: { increment: 1 } }
                 });
             }
@@ -131,19 +137,19 @@ async function _POST(req: NextRequest) {
             // 4. Handle Loyalty Points Earning
             if (customerId) {
                 // Fetch the earn rate from global settings
-                const earnRateSetting = await tx.setting.findUnique({ where: { key: 'loyalty_earn_rate' } });
+                const earnRateSetting = await tx.setting.findFirst({ where: { key: 'loyalty_earn_rate', tenantId } });
                 const earnRate = earnRateSetting?.value ? parseInt(earnRateSetting.value) : 10;
                 
                 const earnedPoints = Math.floor(finalTotal / earnRate);
                 
                 if (earnedPoints > 0) {
                     const existingLoyalty = await tx.loyaltyPoint.findFirst({
-                        where: { customerId: parseInt(customerId) }
+                        where: { customerId: parseInt(customerId), tenantId }
                     });
 
                     if (existingLoyalty) {
-                        await tx.loyaltyPoint.update({
-                            where: { id: existingLoyalty.id },
+                        await tx.loyaltyPoint.updateMany({
+                            where: { id: existingLoyalty.id, tenantId },
                             data: {
                                 points: { increment: earnedPoints },
                                 totalEarned: { increment: earnedPoints }
@@ -152,6 +158,7 @@ async function _POST(req: NextRequest) {
                     } else {
                         await tx.loyaltyPoint.create({
                             data: {
+                                tenantId,
                                 customerId: parseInt(customerId),
                                 points: earnedPoints,
                                 totalEarned: earnedPoints,
@@ -162,6 +169,7 @@ async function _POST(req: NextRequest) {
 
                     await tx.loyaltyTransaction.create({
                         data: {
+                            tenantId,
                             customerId: parseInt(customerId),
                             invoiceId: newInvoice.id,
                             points: earnedPoints,
@@ -200,7 +208,7 @@ async function _POST(req: NextRequest) {
         let zatcaQr = '';
         try {
             const zatcaSettings = await prisma.setting.findMany({ take: 100,
-                where: { key: { in: ['company_name', 'tax_number'] } }
+                where: { key: { in: ['company_name', 'tax_number'] }, tenantId }
             });
             const s: Record<string, string> = {};
             zatcaSettings.forEach((st: any) => { s[st.key] = st.value ?? ''; });
@@ -215,8 +223,8 @@ async function _POST(req: NextRequest) {
                 });
                 
                 // Save it to the database so it's persisted for Phase 1 display
-                await prisma.salesInvoice.update({
-                    where: { id: invoice.newInvoice.id },
+                await prisma.salesInvoice.updateMany({
+                    where: { id: invoice.newInvoice.id, tenantId },
                     data: { zatcaQr }
                 });
             }

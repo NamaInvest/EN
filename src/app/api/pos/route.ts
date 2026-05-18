@@ -76,6 +76,7 @@ async function _POST(req: NextRequest) {
             // A. Create the Main Invoice Header
             const invoice = await tx.salesInvoice.create({
                 data: {
+                    tenantId: tenantString,
                     invoiceNo: Math.floor(Math.random() * 1000000), // Auto-generate or sequence
                     customerId,
                     stockId,
@@ -96,6 +97,7 @@ async function _POST(req: NextRequest) {
             const lineItems = await Promise.all(details.map(async (item: any) => {
                 return tx.salesInvoiceDetail.create({
                     data: {
+                        tenantId: tenantString,
                         invoiceId: invoice.id,
                         productId: item.productId,
                         productName: item.productName,
@@ -116,25 +118,34 @@ async function _POST(req: NextRequest) {
                 const parsedProductId = parseInt(item.productId);
                 
                 // 1. Fetch product to get buyPrice for COGS
-                const prod = await tx.product.findUnique({ where: { id: parsedProductId } });
+                const prod = await tx.product.findFirst({ where: { id: parsedProductId, tenantId: tenantString } });
                 totalCost += (Number(prod?.buyPrice) || 0) * item.quantity;
 
                 // 2. Global Stock Deduction
-                await tx.product.update({
-                    where: { id: parsedProductId },
+                await tx.product.updateMany({
+                    where: { id: parsedProductId, tenantId: tenantString },
                     data: { currentStock: { decrement: item.quantity } }
                 });
 
                 // 3. Warehouse Stock Deduction (ProductStock)
-                await tx.productStock.upsert({
-                    where: { productId_stockId: { productId: parsedProductId, stockId: parseInt(stockId) } },
-                    update: { quantity: { decrement: item.quantity } },
-                    create: { productId: parsedProductId, stockId: parseInt(stockId), quantity: -item.quantity }
+                const existingStock = await tx.productStock.findFirst({
+                    where: { productId: parsedProductId, stockId: parseInt(stockId), tenantId: tenantString }
                 });
+                if (existingStock) {
+                    await tx.productStock.updateMany({
+                        where: { id: existingStock.id, tenantId: tenantString },
+                        data: { quantity: { decrement: item.quantity } }
+                    });
+                } else {
+                    await tx.productStock.create({
+                        data: { tenantId: tenantString, productId: parsedProductId, stockId: parseInt(stockId), quantity: -item.quantity }
+                    });
+                }
 
                 // 4. Create Stock Movement Audit Record
                 await tx.stockMovement.create({
                     data: {
+                        tenantId: tenantString,
                         productId: parsedProductId,
                         stockId: parseInt(stockId),
                         type: "out",
@@ -187,6 +198,7 @@ async function _POST(req: NextRequest) {
             // F. Create ZATCARecord for the electronic invoicing integration
             const zatcaRecord = await tx.zATCARecord.create({
                 data: {
+                    tenantId: tenantString,
                     invoiceId: invoice.id,
                     invoiceType: "POS",
                     status: "sent",

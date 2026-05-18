@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
@@ -12,9 +13,10 @@ async function _GET(req: NextRequest) {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         const prisma = getPrisma(req);
+        const tenantId = requireTenantId(req as any);
 
         const zones = await prisma.restaurantZone.findMany({
-            where: { tenantId: auth.tenantId || 'default' },
+            where: { tenantId },
             include: { 
                 tables: { 
                     include: { 
@@ -37,12 +39,13 @@ async function _POST(req: NextRequest) {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         const prisma = getPrisma(req);
+        const tenantId = requireTenantId(req as any);
         const { action, payload } = await req.json();
 
         if (action === 'create_zone') {
             const zone = await prisma.restaurantZone.create({ 
                 data: { 
-                    tenantId: auth.tenantId || 'default',
+                    tenantId,
                     name: payload.name 
                 } 
             });
@@ -52,7 +55,7 @@ async function _POST(req: NextRequest) {
         if (action === 'create_table') {
             const table = await prisma.restaurantTable.create({
                 data: { 
-                    tenantId: auth.tenantId || 'default',
+                    tenantId,
                     name: payload.name, 
                     capacity: payload.capacity, 
                     zoneId: payload.zoneId,
@@ -63,21 +66,21 @@ async function _POST(req: NextRequest) {
         }
         
         if (action === 'update_table_status') {
-            const table = await prisma.restaurantTable.update({
-                where: { id: payload.tableId },
+            const table = await prisma.restaurantTable.updateMany({
+                where: { id: payload.tableId, tenantId },
                 data: { status: payload.status }
             });
             return NextResponse.json({ success: true, table });
         }
 
         if (action === 'open_session') {
-            await prisma.restaurantTable.update({
-                where: { id: payload.tableId },
+            await prisma.restaurantTable.updateMany({
+                where: { id: payload.tableId, tenantId },
                 data: { status: 'Occupied' }
             });
             const session = await prisma.restaurantSession.create({
                 data: { 
-                    tenantId: auth.tenantId || 'default',
+                    tenantId,
                     tableId: payload.tableId, 
                     status: 'Active' 
                 }
@@ -86,32 +89,32 @@ async function _POST(req: NextRequest) {
         }
 
         if (action === 'close_session') {
-            await prisma.restaurantTable.update({
-                where: { id: payload.tableId },
+            await prisma.restaurantTable.updateMany({
+                where: { id: payload.tableId, tenantId },
                 data: { status: 'Available' }
             });
             await prisma.restaurantSession.updateMany({
-                where: { tableId: payload.tableId, status: 'Active' },
+                where: { tableId: payload.tableId, status: 'Active', tenantId },
                 data: { status: 'Closed', endedAt: new Date() }
             });
             return NextResponse.json({ success: true });
         }
 
         if (action === 'delete_zone') {
-            const tables = await prisma.restaurantTable.findMany({ where: { zoneId: payload.zoneId } });
+            const tables = await prisma.restaurantTable.findMany({ where: { zoneId: payload.zoneId, tenantId } });
             for (const table of tables) {
-                await prisma.restaurantSession.deleteMany({ where: { tableId: table.id } });
-                await prisma.waiterCall.deleteMany({ where: { tableId: table.id } });
+                await prisma.restaurantSession.deleteMany({ where: { tableId: table.id, tenantId } });
+                await prisma.waiterCall.deleteMany({ where: { tableId: table.id, tenantId } });
             }
-            await prisma.restaurantTable.deleteMany({ where: { zoneId: payload.zoneId } });
-            await prisma.restaurantZone.delete({ where: { id: payload.zoneId } });
+            await prisma.restaurantTable.deleteMany({ where: { zoneId: payload.zoneId, tenantId } });
+            await prisma.restaurantZone.deleteMany({ where: { id: payload.zoneId, tenantId } });
             return NextResponse.json({ success: true });
         }
 
         if (action === 'delete_table') {
-            await prisma.restaurantSession.deleteMany({ where: { tableId: payload.tableId } });
-            await prisma.waiterCall.deleteMany({ where: { tableId: payload.tableId } });
-            await prisma.restaurantTable.delete({ where: { id: payload.tableId } });
+            await prisma.restaurantSession.deleteMany({ where: { tableId: payload.tableId, tenantId } });
+            await prisma.waiterCall.deleteMany({ where: { tableId: payload.tableId, tenantId } });
+            await prisma.restaurantTable.deleteMany({ where: { id: payload.tableId, tenantId } });
             return NextResponse.json({ success: true });
         }
         

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { n } from '@/lib/decimal-utils';
@@ -13,10 +14,11 @@ async function _GET(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        const tenantId = requireTenantId(req as any);
         const prisma = getPrisma(req);
 
         const pendingOrders = await prisma.salesInvoice.findMany({
-            where: { status: 'pending', paymentType: 'pending' },
+            where: { status: 'pending', paymentType: 'pending', tenantId },
             include: { details: true },
             orderBy: { date: 'desc' },
             take: 20
@@ -34,20 +36,21 @@ async function _POST(req: NextRequest) {
     try {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+        const tenantId = requireTenantId(req as any);
         const prisma = getPrisma(req);
         const { action, invoiceId } = await req.json();
 
         if (action === 'approve') {
             // Get invoice first
-            const invoice = await prisma.salesInvoice.findUnique({
-                where: { id: invoiceId },
+            const invoice = await prisma.salesInvoice.findFirst({
+                where: { id: invoiceId, tenantId },
                 include: { details: true }
             });
             if (!invoice) return NextResponse.json({ success: false, error: 'الفاتورة غير موجودة' });
 
             // Update status to completed
-            await prisma.salesInvoice.update({
-                where: { id: invoiceId },
+            await prisma.salesInvoice.updateMany({
+                where: { id: invoiceId, tenantId },
                 data: {
                     status: 'completed',
                     paymentType: 'cash',
@@ -58,8 +61,8 @@ async function _POST(req: NextRequest) {
 
             // Deduct stock for each item
             for (const d of invoice.details) {
-                await prisma.product.update({
-                    where: { id: d.productId },
+                await prisma.product.updateMany({
+                    where: { id: d.productId, tenantId },
                     data: { currentStock: { decrement: d.quantity } }
                 });
             }
@@ -68,8 +71,8 @@ async function _POST(req: NextRequest) {
         }
 
         if (action === 'reject') {
-            await prisma.salesInvoice.update({
-                where: { id: invoiceId },
+            await prisma.salesInvoice.updateMany({
+                where: { id: invoiceId, tenantId },
                 data: { status: 'cancelled' }
             });
             return NextResponse.json({ success: true, message: 'تم رفض الطلب' });
