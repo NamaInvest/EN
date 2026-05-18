@@ -13,7 +13,12 @@ const _PATCHSchema = z.object({
 }).passthrough();
 
 async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'finance_manager'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول المالي مطلوبة' }, { status: 403 });
+    }
   const { id } = await params;
     try {
         const stepId = parseInt((await params).id);
@@ -25,8 +30,8 @@ async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }
         }
         const { status, notes } = body;
 
-        const updated = await prisma.periodCloseChecklist.update({
-            where: { id: stepId },
+        const updated = await prisma.periodCloseChecklist.updateMany({
+            where: { id: stepId, tenantId: user.tenantId },
             data: { 
                 status, 
                 notes,
@@ -34,7 +39,11 @@ async function _PATCH(req: Request, { params }: { params: Promise<{ id: string }
             }
         });
 
-        return NextResponse.json(updated);
+        if (updated.count === 0) {
+            return NextResponse.json({ error: 'الخطوة غير موجودة أو لا تملك صلاحية' }, { status: 404 });
+        }
+
+        return NextResponse.json({ success: true, count: updated.count });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

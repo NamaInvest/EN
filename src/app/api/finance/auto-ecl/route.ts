@@ -21,8 +21,8 @@ async function _POST(req: NextRequest, auth: any) {
         const user = await prisma.user.findFirst({ 
             where: { id: auth.userId, ...requireTenantFilter({ tenantId }) } 
         });
-        if (!user || (user.role !== 'admin' && user.role !== 'cfo')) {
-            return NextResponse.json({ error: 'غير مصرح لك بتوليد المخصصات. هذه الصلاحية للمدير المالي (CFO) والمدير العام (Admin) فقط.' }, { status: 403 });
+        if (!user || !['admin', 'owner', 'finance_manager', 'cfo'].includes(user.role)) {
+            return NextResponse.json({ error: 'غير مصرح لك بتوليد المخصصات. هذه الصلاحية للمدير المالي (CFO/Finance Manager) والمدير العام (Admin/Owner) فقط.' }, { status: 403 });
         }
 
         const now = new Date();

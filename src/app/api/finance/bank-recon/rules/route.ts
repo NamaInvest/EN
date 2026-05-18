@@ -7,16 +7,20 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'finance.bank-recon.rules' });
 
 async function _GET(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(req as any);
     try {
         const rules = await prisma.bankReconRule.findMany({ take: 100,
+            where: { tenantId: user.tenantId },
             orderBy: { priority: 'asc' },
             include: { bankAccount: true }
         });
 
         const bankAccounts = await prisma.bankAccount.findMany({ take: 100,
-            where: { isActive: true },
+            where: { isActive: true, tenantId: user.tenantId },
             select: { id: true, bankName: true, accountNumber: true, currency: true }
         });
 
@@ -44,6 +48,12 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'finance_manager'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول المالي مطلوبة' }, { status: 403 });
+    }
 
     const prisma = getPrisma(req as any);
     try {
@@ -62,6 +72,7 @@ async function _POST(req: Request) {
 
         const newRule = await prisma.bankReconRule.create({
             data: {
+                tenantId: user.tenantId,
                 name,
                 bankAccountId: bankAccountId ? Number(bankAccountId) : null,
                 conditions: conditions || [],
@@ -85,14 +96,20 @@ const _PUTSchema = z.object({
 }).passthrough();
 
 async function _PUT(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'finance_manager'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول المالي مطلوبة' }, { status: 403 });
+    }
 
     const prisma = getPrisma(req as any);
     try {
         const body = await req.json();
         const { id, enabled } = body;
 
-        const updated = await prisma.bankReconRule.update({
-            where: { id: Number(id) },
+        const updated = await prisma.bankReconRule.updateMany({
+            where: { id: Number(id), tenantId: user.tenantId },
             data: { enabled }
         });
 
@@ -103,14 +120,20 @@ async function _PUT(req: Request) {
 }
 
 async function _DELETE(req: Request) {
+    const { getUserFromRequest } = require('@/lib/auth');
+    const user = getUserFromRequest(req as any);
+    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'finance_manager'].includes(user.role)) {
+        return NextResponse.json({ error: 'صلاحية المسؤول المالي مطلوبة' }, { status: 403 });
+    }
 
     const prisma = getPrisma(req as any);
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
 
-        await prisma.bankReconRule.delete({
-            where: { id: Number(id) }
+        await prisma.bankReconRule.deleteMany({
+            where: { id: Number(id), tenantId: user.tenantId }
         });
 
         return NextResponse.json({ success: true });
