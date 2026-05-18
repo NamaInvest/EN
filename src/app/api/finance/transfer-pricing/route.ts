@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { TransferPricingEngine } from '@/lib/transfer-pricing-engine';
-
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
+import { withRoute } from "@/lib/api/with-route";
+export const GET = withRoute(async ({ req, prisma, auth, tenant }) => {
+    try {
+    const { searchParams } = new URL(req.url);
     const dateParam = searchParams.get('date');
     const minParam = searchParams.get('min');
     const maxParam = searchParams.get('max');
-    const tenantId = searchParams.get('tenantId') || 'default';
+
 
     const asOfDate = dateParam ? new Date(dateParam) : new Date();
     const minBenchmark = minParam ? parseFloat(minParam) : 0.05;
@@ -17,17 +17,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid benchmark ranges.' }, { status: 400 });
     }
 
-    const report = await TransferPricingEngine.evaluateTransactions(tenantId, asOfDate, minBenchmark, maxBenchmark);
+    const report = await TransferPricingEngine.evaluateTransactions(tenant, asOfDate, minBenchmark, maxBenchmark);
 
     return NextResponse.json({
       success: true,
       data: report,
     });
-  } catch (error: any) {
+    } catch (error: any) {
     console.error('Transfer Pricing API Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate Transfer Pricing report', details: error?.message },
       { status: 500 }
     );
-  }
-}
+    }
+    }, { rateLimit: 'DEFAULT', tenantRequired: true });

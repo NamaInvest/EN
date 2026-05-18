@@ -1,0 +1,299 @@
+Table PriceQuoteDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  quoteId Int [not null]
+  productId Int
+  productName String
+  quantity Decimal [not null]
+  price Decimal [not null]
+  total Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DeliveryNoteDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  noteId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null]
+  productBatchId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TrainingCourse {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  title String [not null]
+  provider String
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  cost Decimal [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TrainingEnrollment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  courseId Int [not null]
+  employeeId Int [not null]
+  status String [not null]
+  score Float
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table InsuranceClaim {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  patientId Int [not null]
+  prescriptionId Int
+  salesInvoiceId Int
+  insuranceCompany String [not null]
+  claimRef String [unique]
+  totalAmount Decimal [not null]
+  insuranceAmount Decimal [not null]
+  patientAmount Decimal [not null]
+  status String [not null]
+  rejectionReason String
+  submittedAt DateTime [not null]
+  resolvedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table IfrsLeaseImpairment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  contractId Int [not null]
+  testDate DateTime [not null]
+  carryingAmount Decimal [not null, note: 'Sensitive Financial Field']
+  recoverableAmount Decimal [not null]
+  impairmentLoss Decimal [not null]
+  reversal Boolean [not null]
+  reversalReason String
+  evidence String
+  journalEntryId Int [not null]
+  approvedByUserId String [note: 'Sensitive Financial Field']
+  createdByUserId String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DunningCampaign {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  campaignNumber String [unique, not null]
+  customerId Int [not null]
+  startedAt DateTime [not null, note: 'Sensitive Financial Field']
+  endedAt DateTime
+  status String [not null]
+  totalAmountAtStart Decimal [not null, note: 'Sensitive Financial Field']
+  amountCollected Decimal [not null]
+  triggeredBy String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WarrantyClaim {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  productId Int [not null]
+  serialNumber String
+  customerId Int [not null]
+  soldDate DateTime [not null]
+  warrantyExpiry DateTime [not null, note: 'Sensitive Financial Field']
+  issueDescription String [not null]
+  claimDate DateTime [not null]
+  status String [not null]
+  repairOrderId Int
+  replacementOrderId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CrmCampaign {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  type String [not null]
+  status String [not null]
+  startDate DateTime [note: 'Sensitive Financial Field']
+  endDate DateTime
+  budget Decimal [not null]
+  actualCost Decimal [not null]
+  targetCount Int [not null, note: 'Sensitive Financial Field']
+  sentCount Int [not null]
+  openCount Int [not null]
+  clickCount Int [not null]
+  convertCount Int [not null]
+  description String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CrmCampaignMember {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  campaignId Int [not null]
+  customerId Int
+  leadId Int
+  status String [not null]
+  respondedAt DateTime
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PortalMessage {
+  id Int [primary key, not null]
+  portalUserId Int [not null]
+  subject String [not null]
+  body String [not null]
+  direction String [not null]
+  read Boolean [not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PromptTemplate {
+  id String [primary key, not null]
+  tenantId String [note: 'Tenant Isolation']
+  key String [not null]
+  version Int [not null]
+  systemPrompt String [not null]
+  userTemplate String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PromptUsageLog {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  promptKey String [not null]
+  promptVersion Int [not null]
+  model String [not null]
+  promptTokens Int [not null]
+  completionTokens Int [not null]
+  latencyMs Int [not null]
+  success Boolean [not null]
+  errorCode String
+  costUsd Decimal
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table OcrTrainingData {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  vendorId String [not null]
+  template Json [not null]
+  accuracy Float [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AiConversation {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  userId String [not null]
+  title String
+  startedAt DateTime [not null, note: 'Sensitive Financial Field']
+  endedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AiConversationMessage {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  conversationId String [not null]
+  role String [not null]
+  content String [not null]
+  toolCalls Json
+  toolResults Json
+  promptTokens Int
+  completionTokens Int
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AiToolDefinition {
+  id String [primary key, not null]
+  tenantId String [note: 'Tenant Isolation']
+  name String [not null]
+  description String [not null]
+  parameters Json [not null, note: 'Sensitive Financial Field']
+  handlerType String [not null]
+  permission String
+  active Boolean [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AiToolCallLog {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  conversationId String
+  toolName String [not null]
+  arguments Json [not null, note: 'Sensitive Financial Field']
+  result Json
+  success Boolean [not null]
+  errorMessage String
+  durationMs Int [not null]
+  invokedBy String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ImpairmentTest {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  cguId Int [not null]
+  testDate DateTime [not null]
+  carryingAmount Decimal [not null, note: 'Sensitive Financial Field']
+  valueInUse Decimal [not null]
+  fairValue Decimal [not null]
+  recoverableAmt Decimal [not null]
+  impairmentLoss Decimal [not null]
+  status String [not null]
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CampaignJourney {
+  id Int [primary key, not null]
+  campaignId Int [not null]
+  journeyJson Json [not null]
+}
+
+Table ConversationMessage {
+  id Int [primary key, not null]
+  conversationId Int [not null]
+  direction String [not null]
+  content String [not null]
+  sentAt DateTime [not null]
+  sentBy Int
+}
+
+Table SustainabilityGoal {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  kpi String [not null]
+  targetValue Decimal [not null, note: 'Sensitive Financial Field']
+  baselineValue Decimal [not null]
+  baselineDate DateTime [not null]
+  targetDate DateTime [not null, note: 'Sensitive Financial Field']
+  unit String [not null]
+  active Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WaiterCall {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  tableId Int [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  resolvedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: TrainingEnrollment.courseId > TrainingCourse.id
+Ref: CrmCampaignMember.campaignId > CrmCampaign.id
+Ref: AiConversationMessage.conversationId > AiConversation.id

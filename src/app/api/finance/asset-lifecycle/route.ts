@@ -8,19 +8,18 @@
  * POST /api/finance/asset-lifecycle { action: 'cwip-transfer', cwipName, cwipAmount, assetCategory }
  */
 import { NextResponse, NextRequest } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
 import { AssetLifecycleEngine, AssetInput, DepreciationMethod } from '@/lib/asset-lifecycle-engine';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { withRoute } from "@/lib/api/with-route";
 
 const log = logger.child({ service: 'api.finance.asset-lifecycle' });
+export const GET = withRoute(async ({ req, prisma, auth, tenant }) => {
+    try {
 
-export async function GET(request: NextRequest) {
-  try {
-    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const action  = searchParams.get('action') || 'portfolio';
     const assetId = searchParams.get('assetId') ? parseInt(searchParams.get('assetId')!) : null;
 
@@ -87,18 +86,17 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'action غير معروف أو assetId مفقود' }, { status: 400 });
-  } catch (error: any) {
+    } catch (error: any) {
     log.error('Asset lifecycle GET error:', error);
     return NextResponse.json({ error: error.message || 'خطأ داخلي' }, { status: 500 });
-  }
-}
+    }
+    }, { rateLimit: 'DEFAULT', tenantRequired: true });
+export const POST = withRoute(async ({ req, prisma, auth, tenant }) => {
+    try {
 
-export async function POST(request: NextRequest) {
-  try {
-    const auth = getUserFromRequest(request as any);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
-    const body   = await request.json();
+    const body   = await req.json();
     const action = body.action;
 
     if (action === 'schedule') {
@@ -149,8 +147,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'action غير معروف' }, { status: 400 });
-  } catch (error: any) {
+    } catch (error: any) {
     log.error('Asset lifecycle POST error:', error);
     return NextResponse.json({ error: error.message || 'خطأ داخلي' }, { status: 500 });
-  }
-}
+    }
+    }, { rateLimit: 'DEFAULT', tenantRequired: true });

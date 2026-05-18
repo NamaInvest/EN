@@ -1,0 +1,253 @@
+Table PurchaseOrder {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  orderNo Int [not null]
+  date DateTime [not null]
+  supplierId Int
+  stockId Int [not null]
+  subtotal Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  status String [not null]
+  approvedBy Int [note: 'Sensitive Financial Field']
+  userId Int
+  branchId Int
+  notes String
+  isForeign Boolean [not null]
+  letterOfCreditId Int
+  salesOrderId Int
+  deletedAt DateTime
+  promisedDate DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseOrderDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  orderId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null]
+  price Decimal [not null]
+  discountRate Decimal [not null]
+  discountValue Decimal [not null]
+  taxRate Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseInvoice {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  invoiceNo Int [not null]
+  isManual Boolean [not null]
+  date DateTime [not null]
+  supplierId Int
+  stockId Int [not null]
+  subtotal Decimal [not null]
+  discountRate Decimal [not null]
+  discountValue Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  paid Decimal [not null]
+  remaining Decimal [not null]
+  supplierInvoiceNo String
+  purchaseOrderId Int
+  ppvAmount Decimal [not null]
+  paymentType String [not null]
+  status String [not null]
+  receiptStatus String [not null]
+  userId Int
+  notes String
+  taxType String
+  currencyId Int
+  exchangeRate Decimal
+  branchId Int
+  deletedAt DateTime
+  deletedBy String
+  hasException Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseInvoiceDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  invoiceId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null]
+  price Decimal [not null]
+  discountRate Decimal [not null]
+  discountValue Decimal [not null]
+  taxRate Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseReturn {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  returnNo Int [not null]
+  originalInvoiceId Int
+  date DateTime [not null]
+  supplierId Int
+  subtotal Decimal [not null]
+  discountRate Decimal [not null]
+  discountValue Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  userId Int
+  branchId Int
+  notes String
+  zatcaStatus String
+  zatcaQr String
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseReturnDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  returnId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null]
+  price Decimal [not null]
+  discountRate Decimal [not null]
+  discountValue Decimal [not null]
+  taxRate Decimal [not null]
+  taxValue Decimal [not null]
+  total Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SupplierContract {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  contractNo String [unique, not null]
+  supplierId Int [not null]
+  title String [not null]
+  description String
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  value Decimal [not null]
+  currency String [not null]
+  paymentTerms String
+  status String [not null]
+  autoRenew Boolean [not null]
+  alertDaysBefore Int [not null]
+  notes String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseRequisition {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  reqNo Int [not null]
+  date DateTime [not null]
+  department String [note: 'Sensitive Financial Field']
+  status String [not null]
+  requestedBy Int
+  approvedBy Int [note: 'Sensitive Financial Field']
+  notes String
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PurchaseRequisitionDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  reqId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null]
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorRating {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  supplierId Int [not null]
+  grnId Int
+  quality Int [not null]
+  delivery Int [not null]
+  pricing Int [not null]
+  notes String
+  ratedBy Int
+  ratedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorBid {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  rfqId Int [not null]
+  vendorId Int [not null]
+  amount Decimal [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorBidDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bidId Int [not null]
+  rfqDetailId Int [not null]
+  unitPrice Decimal [not null]
+  deliveryDays Int [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorPortalToken {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  token String [unique, not null]
+  vendorId Int [not null]
+  rfqId Int [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorOnboarding {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  vendorId Int
+  applicationData Json [not null, note: 'Sensitive Financial Field']
+  kycDocuments Json
+  riskScore Decimal
+  sanctionsMatch Boolean [not null]
+  amlChecks Json
+  status String [not null]
+  currentStage String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorOnboardingStep {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  vendorId String [not null]
+  step String [not null]
+  data Json [not null]
+  status String [not null]
+  submittedAt DateTime
+  reviewedById String
+  reviewedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: PurchaseOrderDetail.orderId > PurchaseOrder.id
+Ref: PurchaseInvoiceDetail.invoiceId > PurchaseInvoice.id
+Ref: PurchaseReturnDetail.returnId > PurchaseReturn.id
+Ref: PurchaseRequisitionDetail.reqId > PurchaseRequisition.id
+Ref: VendorBidDetail.bidId > VendorBid.id

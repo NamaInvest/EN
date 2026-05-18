@@ -6,6 +6,18 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 بدء إعداد قاعدة البيانات...');
 
+    const args = process.argv.slice(2);
+    const verticalArg = args.find(a => a.startsWith('--vertical='));
+    
+    if (verticalArg) {
+        const vertical = verticalArg.split('=')[1];
+        if (vertical === 'retail') {
+            const { runRetailSeed } = await import('./seeds/verticals/retail/index');
+            await runRetailSeed(prisma, 'namasoft-retail-demo');
+            return;
+        }
+    }
+
     // 1. Admin User
     const adminHash = bcrypt.hashSync('admin', 10);
     await prisma.user.upsert({

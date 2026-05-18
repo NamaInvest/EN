@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server';
 import { SuccessionEngine } from '@/lib/succession-engine';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { withRoute } from "@/lib/api/with-route";
+export const GET = withRoute(async ({ req, prisma, auth, tenant }) => {
+    try {
 
-export async function GET(request: Request) {
-  try {
-    const tenantId = requireTenantId(request as any);
-
-    const report = await SuccessionEngine.generateNineBox(tenantId);
+    const report = await SuccessionEngine.generateNineBox(tenant);
 
     return NextResponse.json({
       success: true,
       data: report,
     });
-  } catch (error: any) {
+    } catch (error: any) {
     console.error('Succession API Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate 9-Box report', details: error?.message },
       { status: 500 }
     );
-  }
-}
+    }
+    }, { rateLimit: 'DEFAULT', tenantRequired: true });

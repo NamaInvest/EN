@@ -33,7 +33,9 @@
         "clean": "rm -rf .next node_modules/.cache",
         "test:domain": "jest --testPathPattern=tests/ --passWithNoTests --forceExit",
         "health": "curl -s http://localhost:3000/api/health | npx -y prettier --parser json",
-        "analyze": "cross-env ANALYZE=true npm run build"
+        "analyze": "cross-env ANALYZE=true npm run build",
+        "erd:generate": "tsx scripts/generate-erd.ts",
+        "test:integration": "vitest run tests/integration/accounting tests/integration/treasury tests/integration/sales tests/integration/procurement tests/integration/security"
     },
     "prisma": {
         "seed": "npx tsx prisma/seed.ts"

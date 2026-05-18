@@ -1,0 +1,581 @@
+Table Expense {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  date DateTime [not null]
+  category String
+  description String [not null]
+  amount Decimal [not null]
+  userId Int
+  costCenterId Int
+  notes String
+  branchId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Account {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [not null]
+  name String [not null]
+  nameEn String [not null]
+  type String [not null]
+  parentId Int [not null, note: 'Sensitive Financial Field']
+  level Int [not null]
+  isActive Boolean [not null]
+  balance Decimal [not null]
+  zakatCategory String
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JournalEntry {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  entryNumber String [not null]
+  entryDate String [not null]
+  description String
+  reference String
+  totalDebit Decimal [not null]
+  totalCredit Decimal [not null]
+  status String [not null]
+  createdBy Int
+  createdAt DateTime [not null]
+  currencyId Int
+  exchangeRate Decimal [not null]
+  autoReverseDate DateTime
+  isReversal Boolean [not null]
+  branchId Int
+  bookId Int
+  replicatedFromId Int
+  bookOnly Boolean [not null]
+  fxRateUsed Decimal
+  fxRateDate DateTime
+  fxRateSource String
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JournalLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  entryId Int [not null]
+  accountId Int [not null]
+  costCenterId Int
+  description String
+  debit Decimal [not null]
+  credit Decimal [not null]
+  foreignDebit Decimal [not null]
+  foreignCredit Decimal [not null]
+  isReconciled Boolean [not null]
+  reconciliationId Int
+  profitCenterId Int
+  projectId Int
+  segmentId Int
+  productId Int
+  customerId Int
+  vendorId Int
+  employeeId Int
+  assetId Int
+  bookId Int
+  fxRate Decimal
+  quantity Decimal
+  uom String
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table InstallmentPayment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  installmentId Int [not null]
+  paymentDate String [not null]
+  dueDate String [not null]
+  amount Decimal [not null]
+  paid Boolean [not null]
+  paidDate String
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Currency {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  nameAr String [not null, note: 'Sensitive Financial Field']
+  nameEn String
+  symbol String
+  exchangeRate Decimal [not null]
+  isDefault Boolean [not null]
+  isActive Boolean [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table FiscalPeriod {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  year Int [not null, note: 'Sensitive Financial Field']
+  month Int [not null]
+  status String [not null]
+  closedBy Int
+  closedAt DateTime
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table FiscalYear {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  yearNumber Int [unique, not null, note: 'Sensitive Financial Field']
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  status String [not null]
+  closingJournalId Int
+  rolloverJournalId Int
+  closedAt DateTime
+  closedByUserId String
+  reopenedAt DateTime
+  reopenedByUserId String
+  reopenedReason String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table FiscalYearReopenRequest {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  fiscalYearId Int [not null, note: 'Sensitive Financial Field']
+  requestedAt DateTime [not null]
+  requestedByUserId String [not null]
+  reason String [not null]
+  justification String [not null]
+  externalAuditorEmail String
+  externalAuditorSignature String
+  status String [not null]
+  reviewedByUserId String
+  reviewedAt DateTime
+  reviewNotes String
+  approvalChain Json [not null, note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JournalTemplate {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  description String
+  isRecurring Boolean [not null]
+  frequency String
+  nextRunDate DateTime
+  endDate DateTime
+  autoReverse Boolean [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JournalTemplateLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  templateId Int [not null]
+  accountId Int [not null]
+  debitFormula String
+  creditFormula String
+  description String
+  costCenterId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentTerm {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  name String [not null]
+  type String [not null]
+  netDays Int
+  discountDays Int
+  discountPercent Decimal
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentTermInstallment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  termId Int [not null]
+  daysAfterInvoice Int [not null]
+  percentOfTotal Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table IfrsVariableLeasePayment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  contractId Int [not null]
+  periodDate DateTime [not null]
+  amount Decimal [not null]
+  basisDescription String [not null]
+  indexValue Decimal
+  expenseJournalId Int [note: 'Sensitive Financial Field']
+  recordedAt DateTime [not null]
+  recordedByUserId String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DeferredRevenueSchedule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  performanceObligationId Int [unique, not null]
+  totalAmount Decimal [not null]
+  recognitionStartDate DateTime [not null, note: 'Sensitive Financial Field']
+  recognitionEndDate DateTime [not null]
+  frequency String [not null]
+  totalLines Int [not null]
+  recognizedLines Int [not null]
+  generatedAt DateTime [not null]
+  isCurrent Boolean [not null]
+  versionNumber Int [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table RevenueRecognitionLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  scheduleId Int [not null]
+  performanceObligationId Int [not null]
+  lineNumber Int [not null]
+  recognitionDate DateTime [not null]
+  scheduledAmount Decimal [not null]
+  recognizedAmount Decimal
+  recognizedAt DateTime
+  status String [not null]
+  journalEntryId Int
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table RevenueMilestone {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  performanceObligationId Int [not null]
+  milestoneNumber Int [not null]
+  description String [not null]
+  amount Decimal [not null]
+  expectedDate DateTime [not null]
+  actualCompletionDate DateTime
+  status String [not null]
+  evidenceFileId Int
+  approvedByUserId String [note: 'Sensitive Financial Field']
+  approvedAt DateTime [note: 'Sensitive Financial Field']
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentRun {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  runNumber String [unique, not null]
+  description String
+  status String [not null]
+  dueDateUntil DateTime [not null]
+  currency String [not null]
+  paymentMethod String [not null]
+  bankAccountId Int [not null]
+  totalAmount Decimal [not null]
+  totalCount Int [not null]
+  successCount Int [not null]
+  failedCount Int [not null]
+  estimatedSavings Decimal
+  actualSavings Decimal
+  bankCharges Decimal [note: 'Sensitive Financial Field']
+  proposedAt DateTime
+  proposedByUserId String
+  submittedForApprovalAt DateTime [note: 'Sensitive Financial Field']
+  approvedAt DateTime [note: 'Sensitive Financial Field']
+  filesGeneratedAt DateTime
+  sentToBankAt DateTime
+  sentToBankByUserId String
+  confirmedAt DateTime
+  confirmedByUserId String
+  postedAt DateTime
+  postedByUserId String
+  cancelledAt DateTime
+  cancelledByUserId String
+  cancellationReason String
+  journalEntryId Int
+  reversalJournalId Int
+  approvalRequiredCount Int [not null, note: 'Sensitive Financial Field']
+  approvalReceivedCount Int [not null, note: 'Sensitive Financial Field']
+  createdAt DateTime [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentRunLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  runId Int [not null]
+  supplierId Int [not null]
+  openItemIds Int [not null]
+  invoiceCount Int [not null]
+  amount Decimal [not null]
+  currency String [not null]
+  exchangeRate Decimal [not null]
+  amountFunctional Decimal [not null]
+  discountAmount Decimal
+  discountTaken Boolean [not null]
+  discountWindowEnds DateTime
+  beneficiaryName String [not null, note: 'Sensitive Financial Field']
+  beneficiaryIBAN String [note: 'Sensitive Financial Field']
+  beneficiarySwift String [note: 'Sensitive Financial Field']
+  beneficiaryBankName String [note: 'Sensitive Financial Field']
+  beneficiaryBankAddress String [note: 'Sensitive Financial Field']
+  beneficiaryCountry String [note: 'Sensitive Financial Field']
+  beneficiaryAccountNumber String [note: 'Sensitive Financial Field']
+  beneficiaryRoutingNumber String [note: 'Sensitive Financial Field']
+  paymentMethod String [not null]
+  paymentReference String
+  paymentPurpose String
+  status String [not null]
+  failureReason String
+  failureCode String
+  externalReference String
+  bankConfirmedAt DateTime
+  bankFees Decimal
+  excludedAt DateTime
+  excludedReason String
+  excludedByUserId String
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentRunApproval {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  runId Int [not null]
+  approverUserId String [not null, note: 'Sensitive Financial Field']
+  approverRole String [not null, note: 'Sensitive Financial Field']
+  level Int [not null]
+  isParallel Boolean [not null, note: 'Sensitive Financial Field']
+  status String [not null]
+  decisionAt DateTime
+  comments String
+  delegatedToUserId String
+  delegationReason String
+  reminderSentAt DateTime
+  expiresAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentBlock {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  type String [not null]
+  supplierId Int
+  invoiceId Int
+  reason String [not null]
+  description String
+  blockedAt DateTime [not null]
+  blockedByUserId String [not null]
+  approvedReleaseRoles String [not null, note: 'Sensitive Financial Field']
+  releasedAt DateTime
+  releasedByUserId String
+  releaseReason String
+  active Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AccountingBook {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  name String [not null]
+  nameAr String [note: 'Sensitive Financial Field']
+  description String
+  type String [not null]
+  gaapStandard String [not null, note: 'Sensitive Financial Field']
+  baseCurrency String [not null]
+  isPrimary Boolean [not null, note: 'Sensitive Financial Field']
+  isActive Boolean [not null]
+  fiscalYearStart String [not null, note: 'Sensitive Financial Field']
+  sourceBookId Int
+  autoReplicate Boolean [not null]
+  replicateOnPost Boolean [not null]
+  exchangeRateSource String [not null]
+  exchangeRateMethod String [not null]
+  createdByUserId String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AccountMapping {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bookId Int [not null]
+  sourceAccountId Int [not null]
+  targetAccountId Int [note: 'Sensitive Financial Field']
+  rule String [not null]
+  ruleParams Json [note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AccountMappingTemplate {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  name String [not null]
+  description String
+  fromGaap String [not null, note: 'Sensitive Financial Field']
+  toGaap String [not null, note: 'Sensitive Financial Field']
+  countryCode String
+  industry String
+  mappings Json [not null, note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentGateway {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  provider String [not null]
+  credentials String [not null]
+  env String [not null]
+  isActive Boolean [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentTransaction {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  gatewayId Int [not null]
+  invoiceId Int [not null]
+  amount Decimal [not null]
+  currency String [not null]
+  method String [not null]
+  providerTransactionId String
+  status String [not null]
+  failureReason String
+  createdAt DateTime [not null]
+  capturedAt DateTime [note: 'Sensitive Financial Field']
+  refundedAt DateTime
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CrmAccount {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  industry String
+  size String
+  website String
+  parentAccountId Int [note: 'Sensitive Financial Field']
+  ownerId Int
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ExpenseReport {
+  id Int [primary key, not null]
+  employeeId Int [not null]
+  title String [not null]
+  totalAmount Decimal [not null]
+  status String [not null]
+  approvedBy Int [note: 'Sensitive Financial Field']
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ExpenseLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  reportId Int [not null]
+  date DateTime [not null]
+  category String [not null]
+  description String
+  amount Decimal [not null]
+  receiptUrl String
+  ocrData Json
+  vendor String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DeferredTax {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  asOfDate DateTime [not null]
+  itemCode String [not null]
+  description String [not null]
+  accountingBase Decimal [not null]
+  taxBase Decimal [not null]
+  temporaryDiff Decimal [not null, note: 'Sensitive Financial Field']
+  diffType String [not null]
+  taxRate Decimal [not null]
+  deferredTaxAmount Decimal [not null]
+  classification String [not null]
+  recoverability String
+  expectedReversal DateTime
+  journalEntryId Int
+  status String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DeferredTaxRollforward {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  fiscalYear Int [not null, note: 'Sensitive Financial Field']
+  itemCode String [not null]
+  openingBalance Decimal [not null]
+  recognizedInPL Decimal [not null]
+  recognizedInOCI Decimal [not null]
+  recognizedInEq Decimal [not null]
+  closingBalance Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TaxRegime {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  countryCode String [not null]
+  regimeName String [not null]
+  currency String [not null]
+  taxRate Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PrepaymentSchedule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  accrualEntryId Int [not null]
+  period String [not null]
+  monthlyAmount Decimal [not null]
+  journalEntryId Int
+  status String [not null]
+  postedAt DateTime
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: JournalEntry.bookId > AccountingBook.id
+Ref: JournalEntry.replicatedFromId > JournalEntry.id
+Ref: JournalLine.entryId > JournalEntry.id
+Ref: JournalLine.accountId > Account.id
+Ref: FiscalPeriod.year > FiscalYear.yearNumber
+Ref: JournalTemplateLine.templateId > JournalTemplate.id
+Ref: PaymentTermInstallment.termId > PaymentTerm.id
+Ref: RevenueRecognitionLine.scheduleId > DeferredRevenueSchedule.id
+Ref: PaymentRunLine.runId > PaymentRun.id
+Ref: PaymentRunApproval.runId > PaymentRun.id
+Ref: AccountingBook.sourceBookId > AccountingBook.id
+Ref: AccountMapping.bookId > AccountingBook.id
+Ref: AccountMapping.sourceAccountId > Account.id
+Ref: AccountMapping.targetAccountId > Account.id
+Ref: PaymentTransaction.gatewayId > PaymentGateway.id
+Ref: ExpenseLine.reportId > ExpenseReport.id

@@ -1,0 +1,100 @@
+Table DocumentStateMachine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  docType String [not null]
+  fromState String [not null]
+  toState String [not null]
+  action String [not null]
+  requiredRole String
+  autoActions Json
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Machine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  code String [unique]
+  hourlyCost Decimal [not null]
+  energyCost Decimal [not null]
+  carbonRate Decimal [not null, note: 'Sensitive Financial Field']
+  status String [not null]
+  branchId Int
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table MachineMaintenance {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  machineId Int [not null]
+  maintenanceType String [not null]
+  description String [not null]
+  cost Decimal [not null]
+  scheduledDate DateTime [not null]
+  completedDate DateTime
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table MachineTelemetry {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  machineId Int [not null]
+  temperature Float
+  vibration Float
+  piecesProduced Int [not null]
+  recordedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BOMVersion {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  recipeId Int [not null]
+  versionNumber String [not null]
+  effectiveFrom DateTime [not null]
+  effectiveTo DateTime
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table MasterProductionSchedule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  period String [not null]
+  productId Int [not null]
+  scheduledQty Decimal [not null]
+  demandSource String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ManufacturingBOM {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  productId Int [not null]
+  components Json [not null]
+  version String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table MaintenanceWorkOrder {
+  id Int [primary key, not null]
+  scheduleId Int
+  assetId Int
+  priority String [not null]
+  description String
+  startDate DateTime [note: 'Sensitive Financial Field']
+  completedDate DateTime
+  cost Decimal [not null]
+  technicianNotes String
+  status String [not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: MachineMaintenance.machineId > Machine.id
+Ref: MachineTelemetry.machineId > Machine.id

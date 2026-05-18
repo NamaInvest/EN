@@ -1,0 +1,409 @@
+Table User {
+  id Int [primary key, not null]
+  username String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  role String [not null]
+  phone String
+  active Boolean [not null]
+  sessionToken String
+  deviceToken String
+  deviceName String
+  deviceBoundAt DateTime
+  createdAt DateTime [not null]
+  branchId Int
+  defaultPage String
+  totpSecretEncrypted String
+  totpIv String
+  totpAuthTag String
+  mfaEnabled Boolean [not null]
+  mfaMethod String
+  mfaPendingActivation Boolean [not null, note: 'Sensitive Financial Field']
+  mfaEnrolledAt DateTime
+  mfaLastUsedAt DateTime
+  mfaFailedAttempts Int [not null]
+  mfaLockedUntil DateTime
+  mfaRequiredByPolicy Boolean [not null, note: 'Sensitive Financial Field']
+  mfaPolicyId Int [note: 'Sensitive Financial Field']
+  mfaGracePeriodEndsAt DateTime
+  mfaPhoneVerified String [note: 'Sensitive Financial Field']
+  mfaPhoneVerifiedAt DateTime [note: 'Sensitive Financial Field']
+  deletedAt DateTime
+}
+
+Table UserBackupCode {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  userId Int [not null]
+  codeHash String [not null]
+  codeHint String [not null]
+  usedAt DateTime
+  ipUsedFrom String
+  userAgentUsed String
+  createdAt DateTime [not null]
+  generatedBatchId String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table UserPermission {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  userId Int [not null]
+  module String [not null]
+  canView Boolean [not null]
+  canAdd Boolean [not null]
+  canEdit Boolean [not null]
+  canDelete Boolean [not null]
+  canPrint Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Subscription {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  companyId Int [not null]
+  planLabel String [not null]
+  status String [not null]
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  notes String
+  createdAt DateTime [not null]
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SubscriptionPayment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  subscriptionId Int [not null]
+  amount Decimal [not null]
+  paymentMethod String [not null]
+  reference String
+  paidAt DateTime [not null]
+  isConfirmed Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WarehouseRack {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  zoneId Int [not null]
+  name String [not null]
+  rows Int [not null]
+  columns Int [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TenantAccount {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  clerkUserId String [unique]
+  userEmail String [unique, not null]
+  orgName String [not null]
+  vatNumber String [not null]
+  subdomain String [unique, not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  paymentStatus String [not null]
+  subscriptionDuration String [not null]
+  subscriptionStatus String
+  plan String
+  trialEndsAt DateTime
+  invoiceQuota Int
+  productQuota Int
+  userQuota Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TenantFeatureFlag {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  moduleName String [not null]
+  isEnabled Boolean [not null]
+  createdAt DateTime
+  updatedAt DateTime
+  tenantAccountId Int
+  desktopLicenseId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table RestaurantSession {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  tableId Int [not null]
+  startTime DateTime [not null, note: 'Sensitive Financial Field']
+  endTime DateTime
+  customerId Int
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PhysicalCountSession {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  sessionNumber String [unique, not null]
+  scheduledDate DateTime [not null]
+  startedAt DateTime [note: 'Sensitive Financial Field']
+  completedAt DateTime
+  scope Json [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table RoleFieldPermission {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  roleName String [not null]
+  modelName String [not null]
+  fieldName String [not null]
+  permission String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ApiKey {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  keyHash String [unique, not null]
+  scopes String [not null]
+  expiresAt DateTime
+  lastUsedAt DateTime
+  isActive Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table UserDelegation {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  delegatorUserId String [not null]
+  delegateeUserId String [not null]
+  module String [not null]
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  isActive Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PosSession {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  userId Int [not null]
+  terminalId Int
+  branchId Int
+  openingFloat Decimal [not null]
+  closingFloat Decimal
+  expectedClosing Decimal
+  variance Decimal [note: 'Sensitive Financial Field']
+  openedAt DateTime [not null]
+  closedAt DateTime
+  status String [not null]
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PosSessionMovement {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  sessionId Int [not null]
+  type String [not null]
+  amount Decimal [not null]
+  reason String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SubscriptionPlan {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  name String [not null]
+  billingCycle String [not null]
+  price Decimal [not null]
+  setupFee Decimal
+  trialDays Int [not null]
+  features String
+  isActive Boolean [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CustomerSubscription {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  customerId Int [not null]
+  planId Int [not null]
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  currentPeriodStart DateTime [not null, note: 'Sensitive Financial Field']
+  currentPeriodEnd DateTime [not null]
+  nextBillingDate DateTime [not null]
+  status String [not null]
+  cancelAtPeriodEnd Boolean [not null]
+  paymentMethodId Int
+  prorationCredit Decimal [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SubscriptionInvoice {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  subscriptionId Int [not null]
+  periodStart DateTime [not null, note: 'Sensitive Financial Field']
+  periodEnd DateTime [not null]
+  amount Decimal [not null]
+  salesInvoiceId Int
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table VendorPortalUser {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  vendorName String [not null]
+  email String [unique, not null]
+  passwordHash String [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WebhookSubscription {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  url String [not null]
+  events String [not null]
+  secret String [not null]
+  description String [not null]
+  isActive Boolean [not null]
+  failCount Int [not null]
+  lastDeliveredAt DateTime
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PortalUser {
+  id Int [primary key, not null]
+  partyId Int [note: 'Sensitive Financial Field']
+  name String [not null]
+  email String [not null]
+  passwordHash String [not null]
+  lastLogin DateTime
+  status String [not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ShopFloorSession {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  workCenterId String [not null]
+  operatorId String [not null]
+  manufacturingOrderId String [not null]
+  operationId String [not null]
+  startedAt DateTime [not null, note: 'Sensitive Financial Field']
+  pausedAt DateTime
+  completedAt DateTime
+  goodQty Decimal
+  scrapQty Decimal [note: 'Sensitive Financial Field']
+  scrapReason String [note: 'Sensitive Financial Field']
+  downtimeMinutes Int
+  downtimeReason String
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table TenantQuota {
+  id String [primary key, not null]
+  tenantId String [unique, not null, note: 'Tenant Isolation']
+  tier String [not null]
+  maxAiTokens Int [not null]
+  maxApiCalls Int [not null, note: 'Sensitive Financial Field']
+  maxStorageGb Decimal [not null]
+  usedAiTokens Int [not null]
+  usedApiCalls Int [not null, note: 'Sensitive Financial Field']
+  usedStorageGb Decimal [not null]
+  resetAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table IceAdminRole {
+  id Int [primary key, not null]
+  name String [unique, not null]
+  permissions String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+}
+
+Table IceSubscriptionPlan {
+  id Int [primary key, not null]
+  name String [unique, not null]
+  priceMonthly Decimal [not null]
+  priceYearly Decimal [not null, note: 'Sensitive Financial Field']
+  maxUsers Int [not null]
+  maxBranches Int [not null]
+  maxInvoices Int [not null]
+  maxProducts Int [not null]
+  maxDesktopDevices Int [not null]
+  allowZatcaPhase2 Boolean [not null, note: 'Sensitive Financial Field']
+  allowDesktop Boolean [not null]
+  dailyBackups Boolean [not null]
+  active Boolean [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+}
+
+Table IceTenantSubscription {
+  id Int [primary key, not null]
+  tenantId String [unique, not null, note: 'Tenant Isolation']
+  planId Int [not null]
+  status String [not null]
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  billingCycle String [not null]
+  paymentMethod String
+  autoRenew Boolean [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table IceSubscriptionInvoice {
+  id Int [primary key, not null]
+  invoiceNo String [unique, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  subscriptionId Int [not null]
+  amount Decimal [not null]
+  vatAmount Decimal [not null]
+  total Decimal [not null]
+  status String [not null]
+  paymentMethod String
+  paymentGateRef String
+  receiptNo String
+  issueDate DateTime [not null]
+  dueDate DateTime [not null]
+  paidAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table IceTenantModule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  moduleId Int [not null]
+  isActive Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: UserBackupCode.userId > User.id
+Ref: UserPermission.userId > User.id
+Ref: SubscriptionPayment.subscriptionId > Subscription.id
+Ref: TenantFeatureFlag.tenantAccountId > TenantAccount.id
+Ref: PosSession.userId > User.id
+Ref: PosSessionMovement.sessionId > PosSession.id
+Ref: CustomerSubscription.planId > SubscriptionPlan.id
+Ref: SubscriptionInvoice.subscriptionId > CustomerSubscription.id
+Ref: IceTenantSubscription.planId > IceSubscriptionPlan.id
+Ref: IceSubscriptionInvoice.subscriptionId > IceTenantSubscription.id

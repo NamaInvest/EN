@@ -1,0 +1,434 @@
+Table Treasury {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  date DateTime [not null]
+  type String [not null]
+  amount Decimal [not null]
+  description String
+  referenceType String
+  referenceId Int
+  userId Int
+  branchId Int
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankAccount {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  branchId Int
+  bankName String [not null]
+  accountName String [not null]
+  accountNumber String [not null]
+  iban String
+  currency String [not null]
+  currentBalance Decimal [not null]
+  isActive Boolean [not null]
+  bankCode String
+  preferredFileFormat String
+  fileEncoding String [not null]
+  fileColumnMapping Json [note: 'Sensitive Financial Field']
+  openBankingProvider String
+  openBankingAccountId String
+  openBankingConsentExpiresAt DateTime
+  openBankingLastFetchAt DateTime
+  openBankingFetchEnabled Boolean [not null]
+  openBankingFetchFrequency String [not null]
+  intraDayBalance Decimal
+  intraDayBalanceUpdatedAt DateTime
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankTransaction {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int [not null]
+  transactionDate DateTime [not null]
+  type String [not null]
+  amount Decimal [not null]
+  description String
+  reference String
+  isReconciled Boolean [not null]
+  reconciledWithId Int
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankReconciliation {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int [not null]
+  statementDate DateTime [not null]
+  statementBalance Decimal [not null]
+  systemBalance Decimal [not null]
+  difference Decimal [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PettyCashTransaction {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  amount Decimal [not null]
+  requestDate DateTime [not null]
+  status String [not null]
+  purpose String
+  settlementAmount Decimal [not null]
+  difference Decimal [not null]
+  notes String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PettyCashFund {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  custodianId Int [not null]
+  fundName String [not null]
+  maxLimit Decimal [not null]
+  currentBalance Decimal [not null]
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankStatement {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int [not null]
+  statementNumber String
+  sequenceNumber Int
+  fileFormat String [not null]
+  fileUrl String
+  fileName String
+  fileHash String
+  fileSizeBytes Int
+  importedAt DateTime [not null]
+  importedByUserId String
+  importMethod String [not null]
+  currency String [not null]
+  openingBalance Decimal [not null]
+  openingDate DateTime [not null]
+  closingBalance Decimal [not null]
+  closingDate DateTime [not null]
+  validationStatus String [not null]
+  validationDifference Decimal
+  validationOverridden Boolean [not null]
+  validationOverrideReason String
+  duplicatesCount Int [not null]
+  lowConfidenceCount Int [not null]
+  totalTransactions Int [not null]
+  parseConfidence Decimal [note: 'Sensitive Financial Field']
+  reconStatus String [not null]
+  reconciliationId Int
+  intraDay Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankStatementLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  statementId Int [not null]
+  transactionDate DateTime [not null]
+  valueDate DateTime
+  postingDate DateTime
+  amount Decimal [not null]
+  currency String [not null]
+  type String [not null]
+  description String [not null]
+  reference String
+  externalReference String
+  counterpartyName String [note: 'Sensitive Financial Field']
+  counterpartyIBAN String [note: 'Sensitive Financial Field']
+  counterpartyBank String [note: 'Sensitive Financial Field']
+  counterpartyCountry String [note: 'Sensitive Financial Field']
+  category String
+  categoryConfidence Decimal
+  ocrConfidence Decimal
+  needsReview Boolean [not null]
+  reviewedAt DateTime
+  reviewedByUserId String
+  isDuplicate Boolean [not null]
+  duplicateOfLineId Int
+  hash String [not null]
+  rawData Json
+  matchStatus String [not null]
+  matchedToType String
+  matchedToId Int
+  matchedAt DateTime
+  matchedByUserId String
+  matchConfidence Decimal
+  matchStrategy String
+  aiSuggestion Json
+  matchedJournalId Int
+  matchedToIds Int [not null]
+  splitParentId Int [note: 'Sensitive Financial Field']
+  reconciliationId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankImportError {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int
+  fileName String
+  errorType String [not null]
+  errorMessage String [not null]
+  fileSnippet String
+  occurredAt DateTime [not null]
+  resolvedAt DateTime
+  resolvedByUserId String
+  resolution String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankStatementReviewItem {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  lineId Int [unique, not null]
+  fieldsToReview String [not null]
+  ocrSnippet String
+  suggestedValues Json
+  reviewerNotes String
+  reviewedAt DateTime
+  reviewedByUserId String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankReconRule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  ruleNumber String [unique, not null]
+  name String [not null]
+  bankAccountId Int
+  conditions Json [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankReconPeriod {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int [not null]
+  reconciliationNumber String [unique, not null]
+  periodStart DateTime [not null, note: 'Sensitive Financial Field']
+  periodEnd DateTime [not null]
+  bookBalance Decimal [not null]
+  bankBalance Decimal [not null]
+  reconcilingItems Json [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankReconciliationException {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  lineId Int [unique, not null]
+  reason String [not null]
+  suggestions Json [not null]
+  assignedToUserId String
+  priority String [not null]
+  resolvedAt DateTime
+  resolvedByUserId String
+  resolution String
+  resolutionNotes String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DepositInTransit {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankAccountId Int [not null]
+  depositDate DateTime [not null]
+  amount Decimal [not null]
+  source String [not null]
+  status String [not null]
+  clearedDate DateTime [note: 'Sensitive Financial Field']
+  matchedLineId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table BankReconMatch {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  bankLineId Int [not null]
+  matchType String [not null]
+  matchedTo String [not null]
+  confidence Decimal [not null]
+  ruleId Int
+  journalEntryId Int
+  matchedBy Int [not null]
+  matchedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashFlowForecast {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  forecastDate DateTime [not null]
+  period String [not null]
+  scenario String [note: 'Sensitive Financial Field']
+  inflows Decimal [not null]
+  outflows Decimal [not null]
+  netPosition Decimal [not null]
+  openingBalance Decimal
+  closingBalance Decimal
+  horizonMonths Int
+  bucketsJson String
+  alertsJson String
+  generatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashGeneratingUnit {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  name String [not null]
+  description String
+  lastTestDate DateTime
+  nextScheduledTestDate DateTime
+  recoverableAmount Decimal
+  responsibleEmployeeId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashApplicationBatch {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  customerId Int [not null]
+  paymentId Int [not null]
+  totalReceived Decimal [not null]
+  totalApplied Decimal [not null, note: 'Sensitive Financial Field']
+  unappliedAmount Decimal [not null, note: 'Sensitive Financial Field']
+  applicationMethod String [not null, note: 'Sensitive Financial Field']
+  appliedBy Int [not null, note: 'Sensitive Financial Field']
+  appliedAt DateTime [not null, note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashApplication {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  batchId Int [not null]
+  invoiceId Int [not null]
+  appliedAmount Decimal [not null, note: 'Sensitive Financial Field']
+  discountTaken Decimal [not null]
+  writeOffAmount Decimal [not null]
+  remainingInvoiceBalance Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PaymentRunBankFile {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  runId Int [not null]
+  fileFormat String [not null]
+  bankCode String
+  bankAccountId Int [not null]
+  fileUrl String [not null]
+  fileName String [not null]
+  fileHash String [not null]
+  fileSizeBytes Int [not null]
+  generatedAt DateTime [not null]
+  generatedByUserId String [not null]
+  txnCount Int [not null]
+  totalAmount Decimal [not null]
+  currency String [not null]
+  uploadedToBankAt DateTime
+  uploadedByUserId String
+  uploadConfirmationRef String
+  confirmationFileUrl String
+  confirmationParsedAt DateTime [note: 'Sensitive Financial Field']
+  successCount Int
+  failedCount Int
+  encrypted Boolean [not null]
+  encryptionKeyId String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SupplierBankAccount {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  supplierId Int [not null]
+  isDefault Boolean [not null]
+  isActive Boolean [not null]
+  isVerified Boolean [not null]
+  verificationDate DateTime
+  verificationMethod String
+  beneficiaryName String [not null, note: 'Sensitive Financial Field']
+  iban String
+  swift String
+  bankName String [not null]
+  bankAddress String
+  countryCode String [not null]
+  currency String [not null]
+  accountNumber String
+  routingNumber String
+  branchCode String
+  intermediaryBankSwift String [note: 'Sensitive Financial Field']
+  intermediaryBankAccount String [note: 'Sensitive Financial Field']
+  notes String
+  createdAt DateTime [not null]
+  createdByUserId String [not null]
+  lastUsedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table SavedPaymentMethod {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  customerId Int [not null]
+  gatewayId Int [not null]
+  type String [not null]
+  last4 String
+  expiry String
+  providerToken String [not null]
+  isDefault Boolean [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashPositionSnapshot {
+  id String [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  capturedAt DateTime [not null, note: 'Sensitive Financial Field']
+  totalCashSAR Decimal [not null, note: 'Sensitive Financial Field']
+  bankCount Int [not null]
+  data Json [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashAppRule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  matchLevel Int [not null]
+  criteria Json [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table CashFlowLine {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  period String [not null]
+  method String [not null]
+  category String [not null]
+  subCategory String [not null]
+  amount Decimal [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: BankTransaction.bankAccountId > BankAccount.id
+Ref: BankStatement.bankAccountId > BankAccount.id
+Ref: BankStatementLine.statementId > BankStatement.id
+Ref: BankStatementLine.reconciliationId > BankReconPeriod.id
+Ref: BankStatementReviewItem.lineId > BankStatementLine.id
+Ref: BankReconRule.bankAccountId > BankAccount.id
+Ref: BankReconPeriod.bankAccountId > BankAccount.id
+Ref: BankReconciliationException.lineId > BankStatementLine.id
+Ref: BankReconMatch.bankLineId > BankStatementLine.id
+Ref: CashApplication.batchId > CashApplicationBatch.id

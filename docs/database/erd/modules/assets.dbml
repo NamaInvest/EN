@@ -1,0 +1,355 @@
+Table Maintenance {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  date DateTime [not null]
+  customerName String
+  phone String
+  deviceType String
+  problem String
+  cost Decimal [not null]
+  status String [not null]
+  userId Int
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Asset {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  barcode String [unique, not null, note: 'Sensitive Financial Field']
+  name String [not null]
+  category String [not null]
+  purchasePrice Decimal [not null]
+  currentValue Decimal [not null]
+  salvageValue Decimal [not null]
+  usefulLifeYears Int [not null, note: 'Sensitive Financial Field']
+  depreciationType String [not null]
+  purchaseDate DateTime [not null]
+  status String [not null]
+  location String
+  notes String
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table FixedAsset {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetNumber String [unique, not null]
+  name String [not null]
+  nameAr String [note: 'Sensitive Financial Field']
+  description String
+  categoryId Int
+  parentAssetId Int [note: 'Sensitive Financial Field']
+  isComposite Boolean [not null]
+  isComponent Boolean [not null]
+  componentType String
+  acquisitionDate DateTime [not null]
+  acquisitionCost Decimal [not null]
+  currency String [not null]
+  vendorId Int
+  invoiceId Int
+  acquisitionJournalId Int
+  depreciationMethod String [not null]
+  usefulLifeYears Int [note: 'Sensitive Financial Field']
+  usefulLifeMonths Int
+  declineRate Decimal
+  totalEstimatedUnits Decimal
+  unitsConsumed Decimal [not null]
+  totalEstimatedHours Decimal
+  hoursOperated Decimal [not null]
+  salvageValue Decimal [not null]
+  depreciationConvention String [not null]
+  depreciationStartDate DateTime [not null, note: 'Sensitive Financial Field']
+  accumulatedDepreciation Decimal [not null]
+  accumulatedImpairment Decimal [not null]
+  currentBookValue Decimal [not null]
+  status String [not null]
+  statusChangedAt DateTime
+  disposalDate DateTime
+  disposalProceeds Decimal
+  disposalGainLoss Decimal
+  disposalJournalId Int
+  disposalType String
+  heldForSaleDate DateTime
+  heldForSaleJournalId Int
+  locationId Int
+  branchId Int
+  costCenterId Int
+  custodianEmployeeId Int
+  insurancePolicyNumber String
+  insuranceProvider String
+  insurancePremium Decimal
+  insuranceExpiryDate DateTime
+  insuredValue Decimal
+  serialNumber String
+  barcode String [unique, note: 'Sensitive Financial Field']
+  rfidTag String
+  manufacturer String
+  model String
+  modelYear Int [note: 'Sensitive Financial Field']
+  registrationNumber String
+  warrantyStartDate DateTime [note: 'Sensitive Financial Field']
+  warrantyEndDate DateTime [note: 'Sensitive Financial Field']
+  warrantyVendorId Int [note: 'Sensitive Financial Field']
+  cguId Int
+  assetAccountId Int
+  accumDepAccountId Int
+  depExpenseAccountId Int [note: 'Sensitive Financial Field']
+  nextMaintenanceDate DateTime
+  maintenanceFrequencyMonths Int
+  lastPhysicalCountDate DateTime
+  lastPhysicalCountStatus String
+  createdByUserId String [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table FixedAssetCategory {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  nameAr String [not null, note: 'Sensitive Financial Field']
+  nameEn String [not null]
+  parentCategoryId Int [note: 'Sensitive Financial Field']
+  defaultDepreciationMethod String
+  defaultUsefulLife Int
+  defaultSalvageValuePercent Decimal
+  assetAccountId Int
+  accumDepAccountId Int
+  depExpenseAccountId Int [note: 'Sensitive Financial Field']
+  active Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetDepreciationLog {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  periodStart DateTime [not null, note: 'Sensitive Financial Field']
+  periodEnd DateTime [not null]
+  openingNbv Decimal [not null]
+  depreciationAmount Decimal [not null]
+  closingNbv Decimal [not null]
+  method String [not null]
+  unitsThisPeriod Decimal
+  hoursThisPeriod Decimal
+  journalEntryId Int [not null]
+  recognizedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetImpairmentRecord {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  testDate DateTime [not null]
+  carryingAmount Decimal [not null, note: 'Sensitive Financial Field']
+  fairValueLessCosts Decimal
+  valueInUse Decimal
+  recoverableAmount Decimal [not null]
+  impairmentLoss Decimal [not null]
+  reversal Boolean [not null]
+  reversalReason String
+  calculationMethod String [not null]
+  evidence String
+  evidenceFileId Int
+  journalEntryId Int [not null]
+  testedByUserId String [not null]
+  approvedByUserId String [note: 'Sensitive Financial Field']
+  approvedAt DateTime [note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetTransferRecord {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  transferDate DateTime [not null]
+  transferType String [not null]
+  fromLocationId Int
+  toLocationId Int
+  fromBranchId Int
+  toBranchId Int
+  fromCostCenterId Int
+  toCostCenterId Int
+  fromCustodianId Int
+  toCustodianId Int
+  bookValueAtTransfer Decimal [not null]
+  reason String [not null]
+  journalEntryId Int
+  approvedByUserId String [note: 'Sensitive Financial Field']
+  createdByUserId String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetMaintenanceRecord {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  type String [not null]
+  scheduledDate DateTime
+  performedDate DateTime
+  cost Decimal
+  capitalize Boolean [not null, note: 'Sensitive Financial Field']
+  capitalizationReason String [note: 'Sensitive Financial Field']
+  description String [not null]
+  performedByVendorId Int
+  performedByEmployeeId Int
+  partsReplaced Json [note: 'Sensitive Financial Field']
+  hoursWorked Decimal
+  journalEntryId Int
+  nextDueDate DateTime
+  attachments Json
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetInsuranceClaim {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  claimNumber String [unique, not null]
+  claimDate DateTime [not null]
+  incidentDate DateTime [not null]
+  incidentDescription String [not null]
+  claimedAmount Decimal [not null]
+  approvedAmount Decimal [note: 'Sensitive Financial Field']
+  receivedAmount Decimal
+  status String [not null]
+  insuranceCompany String [not null]
+  policyNumber String
+  journalEntryId Int
+  attachments Json
+  filedByUserId String [not null]
+  filedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetUsageLog {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  periodStart DateTime [not null, note: 'Sensitive Financial Field']
+  periodEnd DateTime [not null]
+  unitsProduced Decimal
+  hoursOperated Decimal
+  downtimeHours Decimal
+  efficiency Decimal
+  recordedByUserId String [not null]
+  recordedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetReclassification {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  reclassificationDate DateTime [not null]
+  fromCategoryId Int
+  toCategoryId Int
+  fromStatus String [not null]
+  toStatus String [not null]
+  reason String [not null]
+  fairValueAdjustment Decimal
+  journalEntryId Int
+  approvedByUserId String [note: 'Sensitive Financial Field']
+  createdByUserId String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetDocument {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  documentType String [not null]
+  fileUrl String [not null]
+  fileName String [not null]
+  uploadedAt DateTime [not null]
+  uploadedByUserId String [not null]
+  expiryDate DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetImpairment {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  date DateTime [not null]
+  carryingAmount Decimal [not null, note: 'Sensitive Financial Field']
+  recoverableAmount Decimal [not null]
+  impairmentLoss Decimal [not null]
+  reason String
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetRevaluation {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  date DateTime [not null]
+  carryingAmount Decimal [not null, note: 'Sensitive Financial Field']
+  fairValue Decimal [not null]
+  revaluationSurplus Decimal [not null]
+  revaluationDeficit Decimal [not null]
+  evaluatorName String
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table MaintenanceSchedule {
+  id Int [primary key, not null]
+  assetId Int
+  assetName String
+  type String [not null]
+  frequency String [not null]
+  lastDate DateTime
+  nextDate DateTime
+  assignedTo String
+  status String [not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ContractAsset {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  contractId Int [not null]
+  amount Decimal [not null]
+  recognizedAt DateTime [not null]
+  expectedBillingDate DateTime [not null]
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AssetRetirementObligation {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  assetId Int [not null]
+  estimatedSettlementCost Decimal [not null]
+  estimatedSettlementDate DateTime [not null]
+  discountRate Decimal [not null]
+  presentValue Decimal [not null]
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: FixedAsset.categoryId > FixedAssetCategory.id
+Ref: FixedAsset.parentAssetId > FixedAsset.id
+Ref: FixedAssetCategory.parentCategoryId > FixedAssetCategory.id
+Ref: AssetDepreciationLog.assetId > FixedAsset.id
+Ref: AssetImpairmentRecord.assetId > FixedAsset.id
+Ref: AssetTransferRecord.assetId > FixedAsset.id
+Ref: AssetMaintenanceRecord.assetId > FixedAsset.id
+Ref: AssetInsuranceClaim.assetId > FixedAsset.id
+Ref: AssetUsageLog.assetId > FixedAsset.id
+Ref: AssetReclassification.assetId > FixedAsset.id
+Ref: AssetDocument.assetId > FixedAsset.id
+Ref: AssetImpairment.assetId > Asset.id
+Ref: AssetRevaluation.assetId > Asset.id

@@ -1,0 +1,425 @@
+Table Employee {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeNo String [unique]
+  name String [not null]
+  phone String
+  position String
+  salary Decimal [not null, note: 'Sensitive Financial Field']
+  housingAllowance Decimal [not null]
+  transportAllowance Decimal [not null]
+  otherAllowance Decimal [not null]
+  bankName String
+  iban String
+  startDate String [note: 'Sensitive Financial Field']
+  active Boolean [not null]
+  createdAt DateTime [not null]
+  branchId Int
+  nationality String [not null]
+  iqamaNumber String
+  passportNumber String
+  idNumber String
+  birthDate DateTime
+  gender String
+  maritalStatus String [note: 'Sensitive Financial Field']
+  faceDescriptor String
+  department String [note: 'Sensitive Financial Field']
+  managerId Int
+  qiwaWageProtectionId String
+  mudadStatus String
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Attendance {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  date String [not null]
+  checkIn String
+  checkOut String
+  notes String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Salary {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  month Int [not null]
+  year Int [not null, note: 'Sensitive Financial Field']
+  basicSalary Decimal [not null, note: 'Sensitive Financial Field']
+  additions Decimal [not null]
+  deductions Decimal [not null]
+  gosiDeduction Decimal [not null]
+  loanDeduction Decimal [not null]
+  netSalary Decimal [not null, note: 'Sensitive Financial Field']
+  paidDate DateTime [not null]
+  notes String
+  deletedAt DateTime
+  deletedBy String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table Shift {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  userId Int [not null]
+  stockId Int
+  startTime DateTime [not null, note: 'Sensitive Financial Field']
+  endTime DateTime
+  status String [not null]
+  startingCash Decimal [not null, note: 'Sensitive Financial Field']
+  endingCashExpected Decimal
+  endingCashActual Decimal
+  difference Decimal
+  notes String
+  branchId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table EmployeeLoan {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  amount Decimal [not null]
+  monthlyDeduction Decimal [not null]
+  remainingAmount Decimal [not null]
+  reason String
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  status String [not null]
+  createdAt DateTime [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JobPosting {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  title String [not null]
+  department String [note: 'Sensitive Financial Field']
+  description String
+  requirements String
+  status String [not null]
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table JobApplicant {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  jobPostingId Int [not null]
+  name String [not null]
+  email String
+  phone String
+  resumeUrl String
+  status String [not null]
+  appliedAt DateTime [not null, note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table EmployeeEvaluation {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  evaluatorId Int [not null]
+  evaluationDate DateTime [not null]
+  period String [not null]
+  score Float [not null]
+  strengths String
+  weaknesses String
+  recommendations String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WorkShift {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  name String [not null]
+  startTime String [not null, note: 'Sensitive Financial Field']
+  endTime String [not null]
+  breakMins Int [not null]
+  active Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PayrollInvoice {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  invoiceNo String [not null]
+  period String
+  total Decimal [not null]
+  employeeId Int
+  tenantAccountId Int
+  createdAt DateTime [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PayrollInvoiceDetail {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  invoiceId Int [not null]
+  description String
+  amount Decimal [not null]
+  type String [not null]
+  deletedAt DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table DeductionReason {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  code String [unique, not null]
+  nameAr String [not null, note: 'Sensitive Financial Field']
+  nameEn String [not null]
+  category String [not null]
+  defaultResolution String
+  requiresEvidence Boolean [not null]
+  glAccountId Int
+  active Boolean [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table PayrollRun {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  month Int [not null]
+  year Int [not null, note: 'Sensitive Financial Field']
+  runDate DateTime [not null]
+  totalAmount Decimal [not null]
+  status String [not null]
+  approvedBy Int [note: 'Sensitive Financial Field']
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WPSBatch {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  payrollRunId Int [not null]
+  bankCode String [not null]
+  batchNumber String [unique, not null]
+  totalAmount Decimal [not null]
+  totalEmployees Int [not null]
+  fileFormat String [not null]
+  fileContent String
+  fileGeneratedAt DateTime
+  uploadedAt DateTime
+  status String [not null]
+  rejectionReason String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table WPSBatchItem {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  batchId Int [not null]
+  employeeId Int [not null]
+  iban String [not null]
+  basicSalary Decimal [not null, note: 'Sensitive Financial Field']
+  housingAllowance Decimal [not null]
+  otherAllowance Decimal [not null]
+  totalSalary Decimal [not null, note: 'Sensitive Financial Field']
+  paymentStatus String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table GOSIContribution {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  payrollRunId Int [not null]
+  contributionMonth DateTime [not null]
+  isSaudi Boolean [not null]
+  basicSalary Decimal [not null, note: 'Sensitive Financial Field']
+  housingAllowance Decimal [not null]
+  subjectWage Decimal [not null]
+  employeePensionAmount Decimal [not null]
+  employerPensionAmount Decimal [not null]
+  employeeSANEDAmount Decimal [not null]
+  employerSANEDAmount Decimal [not null]
+  occupationalHazardsAmount Decimal [not null, note: 'Sensitive Financial Field']
+  totalEmployeeDeduction Decimal [not null]
+  totalEmployerContribution Decimal [not null]
+  totalAmount Decimal [not null]
+  status String [not null]
+  journalEntryId Int
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table GOSIMonthlyFile {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  month DateTime [unique, not null]
+  totalEmployees Int [not null]
+  totalEmployeeContribution Decimal [not null]
+  totalEmployerContribution Decimal [not null]
+  totalAmount Decimal [not null]
+  fileContent String [not null]
+  generatedAt DateTime [not null]
+  submittedAt DateTime
+  paidAt DateTime
+  receiptNumber String
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table LeaveBalance {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  year Int [not null, note: 'Sensitive Financial Field']
+  leaveType String [not null]
+  entitlement Decimal [not null]
+  accrued Decimal [not null]
+  used Decimal [not null]
+  pending Decimal [not null]
+  carryOver Decimal [not null, note: 'Sensitive Financial Field']
+  balance Decimal [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table LeaveAccrual {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  accrualDate DateTime [not null]
+  leaveType String [not null]
+  daysAccrued Decimal [not null]
+  runBy String
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table LeaveRequest {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  leaveType String [not null]
+  startDate DateTime [not null, note: 'Sensitive Financial Field']
+  endDate DateTime [not null]
+  days Decimal [not null]
+  reason String
+  attachmentUrl String
+  status String [not null]
+  approvedBy Int [note: 'Sensitive Financial Field']
+  approvedAt DateTime [note: 'Sensitive Financial Field']
+  rejectedBy Int
+  rejectedAt DateTime
+  rejectionReason String
+  createdAt DateTime [not null]
+  updatedAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ImportJob {
+  id Int [primary key, not null]
+  targetModel String [not null, note: 'Sensitive Financial Field']
+  fileName String [not null]
+  totalRows Int [not null]
+  successRows Int [not null]
+  errorRows Int [not null]
+  status String [not null]
+  mapping Json [not null, note: 'Sensitive Financial Field']
+  errors Json
+  createdBy Int [not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  createdAt DateTime [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table ShiftSchedule {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  date DateTime [not null]
+  shiftType String [not null]
+  startTime DateTime [not null, note: 'Sensitive Financial Field']
+  endTime DateTime [not null]
+  status String [not null]
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table OvertimeRequest {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  requestDate DateTime [not null]
+  hours Decimal [not null]
+  reason String
+  status String [not null]
+  approvedBy Int [note: 'Sensitive Financial Field']
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table EmployeeCompetency {
+  id Int [primary key, not null]
+  employeeId Int [not null]
+  competencyId Int [not null]
+  currentLevel Int [not null]
+  assessedAt DateTime [not null]
+  assessedBy Int [not null]
+}
+
+Table EmployeeCompProposal {
+  id Int [primary key, not null]
+  cycleId Int [not null]
+  employeeId Int [not null]
+  currentSalary Decimal [not null, note: 'Sensitive Financial Field']
+  proposedIncrease Decimal [not null]
+  proposedNewSalary Decimal [not null, note: 'Sensitive Financial Field']
+  approvalStatus String [not null, note: 'Sensitive Financial Field']
+}
+
+Table JobApplication {
+  id Int [primary key, not null]
+  candidateId Int [not null]
+  requisitionId Int
+  stage String [not null]
+  screenScore Decimal
+  rejectionReason String
+}
+
+Table AttendanceDevice {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  deviceCode String [unique, not null]
+  location String [not null]
+  type String [not null]
+  lastSync DateTime
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Table AttendancePunch {
+  id Int [primary key, not null]
+  tenantId String [not null, note: 'Tenant Isolation']
+  employeeId Int [not null]
+  deviceId Int
+  punchType String [not null]
+  punchTime DateTime [not null]
+  geoLatitude Decimal
+  geoLongitude Decimal
+  matchConfidence Decimal
+  Note: '''Note: 'TENANT SCOPED''''
+}
+
+Ref: Employee.managerId > Employee.id
+Ref: Attendance.employeeId > Employee.id
+Ref: Salary.employeeId > Employee.id
+Ref: EmployeeLoan.employeeId > Employee.id
+Ref: JobApplicant.jobPostingId > JobPosting.id
+Ref: EmployeeEvaluation.employeeId > Employee.id
+Ref: EmployeeEvaluation.evaluatorId > Employee.id
+Ref: PayrollInvoice.employeeId > Employee.id
+Ref: PayrollInvoiceDetail.invoiceId > PayrollInvoice.id
+Ref: WPSBatch.payrollRunId > PayrollRun.id
+Ref: WPSBatchItem.batchId > WPSBatch.id
+Ref: WPSBatchItem.employeeId > Employee.id
+Ref: GOSIContribution.payrollRunId > PayrollRun.id
+Ref: LeaveBalance.employeeId > Employee.id
+Ref: LeaveAccrual.employeeId > Employee.id
+Ref: LeaveRequest.employeeId > Employee.id

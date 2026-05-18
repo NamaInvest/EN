@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { AgingEngine } from '@/lib/aging-engine';
-
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
+import { withRoute } from "@/lib/api/with-route";
+export const GET = withRoute(async ({ req, prisma, auth, tenant }) => {
+    try {
+    const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') || 'AR'; // 'AR' or 'AP'
     const dateParam = searchParams.get('date');
-    const tenantId = searchParams.get('tenantId') || 'default'; // In a real system, get this from auth session
+     // In a real system, get this from auth session
 
     // Optional: Validate session to ensure security
     // const session = await getServerSession();
@@ -16,9 +16,9 @@ export async function GET(request: Request) {
 
     let result;
     if (type === 'AR') {
-      result = await AgingEngine.generateARAging(tenantId, asOfDate);
+      result = await AgingEngine.generateARAging(tenant, asOfDate);
     } else if (type === 'AP') {
-      result = await AgingEngine.generateAPAging(tenantId, asOfDate);
+      result = await AgingEngine.generateAPAging(tenant, asOfDate);
     } else {
       return NextResponse.json({ error: 'Invalid aging type. Use AR or AP.' }, { status: 400 });
     }
@@ -27,11 +27,11 @@ export async function GET(request: Request) {
       success: true,
       data: result,
     });
-  } catch (error: any) {
+    } catch (error: any) {
     console.error('Aging API Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to generate aging report', details: error?.message },
       { status: 500 }
     );
-  }
-}
+    }
+    }, { rateLimit: 'DEFAULT', tenantRequired: true });
