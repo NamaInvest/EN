@@ -13,10 +13,11 @@ async function _GET(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // @ts-ignore
         const records = await prisma.pettyCashTransaction.findMany({ take: 100,
+            where: { tenantId: auth.tenantId },
             include: { employee: { select: { id: true, name: true, position: true,  phone: true } } },
             orderBy: { requestDate: 'desc' }
         });
@@ -40,7 +41,7 @@ async function _POST(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await request.json();
 
@@ -56,6 +57,7 @@ async function _POST(request: NextRequest) {
         // @ts-ignore
         const record = await prisma.pettyCashTransaction.create({
             data: {
+                tenantId: auth.tenantId,
                 employeeId: parseInt(body.employeeId),
                 amount: parseFloat(body.amount),
                 purpose: body.purpose || 'عهدة جديدة',

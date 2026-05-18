@@ -6,8 +6,11 @@ import { logger } from '@/lib/logger';
 import { runFinancialTx } from '@/lib/db/transaction';
 import { assertTenant } from '@/lib/security/tenant-guard';
 import { EnterpriseLogger } from '@/lib/observability/logger';
+import { z } from 'zod';
 
 const log = logger.child({ service: 'finance.payment-run.id.confirm' });
+
+const _POSTSchema = z.object({}).passthrough();
 
 async function _POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
     const auth = getUserFromRequest(req as any);
@@ -67,4 +70,4 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string }>
     }
 }
 
-export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'FINANCIAL', roles: ['admin', 'owner', 'accountant'] });
+export const POST = withRoute(async ({ req }, context) => _POST(req as any, context), { rateLimit: 'FINANCIAL', roles: ['admin', 'owner', 'finance_manager', 'cfo'] });

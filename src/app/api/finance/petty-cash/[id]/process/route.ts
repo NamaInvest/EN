@@ -24,7 +24,7 @@ async function _PUT(
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const params = await context.params;
         const id = parseInt((await params).id);
@@ -41,8 +41,8 @@ async function _PUT(
              return NextResponse.json({ error: 'بيانات مفقودة' }, { status: 400 });
         }
 
-        const pc = await prisma.pettyCashTransaction.findUnique({
-            where: { id },
+        const pc = await prisma.pettyCashTransaction.findFirst({
+            where: { id, tenantId: auth.tenantId },
             include: {
                 employee: {
                     select: { id: true, name: true, position: true, phone: true }

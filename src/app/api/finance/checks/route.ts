@@ -13,12 +13,12 @@ async function _GET(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const searchParams = request.nextUrl.searchParams;
         const type = searchParams.get('type'); // PAYABLE, RECEIVABLE
         
-        const conditions: any = {};
+        const conditions: any = { tenantId: auth.tenantId };
         if (type) conditions.type = type;
 
         // @ts-ignore
@@ -57,7 +57,7 @@ async function _POST(request: NextRequest) {
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         const body = await request.json();
 
@@ -73,6 +73,7 @@ async function _POST(request: NextRequest) {
         // @ts-ignore
         const check = await prisma.checkTransaction.create({
             data: {
+                tenantId: auth.tenantId,
                 type: body.type, // PAYABLE or RECEIVABLE
                 checkNumber: body.checkNumber,
                 bankName: body.bankName || 'غير محدد',

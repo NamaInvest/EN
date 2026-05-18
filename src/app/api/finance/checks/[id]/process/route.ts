@@ -23,7 +23,7 @@ async function _PUT(
     try {
         const auth = await getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-        if (!(await hasPermission(auth.userId, 'treasury', prisma))) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        if (!['admin', 'owner', 'finance_manager', 'cfo'].includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
 
         // Await params correctly for Next.js 15
         const params = await context.params;
@@ -40,7 +40,7 @@ async function _PUT(
         if (!status) return NextResponse.json({ error: 'يجب توفير الحالة الجديدة' }, { status: 400 });
 
         // @ts-ignore
-        const currentCheck = await prisma.checkTransaction.findUnique({ where: { id } });
+        const currentCheck = await prisma.checkTransaction.findFirst({ where: { id, tenantId: auth.tenantId } });
         if (!currentCheck) return NextResponse.json({ error: 'الشيك غير موجود' }, { status: 404 });
 
         if (currentCheck.status === status) {
