@@ -81,6 +81,19 @@ async function _POST(req: NextRequest, auth: any) {
                     status: 'PENDING'
                 }))
             });
+            
+            await tx.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth?.userId || 1,
+                    action: 'PERIOD_CHECKLIST_INIT',
+                    entityType: 'PeriodCloseChecklist',
+                    entityId: String(fiscalPeriodId),
+                    details: 'تم تهيئة مهام إغلاق الفترة المالية',
+                    newData: { count: templates.length }
+                }
+            });
+            
             return checklist;
         }, 'PERIOD_CLOSE_CHECKLIST_INIT');
 

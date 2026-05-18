@@ -97,6 +97,17 @@ async function _POST(request: Request) {
             });
 
             await tx.booking.update({ where: { id: booking.id, tenantId }, data: { status: 'invoiced' } });
+            
+            await tx.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth.userId,
+                    action: 'STATUS_CHANGE',
+                    entityType: 'booking',
+                    entityId: String(booking.id),
+                    newData: { status: 'invoiced' }
+                }
+            });
 
             await postSalesInvoice({
                 invoiceNo: invoice.invoiceNo,

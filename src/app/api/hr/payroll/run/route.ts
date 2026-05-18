@@ -132,6 +132,18 @@ async function _POST(req: Request, auth: any) {
 
             await tx.salary.createMany({ data: salariesToCreate });
 
+            await tx.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth?.userId || 1,
+                    action: 'PAYROLL_RUN',
+                    entityType: 'Salary',
+                    entityId: `${year}-${month}`,
+                    details: `تم إصدار رواتب شهر ${month} لسنة ${year}`,
+                    newData: { count: salariesToCreate.length, totalNet }
+                }
+            });
+
             const je = await tx.journalEntry.create({
                 data: {
                     tenantId,

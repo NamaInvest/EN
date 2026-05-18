@@ -153,6 +153,17 @@ async function handleSallaOrderCreated(order: any, prisma: any, tenantId: string
             include: { details: true }
         });
 
+        await tx.auditLog.create({
+            data: {
+                tenantId,
+                userId: 1,
+                action: 'SALLA_ORDER_CREATED',
+                entityType: 'SalesInvoice',
+                entityId: String(createdInvoice.id),
+                newData: { status: 'completed', sallaOrderId: order.reference_id }
+            }
+        });
+
         for (const item of order.items) {
             const sku = item.sku;
             const qty = item.quantity || 1;

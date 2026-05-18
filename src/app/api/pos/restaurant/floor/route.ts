@@ -70,6 +70,16 @@ async function _POST(req: NextRequest) {
                 where: { id: payload.tableId, tenantId },
                 data: { status: payload.status }
             });
+            await prisma.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth.userId || 1,
+                    action: 'UPDATE_TABLE_STATUS',
+                    entityType: 'RestaurantTable',
+                    entityId: String(payload.tableId),
+                    newData: { status: payload.status }
+                }
+            });
             return NextResponse.json({ success: true, table });
         }
 
@@ -85,6 +95,16 @@ async function _POST(req: NextRequest) {
                     status: 'Active' 
                 }
             });
+            await prisma.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth.userId || 1,
+                    action: 'OPEN_TABLE_SESSION',
+                    entityType: 'RestaurantTable',
+                    entityId: String(payload.tableId),
+                    newData: { status: 'Occupied' }
+                }
+            });
             return NextResponse.json({ success: true, session });
         }
 
@@ -96,6 +116,16 @@ async function _POST(req: NextRequest) {
             await prisma.restaurantSession.updateMany({
                 where: { tableId: payload.tableId, status: 'Active', tenantId },
                 data: { status: 'Closed', endedAt: new Date() }
+            });
+            await prisma.auditLog.create({
+                data: {
+                    tenantId,
+                    userId: auth.userId || 1,
+                    action: 'CLOSE_TABLE_SESSION',
+                    entityType: 'RestaurantTable',
+                    entityId: String(payload.tableId),
+                    newData: { status: 'Available' }
+                }
             });
             return NextResponse.json({ success: true });
         }
