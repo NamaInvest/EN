@@ -4,6 +4,7 @@ import { getPrisma } from '@/lib/prisma';
 
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
+import { getHrScope } from '@/lib/hr-scope';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -12,9 +13,11 @@ async function _GET(request: Request) {
     const prisma = getPrisma(request);
     const tenantId = requireTenantId(request as any);
     try {
+        const _auth = getUserFromRequest(request as any);
+        const baseWhere = await getHrScope(_auth as any, tenantId, false);
         const todayStr = new Date().toISOString().split('T')[0];
         const records = await prisma.attendance.findMany({ take: 100,
-            where: { date: todayStr, tenantId },
+            where: { date: todayStr, ...baseWhere },
             include: { employee: true },
             orderBy: { id: 'desc' }
         });
@@ -49,6 +52,12 @@ async function _POST(request: Request) {
 
         const todayStr = new Date().toISOString().split('T')[0];
         const nowTime = new Date().toTimeString().split(' ')[0].slice(0, 5); // HH:MM
+
+        const _auth = getUserFromRequest(request as any);
+        const baseWhere = await getHrScope(_auth as any, tenantId, false) as any;
+        if (baseWhere.employeeId && baseWhere.employeeId !== -1 && baseWhere.employeeId !== parseInt(employeeId)) {
+            return NextResponse.json({ error: 'غير مصرح بتسجيل الحضور لهذا الموظف' }, { status: 403 });
+        }
 
         let record = await prisma.attendance.findFirst({
             where: { employeeId: parseInt(employeeId), date: todayStr, tenantId }

@@ -5,6 +5,7 @@ import { encrypt, decrypt, maskSensitive } from "@/lib/encryption";
 
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { getUserFromRequest } from '@/lib/auth';
+import { getHrScope } from '@/lib/hr-scope';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -20,7 +21,8 @@ async function _GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
-    const where: any = { tenantId };
+    const baseWhere = await getHrScope(_auth, tenantId, true);
+    const where: any = { ...baseWhere };
     if (search) {
       where.name = { contains: search, mode: "insensitive" as const };
     }

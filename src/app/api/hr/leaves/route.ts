@@ -4,10 +4,11 @@ import { withRoute } from '@/lib/api/with-route';
  * Leave API Routes
  * GET  /api/hr/leaves — قائمة طلبات الإجازات
  * POST /api/hr/leaves — إنشاء طلب إجازة
- */
 import { NextResponse } from 'next/server';
 import { getPrisma } from '@/lib/prisma';
 import { LeaveEngine } from '@/lib/leave-engine';
+import { getHrScope } from '@/lib/hr-scope';
+import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -21,9 +22,10 @@ async function _GET(req: Request) {
     const employeeId = url.searchParams.get('employeeId');
     const status = url.searchParams.get('status');
     const year = parseInt(url.searchParams.get('year') || String(new Date().getFullYear()));
-
     try {
-        const where: any = { tenantId };
+        const _auth = getUserFromRequest(req as any);
+        const baseWhere = await getHrScope(_auth as any, tenantId, false);
+        const where: any = { ...baseWhere };
         if (employeeId) where.employeeId = parseInt(employeeId);
         if (status) where.status = status;
         where.startDate = {
@@ -68,6 +70,12 @@ async function _POST(req: Request) {
 
         if (!employeeId || !leaveType || !startDate || !endDate) {
             return NextResponse.json({ error: 'بيانات ناقصة' }, { status: 400 });
+        }
+
+        const _auth = getUserFromRequest(req as any);
+        const baseWhere = await getHrScope(_auth as any, tenantId, false) as any;
+        if (baseWhere.employeeId && baseWhere.employeeId !== -1 && baseWhere.employeeId !== parseInt(employeeId)) {
+            return NextResponse.json({ error: 'غير مصرح بطلب إجازة لهذا الموظف' }, { status: 403 });
         }
 
         const result = await LeaveEngine.submitLeaveRequest({

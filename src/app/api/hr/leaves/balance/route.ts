@@ -3,9 +3,10 @@ import { withRoute } from '@/lib/api/with-route';
 /**
  * Leave Balance API
  * GET /api/hr/leaves/balance?employeeId=X — رصيد إجازات الموظف
- */
 import { NextResponse } from 'next/server';
 import { LeaveEngine } from '@/lib/leave-engine';
+import { getHrScope } from '@/lib/hr-scope';
+import { getUserFromRequest } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr.leaves.balance' });
@@ -22,6 +23,12 @@ async function _GET(req: Request) {
     }
 
     try {
+        const _auth = getUserFromRequest(req as any);
+        const baseWhere = await getHrScope(_auth as any, tenantId, false) as any;
+        if (baseWhere.employeeId && baseWhere.employeeId !== -1 && baseWhere.employeeId !== employeeId) {
+            return NextResponse.json({ error: 'غير مصرح بالاستعلام عن رصيد هذا الموظف' }, { status: 403 });
+        }
+
         const summary = await LeaveEngine.getEmployeeLeaveSummary(employeeId, year);
         return NextResponse.json(summary);
     } catch (e: any) {
