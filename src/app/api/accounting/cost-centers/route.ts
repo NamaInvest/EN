@@ -15,8 +15,10 @@ async function _GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get('branchId');
 
+    const tenantId = requireTenantId(request as any);
     const costCenters = await prisma.costCenter.findMany({ take: 100,
       where: {
+        tenantId,
         ...(branchId ? { branchId: parseInt(branchId) } : {}),
       },
       orderBy: { id: 'desc' },
@@ -60,13 +62,15 @@ async function _POST(request: NextRequest) {
     }
 
     // Check code uniqueness
-    const existing = await prisma.costCenter.findUnique({ where: { code } });
+    const tenantId = requireTenantId(request as any);
+    const existing = await prisma.costCenter.findUnique({ where: { tenantId_code: { tenantId, code } } } as any);
     if (existing) {
       return NextResponse.json({ error: 'Cost Center code already exists' }, { status: 400 });
     }
 
     const newCostCenter = await prisma.costCenter.create({
       data: {
+        tenantId,
         name,
         code,
         nameEn: nameEn || null,

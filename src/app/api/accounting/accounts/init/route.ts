@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -47,11 +48,12 @@ async function _POST(request: Request) {
             { code: '5950', name: 'مصروفات متنوعة', nameEn: 'Miscellaneous Expenses', type: 'expense', level: 2, parentId: 19 },
         ];
 
+        const tenantId = requireTenantId(request as any);
         let createdCount = 0;
         for (const a of accounts) {
-            const existing = await prisma.account.findFirst({ where: { code: a.code } });
+            const existing = await prisma.account.findFirst({ where: { tenantId, code: a.code } });
             if (!existing) {
-                await prisma.account.create({ data: { ...a, isActive: true, balance: 0 } });
+                await prisma.account.create({ data: { tenantId, ...a, isActive: true, balance: 0 } });
                 createdCount++;
             }
         }

@@ -11,8 +11,11 @@ import { logger } from '@/lib/logger';
 const log = logger.child({ service: 'accounting/accounts' });
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
+    const tenantId = requireTenantId(request as any);
     try {
-        const accounts = await prisma.account.findMany({ take: 100,
+        const accounts = await prisma.account.findMany({ 
+            take: 100,
+            where: { tenantId },
             orderBy: { code: 'asc' },
         });
         return NextResponse.json(accounts);
@@ -53,14 +56,16 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: 'الكود والاسم والنوع مطلوبة' }, { status: 400 });
         }
 
+        const tenantId = requireTenantId(request as any);
         // Check duplicate code
-        const existing = await prisma.account.findFirst({ where: { code } });
+        const existing = await prisma.account.findFirst({ where: { tenantId, code } });
         if (existing) {
             return NextResponse.json({ error: 'كود الحساب موجود مسبقاً' }, { status: 400 });
         }
 
         const account = await prisma.account.create({
             data: {
+                tenantId,
                 code,
                 name,
                 nameEn: nameEn || '',
