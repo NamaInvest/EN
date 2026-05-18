@@ -92,6 +92,6 @@ scanResults.forEach(r => {
     csv += `"${r.file}","${r.model}","${r.operation}","${r.severity}","${r.issue}"\n`;
 });
 
-fs.writeFileSync('tmp/status-changing-api-security-scan.md', md);
-fs.writeFileSync('tmp/status-changing-api-security-scan.csv', csv);
+fs.writeFileSync('tmp/security-baseline-rescan.md', md);
+fs.writeFileSync('tmp/security-baseline-rescan.csv', csv);
 console.log('Saved report. Total issues:', scanResults.length);
