@@ -109,6 +109,7 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
     parseInt(String(bankAccountId)),
     transactions,
     auth.userId,
+    tenantId,
   );
 
   return NextResponse.json({

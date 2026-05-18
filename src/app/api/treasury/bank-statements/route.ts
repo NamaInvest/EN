@@ -40,10 +40,11 @@ export const GET = withRoute(async ({ req, prisma, auth }) => {
     const acctId    = searchParams.get('bankAccountId') ? parseInt(searchParams.get('bankAccountId')!) : null;
     const exportFmt = searchParams.get('export');
 
+    const tenantId = (auth as any).tenantId;
     // ── Single statement with lines ────────────────────────────────────
     if (id) {
-      const stmt = await prisma.bankStatement.findUnique({
-        where:   { id },
+      const stmt = await prisma.bankStatement.findFirst({
+        where:   { id, tenantId },
         include: { lines: { orderBy: { transactionDate: 'asc' }, take: 2000 } },
       }).catch(() => null);
 
@@ -66,7 +67,7 @@ export const GET = withRoute(async ({ req, prisma, auth }) => {
     }
 
     // ── List statements ────────────────────────────────────────────────
-    const where: any = { ...(acctId ? { bankAccountId: acctId } : {}) };
+    const where: any = { tenantId, ...(acctId ? { bankAccountId: acctId } : {}) };
     const statements = await prisma.bankStatement.findMany({
       where,
       select: {
@@ -150,8 +151,10 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
     // Detect actual format
     const detectedFmt = fileFormat === 'AUTO' ? detectFormat(fileContent) : fileFormat;
 
+    const tenantId = (auth as any).tenantId;
     const stmt = await prisma.bankStatement.create({
       data: {
+        tenantId,
         bankAccountId,
         statementNumber:  parsed.accountNumber || `STMT-${Date.now()}`,
         openingBalance:   parsed.openingBalance ?? 0,
@@ -166,6 +169,7 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
         validationStatus: 'VALID',
         lines: {
           create: parsed.transactions.map((tx: any) => ({
+            tenantId,
             transactionDate:  new Date(tx.date),
             valueDate:        tx.valueDate ? new Date(tx.valueDate) : null,
             amount:           Math.abs(tx.debit || tx.credit || 0),
@@ -184,7 +188,7 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
     }).catch(async (e: any) => {
       if (e.code === 'P2002') {
         return prisma.bankStatement.findFirst({
-          where: { bankAccountId, statementNumber: parsed.accountNumber || '' },
+          where: { tenantId, bankAccountId, statementNumber: parsed.accountNumber || '' },
         });
       }
       throw e;

@@ -26,7 +26,7 @@ async function _POST(req: NextRequest, { params }: { params: Promise<{ id: strin
         const { userId } = body;
         const runId = parseInt(paramId, 10);
 
-        const run = await prisma.paymentRun.findUnique({
+        const run = await prisma.paymentRun.findFirst({
             where: { id: runId, tenantId },
             include: { lines: true }
         });

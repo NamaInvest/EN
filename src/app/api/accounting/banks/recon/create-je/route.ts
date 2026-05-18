@@ -31,7 +31,7 @@ async function _POST(req: NextRequest) {
         }
 
         // Simplistic logic for mock purposes:
-        const line = await prisma.bankStatementLine.findUnique({ where: { id: parseInt(lineId, 10), tenantId } });
+        const line = await prisma.bankStatementLine.findFirst({ where: { id: parseInt(lineId, 10), tenantId } });
         if (!line) return NextResponse.json({ error: 'Line not found' }, { status: 404 });
 
         // Mock create JE

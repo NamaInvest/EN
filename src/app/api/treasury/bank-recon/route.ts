@@ -14,7 +14,9 @@ async function _GET(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
+        const tenantId = requireTenantId(request as any);
         let statement = await (prisma as any).bankStatement.findFirst({
+            where: { tenantId },
             include: { lines: true },
             orderBy: { id: 'desc' }
         });
@@ -23,6 +25,7 @@ async function _GET(request: NextRequest) {
             // Seed a dummy statement for demo
             const newStatement = await (prisma as any).bankStatement.create({
                 data: {
+                    tenantId,
                     bankAccountId: 1, // Assumes bank account 1 exists
                     statementDate: new Date(),
                     statementNumber: 'STMT-2026-05',
@@ -31,9 +34,9 @@ async function _GET(request: NextRequest) {
                     status: 'IMPORTED',
                     lines: {
                         create: [
-                            { transactionDate: new Date('2026-05-02'), description: 'INWARD TRANSFER REF 88291 (AL SHARQ)', amount: 20000.00, type: 'CREDIT', matchStatus: 'UNMATCHED' },
-                            { transactionDate: new Date('2026-05-02'), description: 'BANK CHARGE - MONTHLY', amount: -400.50, type: 'DEBIT', matchStatus: 'UNMATCHED' },
-                            { transactionDate: new Date('2026-05-01'), description: 'OUTWARD TRANSFER REF 1102', amount: -15000.00, type: 'DEBIT', matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
+                            { tenantId, transactionDate: new Date('2026-05-02'), description: 'INWARD TRANSFER REF 88291 (AL SHARQ)', amount: 20000.00, type: 'CREDIT', matchStatus: 'UNMATCHED' },
+                            { tenantId, transactionDate: new Date('2026-05-02'), description: 'BANK CHARGE - MONTHLY', amount: -400.50, type: 'DEBIT', matchStatus: 'UNMATCHED' },
+                            { tenantId, transactionDate: new Date('2026-05-01'), description: 'OUTWARD TRANSFER REF 1102', amount: -15000.00, type: 'DEBIT', matchStatus: 'AUTO_MATCHED', matchConfidence: 100 }
                         ]
                     }
                 },

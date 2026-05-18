@@ -111,7 +111,7 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
              return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون).' }, { status: 403 });
         }
 
-        const beforeEntry = await prisma.journalEntry.findUnique({ where: { id } });
+        const beforeEntry = await prisma.journalEntry.findFirst({ where: { id, tenantId } });
         
         await runFinancialTx(prisma, async (tx: any) => {
             await checkFiscalPeriodOpen(tx, tenantId, date || entry.entryDate);
@@ -151,7 +151,7 @@ async function _PUT(request: Request, context: { params: Promise<{ id: string }>
 
         try {
             const { logFieldChanges, auditContextFromRequest } = require('@/lib/field-audit');
-            const afterEntry = await prisma.journalEntry.findUnique({ where: { id } });
+            const afterEntry = await prisma.journalEntry.findFirst({ where: { id, tenantId } });
             await logFieldChanges(prisma, 'JournalEntry', id, beforeEntry, afterEntry, auditContextFromRequest(request, auth));
         } catch (auditErr: unknown) {
             log.error('Audit Log failed:', auditErr);
@@ -197,9 +197,9 @@ async function _PATCH(request: Request, context: { params: Promise<{ id: string 
                 reason: reason,
                 apply: async () => {
                     if (status === DocumentStatus.POSTED && entry.status !== DocumentStatus.POSTED) {
-                        const lines = await tx.journalLine.findMany({ take: 100, where: { entryId: id } });
+                        const lines = await tx.journalLine.findMany({ take: 100, where: { entryId: id, tenantId } });
                         for (const line of lines) {
-                            const account = await tx.account.findUnique({ where: { id: line.accountId } });
+                            const account = await tx.account.findFirst({ where: { id: line.accountId, tenantId } });
                             if (account) {
                                 let balanceChange = 0;
                                 if (['asset', 'expense'].includes(account.type)) {

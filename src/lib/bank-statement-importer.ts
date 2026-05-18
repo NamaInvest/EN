@@ -141,6 +141,7 @@ export class BankStatementImporter {
     bankAccountId: number,
     transactions: BankTransaction[],
     userId: number,
+    tenantId: string,
   ): Promise<ImportResult> {
     const result: ImportResult = { total: transactions.length, matched: 0, pending: 0, skipped: 0, errors: [] };
 
@@ -148,7 +149,7 @@ export class BankStatementImporter {
       try {
         // Idempotency: check if already imported
         const existing = await prisma.bankStatementLine.findFirst({
-          where: { externalId: trn.id, bankAccountId },
+          where: { externalId: trn.id, bankAccountId, tenantId },
         }).catch(() => null);
 
         if (existing) { result.skipped++; continue; }
@@ -161,6 +162,7 @@ export class BankStatementImporter {
 
         const matched = await prisma.treasury.findFirst({
           where: {
+            tenantId,
             amount:     { gte: absAmount - 0.01, lte: absAmount + 0.01 },
             type:       trn.type === 'CREDIT' ? 'in' : 'out',
             reconStatus: { in: [null, 'UNMATCHED'] },
@@ -170,6 +172,7 @@ export class BankStatementImporter {
         // Create bank statement line
         await prisma.bankStatementLine.create({
           data: {
+            tenantId,
             bankAccountId,
             externalId:   trn.id,
             transactionDate: trn.date,
@@ -187,7 +190,7 @@ export class BankStatementImporter {
         if (matched) {
           // Mark treasury entry as matched
           await prisma.treasury.update({
-            where: { id: matched.id },
+            where: { id: matched.id, tenantId },
             data:  { reconStatus: 'MATCHED' },
           }).catch(() => null);
           result.matched++;
