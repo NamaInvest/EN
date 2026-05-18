@@ -50,7 +50,7 @@ files.forEach(file => {
     if (!hasMutation) return; // Only care about config mutation
 
     const hasTenantId = content.includes('tenantId');
-    const hasRequirePermissions = content.includes('auth.role') || content.includes('roles:') || content.includes('requirePermissions');
+    const hasRequirePermissions = content.includes('auth.role') || content.includes('auth?.role') || content.includes('user.role') || content.includes('roles:') || content.includes('requirePermissions') || content.includes('hasPermission');
     const hasAuditLog = content.includes('auditLog.create') || content.includes('logFieldChanges');
     const hasZod = content.includes('z.object') || content.includes('zod');
 
