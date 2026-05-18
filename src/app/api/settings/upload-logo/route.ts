@@ -10,6 +10,10 @@ const log = logger.child({ service: 'settings.upload-logo' });
 async function _POST(request: Request) {
     const prisma = getPrisma(request);
     try {
+        const user = getUserFromRequest(request as any);
+        if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (user.role !== 'admin' && user.role !== 'owner') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+
         const formData = await request.formData();
         const file = formData.get('logo') as File;
 
@@ -33,11 +37,20 @@ async function _POST(request: Request) {
         const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
 
         // Save to settings
-        await prisma.setting.upsert({
-            where: { key: 'company_logo' },
-            update: { value: base64 },
-            create: { key: 'company_logo', value: base64, description: 'شعار الشركة' },
+        const existing = await prisma.setting.findFirst({
+            where: { key: 'company_logo', tenantId: user.tenantId },
         });
+
+        if (existing) {
+            await prisma.setting.update({
+                where: { id: existing.id },
+                data: { value: base64 },
+            });
+        } else {
+            await prisma.setting.create({
+                data: { key: 'company_logo', value: base64, description: 'شعار الشركة', tenantId: user.tenantId },
+            });
+        }
 
         return NextResponse.json({ success: true, logo: base64 });
     } catch (error: any) {

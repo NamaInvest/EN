@@ -14,6 +14,7 @@ async function _GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         const rules = await prisma.approvalRule.findMany({ take: 100,
+            where: { tenantId: user.tenantId },
             include: { approver: { select: { id: true, fullName: true, role: true } } },
             orderBy: { level: 'asc' }
         });
@@ -40,6 +41,7 @@ async function _POST(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (user.role !== 'admin' && user.role !== 'owner') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
         
         const data = await request.json();
 
@@ -50,6 +52,7 @@ async function _POST(request: NextRequest) {
         
         const newRule = await prisma.approvalRule.create({
             data: {
+                tenantId: user.tenantId,
                 documentType: data.documentType,
                 minAmount: parseFloat(data.minAmount) || 0,
                 maxAmount: data.maxAmount ? parseFloat(data.maxAmount) : null,

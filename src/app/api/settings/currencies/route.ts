@@ -14,20 +14,21 @@ async function _GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
         
         let currencies = await prisma.currency.findMany({ take: 100,
+            where: { tenantId: user.tenantId },
             orderBy: { id: 'asc' }
         });
 
         if (currencies.length === 0) {
             await prisma.currency.createMany({
                 data: [
-                    { code: 'SAR', nameAr: 'ريال سعودي', nameEn: 'Saudi Riyal', symbol: 'ر.س', exchangeRate: 1.0, isDefault: true, isActive: true },
-                    { code: 'USD', nameAr: 'دولار أمريكي', nameEn: 'US Dollar', symbol: '$', exchangeRate: 3.75, isDefault: false, isActive: true },
-                    { code: 'EUR', nameAr: 'يورو', nameEn: 'Euro', symbol: '€', exchangeRate: 4.10, isDefault: false, isActive: true },
-                    { code: 'AED', nameAr: 'درهم إماراتي', nameEn: 'UAE Dirham', symbol: 'د.إ', exchangeRate: 1.02, isDefault: false, isActive: true },
-                    { code: 'KWD', nameAr: 'دينار كويتي', nameEn: 'Kuwaiti Dinar', symbol: 'د.ك', exchangeRate: 12.20, isDefault: false, isActive: true },
-                    { code: 'BHD', nameAr: 'دينار بحريني', nameEn: 'Bahraini Dinar', symbol: 'د.ب', exchangeRate: 9.95, isDefault: false, isActive: true },
-                    { code: 'QAR', nameAr: 'ريال قطري', nameEn: 'Qatari Riyal', symbol: 'ر.ق', exchangeRate: 1.03, isDefault: false, isActive: true },
-                    { code: 'OMR', nameAr: 'ريال عماني', nameEn: 'Omani Rial', symbol: 'ر.ع', exchangeRate: 9.74, isDefault: false, isActive: true }
+                    { tenantId: user.tenantId, code: 'SAR', nameAr: 'ريال سعودي', nameEn: 'Saudi Riyal', symbol: 'ر.س', exchangeRate: 1.0, isDefault: true, isActive: true },
+                    { tenantId: user.tenantId, code: 'USD', nameAr: 'دولار أمريكي', nameEn: 'US Dollar', symbol: '$', exchangeRate: 3.75, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'EUR', nameAr: 'يورو', nameEn: 'Euro', symbol: '€', exchangeRate: 4.10, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'AED', nameAr: 'درهم إماراتي', nameEn: 'UAE Dirham', symbol: 'د.إ', exchangeRate: 1.02, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'KWD', nameAr: 'دينار كويتي', nameEn: 'Kuwaiti Dinar', symbol: 'د.ك', exchangeRate: 12.20, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'BHD', nameAr: 'دينار بحريني', nameEn: 'Bahraini Dinar', symbol: 'د.ب', exchangeRate: 9.95, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'QAR', nameAr: 'ريال قطري', nameEn: 'Qatari Riyal', symbol: 'ر.ق', exchangeRate: 1.03, isDefault: false, isActive: true },
+                    { tenantId: user.tenantId, code: 'OMR', nameAr: 'ريال عماني', nameEn: 'Omani Rial', symbol: 'ر.ع', exchangeRate: 9.74, isDefault: false, isActive: true }
                 ],
                 skipDuplicates: true
             }).catch(e => {
@@ -38,6 +39,7 @@ async function _GET(request: NextRequest) {
                 }
             });
             currencies = await prisma.currency.findMany({ take: 100,
+                where: { tenantId: user.tenantId },
                 orderBy: { id: 'asc' }
             });
         }
@@ -65,6 +67,7 @@ async function _POST(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
         if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (user.role !== 'admin' && user.role !== 'owner') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
         
         const data = await request.json();
 
@@ -76,13 +79,14 @@ async function _POST(request: NextRequest) {
         // Disable other defaults if this becomes default
         if (data.isDefault) {
             await prisma.currency.updateMany({
-                where: { isDefault: true },
+                where: { isDefault: true, tenantId: user.tenantId },
                 data: { isDefault: false }
             });
         }
         
         const newCurrency = await prisma.currency.create({
             data: {
+                tenantId: user.tenantId,
                 code: data.code,
                 nameAr: data.nameAr,
                 nameEn: data.nameEn || null,

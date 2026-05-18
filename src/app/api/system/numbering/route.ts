@@ -27,7 +27,7 @@ async function _GET(request: Request) {
         }
 
         const code = searchParams.get('code');
-        const where: Record<string, unknown> = {};
+        const where: Record<string, unknown> = { tenantId: user.tenantId };
         if (code) where.code = code;
         if (searchParams.get('branchId')) where.branchId = parseInt(searchParams.get('branchId')!);
 
@@ -67,7 +67,7 @@ async function _POST(request: Request) {
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    if (user.role !== 'admin') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+    if (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'finance_manager') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
 
     try {
         const body = await request.json();
@@ -87,7 +87,7 @@ async function _POST(request: Request) {
 
         // التكوين السلسلة "الرئيسي" هو السطر بدون fiscalYear/fiscalMonth (يُستخدم كقالب)
         const existing = await prisma.numberingSequence.findFirst({
-            where: { code, branchId: branchId ?? null, fiscalYear: null, fiscalMonth: null },
+            where: { code, branchId: branchId ?? null, fiscalYear: null, fiscalMonth: null, tenantId: user.tenantId },
         });
 
         const data = {
@@ -103,7 +103,7 @@ async function _POST(request: Request) {
 
         const result = existing
             ? await prisma.numberingSequence.update({ where: { id: existing.id }, data })
-            : await prisma.numberingSequence.create({ data: { ...data, current: BigInt(0) } });
+            : await prisma.numberingSequence.create({ data: { ...data, tenantId: user.tenantId, current: BigInt(0) } });
 
         return NextResponse.json({ success: true, sequence: { ...result, current: result.current.toString() } });
     } catch (error: any) {
@@ -117,15 +117,15 @@ async function _DELETE(request: Request) {
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    if (user.role !== 'admin') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+    if (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'finance_manager') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
 
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'id مطلوب' }, { status: 400 });
 
-        await prisma.numberingSequence.update({
-            where: { id: parseInt(id) },
+        await prisma.numberingSequence.updateMany({
+            where: { id: parseInt(id), tenantId: user.tenantId },
             data: { isActive: false },
         });
 
@@ -141,7 +141,7 @@ async function _PATCH(request: Request) {
     const prisma = getPrisma(request);
     const user = getUserFromRequest(request as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    if (user.role !== 'admin') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
+    if (user.role !== 'admin' && user.role !== 'owner' && user.role !== 'finance_manager') return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
 
     try {
         const { searchParams } = new URL(request.url);
