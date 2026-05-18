@@ -135,6 +135,19 @@ export function getAllowedTenantValues(context: TenantContextInfo): Set<string> 
   ]);
 }
 
+export function requireTenantContext(req: NextRequest | Request | { headers?: unknown; tenantId?: string | null }): TenantContextInfo {
+  const tenantId = requireTenantId(req);
+  return buildTenantContext(tenantId, 'requireTenantContext');
+}
+
+export function assertTenantAccess(req: Request | NextRequest, requiredTenantId?: string): TenantContextInfo {
+  const context = requireTenantContext(req);
+  if (requiredTenantId && context.tenantSlug !== requiredTenantId) {
+    throw new Error(`${TENANT_ISOLATION_ERROR}: Cross-tenant access denied. Request tenant '${context.tenantSlug}' does not match required tenant '${requiredTenantId}'.`);
+  }
+  return context;
+}
+
 function getAllowedBoundaryTenantValues(context: TenantContextInfo): Set<string> {
   return new Set([context.tenantSlug, `${context.tenantSlug}_db`]);
 }
