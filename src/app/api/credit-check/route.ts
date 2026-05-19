@@ -1,74 +1,176 @@
-import { getUserFromRequest } from '@/lib/auth';
-import { withRoute } from '@/lib/api/with-route';
 /**
- * Credit Check API
- * GET  /api/credit-check?customerId=X — Check credit for customer
- * GET  /api/credit-check?action=at-risk — List at-risk customers
- * POST /api/credit-check — Quick pass/fail check
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  Real-Time Credit Check API — `/api/credit-check`
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  يفحص حدّ الائتمان للعميل قبل إنشاء أوامر بيع/فواتير.
+ *
+ *  Endpoints:
+ *   GET  ?customerId=X            → فحص ائتمان شامل لعميل واحد
+ *   GET  ?action=at-risk&threshold=0.8 → العملاء الذين تجاوزوا النسبة
+ *   POST { customerId, amount }   → قرار: هل يمكن إنشاء فاتورة بهذا المبلغ؟
+ *
+ *  Security (Gate 1):
+ *   - RBAC: admin / owner / accountant / cfo / sales_manager
+ *   - Audit log لكل POST (قرار ائتمان مسجل)
+ *   - tenant isolation عبر getPrisma()
+ *
+ *  Engine: src/lib/credit-check-engine.ts
+ *
+ *  @see prisma/schema.prisma — model Customer, CreditLimitHistory
+ * ═══════════════════════════════════════════════════════════════════════════
  */
-import { NextRequest, NextResponse } from 'next/server';
-import { getPrisma } from '@/lib/prisma';
-import { CreditCheckEngine } from '@/lib/credit-check-engine';
+
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
+import { withRoute, type RouteContext } from '@/lib/api/with-route';
+import { CreditCheckEngine } from '@/lib/credit-check-engine';
+import { logAuditAction } from '@/lib/audit';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'credit-check' });
 
-async function _GET(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+const ALLOWED_ROLES = ['admin', 'owner', 'accountant', 'cfo', 'sales_manager'] as const;
 
-    const prisma = getPrisma(req);
-    const action = req.nextUrl.searchParams.get('action');
-    const customerId = req.nextUrl.searchParams.get('customerId');
+/** Schema لـ GET — discriminated union */
+const GetQuerySchema = z.union([
+  z.object({
+    customerId: z.coerce.number().int().positive(),
+    action: z.undefined().optional(),
+    threshold: z.undefined().optional(),
+  }),
+  z.object({
+    action: z.literal('at-risk'),
+    threshold: z.coerce.number().min(0).max(1).optional().default(0.8),
+    customerId: z.undefined().optional(),
+  }),
+]);
 
-    try {
-        if (action === 'at-risk') {
-            const threshold = parseFloat(req.nextUrl.searchParams.get('threshold') || '0.8');
-            const results = await CreditCheckEngine.getAtRiskCustomers(prisma, threshold);
-            return NextResponse.json(results);
-        }
+/** Schema لـ POST */
+const PostBodySchema = z.object({
+  customerId: z.coerce.number().int().positive(),
+  amount: z.coerce.number().positive(),
+});
 
-        if (customerId) {
-            const result = await CreditCheckEngine.check(prisma, parseInt(customerId));
-            return NextResponse.json(result);
-        }
+// ═══════════════════════════════════════════════════════════════════════════
+//  GET
+// ═══════════════════════════════════════════════════════════════════════════
 
-        return NextResponse.json({ error: 'مطلوب: customerId أو action=at-risk' }, { status: 400 });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+async function handleGet(ctx: RouteContext): Promise<NextResponse> {
+  const { prisma, req, auth, requestId } = ctx;
+  const url = new URL(req.url);
+  const raw = Object.fromEntries(url.searchParams.entries());
+  const parsed = GetQuerySchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'مطلوب: customerId أو action=at-risk' },
+      { status: 400 },
+    );
+  }
+
+  const data = parsed.data;
+
+  try {
+    if ('action' in data && data.action === 'at-risk') {
+      const list = await CreditCheckEngine.getAtRiskCustomers(prisma, data.threshold);
+      log.info('At-risk customers fetched', {
+        requestId, userId: auth.userId, count: list.length, threshold: data.threshold,
+      });
+      return NextResponse.json({
+        items: list,
+        threshold: data.threshold,
+        count: list.length,
+      });
     }
+
+    if ('customerId' in data && data.customerId) {
+      const result = await CreditCheckEngine.check(prisma, data.customerId);
+      log.info('Customer credit checked', {
+        requestId, userId: auth.userId, customerId: data.customerId, isOverLimit: result.isOverLimit,
+      });
+      return NextResponse.json(result);
+    }
+
+    return NextResponse.json({ error: 'مطلوب: customerId أو action=at-risk' }, { status: 400 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'فشل غير متوقع';
+    log.error('Credit check failed', { requestId, error: msg });
+    return NextResponse.json({ error: 'فشل فحص الائتمان', detail: msg }, { status: 500 });
+  }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  POST — قرار ائتماني (هل يمكن المتابعة؟)
+// ═══════════════════════════════════════════════════════════════════════════
 
-const _POSTSchema = z.object({
-  customerId: z.union([z.string(), z.number()]).optional(),
-  amount: z.number().optional(),
-}).passthrough();
+async function handlePost(ctx: RouteContext): Promise<NextResponse> {
+  const { prisma, req, auth, requestId } = ctx;
 
-async function _POST(req: NextRequest) {
-    const user = getUserFromRequest(req as any);
-    if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'JSON غير صالح' }, { status: 400 });
+  }
 
-    const prisma = getPrisma(req);
-    try {
-        const body = await req.json();
+  const parsed = PostBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'بيانات غير صحيحة', details: parsed.error.flatten().fieldErrors },
+      { status: 400 },
+    );
+  }
 
-        const _parsed = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-        if (!body.customerId || !body.amount) {
-            return NextResponse.json({ error: 'مطلوب: customerId, amount' }, { status: 400 });
-        }
+  const { customerId, amount } = parsed.data;
 
-        const result = await CreditCheckEngine.canProceed(prisma, body.customerId, body.amount);
-        return NextResponse.json(result);
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
-    }
+  try {
+    // نستخدم check بدلاً من canProceed (موجود ضمن نفس الـ engine)
+    const result = await CreditCheckEngine.check(prisma, customerId, amount);
+    const canProceed = !result.isOverLimit;
+
+    // audit القرار — مهم للتدقيق المالي
+    await logAuditAction({
+      userId: auth.userId,
+      action: 'CREDIT_CHECK_DECISION',
+      tableName: 'customers',
+      recordId: customerId,
+      details: JSON.stringify({
+        amount,
+        canProceed,
+        creditLimit: result.creditLimit,
+        availableCredit: result.availableCredit,
+        overLimitAmount: result.overLimitAmount,
+      }),
+    });
+
+    log.info('Credit decision made', {
+      requestId, userId: auth.userId, customerId, amount, canProceed,
+    });
+
+    return NextResponse.json({
+      canProceed,
+      reason: canProceed ? null : 'تجاوز حد الائتمان',
+      ...result,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'فشل غير متوقع';
+    log.error('Credit decision failed', { requestId, error: msg });
+    return NextResponse.json({ error: 'فشل القرار', detail: msg }, { status: 500 });
+  }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(handleGet, {
+  rateLimit: 'DEFAULT',
+  requireAuth: true,
+  roles: [...ALLOWED_ROLES],
+  tenantRequired: true,
+});
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(handlePost, {
+  rateLimit: 'DEFAULT',
+  requireAuth: true,
+  roles: [...ALLOWED_ROLES],
+  tenantRequired: true,
+});

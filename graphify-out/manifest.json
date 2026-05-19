@@ -19,9 +19,17 @@
     "mtime": 1778638814.565367,
     "hash": "cb9f2cd99916162ba0dc4dc9229f0d61"
   },
+  "D:\\namasoft9-3-main\\apply_fixes.js": {
+    "mtime": 1779160703.041786,
+    "hash": "0c5b90f30e0002a02b8781f759140fff"
+  },
   "D:\\namasoft9-3-main\\apply_light_theme.js": {
     "mtime": 1778262602.525724,
     "hash": "a02024443aed30c3b360bc5f4d5932ef"
+  },
+  "D:\\namasoft9-3-main\\audit_n11.sql": {
+    "mtime": 1779148078.786286,
+    "hash": "03cf03c5666109ebab3e2fdf712e4a04"
   },
   "D:\\namasoft9-3-main\\audit_ui.py": {
     "mtime": 1778262602.6806982,
@@ -435,6 +443,10 @@
     "mtime": 1778262605.6805263,
     "hash": "13e974fbecfbd8223a50881ed028ef7d"
   },
+  "D:\\namasoft9-3-main\\fix_env.js": {
+    "mtime": 1779161494.699097,
+    "hash": "e1c586470b3510fab08bebdc18edfb58"
+  },
   "D:\\namasoft9-3-main\\fix_fa.js": {
     "mtime": 1778262605.6805263,
     "hash": "1ab4583b3f2a4694e3c50bc6df255624"
@@ -454,6 +466,14 @@
   "D:\\namasoft9-3-main\\fix_jwt_types.py": {
     "mtime": 1778262605.6826634,
     "hash": "27cca4611050363dea5ca7c01b993d5a"
+  },
+  "D:\\namasoft9-3-main\\fix_n1.sql": {
+    "mtime": 1779147830.745885,
+    "hash": "ccb7f7f1d27907ebd50be0ef37325585"
+  },
+  "D:\\namasoft9-3-main\\fix_n11.sql": {
+    "mtime": 1779147830.745885,
+    "hash": "a2a090f30a89bdd34d9c97e964218e47"
   },
   "D:\\namasoft9-3-main\\fix_page_params.js": {
     "mtime": 1778262605.6831822,
@@ -672,8 +692,8 @@
     "hash": "b698cdd97fe8e3bd16dcd74899ad7cef"
   },
   "D:\\namasoft9-3-main\\next.config.ts": {
-    "mtime": 1778648981.5318534,
-    "hash": "b808ae74b151edc66bca6099a87874e3"
+    "mtime": 1779146889.0295794,
+    "hash": "6b3a8757e3c9a39f407345805e84dcd7"
   },
   "D:\\namasoft9-3-main\\original_i18n.tsx": {
     "mtime": 1778262617.2242343,
@@ -770,6 +790,10 @@
   "D:\\namasoft9-3-main\\RUN_DIAGNOSTICS.mjs": {
     "mtime": 1778262602.1756206,
     "hash": "b9cd58ca82a70b024e187ae223d8f91e"
+  },
+  "D:\\namasoft9-3-main\\scaffold-launcher.js": {
+    "mtime": 1779160048.0709927,
+    "hash": "335b28770ded1f02f094e07229c0ff5e"
   },
   "D:\\namasoft9-3-main\\scan_language.js": {
     "mtime": 1778262617.7276614,
@@ -883,6 +907,122 @@
     "mtime": 1778262630.3598468,
     "hash": "65c286625c6f36da5e40ecbc9038ecc6"
   },
+  "D:\\namasoft9-3-main\\tmp-audit-db.js": {
+    "mtime": 1779148070.4669764,
+    "hash": "a623aec063b6ae12812c19120d3eb1df"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-build-log.js": {
+    "mtime": 1779148154.1757972,
+    "hash": "dc2d36fed67a0c8ad2c1f8e08d84d2bb"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-build.js": {
+    "mtime": 1779148090.6623695,
+    "hash": "d1ace55746f1e9869fdb8abdd816131c"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-company.js": {
+    "mtime": 1779147513.1760957,
+    "hash": "5c80b6a04557a60abdf97e56c06be856"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-dt.js": {
+    "mtime": 1779147485.0563178,
+    "hash": "d0f6c400549bbdf4cbed7bb8dee2940c"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-getclient.js": {
+    "mtime": 1779147665.1405015,
+    "hash": "83dd63bd041c623c79b418bfc3b12956"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-getclient2.js": {
+    "mtime": 1779147679.428699,
+    "hash": "fa7afd23a73c7e29148ba593392e0e6d"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-git.js": {
+    "mtime": 1779148291.2612765,
+    "hash": "629b68ee81a3e526540153d8b572ee85"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-invoice.js": {
+    "mtime": 1779151155.903685,
+    "hash": "b616519c0cdde0c1b27ae296d568d89a"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-prisma.js": {
+    "mtime": 1779147634.766737,
+    "hash": "fa1d923493c033f90f1e2c0bcf3a192a"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-resolvetenant.js": {
+    "mtime": 1779147648.5055065,
+    "hash": "24434983a1251995a02a649d8b7f5dbb"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-route.js": {
+    "mtime": 1779147621.0010867,
+    "hash": "105a074f55660e8d82fe53b4e2f7f93d"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-settings.js": {
+    "mtime": 1779147588.3156621,
+    "hash": "74cdc8f161d7a3e1255f01072442ec87"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-stat.js": {
+    "mtime": 1779147604.4610116,
+    "hash": "e56e2b363b3e6369a32d243417c8324b"
+  },
+  "D:\\namasoft9-3-main\\tmp-check-users.js": {
+    "mtime": 1779147698.019211,
+    "hash": "186421b1c89ac60405272fbaaed08da4"
+  },
+  "D:\\namasoft9-3-main\\tmp-check.js": {
+    "mtime": 1779147445.9990168,
+    "hash": "5d9aab69ee0539e4a1e784c59564be9c"
+  },
+  "D:\\namasoft9-3-main\\tmp-fix-build.js": {
+    "mtime": 1779148648.770755,
+    "hash": "76c1f0ae8ac944199225f353c4f6185e"
+  },
+  "D:\\namasoft9-3-main\\tmp-fix-tenants.js": {
+    "mtime": 1779147823.0375245,
+    "hash": "da8e02518d471d5d21edf0fa5d2ce2e1"
+  },
+  "D:\\namasoft9-3-main\\tmp-ls-next.js": {
+    "mtime": 1779148104.1566372,
+    "hash": "7d64183243063f174d88ce126e40b936"
+  },
+  "D:\\namasoft9-3-main\\tmp-package-backup.js": {
+    "mtime": 1779148969.5667694,
+    "hash": "700d7004bdfce28a2e2d8aa1c8f99c3e"
+  },
+  "D:\\namasoft9-3-main\\tmp-pm2-delete.js": {
+    "mtime": 1779148722.8870957,
+    "hash": "8a29231e6fe36ae65b4e3e6c03d0412e"
+  },
+  "D:\\namasoft9-3-main\\tmp-pm2-list.js": {
+    "mtime": 1779148120.1805377,
+    "hash": "91915e33e7bf524dba5fce493dbd6825"
+  },
+  "D:\\namasoft9-3-main\\tmp-pm2-logs.js": {
+    "mtime": 1779148135.5316536,
+    "hash": "70233eaf5c5de578fc9d2155426a2c3e"
+  },
+  "D:\\namasoft9-3-main\\tmp-pm2-start.js": {
+    "mtime": 1779148705.4243934,
+    "hash": "f9d5269db488e162ce2d0e3d221401f2"
+  },
+  "D:\\namasoft9-3-main\\tmp-remote-query.js": {
+    "mtime": 1779157367.233884,
+    "hash": "4e624b87e3e86a4d29cdca155f5726da"
+  },
+  "D:\\namasoft9-3-main\\tmp-run-backup-db.js": {
+    "mtime": 1779148843.3089914,
+    "hash": "40ef94e2d9636ad887798c46e02af779"
+  },
+  "D:\\namasoft9-3-main\\tmp-run-backup.js": {
+    "mtime": 1779148826.2752502,
+    "hash": "f83b8238a2ab4484f045a14e9d989523"
+  },
+  "D:\\namasoft9-3-main\\tmp-upload-build.js": {
+    "mtime": 1779148569.9919415,
+    "hash": "a9a59afc2a0c02b3b81def18a0f422e9"
+  },
+  "D:\\namasoft9-3-main\\tmp-write-report.js": {
+    "mtime": 1779148862.7384298,
+    "hash": "06e70cc9041e6134148e63bec7407b0e"
+  },
   "D:\\namasoft9-3-main\\tmp_fix.js": {
     "mtime": 1778877450.9279742,
     "hash": "4c30c94ecd002d9151bbdcaad1ada706"
@@ -960,8 +1100,8 @@
     "hash": "12d56546137bea1e636b9dc610b63840"
   },
   "D:\\namasoft9-3-main\\vitest.config.ts": {
-    "mtime": 1778262630.4349535,
-    "hash": "a9054d4a1284d36244e855e208f55515"
+    "mtime": 1779101021.3388472,
+    "hash": "d05ad04783b91507d39c4b644e8907e0"
   },
   "D:\\namasoft9-3-main\\wire-v3-ui.js": {
     "mtime": 1778262630.4365795,
@@ -1135,6 +1275,62 @@
     "mtime": 1778262612.513861,
     "hash": "76f53da9efa9fbb6afabb4c823962765"
   },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\tailwind.config.js": {
+    "mtime": 1779160058.110688,
+    "hash": "f60ce321e9b25beff6bda1bf0b0c779e"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\vite.config.ts": {
+    "mtime": 1779160057.9320736,
+    "hash": "d03f4773a185ece8d26eb73aa098bccb"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\database.ts": {
+    "mtime": 1779161606.7239811,
+    "hash": "a49ef04cae9bd3c11d2c3c98e75a9872"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\licenseManager.ts": {
+    "mtime": 1779161607.026911,
+    "hash": "e3d575220c7a497986767aaaf708f669"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\main.ts": {
+    "mtime": 1779160733.8531532,
+    "hash": "90912c576b2f31ea6d60decd84cf1da5"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\preload.ts": {
+    "mtime": 1779160733.8531532,
+    "hash": "1b19eb3eef37b1c139f64ededc5ca529"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\qzTraySetup.ts": {
+    "mtime": 1779160733.8511426,
+    "hash": "f222a377a003a1fee9b487cedbc5043d"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\syncWorker.ts": {
+    "mtime": 1779160733.8511426,
+    "hash": "09aaf3df40be76a949b3e3811f81a415"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\types.ts": {
+    "mtime": 1779160733.8470764,
+    "hash": "f5537d6a7cf3316a708e36d28c7984ff"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron\\updater.ts": {
+    "mtime": 1779160733.8496351,
+    "hash": "fb75a13eeb6895b87bdf4a337c8e747b"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\src\\App.tsx": {
+    "mtime": 1779161607.1488247,
+    "hash": "73f600d4b5c6d26eea12a5078a8d9f1a"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\src\\main.tsx": {
+    "mtime": 1779160058.1086235,
+    "hash": "b31b512799a602c7bd1393f1f59a2342"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\src\\vite-env.d.ts": {
+    "mtime": 1779161607.025912,
+    "hash": "0352474ba2918efe13895edbc3780d94"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\src\\lib\\api.ts": {
+    "mtime": 1779160733.8541608,
+    "hash": "74596f67c2089eb628486d1785a747ca"
+  },
   "D:\\namasoft9-3-main\\out_test\\i18n.js": {
     "mtime": 1778262617.2329037,
     "hash": "205e1f826179a645d92ec004b0fd8e38"
@@ -1144,8 +1340,8 @@
     "hash": "a5115e3daaf743557da5d578a91fbe02"
   },
   "D:\\namasoft9-3-main\\prisma\\seed.ts": {
-    "mtime": 1778262617.3781345,
-    "hash": "b4799fc01177a10d3acd2604a1cb30ce"
+    "mtime": 1779067537.2372696,
+    "hash": "7213c398f000edb9f9621ad9c3697d4e"
   },
   "D:\\namasoft9-3-main\\prisma\\migrations\\20260501_add_manufacturing_accounts\\migration.sql": {
     "mtime": 1778262617.3505342,
@@ -1178,6 +1374,42 @@
   "D:\\namasoft9-3-main\\prisma\\migrations\\add_pgvector\\migration.sql": {
     "mtime": 1778470648.7748685,
     "hash": "7b9d5a8d3786772c100655aabd79fbb8"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\01-company.ts": {
+    "mtime": 1779067991.5852504,
+    "hash": "e1d978d54f9b8ed84ed90351a5d4223f"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\02-coa.ts": {
+    "mtime": 1779068086.17443,
+    "hash": "da115864951da93008187a6c3a7811a8"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\03-products.ts": {
+    "mtime": 1779067991.5867643,
+    "hash": "763688803e5ca5b6d1d28eb8fdc3b6f6"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\04-customers.ts": {
+    "mtime": 1779067991.5877745,
+    "hash": "5470a3ebf54100ff96c5fac2a7a878ba"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\05-suppliers.ts": {
+    "mtime": 1779067991.5877745,
+    "hash": "cadcffb913389a49e64ebf5906f5d673"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\06-employees.ts": {
+    "mtime": 1779067991.5877745,
+    "hash": "a0e051b3ca7fa3e227fe508ca594a463"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\07-historical-transactions.ts": {
+    "mtime": 1779068650.1229775,
+    "hash": "1d2609e6289edd8726eeeab6ed5dae93"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\08-open-balances.ts": {
+    "mtime": 1779068657.8065026,
+    "hash": "807ab50d6c058e671a3e4e5c5c65c0e9"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\index.ts": {
+    "mtime": 1779067991.6789303,
+    "hash": "ac3b3ec07f6c194ef05440ab4f4d7d91"
   },
   "D:\\namasoft9-3-main\\project-docs\\generate-archive.js": {
     "mtime": 1778880942.8998587,
@@ -1331,6 +1563,14 @@
     "mtime": 1778365116.9845104,
     "hash": "12f79320d8b86c86e7b5ef176bc2a832"
   },
+  "D:\\namasoft9-3-main\\scripts\\create-seed-files.js": {
+    "mtime": 1779068426.6110241,
+    "hash": "e504cb07b756b8b2f0b3232b52452438"
+  },
+  "D:\\namasoft9-3-main\\scripts\\debug.js": {
+    "mtime": 1779067957.404959,
+    "hash": "292e59ccd24f521d8af3e6f24fa0c548"
+  },
   "D:\\namasoft9-3-main\\scripts\\deploy_engines.js": {
     "mtime": 1778262617.7967076,
     "hash": "c65b8d4293ee6a0c0ccf5cdd2df013cf"
@@ -1383,9 +1623,21 @@
     "mtime": 1778364205.7181625,
     "hash": "edcbef1685f04f86e01eb3c1cf0bdb41"
   },
+  "D:\\namasoft9-3-main\\scripts\\generate-erd.ts": {
+    "mtime": 1779066130.4788454,
+    "hash": "3a4425e525a4015123cdd9a93247f5bc"
+  },
   "D:\\namasoft9-3-main\\scripts\\generate-openapi.js": {
     "mtime": 1778365784.975374,
     "hash": "c1d23670038284df9ae203145814c9df"
+  },
+  "D:\\namasoft9-3-main\\scripts\\generate-tests.ts": {
+    "mtime": 1779066706.572811,
+    "hash": "940e7bc458a3def36959ebaf04739c58"
+  },
+  "D:\\namasoft9-3-main\\scripts\\generate-user-stories.ts": {
+    "mtime": 1779066514.0687099,
+    "hash": "caa4850a65c78fb975693be0384dab2b"
   },
   "D:\\namasoft9-3-main\\scripts\\generate_ai_brain_v3.js": {
     "mtime": 1778746857.866916,
@@ -1474,6 +1726,10 @@
   "D:\\namasoft9-3-main\\scripts\\test-encoding.js": {
     "mtime": 1778456099.6465776,
     "hash": "096e72b18948e6c73de7f7149ec5f383"
+  },
+  "D:\\namasoft9-3-main\\scripts\\verify-retail-seed.ts": {
+    "mtime": 1779068341.1894424,
+    "hash": "2ed96525785cb653ed5dd4d08bd6f2ef"
   },
   "D:\\namasoft9-3-main\\scripts\\deploy\\apply_mfg_accounts_n11.js": {
     "mtime": 1778262617.7561095,
@@ -6816,8 +7072,8 @@
     "hash": "06ce7396803d8a559c7a198603853de7"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\accounting\\inter-company\\page.tsx": {
-    "mtime": 1778580802.4728765,
-    "hash": "fc1151a6e9f6b8cc6d7c5023fe009ae8"
+    "mtime": 1779127954.2433898,
+    "hash": "b5e1974a0ab199cc27fe1f2e8ff96006"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\accounting\\journal\\page.tsx": {
     "mtime": 1778436360.7516212,
@@ -6960,8 +7216,8 @@
     "hash": "f9183ef1fcd45ef53cbbf85ee4196e6c"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\admin\\siem\\page.tsx": {
-    "mtime": 1778580802.4768794,
-    "hash": "8644bd4d63167d1ffb276a843ed14ff2"
+    "mtime": 1779160728.325688,
+    "hash": "e6459f5fa8417917de6aa20664768013"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\affiliates\\page.tsx": {
     "mtime": 1778456124.2499025,
@@ -6972,16 +7228,20 @@
     "hash": "8e3436cf80bbb304fb51086945cd8932"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ai\\demand-forecast\\page.tsx": {
-    "mtime": 1778580802.4768794,
-    "hash": "420419089916d4514c1be2d26dc6a4a8"
+    "mtime": 1779127954.263096,
+    "hash": "57e7ab83222fec009405e73d388551b5"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ai\\nlq\\page.tsx": {
-    "mtime": 1778580802.4783862,
-    "hash": "a5d1e3a70f93bee48a5088c488ba3a33"
+    "mtime": 1779127954.2710967,
+    "hash": "ffcf723eef45968abe60eb949b61be38"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ai\\sales-coach\\page.tsx": {
-    "mtime": 1778580802.5373125,
-    "hash": "3409bafc3925f55accbe8afba321d0f7"
+    "mtime": 1779127954.2827582,
+    "hash": "f827ade76c777e4ce1bc741df833e834"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ai-auditor\\page.tsx": {
+    "mtime": 1779127919.8649075,
+    "hash": "25db24d85678359c2e9a6062b1795f47"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ai-bank\\page.tsx": {
     "mtime": 1778436360.7657478,
@@ -7000,8 +7260,8 @@
     "hash": "2b84b895e831aa1d10d716b4804281b1"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ap\\capture\\page.tsx": {
-    "mtime": 1778436360.7672527,
-    "hash": "da740156133ad0d5f325374d7f44924d"
+    "mtime": 1779158130.0222368,
+    "hash": "bdd5b424d0a8b518755def92ad78aa3b"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\approvals\\page.tsx": {
     "mtime": 1778436360.768285,
@@ -7026,6 +7286,10 @@
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\audit-logs\\page.tsx": {
     "mtime": 1778520579.1078193,
     "hash": "67aed11b5e6ba9e8db97468203ab3bb8"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\banks\\page.tsx": {
+    "mtime": 1779128766.298669,
+    "hash": "c8b82c9931202c4921e39542c6853ab3"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\barcode\\page.tsx": {
     "mtime": 1778456124.250428,
@@ -7084,12 +7348,12 @@
     "hash": "40d0a44511edfa42f508117ff93674fa"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\compliance\\pdpl\\breaches\\page.tsx": {
-    "mtime": 1778580802.5413451,
-    "hash": "1637856539639392c11ded99a18b2974"
+    "mtime": 1779159427.7907672,
+    "hash": "051c87a454a87d1a193083152ce2ef12"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\compliance\\pdpl\\dsr\\page.tsx": {
-    "mtime": 1778580802.5413451,
-    "hash": "8e56e43bb034359d7489ed1b4e026a72"
+    "mtime": 1779160246.9915447,
+    "hash": "27b03de96af0747645944c0d5b1dfbdf"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\compliance\\risks\\page.tsx": {
     "mtime": 1778436360.9466856,
@@ -7103,9 +7367,21 @@
     "mtime": 1778436360.9476864,
     "hash": "f108ec484ba4b68293c8e93e35c2bf17"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\copa\\page.tsx": {
+    "mtime": 1779127919.8704238,
+    "hash": "a01f9a2f10bca9cb96e55d962547bbc1"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\coupons\\page.tsx": {
     "mtime": 1778436360.9487064,
     "hash": "0fe9cbfd69f125c82899369b11752b76"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\cpq\\page.tsx": {
+    "mtime": 1779127969.053917,
+    "hash": "bad11aaf651e01bd073f510b1a92e172"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\credit-check\\page.tsx": {
+    "mtime": 1779127969.01353,
+    "hash": "507a3e248441c4fe53fb93a906c10e10"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\crm\\campaigns\\page.tsx": {
     "mtime": 1778520579.3436396,
@@ -7116,16 +7392,16 @@
     "hash": "215553c1609f98c39b80dd4b9a5c9569"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\crm\\cx-nps\\page.tsx": {
-    "mtime": 1778580802.5429714,
-    "hash": "51ad92e2d34b18f2977496c8192e992a"
+    "mtime": 1779127954.3074846,
+    "hash": "7db34333c1aa1c7c80c8da84de9c904a"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\crm\\kanban\\page.tsx": {
     "mtime": 1778436360.9502642,
     "hash": "95591498dafe458400af203b17132415"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\crm\\key-accounts\\page.tsx": {
-    "mtime": 1778580802.5429714,
-    "hash": "e35835d91cccf73ef0822ac3a268552c"
+    "mtime": 1779127954.3154857,
+    "hash": "cd4e7190deb034f323a9ef3286ac05c6"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\crm\\leads\\page.tsx": {
     "mtime": 1778532220.6679592,
@@ -7163,6 +7439,10 @@
     "mtime": 1778436360.9548297,
     "hash": "945bc71ea7a9effc556afb757bf046af"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\documents\\page.tsx": {
+    "mtime": 1779127969.872651,
+    "hash": "5df3e3493832ce2faf22d9b167223f2e"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\ecommerce\\dashboard\\page.tsx": {
     "mtime": 1778436360.9548297,
     "hash": "0dfd8ecfb8608bb02708df819326c536"
@@ -7192,16 +7472,16 @@
     "hash": "e7cfeb9b109cd47f496c8ae5fb3b2d6f"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\enterprise\\portfolio\\page.tsx": {
-    "mtime": 1778580802.5455146,
-    "hash": "cae5c482a15ed87c99c878e494205037"
+    "mtime": 1779127954.325371,
+    "hash": "792bad92adab9182ee44ab01f6c5d718"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\enterprise\\projects\\page.tsx": {
     "mtime": 1778436360.9583588,
     "hash": "d6e51fe1325e6668cb5ae766979c4058"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\enterprise\\projects\\evm\\page.tsx": {
-    "mtime": 1778580802.5470262,
-    "hash": "f58d73ad2f29fd74a16f8f419aa7bb68"
+    "mtime": 1779127954.334889,
+    "hash": "21f2ee194677786b8a90d9e5898433cb"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\enterprise\\projects\\[id]\\page.tsx": {
     "mtime": 1778436360.9593585,
@@ -7296,8 +7576,8 @@
     "hash": "45224a16f85a25608e7f728e1a8121bd"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\cfo-dashboard\\page.tsx": {
-    "mtime": 1778580802.5497496,
-    "hash": "f0250beda53e49b839411af9f8b90344"
+    "mtime": 1779162411.6307824,
+    "hash": "186f06c31221913d0851bd95eec76102"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\consolidation\\page.tsx": {
     "mtime": 1778436360.9696367,
@@ -7316,8 +7596,8 @@
     "hash": "b489f855c194c13285fee9bec0261061"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\credit-check\\page.tsx": {
-    "mtime": 1778580802.5517857,
-    "hash": "92e22b67a59c2e0f8b376b26bdeb360e"
+    "mtime": 1779161992.3599005,
+    "hash": "018cad5388ae55295bb086b7da829335"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\deferred-tax\\page.tsx": {
     "mtime": 1778580229.6575828,
@@ -7348,8 +7628,8 @@
     "hash": "efeafe5e780e018dd2b0e0a5ece3cd25"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\rebates\\page.tsx": {
-    "mtime": 1778580802.5527933,
-    "hash": "806f015d4a67df6642a9f0f9e45315ed"
+    "mtime": 1779162955.1288621,
+    "hash": "5bb26367afad92dcd546f218ec468a67"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\transfer-pricing\\page.tsx": {
     "mtime": 1778580229.6722336,
@@ -7360,16 +7640,20 @@
     "hash": "60e3b13d6de5063553b4dcb2c0b6a807"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\vat\\categories\\page.tsx": {
-    "mtime": 1778580802.5527933,
-    "hash": "df377fb12686c0e0be6c33017c67ddba"
+    "mtime": 1779162592.6297252,
+    "hash": "d15cddb58be27171dad85b323a8d41d5"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\wht\\page.tsx": {
     "mtime": 1778436360.973636,
     "hash": "7f2a921681eebcae6135c0007674872d"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\finance\\wht\\form14\\page.tsx": {
-    "mtime": 1778580802.554301,
-    "hash": "fd296a84db54ce0debe8fa7511913d9c"
+    "mtime": 1779162767.9092069,
+    "hash": "ccdaa654eee760fab225fcd4b0819d00"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fiscal-periods\\page.tsx": {
+    "mtime": 1779130804.565755,
+    "hash": "32ad54e748f614e6d2ce87ac72dd2220"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fixed-assets\\page.tsx": {
     "mtime": 1778436360.973636,
@@ -7388,8 +7672,8 @@
     "hash": "0b93870b328453ba00bc4dec5f0bc194"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fleet\\tracking\\page.tsx": {
-    "mtime": 1778580802.5558426,
-    "hash": "ac55b9019efc42f54190a2000fe438f0"
+    "mtime": 1779127954.3959742,
+    "hash": "de4d643aa2878beb7790c16bcdfc6f29"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fleet\\trips\\page.tsx": {
     "mtime": 1778436360.975047,
@@ -7418,6 +7702,10 @@
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fsm\\tasks\\page.tsx": {
     "mtime": 1778520580.3814926,
     "hash": "2cec4a305f8a31c0570be854208f3376"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\fx\\page.tsx": {
+    "mtime": 1779128971.1594224,
+    "hash": "20f83b43beebacf5e97ee08603977cf9"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\gift-cards\\page.tsx": {
     "mtime": 1778520580.389792,
@@ -7468,12 +7756,12 @@
     "hash": "b8ba899428d7422f42c1fba9ac960752"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\mudad\\page.tsx": {
-    "mtime": 1778580802.5583613,
-    "hash": "c33fabab86b89044cfef523a04d403b2"
+    "mtime": 1779127954.4100747,
+    "hash": "165f7fc6d8cb273c77b98ddc8277acc4"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\nitaqat-simulator\\page.tsx": {
-    "mtime": 1778580802.5588672,
-    "hash": "f58634ae0ea50426f87188f8d24a49d3"
+    "mtime": 1779127954.417598,
+    "hash": "bfa6c281d965a89eb0d8a7adb43babf6"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\org-chart\\page.tsx": {
     "mtime": 1778436360.984273,
@@ -7500,20 +7788,20 @@
     "hash": "94822943cbf0ab112d7c7dbd5bb01012"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\qiwa\\page.tsx": {
-    "mtime": 1778580802.5598745,
-    "hash": "30cfb412d43ad189bf0df26335f7e0dc"
+    "mtime": 1779127954.4271715,
+    "hash": "7eddc8d86464fb825ad862c32b783d5e"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\qiwa\\contracts\\page.tsx": {
-    "mtime": 1778580802.5598745,
-    "hash": "80268b1c9568be850618ce9ff3c300e4"
+    "mtime": 1779127954.4366899,
+    "hash": "6936243a77cd899825231a64a1feb488"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\recruitment\\page.tsx": {
     "mtime": 1778436360.9879587,
     "hash": "bb479aa77fe52f6b5c9b3784a152b66c"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\saudization\\page.tsx": {
-    "mtime": 1778580802.5598745,
-    "hash": "a20f03d5e091287a4a5d6e3a145367a8"
+    "mtime": 1779127954.4516697,
+    "hash": "8f8fa8d7b07f42967d7887df2755cf0f"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\hr\\self-service\\page.tsx": {
     "mtime": 1778531050.5959716,
@@ -7616,16 +7904,16 @@
     "hash": "955f010a3d78ffe847febd94c6bc1560"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\maintenance\\preventive\\page.tsx": {
-    "mtime": 1778580802.5636642,
-    "hash": "ddf5fe9d207c1ef7d6c145b3e59c1c21"
+    "mtime": 1779127954.461215,
+    "hash": "45b055dde9cdbdc9efd5d5d64e8d0699"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\manufacturing\\page.tsx": {
     "mtime": 1778436361.0046291,
     "hash": "f5988df4d26376d13680160e299c829d"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\manufacturing\\aps\\page.tsx": {
-    "mtime": 1778580802.565192,
-    "hash": "dddcd10db6554119fce13ebee765d82c"
+    "mtime": 1779127954.4697337,
+    "hash": "4cd6a40ead02e9061f797fc86717451b"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\manufacturing\\blockchain-trace\\page.tsx": {
     "mtime": 1778520580.99252,
@@ -7736,24 +8024,32 @@
     "hash": "e3a8fbf8ecf327c1987a59eb9f074a7e"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\marketing\\analytics\\page.tsx": {
-    "mtime": 1778580802.5697274,
-    "hash": "386ea3f525779c532a351800b4a65986"
+    "mtime": 1779127954.4798014,
+    "hash": "84e2f9aa5bb123ef92b83a1dc4a49084"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\payments\\page.tsx": {
+    "mtime": 1779127969.1207347,
+    "hash": "5295bd8e1f2796e47dd1ce5458db24b1"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\payroll\\wps\\page.tsx": {
     "mtime": 1778520581.3736148,
     "hash": "42fb3c0ef0f494b4f4372640a73e8f63"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pdpl\\page.tsx": {
+    "mtime": 1779127919.874943,
+    "hash": "740469922e725553af52d82cf6562c8a"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pharmacy\\page.tsx": {
-    "mtime": 1778580802.5707307,
-    "hash": "2de61838df5866d61f193b929d9d098b"
+    "mtime": 1779127954.4897802,
+    "hash": "0554c56013f6e3b392dd066cc69037db"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pharmacy\\drug-interact\\page.tsx": {
     "mtime": 1778520581.381641,
     "hash": "007b2c91dbe7b2eef94f19600fbefb0a"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pharmacy\\manager\\page.tsx": {
-    "mtime": 1778580802.5697274,
-    "hash": "0a9d4fd3f4931bef19c42cad87795549"
+    "mtime": 1779127954.4993002,
+    "hash": "7c4fea4d4db71ae4dc95a478a75ce0ee"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\planning\\page.tsx": {
     "mtime": 1778436361.0107913,
@@ -7768,8 +8064,8 @@
     "hash": "cbbea33251590d9e7e1ef4ff25a55412"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pos\\accountant\\page.tsx": {
-    "mtime": 1778580802.5717323,
-    "hash": "7cf70f0f4e4b95998be209f1f4f23032"
+    "mtime": 1779127954.5099108,
+    "hash": "5a2c9c3bb4a0a10d17f8b44022dd4cf0"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\pos\\offline\\page.tsx": {
     "mtime": 1778520581.4638605,
@@ -7792,28 +8088,28 @@
     "hash": "e511f67d06aace636e6492f9c7d528f6"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\price-comparison\\page.tsx": {
-    "mtime": 1778580802.5737698,
-    "hash": "a4d1a881956e0c42d9197d3f5963c977"
+    "mtime": 1779127954.51792,
+    "hash": "43e76c4664f893202e56dbe52d87de63"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\rfq\\[id]\\page.tsx": {
     "mtime": 1778436361.150815,
     "hash": "7028f6058807b1447fe572d7792571b8"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\spend-analytics\\page.tsx": {
-    "mtime": 1778580802.5737698,
-    "hash": "22d249351fe74cd94189bb468cfe9e10"
+    "mtime": 1779127954.5276136,
+    "hash": "a11e86fd883713a7ba6b452d087c2af4"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\supplier-contracts\\page.tsx": {
-    "mtime": 1778580802.5747695,
-    "hash": "e2f9ccf33c9ca6c57c0e9c1da4e96416"
+    "mtime": 1779127954.5436337,
+    "hash": "1a6572442c63742c92d21434e0f7be3b"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\vendor-portal\\page.tsx": {
     "mtime": 1778606234.0621789,
     "hash": "75648b80892874d03e75054c3b81660c"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\vendor-scorecard\\page.tsx": {
-    "mtime": 1778580802.5747695,
-    "hash": "20d8cc9292c31728739b380afbff7c48"
+    "mtime": 1779127954.5541556,
+    "hash": "85b20d6ee4df3d1dabe90f0c41b03a49"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\procurement\\vendors\\scorecard\\page.tsx": {
     "mtime": 1778436361.151328,
@@ -7899,6 +8195,10 @@
     "mtime": 1778520581.9793675,
     "hash": "eaaa49c0afe9b4110daa904ae8bae718"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\rebates\\page.tsx": {
+    "mtime": 1779127969.0596032,
+    "hash": "028aa28f8974e92f0f1a8517eedcdcf6"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\receipt-vouchers\\page.tsx": {
     "mtime": 1778436361.1590166,
     "hash": "a7af67bf94d084a416127f747d862068"
@@ -7948,8 +8248,8 @@
     "hash": "2724245798d4eb2c547299664999a591"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\reports\\bi-cube\\page.tsx": {
-    "mtime": 1778580802.5808833,
-    "hash": "5b88d5c7d0ac74f697ae83513c793721"
+    "mtime": 1779127954.561694,
+    "hash": "da88a7a885336c562cad12d7fb8ae0d0"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\reports\\budget-variance\\page.tsx": {
     "mtime": 1778436361.16563,
@@ -8040,8 +8340,8 @@
     "hash": "0cd42107ca44f34907f878ba7853a8be"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\sales\\cpq\\page.tsx": {
-    "mtime": 1778580802.5834072,
-    "hash": "2b5ca60b3565062a0db2076f1cc0dc11"
+    "mtime": 1779127954.5742438,
+    "hash": "c8217b298f3f8ef5b6ade4bbefb6275b"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\sales\\debit-notes\\page.tsx": {
     "mtime": 1778520582.4064703,
@@ -8088,8 +8388,8 @@
     "hash": "c75b7ad4fc5244ab21722f6a0a660997"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\sales\\smart-map\\page.tsx": {
-    "mtime": 1778580802.5859258,
-    "hash": "fd80d173afaa76e490a66455c7db4d14"
+    "mtime": 1779127954.5837736,
+    "hash": "68c514b0ee4da98be40190c091bc56c6"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\sales\\statements\\page.tsx": {
     "mtime": 1778520582.532704,
@@ -8196,16 +8496,16 @@
     "hash": "4d77c436a29edc8b14d80d5fa7bc7745"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\settings\\sso\\page.tsx": {
-    "mtime": 1778580802.5895047,
-    "hash": "b56e094e3427e257bc6686c287b9e1f7"
+    "mtime": 1779127954.5962124,
+    "hash": "dd86809ea7eb3ac8e6b651ce37dabfca"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\settings\\state-machine\\page.tsx": {
-    "mtime": 1778580802.5895047,
-    "hash": "d7d424675ec9c233651930ff167a0e1d"
+    "mtime": 1779127954.606817,
+    "hash": "04f2df83addc7e734364ee5295da4c17"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\settings\\webhooks\\page.tsx": {
-    "mtime": 1778580802.5905142,
-    "hash": "d7be16e0818eb6938bf236d83ae36d2c"
+    "mtime": 1779127954.615764,
+    "hash": "9c3bbe535597acdd7231778dc226d097"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\settings\\whatsapp\\page.tsx": {
     "mtime": 1778436361.1938696,
@@ -8224,8 +8524,8 @@
     "hash": "6c8822ee62c33b97e34740371c9ea80b"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\shifts\\monitor\\page.tsx": {
-    "mtime": 1778580802.5915136,
-    "hash": "7de6508f90e385027ce8a3c1cbf3862e"
+    "mtime": 1779127954.6258023,
+    "hash": "4a161c9f60459130209cbe77038fb7fb"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\shipping\\page.tsx": {
     "mtime": 1778520582.964952,
@@ -8288,12 +8588,12 @@
     "hash": "5954937a38bc53d37f3ab7c9cb9e0eb5"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\support\\help-desk\\page.tsx": {
-    "mtime": 1778580802.593033,
-    "hash": "2c82b8b28d60770c90db8d34fa2845c2"
+    "mtime": 1779127954.6362612,
+    "hash": "41e4a4952b57d39af8a9202af803d031"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\support\\sla\\page.tsx": {
-    "mtime": 1778580802.593033,
-    "hash": "1398700fb308538aa3c53e48b8625ce4"
+    "mtime": 1779127954.6464689,
+    "hash": "66311d14b74103fc716cbf16aec2ab11"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\sys\\alerts\\page.tsx": {
     "mtime": 1778436361.202313,
@@ -8324,8 +8624,8 @@
     "hash": "f0452fb3d5b95f78963fe2497701e655"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\treasury\\page.tsx": {
-    "mtime": 1778436361.2079096,
-    "hash": "a583e07b1ff1bdd7872b7168327b8dcc"
+    "mtime": 1779127969.0927079,
+    "hash": "d27380c9ad0a2daf4083958090e54c92"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\treasury\\bank-recon\\page.tsx": {
     "mtime": 1778520583.442201,
@@ -8340,8 +8640,8 @@
     "hash": "a2079ef63da38abc7b6d7cc464b08374"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\treasury\\cash-forecast\\page.tsx": {
-    "mtime": 1778580802.5961547,
-    "hash": "982af9f085b096359ec4b7a376681ed2"
+    "mtime": 1779127954.6560302,
+    "hash": "33dd637bbbdfc1f66753cb04d57acdcb"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\treasury\\cash-position\\page.tsx": {
     "mtime": 1778436361.2068932,
@@ -8499,9 +8799,17 @@
     "mtime": 1778436361.2214606,
     "hash": "268c3002ab074216258420fa6bdc4ea0"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\vat\\page.tsx": {
+    "mtime": 1779128341.4528258,
+    "hash": "a3e6385a4ce9f607f99fe7b2cbd71037"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\vendor-portal\\page.tsx": {
     "mtime": 1778436361.2224596,
     "hash": "aceef3cce4de5bd9a2932746e4f448cf"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\vendor-ratings\\page.tsx": {
+    "mtime": 1779127969.0676122,
+    "hash": "d04696bc9d4e3105095f93dbefe2b685"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\warehouses\\page.tsx": {
     "mtime": 1778532085.9173865,
@@ -8523,29 +8831,41 @@
     "mtime": 1778456124.2976024,
     "hash": "fc9382c343e1a3bb6c98364660fa7844"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\warranty\\page.tsx": {
+    "mtime": 1779127969.0816739,
+    "hash": "b2e7eeae1b58e6e23f4af3876d51b0db"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\whatsapp-hub\\page.tsx": {
     "mtime": 1778436361.2245555,
     "hash": "57fe2539d1cef5390a9653e3272bc39d"
   },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\wht\\page.tsx": {
+    "mtime": 1779128367.64771,
+    "hash": "ba07f9ddfc8380a80c830f4132725c62"
+  },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\wms\\waves\\page.tsx": {
-    "mtime": 1778580802.601799,
-    "hash": "3491c4a59b729d685ec0681c23c66480"
+    "mtime": 1779127954.6661184,
+    "hash": "a4684a268182623231513e36cef28e29"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\zakat\\page.tsx": {
-    "mtime": 1778580802.601799,
-    "hash": "01d48644580c2ca6b3826cef965947c4"
+    "mtime": 1779128397.4643104,
+    "hash": "c4a6fd8167d26e7ab511fb82a4a99d12"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\zatca\\page.tsx": {
+    "mtime": 1779129208.7695062,
+    "hash": "b67d914728fc303f03075a06906d21a5"
   },
   "D:\\namasoft9-3-main\\src\\app\\(dashboard)\\_ice_archive\\page.tsx": {
-    "mtime": 1778580802.5613804,
-    "hash": "60039e16f3ad5fbb9ae1ce7fae0d467d"
+    "mtime": 1779127954.6830094,
+    "hash": "35736a6ec9efbfb2497ccf1e45337289"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\accounts\\route.ts": {
-    "mtime": 1778956590.1005654,
-    "hash": "7637f831ba95119e54cf08d5ca53ffed"
+    "mtime": 1779132689.8802629,
+    "hash": "5771ade9f1f0c7b1360c82036ff199f6"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\accounts\\init\\route.ts": {
-    "mtime": 1778456124.3029625,
-    "hash": "576ac150c10e7094199d58409bcf7f14"
+    "mtime": 1779132714.2569778,
+    "hash": "f3042872d9c5a64f25f60e3ede7456c9"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\accruals\\route.ts": {
     "mtime": 1778729933.9536848,
@@ -8600,8 +8920,8 @@
     "hash": "a435264deed23399a6d92681306d6283"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\banks\\recon\\create-je\\route.ts": {
-    "mtime": 1778956606.1850476,
-    "hash": "a4a06bfc8bfd983214b68b955e9bc95f"
+    "mtime": 1779133401.4787729,
+    "hash": "9ee668627f211e09f34d2313e13c133a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\banks\\recon\\match\\route.ts": {
     "mtime": 1778956618.4847634,
@@ -8652,8 +8972,8 @@
     "hash": "58277988ca793edd7ae4651f9cc380eb"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\cost-centers\\route.ts": {
-    "mtime": 1778956641.4150121,
-    "hash": "f3b076fce0ede14ef0a95dbeeb6e667a"
+    "mtime": 1779132735.0857966,
+    "hash": "a38827aabaffffa0c48d60a2658034e7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\customer-statements\\bulk\\history\\route.ts": {
     "mtime": 1778456124.3234875,
@@ -8768,12 +9088,12 @@
     "hash": "79c9fb3b2394df9a1539e61d3cf3981d"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\route.ts": {
-    "mtime": 1778456124.3481574,
-    "hash": "436dfd429959d63d0b4a4d7627cd9ae1"
+    "mtime": 1779105029.4889524,
+    "hash": "b240c6020e4e45c7cff4a0f960cc09f3"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\journal\\[id]\\route.ts": {
-    "mtime": 1778959415.6080246,
-    "hash": "1acb1e809fa53f2fa49e297cf4ce3a8b"
+    "mtime": 1779133265.0148308,
+    "hash": "d3ffed13aefe4428e5f2a98be1c5464e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\lc\\route.ts": {
     "mtime": 1778959427.3144133,
@@ -8816,8 +9136,8 @@
     "hash": "f474e4c23a7cb146f7290c247a8c5338"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\open-items\\promise-to-pay\\route.ts": {
-    "mtime": 1778456124.3558,
-    "hash": "ea881c9ebd355b890216b546cc012101"
+    "mtime": 1779145715.340873,
+    "hash": "1a7a1288c5ba858c89f5b9736e87bbd5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\opening-balances\\route.ts": {
     "mtime": 1778729933.9495625,
@@ -8836,8 +9156,8 @@
     "hash": "ff801e925f0252307931f4d48b3e3cd5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\post-journal\\route.ts": {
-    "mtime": 1778959456.7594125,
-    "hash": "afa54408a0c630244318936dbf497ba9"
+    "mtime": 1779133413.986993,
+    "hash": "980c5ffb90824a64ad37cde47db19286"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\payment-runs\\[id]\\submit-for-approval\\route.ts": {
     "mtime": 1778456124.3592224,
@@ -8928,8 +9248,8 @@
     "hash": "2f08f0f9b06c35ef0dfd431cbbacf306"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\year-end-close\\route.ts": {
-    "mtime": 1778456124.3690617,
-    "hash": "51b0a81e5c0384769416ddc2452d44a0"
+    "mtime": 1779064404.7315934,
+    "hash": "11758e5e9ac82936962f2c08256222c4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\accounting\\year-end-close\\close-period\\route.ts": {
     "mtime": 1778456124.368453,
@@ -8942,6 +9262,10 @@
   "D:\\namasoft9-3-main\\src\\app\\api\\adjustments\\route.ts": {
     "mtime": 1778959794.252169,
     "hash": "6ced8d45987a3cf2da9f01e6d2d0bf44"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\api\\admin\\audit-logs\\route.ts": {
+    "mtime": 1779107214.8190014,
+    "hash": "d9dffaf64733ffc57dbbfc3dcc1b8ecd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\admin\\backups\\route.ts": {
     "mtime": 1778456124.3782618,
@@ -8994,6 +9318,10 @@
   "D:\\namasoft9-3-main\\src\\app\\api\\admin\\prompts\\route.ts": {
     "mtime": 1778456144.5939324,
     "hash": "a8c94ea63fd1ff52a95f467078f7b184"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\api\\admin\\siem\\route.ts": {
+    "mtime": 1779160394.4822917,
+    "hash": "3bb417b3717d602a9974ae739f6353e4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\admin\\system-audit\\route.ts": {
     "mtime": 1778872819.763993,
@@ -9064,8 +9392,8 @@
     "hash": "3cfeaa457b49e6033cd6d7a4fccda3f8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\ap\\capture\\route.ts": {
-    "mtime": 1778456124.4135654,
-    "hash": "906b9faaf4a3540ab945a11962f9da5b"
+    "mtime": 1779158066.5269554,
+    "hash": "bba7d586b53fd663d4cf66f55d669954"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\ap\\match\\route.ts": {
     "mtime": 1778456124.414612,
@@ -9076,8 +9404,8 @@
     "hash": "61b480f9c4904f43d1e5f95a402c8218"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\approvals\\route.ts": {
-    "mtime": 1778456144.6027281,
-    "hash": "6fb32f088ccee7b4e2f5a0d19b2cf602"
+    "mtime": 1779140325.8434014,
+    "hash": "ca78b852d09b21eb50bd01fb34a7fd35"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\approvals\\inbox\\route.ts": {
     "mtime": 1778456124.419819,
@@ -9220,12 +9548,12 @@
     "hash": "c56bda64b4f6ecc742a76b0d26584275"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\auth\\sso-redirect\\route.ts": {
-    "mtime": 1778719735.278615,
+    "mtime": 1779102475.9395666,
     "hash": "fcabb06eeb99054c4785019d97b96704"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\auth\\sync\\route.ts": {
-    "mtime": 1778492346.4531891,
-    "hash": "8c2f1a0b319a45e7ee97a47486ac98a7"
+    "mtime": 1779136942.271604,
+    "hash": "d750a3cce4a4e3816cf2c26fbb008e9e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\b2b\\checkout\\route.ts": {
     "mtime": 1778456124.4797924,
@@ -9304,8 +9632,8 @@
     "hash": "2367b017109abfb0f19493b361ff7262"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\bookings\\invoice\\route.ts": {
-    "mtime": 1778883538.6567192,
-    "hash": "3bf3af470b53fde9603fe5a5362a6ec8"
+    "mtime": 1779136654.2772987,
+    "hash": "e79f220a1440bdf7a85a551dc8514b6e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\branches\\route.ts": {
     "mtime": 1778456144.686905,
@@ -9392,12 +9720,12 @@
     "hash": "c31ae1bc613c2fcb7ddd74d716bcbf11"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\copa\\route.ts": {
-    "mtime": 1778490637.330371,
-    "hash": "505668e2efa12b1d49898c91e3f76b70"
+    "mtime": 1779102389.7574856,
+    "hash": "4caa10d92417abfaa22e12f5c02eda4b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\copa\\allocations\\route.ts": {
-    "mtime": 1778490637.330371,
-    "hash": "2a2db4f39532f874c87fafd32b0e9d3d"
+    "mtime": 1779102389.7527978,
+    "hash": "fa43d45f1a11e13b0bcdd7b4d66ff8ff"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\copa\\characteristics\\route.ts": {
     "mtime": 1778456144.6999598,
@@ -9424,8 +9752,8 @@
     "hash": "ed02d995dfe8faceb60c3ab47a284806"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\credit-check\\route.ts": {
-    "mtime": 1778456124.5209484,
-    "hash": "8554bca972ed811c433e6c66c0c3b89a"
+    "mtime": 1779161323.9054248,
+    "hash": "e2084310ccf2d808d61f4974dc8da8ea"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\crm\\accounts\\route.ts": {
     "mtime": 1778490637.3313713,
@@ -9640,24 +9968,24 @@
     "hash": "b81a4c6a0f3922dce9581f39420baa7e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\route.ts": {
-    "mtime": 1778456144.7214427,
-    "hash": "e1d1b3ff59a53378126f6e1733656c04"
+    "mtime": 1779143475.8487718,
+    "hash": "727e2a6ed213082e859db867b0915453"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\route.ts": {
-    "mtime": 1778456123.3724432,
-    "hash": "f4c01ea4c4f4f9c0b9509fb13382913b"
+    "mtime": 1779143508.1825323,
+    "hash": "3222f38faa747424a3f561668e3ffc2a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\credit\\route.ts": {
     "mtime": 1778456124.5482383,
     "hash": "124798f4fb17bbf62551a844ca8fb034"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\gdpr-delete\\route.ts": {
-    "mtime": 1778456124.548795,
-    "hash": "efa47743e5e28cc0360ebaec7069f67a"
+    "mtime": 1779143350.7238867,
+    "hash": "557d43b9fe72ae2cf2269cd53a1bde8b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\hold\\route.ts": {
-    "mtime": 1778456124.5493152,
-    "hash": "e364d8a7ac83b1b925cf7e0dc8780448"
+    "mtime": 1779143520.3092337,
+    "hash": "600e31e5ccd38b677cfaa118e29aec96"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\customers\\[id]\\statement\\route.ts": {
     "mtime": 1778456124.5508394,
@@ -9716,12 +10044,12 @@
     "hash": "a1f94c342fefc705c564af9ee84015ec"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\employees\\route.ts": {
-    "mtime": 1778456144.727487,
-    "hash": "86b0485a59bbe2509bd8ceb471391532"
+    "mtime": 1779138105.8203993,
+    "hash": "2891727b4f5c3348313b984bddf480c0"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\employees\\[id]\\route.ts": {
-    "mtime": 1778456123.373454,
-    "hash": "f0376619b4cd9a3f005ac5632a537a47"
+    "mtime": 1779138477.3095436,
+    "hash": "1230439c7cbed847d3343f8c7b67532e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\enterprise\\fleet\\route.ts": {
     "mtime": 1778456144.7285469,
@@ -9788,8 +10116,8 @@
     "hash": "b910149b94831a6aa90d9f5a087d508d"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\aging\\route.ts": {
-    "mtime": 1778526236.5574107,
-    "hash": "c497166ed9a1c8fce85b82ca9e999ead"
+    "mtime": 1779102388.193776,
+    "hash": "71db153c21357675db27cd1855a3c581"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\allocation\\route.ts": {
     "mtime": 1778456124.5773847,
@@ -9800,32 +10128,32 @@
     "hash": "81de15be42fb17a85aa037b058c65de9"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\aro\\route.ts": {
-    "mtime": 1778490637.3474593,
-    "hash": "520d156d45d8adadb7aa7eefe4007492"
+    "mtime": 1779102388.26687,
+    "hash": "5ae7e18ca28bb561fd7861e82b8be4de"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\asset-lifecycle\\route.ts": {
-    "mtime": 1778461471.0861268,
-    "hash": "31a6db29dbc36d820703b404fe894b23"
+    "mtime": 1779102543.6323655,
+    "hash": "c6e4a1f64e61d76fa3542b54ae95f034"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\assets\\route.ts": {
-    "mtime": 1778456144.7448118,
-    "hash": "22df3fa0402d59e014aa30f877b0775e"
+    "mtime": 1779142143.4122376,
+    "hash": "bdb1322f7465e875f217ffed3fa39193"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\auto-ecl\\route.ts": {
-    "mtime": 1778885444.3203366,
-    "hash": "46b02e2fe72b87ebdcc6371571bfb898"
+    "mtime": 1779140319.1830542,
+    "hash": "5c6399693089b787984d6f6cd42557e1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\bad-debt\\route.ts": {
-    "mtime": 1778527924.8246114,
-    "hash": "d7287243f2c98943f1752c7bf3bd9f3f"
+    "mtime": 1779102388.4304543,
+    "hash": "64ca01bbfdafb576f54f08a5b801b799"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\balance-sheet\\route.ts": {
     "mtime": 1778456144.7473302,
     "hash": "b75248ec8732fc995ade80c51d4c5409"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\bank-recon\\rules\\route.ts": {
-    "mtime": 1778456144.7488382,
-    "hash": "5e73ca867797ee7b242668a50d9b9566"
+    "mtime": 1779140311.2000642,
+    "hash": "1c1f84de9310a862d3d822ea259c8c4d"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\bank-recon\\rules\\simulate\\route.ts": {
     "mtime": 1778456144.7493453,
@@ -9852,8 +10180,8 @@
     "hash": "6ab918e2247a2dca1ffb569f3638b137"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\cash-flow\\forecast\\route.ts": {
-    "mtime": 1778456144.750881,
-    "hash": "10a68cbd51b9e35c8f46cadc7a89fa5f"
+    "mtime": 1779142145.435904,
+    "hash": "405d754b30638ba38a432d1ffdbd756a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\cash-flow-forecast\\route.ts": {
     "mtime": 1778461471.0866475,
@@ -9864,24 +10192,24 @@
     "hash": "4a642aa0bf44bf37671c9f679b56deac"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\cashflow\\route.ts": {
-    "mtime": 1778490637.3504794,
-    "hash": "a3a570b337f20e189fd6d73bfc011aa9"
+    "mtime": 1779102388.4443846,
+    "hash": "b80eab11582938ccc766fa1ade683d89"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\cfo\\route.ts": {
     "mtime": 1778456124.6093721,
     "hash": "2fb63fc8ac9b60d3bebf0bf19de69f8b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\cfo-dashboard\\route.ts": {
-    "mtime": 1778456144.7523527,
-    "hash": "cb8fe5485bb9d0247b926c04431a4b7a"
+    "mtime": 1779162284.7784593,
+    "hash": "735739c6c93458c4d02f15e6fd8be1bd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\checks\\route.ts": {
-    "mtime": 1778456144.7533615,
-    "hash": "75f8f2b1903584c3379389d5cf56ba37"
+    "mtime": 1779141463.8544931,
+    "hash": "bb79f150594238d6fb21742e31bf1a07"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\checks\\[id]\\process\\route.ts": {
-    "mtime": 1778456124.6105819,
-    "hash": "e68a719e671549f54d68aee6c0975927"
+    "mtime": 1779141575.3713686,
+    "hash": "636f1bcf141b2aa541e20601a1edd4b3"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\commitments\\route.ts": {
     "mtime": 1778490637.3504794,
@@ -9892,24 +10220,24 @@
     "hash": "417fca8795491556edfa1a461687249f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\consolidation\\elimination\\route.ts": {
-    "mtime": 1778456144.755874,
-    "hash": "3085d8fb985a6920b35e8191f50de12a"
+    "mtime": 1779142157.1362135,
+    "hash": "62875f1ae4dd33155f5ef99b1b7ce947"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\contract-assets\\route.ts": {
-    "mtime": 1778490637.351491,
-    "hash": "7e85d2f4d867044b5427d751bf1db5c5"
+    "mtime": 1779102388.4632175,
+    "hash": "7c470265905b6385669eff8404838f77"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\controls\\route.ts": {
     "mtime": 1778490637.3524878,
     "hash": "f7229c59c918da0a851b15acb5841f54"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\copa\\route.ts": {
-    "mtime": 1778490637.3529973,
-    "hash": "8bf35a5043a5efafb519a039ab570a89"
+    "mtime": 1779102388.4842033,
+    "hash": "a9427bfd66f00511e19a5702840824f0"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\deferred-tax\\route.ts": {
-    "mtime": 1778526875.7079518,
-    "hash": "1c69dc9613be582406ec20428db20c23"
+    "mtime": 1779102388.499047,
+    "hash": "8f80370bc127ba4c33e379bb016b2e11"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\dunning\\route.ts": {
     "mtime": 1778461471.0871706,
@@ -9928,16 +10256,16 @@
     "hash": "48a3570d9de1941581cbe15cc163b73c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\equity-statement\\route.ts": {
-    "mtime": 1778490637.3540075,
-    "hash": "a4b474be501ac562fcd254bf7ad6c51e"
+    "mtime": 1779102388.5123954,
+    "hash": "fe754a0c4164269b9736226460c40172"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\financial-health\\route.ts": {
     "mtime": 1778490637.3545122,
     "hash": "dae1ad17be2d4b25f81c6b510a443503"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\fs-notes\\route.ts": {
-    "mtime": 1778490637.3555212,
-    "hash": "69bc7fdfc64dddfd7a645148b5bb30c6"
+    "mtime": 1779102388.5196452,
+    "hash": "2aa2d1f5777192f0eedfcbae6b5a5bad"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\fx-revaluation\\route.ts": {
     "mtime": 1778456124.6167917,
@@ -9956,8 +10284,8 @@
     "hash": "e2912958aa4b43342c004db60c661d2c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\impairment\\route.ts": {
-    "mtime": 1778527040.9399016,
-    "hash": "6e9ec8dd6202948696637a8c9a8a5bab"
+    "mtime": 1779102388.531205,
+    "hash": "23907caac313058185bb4382c5ae43bc"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\match\\queue\\route.ts": {
     "mtime": 1778456144.759899,
@@ -9968,8 +10296,8 @@
     "hash": "f76eee3a705258e4adea0c7af27314c7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\multi-gaap\\route.ts": {
-    "mtime": 1778490637.3576648,
-    "hash": "d36610e933baa24b3c054685ddea16d0"
+    "mtime": 1779102388.552357,
+    "hash": "861db2328facb242e8b87687d4cb0943"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\notes-to-fs\\route.ts": {
     "mtime": 1778457082.8745644,
@@ -9980,24 +10308,24 @@
     "hash": "98a02bc11794ef08955d29bffe55f132"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\propose\\route.ts": {
-    "mtime": 1778456144.7628388,
-    "hash": "f263a9f56a82ff3247c959b09073c942"
+    "mtime": 1779142005.8886645,
+    "hash": "779900afbcfff117fbb7beb21ac8f9b7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\route.ts": {
     "mtime": 1778456124.6210542,
     "hash": "f30f4aff86aa9e641035a2a97e79837a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\approve\\route.ts": {
-    "mtime": 1778456124.6194303,
-    "hash": "dabe211758eaf59b2a2c57c396562449"
+    "mtime": 1779142014.341159,
+    "hash": "4418edfb5303575428ff9b794a4868ab"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\confirm\\route.ts": {
-    "mtime": 1778883554.5800886,
-    "hash": "89456c34651b453015a8cea6eb0e5e56"
+    "mtime": 1779141453.2855804,
+    "hash": "fad865c20257bb9de670f15d9d6a3186"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-run\\[id]\\send-bank\\route.ts": {
-    "mtime": 1778456124.6215987,
-    "hash": "ce9092e513a648954b144b286fbd24f9"
+    "mtime": 1779142021.9203925,
+    "hash": "860a78c65c17d967da78f61d6516fdaf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\payment-runs\\route.ts": {
     "mtime": 1778456144.7655284,
@@ -10024,44 +10352,44 @@
     "hash": "88f75d98f01631cd48c878573c718eb8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\period-close\\route.ts": {
-    "mtime": 1778885474.1573064,
-    "hash": "50a9c0819b2a4f045f0a1390850b7ee0"
+    "mtime": 1779136668.371118,
+    "hash": "14a88fbfa1197c682b5eb93d431baa5c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\period-close\\[id]\\step\\route.ts": {
-    "mtime": 1778456124.6280353,
-    "hash": "a04659d13e3dbe9f41fabfb333488e61"
+    "mtime": 1779140296.4829602,
+    "hash": "ad3b901d423659e33f676bba51caf8cd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\period-reports\\route.ts": {
     "mtime": 1778490637.3582551,
     "hash": "3952745ba5cf32ef7471aff9aacfa611"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\petty-cash\\route.ts": {
-    "mtime": 1778456144.7680492,
-    "hash": "304e4df677a9f45d7ee15b736eac26bc"
+    "mtime": 1779141491.6098955,
+    "hash": "417622b4fb7599c0713f9b4235f98121"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\petty-cash\\[id]\\process\\route.ts": {
-    "mtime": 1778870464.9883642,
-    "hash": "0a579bd8d7c09a5046b268ecbd735f54"
+    "mtime": 1779141576.698506,
+    "hash": "645cd2cb78106a3a4453a10d16f4623e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\reconciliations\\route.ts": {
-    "mtime": 1778456144.7685566,
-    "hash": "7bce27afcb2ec1d8ff5e6960fefa5f1e"
+    "mtime": 1779141986.6551952,
+    "hash": "e8287db938c658d3586c55533277e7d1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\reconciliations\\[id]\\route.ts": {
-    "mtime": 1778456124.632285,
-    "hash": "d709b766108d0d942b1ba737d6807d40"
+    "mtime": 1779141996.8661542,
+    "hash": "4df1299bb6d5eda334fe3f790f319877"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\rolling-forecast\\route.ts": {
     "mtime": 1778490637.359261,
     "hash": "8953ecfdd38ed65238210c916f608cb7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\segments\\route.ts": {
-    "mtime": 1778490637.359261,
-    "hash": "1791cfb037996659a8ac7b2876376ef7"
+    "mtime": 1779102388.5599203,
+    "hash": "fa7c536ef71da86549eeff8e4d514236"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\transfer-pricing\\route.ts": {
-    "mtime": 1778527482.8786545,
-    "hash": "2419831142565cc7e2b1361912f7b2f4"
+    "mtime": 1779102388.5708816,
+    "hash": "5c2692b15ef8651837470372ba3dae45"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\finance\\treasury\\route.ts": {
     "mtime": 1778870435.0538685,
@@ -10076,8 +10404,8 @@
     "hash": "25bc55d063c68924d17c67ee350fe499"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\fiscal-periods\\route.ts": {
-    "mtime": 1778456144.7695673,
-    "hash": "64fd6fafb5377949c72f1c2fa8a15bf6"
+    "mtime": 1779131615.3369153,
+    "hash": "a4d938107db7c74859920de179518777"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\fixed-assets\\route.ts": {
     "mtime": 1778456144.7725768,
@@ -10164,20 +10492,20 @@
     "hash": "ccbad76a5b837bb72be2fe5b00beb7e7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\attendance\\route.ts": {
-    "mtime": 1778973223.777058,
-    "hash": "47b02f64af75b0afa79d99f90255a28c"
+    "mtime": 1779138126.8702195,
+    "hash": "c2e263509c1b5c9ce33baf3e927a4f7a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\attendance\\punch\\route.ts": {
-    "mtime": 1778973239.129307,
-    "hash": "20d95bfb576ce23e0f3cfe915edb9de3"
+    "mtime": 1779102475.9501379,
+    "hash": "3a18031c961d3266eec7edb102a46e41"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\comp-review\\route.ts": {
-    "mtime": 1779025707.9816003,
-    "hash": "b1fd19c9d0438cc08080cb18692081a1"
+    "mtime": 1779102475.9522069,
+    "hash": "817881a497505b9adc6bcf38946f87ea"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\competency\\route.ts": {
-    "mtime": 1779025743.8514762,
-    "hash": "50254b6e9c1230f15b3c13b77ec2ef76"
+    "mtime": 1779102475.9522069,
+    "hash": "a165cf30eaa3ba95d22c01fe68b748b2"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\documents\\expiry\\route.ts": {
     "mtime": 1778973261.0936618,
@@ -10200,8 +10528,8 @@
     "hash": "e0bf51443e9a097901bd5c19f69dfdfe"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\ess\\route.ts": {
-    "mtime": 1779025186.0347662,
-    "hash": "e60236c3a41f37679658a11f76cad8e2"
+    "mtime": 1779102475.9537282,
+    "hash": "3460b1ed75d863f36de7671e91ec5151"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\evaluations\\route.ts": {
     "mtime": 1779025757.9764378,
@@ -10232,24 +10560,24 @@
     "hash": "f0a3c28bd8502abb0827048e21ee8460"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\leaves\\route.ts": {
-    "mtime": 1778972887.8432817,
-    "hash": "919fe800c916ebe14f6293eefb9d3772"
+    "mtime": 1779138329.9386983,
+    "hash": "8fd38e6f4ade99458f478dffa41f2837"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\leaves\\accrual\\route.ts": {
     "mtime": 1778973031.6454997,
     "hash": "c2c33de14a7ecd6b6fb9c97463d92b4a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\leaves\\balance\\route.ts": {
-    "mtime": 1778972909.6436737,
-    "hash": "f6fbc18198971d7ed23a83d029796ff6"
+    "mtime": 1779138318.9571743,
+    "hash": "5f641783e6c1ce73e63ec5fb2d6e7e21"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\leaves\\[id]\\route.ts": {
     "mtime": 1778972902.2995965,
     "hash": "c3d96d652a867ef1bcb39d65c2bc1018"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\lms\\route.ts": {
-    "mtime": 1779025781.02415,
-    "hash": "fbe52984ebce9f7f69d132fe0bb61b00"
+    "mtime": 1779102475.9537282,
+    "hash": "a54c264077db022afeac7242a423f763"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\loans\\route.ts": {
     "mtime": 1778972511.020002,
@@ -10264,8 +10592,8 @@
     "hash": "2935c6fb175b8836b099248b35188cf7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\okrs\\route.ts": {
-    "mtime": 1779025806.116668,
-    "hash": "6517e916a3c67a73d8def6f0cdff444c"
+    "mtime": 1779102475.9537282,
+    "hash": "c9c14154ca8684a1306094b209836c74"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\org-chart\\route.ts": {
     "mtime": 1779026439.7917054,
@@ -10276,36 +10604,36 @@
     "hash": "ebf37b95160a0236c6fde63fd20c32d2"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\config\\route.ts": {
-    "mtime": 1779025243.4870062,
-    "hash": "74e104128d8b68396a412dace41c0386"
+    "mtime": 1779138658.469746,
+    "hash": "28dfeeb4eb52a52541dde37fc7d852e1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\generate\\route.ts": {
-    "mtime": 1778972493.6981132,
-    "hash": "5247548d35b9edb803bd4361f58030ed"
+    "mtime": 1779138495.560879,
+    "hash": "af79333e458fedd410c74637a7dd922b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\multi-country\\route.ts": {
-    "mtime": 1779025290.7758322,
-    "hash": "02e67dd7d7a10ae16aeda5cb794ee557"
+    "mtime": 1779102475.955251,
+    "hash": "e9dfa70b707d794171842db9cf1528a1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\payroll\\run\\route.ts": {
-    "mtime": 1779028126.2002864,
-    "hash": "63468061071f7ea9497e397a352bd722"
+    "mtime": 1779136682.6818078,
+    "hash": "a29121c9df37e94a8442b3a3db957069"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\performance\\route.ts": {
     "mtime": 1779025832.3818588,
     "hash": "1b981cfcf06464532a826101dd22caa1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\recruitment\\route.ts": {
-    "mtime": 1779026391.7878728,
-    "hash": "22dc45ad3c411b962fead7d650a23873"
+    "mtime": 1779102475.9563034,
+    "hash": "a331db673f5754ab9db262e08cf7cd8b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\safety\\route.ts": {
-    "mtime": 1779026410.760727,
-    "hash": "d124f8834e90eefe587ef2501c414d22"
+    "mtime": 1779102475.9563034,
+    "hash": "8362db2205991a5f294b95814e2d04bf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\succession\\route.ts": {
-    "mtime": 1779026412.8763146,
-    "hash": "7c818609a28524e962c5fe295e8106d4"
+    "mtime": 1779102475.9573126,
+    "hash": "aacce335a42508ac263a9b3904667e3d"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\hr\\timesheet\\route.ts": {
     "mtime": 1778974779.7321293,
@@ -10380,7 +10708,7 @@
     "hash": "4107df8c8639a67bdb958b079d5988bf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\ice\\toggle\\route.ts": {
-    "mtime": 1778456144.8447917,
+    "mtime": 1779102475.958321,
     "hash": "6fa2c808aee85277cf8ea31e2a61f684"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\installments\\route.ts": {
@@ -10396,8 +10724,8 @@
     "hash": "15283462f0d9d975ead0304dccfc97e4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\abc-analysis\\route.ts": {
-    "mtime": 1778879716.120939,
-    "hash": "309ac4891ca3435b974c32b5115224bb"
+    "mtime": 1779134346.0233388,
+    "hash": "780481367bffe2eac51f52b7f726ea69"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\ai-vision\\route.ts": {
     "mtime": 1778456124.6893842,
@@ -10448,12 +10776,12 @@
     "hash": "5f5c8d7014ca36d4c6ef9c8da1f0f92f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\quality-control\\route.ts": {
-    "mtime": 1778456144.8497386,
-    "hash": "182ef8f9778417a33da97e19e85d8396"
+    "mtime": 1779134373.0155005,
+    "hash": "ff74d26bab846545aaba96f46d251065"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\reorder\\route.ts": {
-    "mtime": 1778461471.0893364,
-    "hash": "ffd2c93ddc6bccd61fe6ec76d7d80349"
+    "mtime": 1779101482.6247704,
+    "hash": "33a5a636ed29336f970ce6a2e13a83fd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\inventory\\reorder-rules\\route.ts": {
     "mtime": 1778456124.6997092,
@@ -10512,28 +10840,28 @@
     "hash": "a33eeab5ab76aca117408fdd9293825b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\route.ts": {
-    "mtime": 1778969848.7961287,
-    "hash": "aba96e80fcd56b1fbe858d26590b8484"
+    "mtime": 1779135518.720266,
+    "hash": "be76aa2fed54f903f5941d2b011c07fd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\aps\\route.ts": {
-    "mtime": 1778969848.7487762,
-    "hash": "cae35a2587ab12f40778bc28a327770c"
+    "mtime": 1779102389.5792687,
+    "hash": "88230644b302e6754328ade92604c6bc"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\blockchain-trace\\route.ts": {
     "mtime": 1778969848.7599819,
     "hash": "d5f448e2e3d6846b85099de0e7087197"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\bom\\route.ts": {
-    "mtime": 1778969848.7609923,
-    "hash": "555c169118eb3595efde84a18ae1154a"
+    "mtime": 1779102389.5888247,
+    "hash": "a450b3c02c9c7009fbea3dd89e067608"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\boms\\versions\\[versionId]\\activate\\route.ts": {
     "mtime": 1778969848.7630103,
     "hash": "6664c091ebb0489e03f2a3912de0de40"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\boms\\[id]\\versions\\route.ts": {
-    "mtime": 1778969848.766538,
-    "hash": "3edad53cdceae46dd0db0d07473accb1"
+    "mtime": 1779135592.5639484,
+    "hash": "8e6407c552575b6b9487f438a63912b0"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\capa\\route.ts": {
     "mtime": 1778969848.7685688,
@@ -10548,8 +10876,8 @@
     "hash": "a98487b2abf9e1a8be7b7b14873e541c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\eco\\route.ts": {
-    "mtime": 1778969848.7700894,
-    "hash": "3df82e595091cb76b2889c11c63ab771"
+    "mtime": 1779102389.5975704,
+    "hash": "d518bfe6f45b257bef800bf71667a387"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\kanban\\route.ts": {
     "mtime": 1778969848.7715998,
@@ -10560,12 +10888,12 @@
     "hash": "93a04097d463f7856febf78ec762dde7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\mes\\route.ts": {
-    "mtime": 1778969848.7741332,
-    "hash": "0276e53310929e014f2814f1af0f9c60"
+    "mtime": 1779102389.6135125,
+    "hash": "c2113851d89f980c984c1c8ff536f235"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\mes-oee\\route.ts": {
-    "mtime": 1778968145.541476,
-    "hash": "3bfe793749d4c52b27d9b50baa955170"
+    "mtime": 1779102389.6661322,
+    "hash": "6986df6c9869882848a0fe98e0e229ea"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\mps\\generate\\route.ts": {
     "mtime": 1778969848.7751439,
@@ -10580,24 +10908,24 @@
     "hash": "cd273a9fa2b27dca35610a6f5e3cb32a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\oee\\route.ts": {
-    "mtime": 1778969848.777658,
-    "hash": "f66be618759b09d4ab7977e649c93e47"
+    "mtime": 1779102389.6925476,
+    "hash": "f2f50b238b30d69b670c603a7c1a9898"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\route.ts": {
-    "mtime": 1778969848.7854817,
-    "hash": "9addbd595314a27e3e9e0df8cb7754ce"
+    "mtime": 1779135535.2883165,
+    "hash": "3b19ae8381a24b17b3821509fb1300e8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\[id]\\route.ts": {
-    "mtime": 1778969848.7870028,
-    "hash": "5cbd511f84a75a37e458f91336912345"
+    "mtime": 1779135551.8529835,
+    "hash": "74c7be1ebafca0051537c5720ad2f55e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\orders\\[id]\\schedule\\route.ts": {
     "mtime": 1778969848.7870028,
     "hash": "112788fe137b6f1136c940f3f19df4c1"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\qc\\route.ts": {
-    "mtime": 1778969848.7885127,
-    "hash": "de5c2bf72a8484cfdae064315b3a8553"
+    "mtime": 1779135609.0744677,
+    "hash": "802d6885969c9ab74b724f49d3c44526"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\quality\\route.ts": {
     "mtime": 1778969848.7895236,
@@ -10632,16 +10960,16 @@
     "hash": "2a190fb30eabbc8f71eebb836fe5b940"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\shopfloor\\route.ts": {
-    "mtime": 1778969848.8006382,
-    "hash": "3a7b6a544807e4adb2e01a6d096dc3c0"
+    "mtime": 1779135577.5631795,
+    "hash": "83a841eb7b0d0787bac66215ea9f99f7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\sop\\route.ts": {
-    "mtime": 1778969848.8015153,
-    "hash": "21ea2416017315af58e3a59a72cbdbfb"
+    "mtime": 1779102389.7037108,
+    "hash": "7da1edd71b8db144a9446fa9d38cbc4a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\spc\\route.ts": {
-    "mtime": 1778969848.802043,
-    "hash": "717d3ea4ccd036da5fd0d73a045dcdb2"
+    "mtime": 1779102389.7164237,
+    "hash": "7feeb6e22081a010cbc43d1022668327"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\manufacturing\\standard-cost\\route.ts": {
     "mtime": 1778969848.8026597,
@@ -10720,8 +11048,8 @@
     "hash": "24f6af5af2bd9bd686ebf49f8365781c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\calculate\\route.ts": {
-    "mtime": 1778456144.8820136,
-    "hash": "037d9975f5e3dc7ddbb358732cd89e5a"
+    "mtime": 1779137531.3168106,
+    "hash": "37f8fbb53285ad90210cfb9bec7a0743"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\provisions\\run\\route.ts": {
     "mtime": 1778456124.7496362,
@@ -10740,32 +11068,40 @@
     "hash": "7ca09d797ddc3d3988a1d3a1e7869256"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\wps\\history\\route.ts": {
-    "mtime": 1778456124.7549517,
-    "hash": "415dbb34fba1a8cddfe3aa8248705b77"
+    "mtime": 1779137559.6953313,
+    "hash": "dd2f55e46b27fe2584a04cad001935a6"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\wps\\[batchId]\\download\\route.ts": {
-    "mtime": 1778456124.752114,
-    "hash": "40fd0ccfc5a8ec18b7332dedc759f545"
+    "mtime": 1779137546.713307,
+    "hash": "cee648bf20530e717c074e37297e8c34"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\wps\\[batchId]\\mark-uploaded\\route.ts": {
     "mtime": 1778456124.7532196,
     "hash": "668a7bafbdf73dfe593b4a168c5a6fc5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\payroll\\[id]\\route.ts": {
-    "mtime": 1778456124.7478337,
-    "hash": "85b522e34661c295953225249ccfa88b"
+    "mtime": 1779137575.4186752,
+    "hash": "fcb726c7d308e96892a08dd5ffaf12bd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pdpl\\breach\\route.ts": {
-    "mtime": 1778456124.755515,
-    "hash": "3b6c0938dfb284e5efd09847971721e9"
+    "mtime": 1779159123.2489438,
+    "hash": "931b91daedaeae7ede02a4212c9b43d5"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\api\\pdpl\\breach\\[id]\\route.ts": {
+    "mtime": 1779159180.3283062,
+    "hash": "31775a08f5a4683777f185af7401e033"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pdpl\\dsr\\route.ts": {
-    "mtime": 1778456124.7581134,
-    "hash": "c5ce0ec0526448165cdde2ecdf993fa5"
+    "mtime": 1779159741.768723,
+    "hash": "80ac71ef106523ed10a7d62c70bcb554"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\api\\pdpl\\dsr\\[id]\\route.ts": {
+    "mtime": 1779159865.486083,
+    "hash": "d90961e8904ac78ad95347efde7d9b36"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pdpl\\dsr\\[id]\\fulfill\\route.ts": {
-    "mtime": 1778456124.757061,
-    "hash": "aa5c62a1c3fcf5b1a878728c67c8d9de"
+    "mtime": 1779159785.8598967,
+    "hash": "88f1f45d0bb6e01acb3d413cd313f867"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pharmacy\\drug-interactions\\route.ts": {
     "mtime": 1778971339.977877,
@@ -10852,12 +11188,12 @@
     "hash": "13456d00069dc21c4253a2c92c563d54"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\portals\\tenant\\route.ts": {
-    "mtime": 1778456144.8917725,
+    "mtime": 1779102475.966901,
     "hash": "afe89f9cb70e1986352ec7df7aed1d1a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\route.ts": {
-    "mtime": 1778877695.0661435,
-    "hash": "ac822e24860ddd3554fb4b845d1771d8"
+    "mtime": 1779136285.495456,
+    "hash": "5ad978b950e09ec1e7966cfb072b0285"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\bnpl\\route.ts": {
     "mtime": 1778456124.771504,
@@ -10868,28 +11204,28 @@
     "hash": "e25132094d2f1af10de0eb67a0f58ab8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\checkout\\route.ts": {
-    "mtime": 1778877594.7190855,
-    "hash": "3a25b7a2a263b78b608402b2c60797b5"
+    "mtime": 1779136313.411311,
+    "hash": "4d6ca4d5f805bafe12e4df18d13823ec"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\pending-orders\\route.ts": {
-    "mtime": 1778456124.7740588,
-    "hash": "a17869712ba7c6d02ca5d14fa297be0d"
+    "mtime": 1779136331.2577245,
+    "hash": "51ea8aa86cb664beabbb8e4f00a7b9f6"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\products\\route.ts": {
     "mtime": 1778456144.8936725,
     "hash": "fadb4d58b66a9fb25f7b67f38d3660e8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\floor\\route.ts": {
-    "mtime": 1778612974.8610892,
-    "hash": "4c1702428d0b3da7a0ff68f2e402353d"
+    "mtime": 1779136934.2552187,
+    "hash": "0594933ca8453dfbfe781fe961c4db1b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\kds\\route.ts": {
     "mtime": 1778606003.4016805,
     "hash": "7ab0513639ece05bdff382ed4fe4a496"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\restaurant\\tables\\route.ts": {
-    "mtime": 1778612824.7834172,
-    "hash": "25d24a86d84f5381301e51625b938694"
+    "mtime": 1779136373.2643821,
+    "hash": "4b2e2456c4af517313dcb154aa85f00b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\pos\\sessions\\close\\route.ts": {
     "mtime": 1778456124.7787275,
@@ -10912,28 +11248,28 @@
     "hash": "fbbf2af430b427c99172a7dcb791ebc5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\ap-ocr\\route.ts": {
-    "mtime": 1778490637.381048,
-    "hash": "3ff3bdfa695599271ce9271e7bf73473"
+    "mtime": 1779101341.6159706,
+    "hash": "f3755a136a6179d4db025805d16d6840"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\auto-draft\\route.ts": {
     "mtime": 1778456144.8974545,
     "hash": "2a56ea0d2c0cd63c1b6117a24c7ca259"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\blanket-po\\route.ts": {
-    "mtime": 1778490637.381048,
-    "hash": "a3e8e83eca7d55218e54df40b2520494"
+    "mtime": 1779101356.6439514,
+    "hash": "d04d8f110dde3d6309541848619aad87"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\contracts\\route.ts": {
     "mtime": 1778456144.8984885,
     "hash": "6614d16426a7b0ce934c2be82d600e6e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\dropship\\route.ts": {
-    "mtime": 1778490637.3820553,
-    "hash": "5426a85b911eec5e9cc5f08ec084b5b5"
+    "mtime": 1779101373.940713,
+    "hash": "d8a8ba7b8a66202b0b67342f654395fb"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\reverse-auction\\route.ts": {
-    "mtime": 1778490637.3820553,
-    "hash": "1fe55706e9be95383d29a0be0506aa1b"
+    "mtime": 1779101386.7587202,
+    "hash": "c6e0efcfca06bd489c5bbc9384ed3cc0"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rfq\\[id]\\route.ts": {
     "mtime": 1778456144.9005182,
@@ -10952,24 +11288,24 @@
     "hash": "74e39f47196a99e5c1ac5ead0a0db952"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\rma\\route.ts": {
-    "mtime": 1778490637.383111,
-    "hash": "bc65d4df6cfebda56a65bf76bc3bc4e0"
+    "mtime": 1779101405.0664148,
+    "hash": "6a289d00e9d4b7d78b40ffa5d7721f64"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\spend-analytics\\route.ts": {
-    "mtime": 1778490637.383111,
-    "hash": "b61d2c4656ac78e10c79c1694b08a0eb"
+    "mtime": 1779101424.1161914,
+    "hash": "984c7b36736a76dfb5f43ae0349db178"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\supplier-contracts\\route.ts": {
     "mtime": 1778456144.9010434,
     "hash": "8b277783cd81a6582905c194e9845ad4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\supplier-portal\\route.ts": {
-    "mtime": 1778490637.3840995,
-    "hash": "5db30dc19f6d5db531db6f99d46d2cb4"
+    "mtime": 1779101437.508633,
+    "hash": "9d3c01dfcb911ca92f6c89180d9cc2c9"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\vendor-onboarding\\route.ts": {
-    "mtime": 1778490637.3856082,
-    "hash": "06b7a8858ccbea220ea0542b7086bd42"
+    "mtime": 1779101451.5025542,
+    "hash": "b10b31c7e4959285313098ddc5ebe3ff"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\procurement\\vendor-portal\\route.ts": {
     "mtime": 1778612096.5894754,
@@ -10980,24 +11316,24 @@
     "hash": "2c2451b5817a5ab944e7e69fecbcecdd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\product-stocks\\location\\route.ts": {
-    "mtime": 1778880261.6366851,
-    "hash": "004b447cf795de3c33c5a71db21afb1f"
+    "mtime": 1779142902.164653,
+    "hash": "a1b7cca7257fc63335f3facb8f16a342"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\products\\route.ts": {
-    "mtime": 1778879623.4553313,
-    "hash": "a51de0fc5686dc67e37b18c93f099eb4"
+    "mtime": 1779142992.071857,
+    "hash": "b0ed3359a8d0ac3b87809cc8c3557adf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\products\\export\\route.ts": {
-    "mtime": 1778456144.902054,
-    "hash": "4277bac8ca567e7d5dfc144e5a7e8125"
+    "mtime": 1779142884.509315,
+    "hash": "67f85a9af495b39a05454bf3805d3c75"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\products\\import\\route.ts": {
-    "mtime": 1778809788.9961126,
-    "hash": "46732e5f373ba905bca963cb4b2b2177"
+    "mtime": 1779142869.596297,
+    "hash": "b2893169d1e181e81644b9aa255c8145"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\products\\[id]\\route.ts": {
-    "mtime": 1778956182.6734784,
-    "hash": "f032bcc36b22f7012bf81d849f2dc326"
+    "mtime": 1779142849.5431218,
+    "hash": "ea1b77200a1208cd8e034d6079f61c4f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\projects\\advanced\\route.ts": {
     "mtime": 1778456144.904071,
@@ -11064,16 +11400,16 @@
     "hash": "b9fae99b25855f20320a943a63742474"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\route.ts": {
-    "mtime": 1778878160.854061,
-    "hash": "70f48d56fa10281cc3c49fdc382a54cf"
+    "mtime": 1779133855.1241913,
+    "hash": "8b8c7244e3c65bdf332f4ae794e859aa"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\drop-ship\\route.ts": {
     "mtime": 1778959888.0567162,
     "hash": "51721cc1c0b6ceaef6b4745386e5d4df"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\grn\\route.ts": {
-    "mtime": 1778959904.9899523,
-    "hash": "3b763b85b68c55bb0b0953a94e0f3f8d"
+    "mtime": 1779133753.627374,
+    "hash": "1dc08fb754b1fe7571f48986ffc24779"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\letters-of-credit\\route.ts": {
     "mtime": 1778456144.918551,
@@ -11104,8 +11440,8 @@
     "hash": "d85df6f04c8061ea1a348275e1cc66d8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\po\\[id]\\landed-costs\\route.ts": {
-    "mtime": 1778456144.922079,
-    "hash": "bfd9be8c43168cdefbe9e6e690b2b802"
+    "mtime": 1779133787.07711,
+    "hash": "c13aa5db5b7034c77710d820140eb93b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\purchases\\po\\[id]\\landed-costs\\[costId]\\allocate\\route.ts": {
     "mtime": 1778880365.7802255,
@@ -11140,8 +11476,8 @@
     "hash": "8dee58f506cb7b3053b407ee8ee59e04"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\rebates\\route.ts": {
-    "mtime": 1778456124.824431,
-    "hash": "666d2e3eb1b3d448b391df17ff0a5777"
+    "mtime": 1779162860.6033225,
+    "hash": "bf5f46884116ef9e4241451ef2a2cbd8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\recurring-invoices\\route.ts": {
     "mtime": 1778456144.9275968,
@@ -11232,8 +11568,8 @@
     "hash": "eb3cdd4dbb14950e9d64bb047e0f3486"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\route.ts": {
-    "mtime": 1778960054.7299585,
-    "hash": "1e25a542bcbce29a0e5fcb6a48c5122f"
+    "mtime": 1779133688.9522967,
+    "hash": "0e60b51249b86efd3be316bf44268f33"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\atp\\check\\route.ts": {
     "mtime": 1778456124.8507922,
@@ -11264,8 +11600,8 @@
     "hash": "523710d196f3ebf3b55263822fc4ed47"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\invoices\\route.ts": {
-    "mtime": 1778456124.8578613,
-    "hash": "000a100b397c8ae3da71fd56aaac47af"
+    "mtime": 1779133732.8902128,
+    "hash": "260885682e8fe7f0ac754dfda21d64f2"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\pricing\\route.ts": {
     "mtime": 1778456144.9452386,
@@ -11288,8 +11624,8 @@
     "hash": "259aac344045a4ca4a5533ac8570dab7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\returns\\route.ts": {
-    "mtime": 1778456144.9462364,
-    "hash": "8bd529d9ea3497ea6ca89976a7d110f0"
+    "mtime": 1779133768.6903787,
+    "hash": "dc78187b1e5b64312a58d241104a671f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\sales\\returns\\[id]\\[action]\\route.ts": {
     "mtime": 1778959940.461635,
@@ -11364,16 +11700,16 @@
     "hash": "0d67c8b79eba973ed93864d2723cf1f7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\api-keys\\route.ts": {
-    "mtime": 1778456124.8805027,
-    "hash": "b7342076517b346e76694f43d744abbd"
+    "mtime": 1779140644.5185657,
+    "hash": "dacfa0434e66ab7887b552816e676fca"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\api-keys\\[id]\\route.ts": {
-    "mtime": 1778456124.8799803,
-    "hash": "a4c7bfd1ecf8e68d05ef48586134b637"
+    "mtime": 1779140652.8397932,
+    "hash": "44d798769a70f84237b15603a6bf157a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\approvals\\route.ts": {
-    "mtime": 1778456144.9513228,
-    "hash": "49f04dbecda6a793e7064c2239f9876b"
+    "mtime": 1779139846.3443766,
+    "hash": "0607e8d592b7b746bdff8043fa5ecd31"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\approvals\\[id]\\route.ts": {
     "mtime": 1778456124.8810458,
@@ -11384,12 +11720,12 @@
     "hash": "362ea6a617e159d4833634f0508b52fa"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\route.ts": {
-    "mtime": 1778578927.845908,
-    "hash": "d5bb4f0dfeb84f25ad49707f4e816ce1"
+    "mtime": 1779139862.0560384,
+    "hash": "c754e9a493f5fdca9a52756b053445e2"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\currencies\\[id]\\route.ts": {
-    "mtime": 1778456124.8837368,
-    "hash": "9d7677252854bb28ffd2ebc8f873e4db"
+    "mtime": 1779141059.5117652,
+    "hash": "fabca8e653bd1fdf7a0057366127b879"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\email-templates\\route.ts": {
     "mtime": 1778456124.8853896,
@@ -11404,12 +11740,12 @@
     "hash": "115a1b89558be31a827c9c93193121bb"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\generate-barcode\\route.ts": {
-    "mtime": 1778456124.887593,
-    "hash": "0ff0475229a05439190ae24898266e1c"
+    "mtime": 1779141019.4805336,
+    "hash": "3f75dbd78e751b8f6b05bca8ba07b9a5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\generate-keys\\route.ts": {
-    "mtime": 1778456144.954099,
-    "hash": "3cf86e426e341be37827c12f94d50413"
+    "mtime": 1779141028.9809058,
+    "hash": "75adc318b6cdf886a6da78c33a3e9fb6"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\number-sequences\\route.ts": {
     "mtime": 1778456124.8912325,
@@ -11420,8 +11756,8 @@
     "hash": "f638f16e4b85dc5ed800429bc3014824"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\permissions\\fields\\route.ts": {
-    "mtime": 1778456144.9562886,
-    "hash": "06f0c3f40e11f5471401312fdb87234b"
+    "mtime": 1779141040.7015495,
+    "hash": "7893596500ea23f45fd91d83976ceead"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\roles\\route.ts": {
     "mtime": 1778456144.9569585,
@@ -11436,20 +11772,20 @@
     "hash": "a95bb2c507e2ba30f04ad513e852b05a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\upload-logo\\route.ts": {
-    "mtime": 1778456124.8968215,
-    "hash": "45b0abc71ed715e55df390cea01ca726"
+    "mtime": 1779139870.1833806,
+    "hash": "cb42976f4ba4fdd75b9e844d27c2ac2d"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\whatsapp\\route.ts": {
     "mtime": 1778456124.8973675,
     "hash": "279e4c9cec4cdda9f65ad41bea366516"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\zatca-onboard\\route.ts": {
-    "mtime": 1778456124.898442,
-    "hash": "b65c32f1e3d7c0bc25f1ef3f75cdcb63"
+    "mtime": 1779140664.7681382,
+    "hash": "56fa1b8ebf5ba13fdb30ba6bfb4041cb"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\settings\\[key]\\route.ts": {
-    "mtime": 1778456124.8789117,
-    "hash": "9c8e82a14eefb4461563bc983cba40a4"
+    "mtime": 1779141011.2086198,
+    "hash": "d0333ea5ecbea14518b63d9d089a109f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\shifts\\route.ts": {
     "mtime": 1778456144.959896,
@@ -11484,24 +11820,24 @@
     "hash": "f7bcb9cc1985ffaa584f365c3a048e99"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stock\\adjustments\\route.ts": {
-    "mtime": 1778959837.2240362,
-    "hash": "10df36ebe5c9ee9f485683becd074cdf"
+    "mtime": 1779134387.372439,
+    "hash": "6f7dd163edb61598dcc659e6e939c73e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stock\\movements\\route.ts": {
     "mtime": 1778456124.9096732,
     "hash": "ec2202501c877d433f5316b947ddab0b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stock-movements\\route.ts": {
-    "mtime": 1778880268.2674415,
-    "hash": "0b49a3822516d8389e7568e1cb191f90"
+    "mtime": 1779134401.8796468,
+    "hash": "5f9944f2ffa930c1cf046399a517603e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stock-transfers\\route.ts": {
-    "mtime": 1778880266.2281249,
-    "hash": "9dfce69c2b4183f361b9e9d5a155b074"
+    "mtime": 1779134422.138715,
+    "hash": "95a392b701cc38b1b19078b7835b4493"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stocktake\\route.ts": {
-    "mtime": 1778880263.660239,
-    "hash": "389461731106055e7e3dd239985083bf"
+    "mtime": 1779134440.5515716,
+    "hash": "984355fdfd84aecb5ce761cbcdc5f1e2"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\stocktake\\vision\\route.ts": {
     "mtime": 1778456124.911804,
@@ -11576,8 +11912,8 @@
     "hash": "06cea3a7ac9a1587fae77f749d2faa6a"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\system\\numbering\\route.ts": {
-    "mtime": 1778456144.967281,
-    "hash": "09f79f50b7c6d5bfdf491c2c940c226a"
+    "mtime": 1779139888.9402273,
+    "hash": "b3e92b47f09f85f0f3327f6d76974ffe"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\system\\pivot\\route.ts": {
     "mtime": 1778456124.9271717,
@@ -11616,11 +11952,11 @@
     "hash": "443e73dada7b3750e090141f5d258534"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\create\\route.ts": {
-    "mtime": 1778456124.9335108,
+    "mtime": 1779102475.985228,
     "hash": "d588d26a1a6e73b501103b810e477da3"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\hidden-modules\\route.ts": {
-    "mtime": 1778456144.968347,
+    "mtime": 1779102475.986239,
     "hash": "b86d6b457adcf193b439038d8ec50eb3"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\provision\\route.ts": {
@@ -11632,11 +11968,11 @@
     "hash": "34c2be0aa8d89691193835e342d930cf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\status\\route.ts": {
-    "mtime": 1778718927.3955355,
+    "mtime": 1779102475.9872482,
     "hash": "44fcff2e7d0fa07f9686c1967aaedbcb"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\tenant\\trial-status\\route.ts": {
-    "mtime": 1778456144.9704537,
+    "mtime": 1779102475.9872482,
     "hash": "59489908f1c29b65ebe3609d4db619fa"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\test\\route.ts": {
@@ -11660,36 +11996,36 @@
     "hash": "c019cc6bb30711a80e312da626942fa8"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\route.ts": {
-    "mtime": 1778876257.8411222,
-    "hash": "401b4b0d4787519e5bd30c0004bc7260"
+    "mtime": 1779105481.9113376,
+    "hash": "761ae7284f377b0934f00bb1e60d2ee6"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\balance\\route.ts": {
     "mtime": 1778456144.9714649,
     "hash": "d783d8553a17ac816ab20ffe5fde2f09"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-import\\route.ts": {
-    "mtime": 1778960035.327785,
-    "hash": "8d0be5149acf4036eafd00cae59bb149"
+    "mtime": 1779133305.3528621,
+    "hash": "f3e9473409ef127875f49fdd31c75117"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-recon\\route.ts": {
-    "mtime": 1778959866.5015595,
-    "hash": "c0ad470da6b049629879f7506f3af8c6"
+    "mtime": 1779133321.6547017,
+    "hash": "0ae1329be17d67ae45bcd605d1625c1c"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-statement\\route.ts": {
     "mtime": 1778458560.43689,
     "hash": "a37c71d514285f44498ddf7fe08f0ad5"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\bank-statements\\route.ts": {
-    "mtime": 1778461471.1786926,
-    "hash": "00118f63156e5265be7c16bd6d3d9e23"
+    "mtime": 1779133354.5128987,
+    "hash": "61c4670db06679eecb9a8ecaaae804f9"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\cash-position\\route.ts": {
     "mtime": 1778456124.9434292,
     "hash": "1e5be5cc664085b1e9c5f58643203dfe"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\cash-position\\snapshot\\route.ts": {
-    "mtime": 1778456144.9745133,
-    "hash": "bd900c9870f81dd0eded14f1c00a1a5b"
+    "mtime": 1779133367.7180083,
+    "hash": "2de5cbf0827cc8e3a9c68a4f8d9293f4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\treasury\\dashboard\\route.ts": {
     "mtime": 1778456124.9445682,
@@ -11716,7 +12052,7 @@
     "hash": "55851104e5d7c13bdf949ff3ba08eccf"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\users\\route.ts": {
-    "mtime": 1778456144.978929,
+    "mtime": 1779102475.9882574,
     "hash": "0b5912d3e977594077f841773e03ff38"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\v2\\sales\\invoices\\route.ts": {
@@ -11796,8 +12132,8 @@
     "hash": "1983cc22d12e22139c079671786671fd"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\vat\\categories\\route.ts": {
-    "mtime": 1778456124.968576,
-    "hash": "5ff474a00b1bff280c134b9bdf07afca"
+    "mtime": 1779162495.3186162,
+    "hash": "81b64a26e2043ee78b3a5839cfe756e4"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\vendor-portal\\route.ts": {
     "mtime": 1778456124.969119,
@@ -11808,8 +12144,8 @@
     "hash": "9ecda8ac9dc0b1fd6a62519c72b8db0e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\vendors\\scorecard\\route.ts": {
-    "mtime": 1778456124.9712937,
-    "hash": "d728e3d57d0c0c7f248550957fd830ba"
+    "mtime": 1779143551.3787992,
+    "hash": "d74066f7a801dba011442a562fbea7c9"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\vendors\\[id]\\statement\\route.ts": {
     "mtime": 1778456124.9707577,
@@ -11820,12 +12156,12 @@
     "hash": "88ee24d9a913c7ced7ab4402ebcad84e"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\warehouse\\cross-dock\\route.ts": {
-    "mtime": 1778490637.3899887,
-    "hash": "c28f0da212a6d7094f11e7e86dcb33ef"
+    "mtime": 1779102389.7241962,
+    "hash": "47619d14834dcfdecee4e3686d7e0e6b"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\warehouse\\slotting\\route.ts": {
-    "mtime": 1778490637.3899887,
-    "hash": "43839a3f988068118e7852926d98a4f7"
+    "mtime": 1779102389.746398,
+    "hash": "ccab0688d1ffb0bb1af8b6bbfab82e65"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\warehouses\\route.ts": {
     "mtime": 1778456144.9816,
@@ -11852,8 +12188,8 @@
     "hash": "9bbd5f5df5225efa8bc82765a68f5cf0"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\salla\\route.ts": {
-    "mtime": 1778883995.3481462,
-    "hash": "15d0ef650e68b779977bbf96f7b0e2ff"
+    "mtime": 1779136731.2938867,
+    "hash": "11d894d9e230934868a24e51cb3112d7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\webhooks\\zid\\route.ts": {
     "mtime": 1778877178.3740332,
@@ -11874,6 +12210,10 @@
   "D:\\namasoft9-3-main\\src\\app\\api\\wht\\calculate\\route.ts": {
     "mtime": 1778456124.9802313,
     "hash": "845d7c908fd557f9845543df4ef05f16"
+  },
+  "D:\\namasoft9-3-main\\src\\app\\api\\wht\\form14\\route.ts": {
+    "mtime": 1779162650.5370994,
+    "hash": "46fdd8d986ad529d9d45026934da66d7"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\wht\\form14\\generate\\route.ts": {
     "mtime": 1778456124.9813063,
@@ -11920,8 +12260,8 @@
     "hash": "467f30130c1adaf77bbd614b22311a68"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\onboard\\route.ts": {
-    "mtime": 1778456144.991194,
-    "hash": "342834b7bd83dd1eedb6a7b372b0a2a1"
+    "mtime": 1779140678.7734263,
+    "hash": "6c6c16fffa646260ee052540b7aad54f"
   },
   "D:\\namasoft9-3-main\\src\\app\\api\\zatca\\qr\\route.ts": {
     "mtime": 1778456144.991822,
@@ -12092,8 +12432,8 @@
     "hash": "bea2e3f318974bf826bfb79f2b7c04c5"
   },
   "D:\\namasoft9-3-main\\src\\app\\master-panel\\page.tsx": {
-    "mtime": 1778720620.3062723,
-    "hash": "b96a4a334e92dda58d8d5d94c639c302"
+    "mtime": 1779107118.832433,
+    "hash": "8cd97c48b4f74096518cedae37ae7f19"
   },
   "D:\\namasoft9-3-main\\src\\app\\master-panel\\login\\page.tsx": {
     "mtime": 1778615007.8148475,
@@ -12168,8 +12508,8 @@
     "hash": "e08da553ce8c620ca39550eec1e6f3ff"
   },
   "D:\\namasoft9-3-main\\src\\components\\DataTable.tsx": {
-    "mtime": 1778262629.658136,
-    "hash": "27aa9afd7a504746ebc6207746d2a6a2"
+    "mtime": 1779144641.9569325,
+    "hash": "2bcbad473343acb8a7616c248f5db93c"
   },
   "D:\\namasoft9-3-main\\src\\components\\DesktopBanner.tsx": {
     "mtime": 1778262629.6586587,
@@ -12244,8 +12584,8 @@
     "hash": "8b969104c9fbef357b678636c4d23594"
   },
   "D:\\namasoft9-3-main\\src\\components\\Sidebar.tsx": {
-    "mtime": 1779056355.4659224,
-    "hash": "c65f50a8701b85dec05c8e25d9ee33ae"
+    "mtime": 1779149690.5073519,
+    "hash": "60d2d6d4b109653244c2a9d2b79190d8"
   },
   "D:\\namasoft9-3-main\\src\\components\\Skeleton.tsx": {
     "mtime": 1778262629.7178986,
@@ -12364,8 +12704,8 @@
     "hash": "2c73322c39be737ddcd2abcd9666142f"
   },
   "D:\\namasoft9-3-main\\src\\components\\ui\\data-table.tsx": {
-    "mtime": 1778524995.5961456,
-    "hash": "2956997823604f9b53a27ff3cdb57cad"
+    "mtime": 1779144678.1159906,
+    "hash": "854fe22a8521a455554acd93cc5037b8"
   },
   "D:\\namasoft9-3-main\\src\\components\\ui\\dialog.tsx": {
     "mtime": 1778524995.597152,
@@ -12374,6 +12714,10 @@
   "D:\\namasoft9-3-main\\src\\components\\ui\\dropdown-menu.tsx": {
     "mtime": 1778524995.597152,
     "hash": "4abcd1a5de49eb6e078d9809d13fcaff"
+  },
+  "D:\\namasoft9-3-main\\src\\components\\ui\\FeatureDisabledPanel.tsx": {
+    "mtime": 1779127942.6850412,
+    "hash": "671928d8242a5d5b3ca19eb7895f1089"
   },
   "D:\\namasoft9-3-main\\src\\components\\ui\\input.tsx": {
     "mtime": 1778524995.597152,
@@ -12388,8 +12732,8 @@
     "hash": "308dc674678066872c8b2046adfde83a"
   },
   "D:\\namasoft9-3-main\\src\\components\\ui\\nama-form.tsx": {
-    "mtime": 1778524995.962409,
-    "hash": "0c2174067e53dd54c58c1107f033dc11"
+    "mtime": 1779144705.0147927,
+    "hash": "32f62be59dd383bda1d203aabefd8892"
   },
   "D:\\namasoft9-3-main\\src\\components\\ui\\select.tsx": {
     "mtime": 1778524995.9629316,
@@ -12488,8 +12832,8 @@
     "hash": "a6e2b85c1e44b4582a4acf121eadad2c"
   },
   "D:\\namasoft9-3-main\\src\\lib\\api-handler.ts": {
-    "mtime": 1778456125.024611,
-    "hash": "4a7c50d5707cc4c15dac8290eec7466e"
+    "mtime": 1779115209.5792506,
+    "hash": "31b994056ab7fc4f34e995208b13e4e7"
   },
   "D:\\namasoft9-3-main\\src\\lib\\api-keys.ts": {
     "mtime": 1778362709.9534814,
@@ -12556,8 +12900,8 @@
     "hash": "1e73027a6ce24517e2b8776024d454f4"
   },
   "D:\\namasoft9-3-main\\src\\lib\\auto-journal.ts": {
-    "mtime": 1778886701.8421206,
-    "hash": "a3206086016f7097b281ac9c444d8f84"
+    "mtime": 1779116174.1944149,
+    "hash": "cc61632c0386643036a93f721971abb0"
   },
   "D:\\namasoft9-3-main\\src\\lib\\b2b-auth.ts": {
     "mtime": 1778456127.5485332,
@@ -12596,8 +12940,8 @@
     "hash": "0a15f345f0cf809691a6b3321d407c29"
   },
   "D:\\namasoft9-3-main\\src\\lib\\bank-statement-importer.ts": {
-    "mtime": 1778456127.5567555,
-    "hash": "96ff644da6d4b1262f1d1cd3108d47c3"
+    "mtime": 1779133297.2519717,
+    "hash": "5d1b63cc7222585e9052460ca5f9ab23"
   },
   "D:\\namasoft9-3-main\\src\\lib\\bank-statement-parser.ts": {
     "mtime": 1778583999.23297,
@@ -13063,6 +13407,10 @@
     "mtime": 1778456127.6285584,
     "hash": "e28fed4691756bf4b229d0439fbe3a24"
   },
+  "D:\\namasoft9-3-main\\src\\lib\\hr-scope.ts": {
+    "mtime": 1779138096.1289115,
+    "hash": "f69fe2bc4423f7869088be3d00df779e"
+  },
   "D:\\namasoft9-3-main\\src\\lib\\i18n.tsx": {
     "mtime": 1778262630.0646882,
     "hash": "61919b42fd6f478915cba38a8920918f"
@@ -13304,12 +13652,12 @@
     "hash": "acd5c092a0a7b6614803bfa59efadd71"
   },
   "D:\\namasoft9-3-main\\src\\lib\\open-items-engine.ts": {
-    "mtime": 1778456127.662555,
-    "hash": "b8f6d91dd3de3ac809d1180781ee29b8"
+    "mtime": 1779063674.9080324,
+    "hash": "c0a7268e060693978d3d7ef972e0da0b"
   },
   "D:\\namasoft9-3-main\\src\\lib\\open-items.ts": {
-    "mtime": 1778783214.614915,
-    "hash": "e50d58658c96c00f66fae324312ab162"
+    "mtime": 1779145705.8605626,
+    "hash": "7ae6fc91f2ed32ee81f624f09e9e6bd6"
   },
   "D:\\namasoft9-3-main\\src\\lib\\openapi.ts": {
     "mtime": 1778490637.4310875,
@@ -13784,8 +14132,8 @@
     "hash": "205242a9735174774c9f8531be86d6e9"
   },
   "D:\\namasoft9-3-main\\src\\lib\\vendor-scorecard.ts": {
-    "mtime": 1778456127.7779648,
-    "hash": "20a2dd5bb3806501a1eacd19b6fe6108"
+    "mtime": 1779143458.565904,
+    "hash": "9e73efcfdc26a0f3ab45d5f43fdab6ff"
   },
   "D:\\namasoft9-3-main\\src\\lib\\vendor-scoring.ts": {
     "mtime": 1778456127.792398,
@@ -13840,8 +14188,8 @@
     "hash": "b968f20f6446e998eec8e3dd1362a4f1"
   },
   "D:\\namasoft9-3-main\\src\\lib\\year-end-close.ts": {
-    "mtime": 1778456127.8180475,
-    "hash": "c9068859148e598e745a5e21b584b572"
+    "mtime": 1779064438.2038515,
+    "hash": "450294442f7a83426d7c901201ba84bf"
   },
   "D:\\namasoft9-3-main\\src\\lib\\year-end-engine.ts": {
     "mtime": 1778456127.8190596,
@@ -14083,9 +14431,17 @@
     "mtime": 1778545192.5511684,
     "hash": "ed1f8e8068fd327dbf7902beefb88aee"
   },
+  "D:\\namasoft9-3-main\\src\\lib\\governance\\override-context.ts": {
+    "mtime": 1779104586.1023817,
+    "hash": "31c32f286008ffd51da54de0a4bb0d03"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\governance\\period-lock.ts": {
+    "mtime": 1779116132.2419295,
+    "hash": "38f6f6e382afd04a68fb4fb92ee63a9c"
+  },
   "D:\\namasoft9-3-main\\src\\lib\\governance\\tenant-guard.ts": {
-    "mtime": 1779059272.8404884,
-    "hash": "43dc91f25d6e0464ebc131045f53a351"
+    "mtime": 1779100678.4613953,
+    "hash": "d14d7db0718002ea55d65042a5beed77"
   },
   "D:\\namasoft9-3-main\\src\\lib\\hr\\saudi-labor-law-engine.ts": {
     "mtime": 1778545528.8754723,
@@ -14135,9 +14491,29 @@
     "mtime": 1778545460.2356253,
     "hash": "0f2c56bc8810deb66214788fff585b3f"
   },
+  "D:\\namasoft9-3-main\\src\\lib\\observability\\correlation.ts": {
+    "mtime": 1779115240.5533247,
+    "hash": "bd52f75d3d883ec85ef78e994134741f"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\observability\\diagnostics.ts": {
+    "mtime": 1779115821.8235989,
+    "hash": "cf4c27857cf91ff6ecd5872506001fa6"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\observability\\financial-trace.ts": {
+    "mtime": 1779116337.5072596,
+    "hash": "0de0f9b82c27b5d23e2f1b27c71896a5"
+  },
   "D:\\namasoft9-3-main\\src\\lib\\observability\\logger.ts": {
-    "mtime": 1778883036.8668509,
-    "hash": "7e8008889424c552e55c61622a509700"
+    "mtime": 1779115757.0239012,
+    "hash": "a382e4789e35b4e4fcfe9063ece937a2"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\observability\\request-context.ts": {
+    "mtime": 1779115226.1464114,
+    "hash": "c855e2350f117bb85b3e118d44d4fff8"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\observability\\tenant-telemetry.ts": {
+    "mtime": 1779115323.3192327,
+    "hash": "2b9e3ac2f56fd2acaa69e0ae5832f1ad"
   },
   "D:\\namasoft9-3-main\\src\\lib\\openapi\\generator.ts": {
     "mtime": 1778456123.394181,
@@ -14404,8 +14780,8 @@
     "hash": "f33444b54c3d41f3154a3ad5dd3f70aa"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\inventory-adjustment.service.ts": {
-    "mtime": 1778875843.598475,
-    "hash": "e02ca21c2a99cb1b1bd4de59ea91d40f"
+    "mtime": 1779063369.135529,
+    "hash": "d1ebbea6af4c577936d408f6e3fee09c"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\inventory-allocation.service.ts": {
     "mtime": 1778967558.8621294,
@@ -14432,16 +14808,16 @@
     "hash": "f9aa5c1a4ec5a84c57ab5fc54fc20e8e"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\sales.service.ts": {
-    "mtime": 1778362710.0506513,
-    "hash": "6653a499d0546339685b79c2c8fbb058"
+    "mtime": 1779105533.683185,
+    "hash": "a371e86d8c04539ac6ddc9c314a82866"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\transfer.service.ts": {
     "mtime": 1778882931.314581,
     "hash": "8f5ef020435874b2502b8baa298eedd0"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\treasury-posting.service.ts": {
-    "mtime": 1778885084.6316905,
-    "hash": "7a661bf79cfe950ab3ac5c57a2782cac"
+    "mtime": 1779116209.1450007,
+    "hash": "a85164278316ac0576bd47bb7949369a"
   },
   "D:\\namasoft9-3-main\\src\\lib\\services\\hr\\payroll.service.ts": {
     "mtime": 1778967646.9493742,
@@ -14627,6 +15003,14 @@
     "mtime": 1778760196.446833,
     "hash": "2c810b36457f0042a1a18bd4584a4fc6"
   },
+  "D:\\namasoft9-3-main\\src\\lib\\__tests__\\observability-correlation.test.ts": {
+    "mtime": 1779115402.5924442,
+    "hash": "a6cd30bbde2c8f3ee0a391c98f67c2d0"
+  },
+  "D:\\namasoft9-3-main\\src\\lib\\__tests__\\observability-diagnostics.test.ts": {
+    "mtime": 1779115438.6868439,
+    "hash": "535d5f01fc6a8e309d2308ce6fd22ec7"
+  },
   "D:\\namasoft9-3-main\\src\\lib\\__tests__\\open-items-engine.test.ts": {
     "mtime": 1778436229.7079666,
     "hash": "8e09e15fa9f94306653fa8eec1b5f9db"
@@ -14735,21 +15119,25 @@
     "mtime": 1778362710.107157,
     "hash": "104f5f86cca9184b3c6bf2fc8a697dfc"
   },
+  "D:\\namasoft9-3-main\\src\\services\\accounting\\financial-period.service.ts": {
+    "mtime": 1779062892.2520072,
+    "hash": "49e018c9b6cafa70d745757a06ebcb70"
+  },
   "D:\\namasoft9-3-main\\src\\services\\accounting\\fx-revaluation.service.ts": {
     "mtime": 1778362710.1076787,
     "hash": "43e21886aa7271f4f5fd9960ea17d101"
   },
   "D:\\namasoft9-3-main\\src\\services\\accounting\\journal.service.ts": {
-    "mtime": 1778262630.244805,
-    "hash": "beeeffb2674a9e74161a93e7364bfaff"
+    "mtime": 1779062901.6134017,
+    "hash": "82593811a5f2ec2a03bb19b7c52d79ce"
   },
   "D:\\namasoft9-3-main\\src\\services\\accounting\\lease-accounting.service.ts": {
     "mtime": 1778362710.1076787,
     "hash": "5819b8c964145bfdc5ffd94123866c3a"
   },
   "D:\\namasoft9-3-main\\src\\services\\accounting\\period-close.service.ts": {
-    "mtime": 1778362710.1091979,
-    "hash": "301a8a80caea6ae94ae9994bb23c6e5e"
+    "mtime": 1779064244.8897142,
+    "hash": "a8d54424d23a9370a5e6c71337f8d29d"
   },
   "D:\\namasoft9-3-main\\src\\services\\accounting\\recurring-je.service.ts": {
     "mtime": 1778262630.2502153,
@@ -14856,8 +15244,8 @@
     "hash": "d253709c1f00d332975692c59a302e34"
   },
   "D:\\namasoft9-3-main\\src\\services\\inventory\\cycle-count.service.ts": {
-    "mtime": 1778295232.422695,
-    "hash": "85e9def99130ec1781eb4be459d7e1df"
+    "mtime": 1779063842.2557757,
+    "hash": "5ca607cfa4c86e30e65d4b7c63ea73ed"
   },
   "D:\\namasoft9-3-main\\src\\services\\inventory\\demand-forecast.service.ts": {
     "mtime": 1778362710.157662,
@@ -14884,8 +15272,8 @@
     "hash": "d5ae60d8eb5a1f45e2686f6c892f98e2"
   },
   "D:\\namasoft9-3-main\\src\\services\\inventory\\warehouse-transfer.service.ts": {
-    "mtime": 1778362710.1627593,
-    "hash": "6cadab7c799767d1f029708fee63f3be"
+    "mtime": 1779063410.9051385,
+    "hash": "4eead345bb0aea429a69bf7a6ae75d99"
   },
   "D:\\namasoft9-3-main\\src\\services\\manufacturing\\bom.service.ts": {
     "mtime": 1778362710.16386,
@@ -15012,8 +15400,8 @@
     "hash": "b988b2ec830ffa38b3c6b04f879f1108"
   },
   "D:\\namasoft9-3-main\\src\\services\\purchases\\p2p.service.ts": {
-    "mtime": 1778362710.3111515,
-    "hash": "0941ebf1cc9a13ab969b0ca65098852a"
+    "mtime": 1779063708.8208616,
+    "hash": "762896a43122d668c224ba1d7bf82f9a"
   },
   "D:\\namasoft9-3-main\\src\\services\\purchases\\rfq.service.ts": {
     "mtime": 1778362710.3111515,
@@ -15108,8 +15496,8 @@
     "hash": "e618e469a4fb7c3b0951e2d688b9d7af"
   },
   "D:\\namasoft9-3-main\\src\\services\\sales\\invoice.service.ts": {
-    "mtime": 1778262630.301351,
-    "hash": "ee7173a4a3240f77843e6c6fa00cbcc0"
+    "mtime": 1779063625.3300037,
+    "hash": "b161129b5f518c87718a680cf2a7f64f"
   },
   "D:\\namasoft9-3-main\\src\\services\\sales\\loyalty.service.ts": {
     "mtime": 1778279625.4702315,
@@ -15136,8 +15524,8 @@
     "hash": "7498b7c9e877228e4ce737edd14c20dd"
   },
   "D:\\namasoft9-3-main\\src\\services\\sales\\returns.service.ts": {
-    "mtime": 1778362710.3173559,
-    "hash": "f85573c2c3c44de68b262f625988cdf2"
+    "mtime": 1779063652.8675065,
+    "hash": "b8a0dd129cef70e137af034de03a0ac7"
   },
   "D:\\namasoft9-3-main\\src\\services\\shared\\base.service.ts": {
     "mtime": 1778272945.8513155,
@@ -15168,8 +15556,8 @@
     "hash": "8d14b7352e7e3ef9b16c77b987a92878"
   },
   "D:\\namasoft9-3-main\\src\\services\\treasury\\cheque.service.ts": {
-    "mtime": 1778295522.5649898,
-    "hash": "ce5aec5d4c224f1d04acaff4fdf3c979"
+    "mtime": 1779063747.5364487,
+    "hash": "ce9478b279e314f33aea793418530ce8"
   },
   "D:\\namasoft9-3-main\\src\\services\\treasury\\lc-bg.service.ts": {
     "mtime": 1778362710.322881,
@@ -15443,6 +15831,10 @@
     "mtime": 1778456127.8266068,
     "hash": "2d02d7a43f3cc05e9457f370c6eb6b6b"
   },
+  "D:\\namasoft9-3-main\\tests\\helpers\\test-harness.ts": {
+    "mtime": 1779066867.9592912,
+    "hash": "7cb2888bb94c70800522b3394f235268"
+  },
   "D:\\namasoft9-3-main\\tests\\integration\\payroll-full-run.test.ts": {
     "mtime": 1778456145.0003233,
     "hash": "bf42a4966e0a422d95efc36adb17d568"
@@ -15450,6 +15842,74 @@
   "D:\\namasoft9-3-main\\tests\\integration\\zatca-full-flow.test.ts": {
     "mtime": 1778456145.001353,
     "hash": "4fea7de0c760eb75e354e2e088347e3a"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\fiscal-periods-governance.test.ts": {
+    "mtime": 1779131575.2657936,
+    "hash": "4839269314fc0fc4a4e01d385781a816"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\journal-api-override.test.ts": {
+    "mtime": 1779104925.3673499,
+    "hash": "73d3d7d0a6048f118a13abf9d89284df"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\journal-posting.test.ts": {
+    "mtime": 1779066731.9217033,
+    "hash": "fe4470baff45b85aa4748d6ff448e99f"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\journal-tracing.test.ts": {
+    "mtime": 1779116625.9403632,
+    "hash": "6b135b5888f784d552e1635885f6bcee"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\override-expansion.test.ts": {
+    "mtime": 1779106837.649274,
+    "hash": "9f6f86670e27047deaf6605289d8ad1c"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\accounting\\period-lock.test.ts": {
+    "mtime": 1779104258.511175,
+    "hash": "e8e26614bfbdf4cbc58ddaae012ae143"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\admin\\audit-logs.test.ts": {
+    "mtime": 1779107221.9600663,
+    "hash": "8c482d9fd198a372e21f0c4e1a590fe4"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\procurement\\grn.test.ts": {
+    "mtime": 1779066731.9232156,
+    "hash": "ca3ce16851055a99064455dc755bb797"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\purchases\\grn-override.test.ts": {
+    "mtime": 1779113523.9412854,
+    "hash": "746a0150ccee7d4008b3018faa8920ea"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\sales\\invoice-override.test.ts": {
+    "mtime": 1779113525.956833,
+    "hash": "3b35695420c6f3351385847245cbe5ed"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\sales\\invoicing.test.ts": {
+    "mtime": 1779066731.9232156,
+    "hash": "4613b618031f2ff6f4174478949b4097"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\security\\tenant-isolation.test.ts": {
+    "mtime": 1779066731.9242282,
+    "hash": "b364e629c88bdbe537a3a64874e96764"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\security\\tenant-isolation\\middleware-hardening.test.ts": {
+    "mtime": 1779100974.6912944,
+    "hash": "c9b1b394d01fe9b974670bfc0213cc9f"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\security\\tenant-isolation\\route-guards.test.ts": {
+    "mtime": 1779101052.445638,
+    "hash": "1f4863517251311ce44234fc9735db5e"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\treasury\\payment-override.test.ts": {
+    "mtime": 1779113218.336334,
+    "hash": "6c1bb6a30d4267b22157bdf51812d7ef"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\treasury\\payments.test.ts": {
+    "mtime": 1779066835.5128715,
+    "hash": "0e7107bfc0a922e39dce10e8810375c1"
+  },
+  "D:\\namasoft9-3-main\\tests\\integration\\treasury\\treasury-tracing.test.ts": {
+    "mtime": 1779116444.3891127,
+    "hash": "93816892702350688afd97a707473eda"
   },
   "D:\\namasoft9-3-main\\tests\\unit\\services\\ap\\three-way-match.test.ts": {
     "mtime": 1778262630.3928635,
@@ -15475,9 +15935,65 @@
     "mtime": 1778881586.199054,
     "hash": "6bf65ad372af20bac4d01597d70628d5"
   },
+  "D:\\namasoft9-3-main\\tmp\\ast-migrate.ts": {
+    "mtime": 1779102370.6443505,
+    "hash": "cafd1e65a6f406f3b1968c639a2f0179"
+  },
+  "D:\\namasoft9-3-main\\tmp\\create-backup.ps1": {
+    "mtime": 1779143940.5049253,
+    "hash": "0f1fe021c162a38fd3a4d93e2d2f3160"
+  },
+  "D:\\namasoft9-3-main\\tmp\\fix-duplicates.ts": {
+    "mtime": 1779102461.1090446,
+    "hash": "050cfb8f30f8772d7148c8f49dfbaf42"
+  },
+  "D:\\namasoft9-3-main\\tmp\\fix-remote-db-backup.js": {
+    "mtime": 1779144330.9426842,
+    "hash": "5518d1cb4172dddb7f701661137fe586"
+  },
+  "D:\\namasoft9-3-main\\tmp\\fresh_graph_analysis.py": {
+    "mtime": 1779146640.8212242,
+    "hash": "cde108b9c3a3f72b5ed68238b421b7ac"
+  },
+  "D:\\namasoft9-3-main\\tmp\\frontend-scan.js": {
+    "mtime": 1779143683.6033428,
+    "hash": "1aab1170f78002426513de986003cfd7"
+  },
+  "D:\\namasoft9-3-main\\tmp\\migrate-routes.js": {
+    "mtime": 1779102049.869178,
+    "hash": "bfe07ffaf8f9de9a6911c7d4ea377e05"
+  },
+  "D:\\namasoft9-3-main\\tmp\\run-server-backup.js": {
+    "mtime": 1779144050.2935681,
+    "hash": "e6fb2bb1894b56b82322092bba28a21d"
+  },
+  "D:\\namasoft9-3-main\\tmp\\scan-config.js": {
+    "mtime": 1779140840.3004308,
+    "hash": "a14fdcdd444366fde2d0e124c6be3d0d"
+  },
+  "D:\\namasoft9-3-main\\tmp\\scan-hr-scope.js": {
+    "mtime": 1779138304.5636458,
+    "hash": "17b1ee04b97742a0ca1c2b3df99a9f4b"
+  },
+  "D:\\namasoft9-3-main\\tmp\\scan-hr.js": {
+    "mtime": 1779137331.1768317,
+    "hash": "adcd5c9d32b29979102edfe743e5de0e"
+  },
+  "D:\\namasoft9-3-main\\tmp\\scan-master-data.js": {
+    "mtime": 1779142651.893387,
+    "hash": "2cc0fbad1322190c0dbcadc680f820a5"
+  },
+  "D:\\namasoft9-3-main\\tmp\\scan.js": {
+    "mtime": 1779134881.9257207,
+    "hash": "154a62aa9bf4be354104c85b82220920"
+  },
   "D:\\namasoft9-3-main\\tmp\\tenant-scanner.js": {
     "mtime": 1778881854.5346713,
     "hash": "0776e9a9b82c59085f993a364caad7ed"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-modernization-scan.js": {
+    "mtime": 1779144598.2993975,
+    "hash": "b87d35e3a2ee59ba4ad1427081361b30"
   },
   "D:\\namasoft9-3-main\\__tests__\\permissions\\field-permission.test.ts": {
     "mtime": 1778262602.255894,
@@ -15520,8 +16036,8 @@
     "hash": "a41d5b67bc283234217f2c32ad43a00b"
   },
   "D:\\namasoft9-3-main\\AI_PROJECT_MEMORY.md": {
-    "mtime": 1779055034.8825927,
-    "hash": "72626d04eba9ade6c2b7db9f1e8ab65c"
+    "mtime": 1779064772.2509775,
+    "hash": "d754718620a254b03b26f630340e157b"
   },
   "D:\\namasoft9-3-main\\BUILD_GUIDE.md": {
     "mtime": 1778262601.5861871,
@@ -16191,9 +16707,21 @@
     "mtime": 1778617079.4349759,
     "hash": "cd15df070dd4da33e0e30f146e0c6eda"
   },
+  "D:\\namasoft9-3-main\\graphify-out\\converted\\readme_c6847304.md": {
+    "mtime": 1779175053.1060617,
+    "hash": "14c47af6547d3e9dc9677286f4779353"
+  },
   "D:\\namasoft9-3-main\\dist-electron\\win-unpacked\\resources\\app.asar.unpacked\\electron\\zatca-sdk\\Readme\\Java\\readme.md": {
     "mtime": 1778617079.9040308,
     "hash": "085c7d79daa2e7ec279e1577ea0bad47"
+  },
+  "D:\\namasoft9-3-main\\docs\\AI_EXECUTION_QUICK_CARD.md": {
+    "mtime": 1779158582.660765,
+    "hash": "9518bdc716902811892d83ada822181e"
+  },
+  "D:\\namasoft9-3-main\\docs\\AI_EXECUTION_STANDARD.md": {
+    "mtime": 1779158554.517814,
+    "hash": "d753f236e81dfa9110bec1e6b84c0abe"
   },
   "D:\\namasoft9-3-main\\docs\\GO_LIVE_CHECKLIST.md": {
     "mtime": 1778490637.200729,
@@ -16220,76 +16748,140 @@
     "hash": "f29fb4378495cfd0bb8b86d0ad5437aa"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\AI_AGENT_RULES.md": {
-    "mtime": 1778886287.9199452,
-    "hash": "56b676a929778ba6771fbb4119ef0ece"
+    "mtime": 1779061697.116848,
+    "hash": "aac65bc4b4a4c457228ea6ecfbd7f667"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\API_MAP.md": {
-    "mtime": 1778886287.9118514,
-    "hash": "67d6dccc5bd4aabaf8fb87a6ccb183bf"
+    "mtime": 1779061480.748598,
+    "hash": "7d296d6bb37688300e7e88cbe86f7c1e"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\CHANGELOG_AI_BRAIN.md": {
-    "mtime": 1779055043.835042,
-    "hash": "a2dfd80a18665745caeba541146703c4"
+    "mtime": 1779064722.7659864,
+    "hash": "3a6885e84880ffe93e9d2a27923e3f1c"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\CHANGELOG_PHASE_1_TO_8.md": {
+    "mtime": 1779113720.9869676,
+    "hash": "b32bc13a6566574c405d0796db4739eb"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\DATABASE_MAP.md": {
-    "mtime": 1778886287.9047856,
-    "hash": "233534a313b484893d50eb27a356ed44"
+    "mtime": 1779061480.7430701,
+    "hash": "defd6b5ab044c045b78e44c11804d1b6"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\DOMAIN_MAP.md": {
-    "mtime": 1778886287.900249,
-    "hash": "842a2c60083d5000154b1f1614c9eadc"
+    "mtime": 1779061380.99108,
+    "hash": "3030a56656181aa69a5dc5b672d0bd03"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\ENTERPRISE_UPGRADE_ROADMAP.md": {
-    "mtime": 1778886317.3183277,
-    "hash": "713a2a72d5479bf76e6e50aec29933b5"
+    "mtime": 1779061728.1481552,
+    "hash": "13c31eb2cf99912218c3f6eef14e4617"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\ENVIRONMENT_AND_CONFIG.md": {
-    "mtime": 1778886287.9174268,
-    "hash": "4efa242bdad95b88d4f08f3cf6499bcd"
+    "mtime": 1779061669.4519377,
+    "hash": "01f663bd288c586b7a285b0c86e2dc31"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\ERP_GAP_ANALYSIS.md": {
-    "mtime": 1778886315.2146342,
-    "hash": "66b740fdf82a30c299e47a2b7daa2fea"
+    "mtime": 1779061726.0029,
+    "hash": "5c5658be888764203653c2ab106dea3d"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\FINANCIAL_GOVERNANCE.md": {
+    "mtime": 1779113702.5906494,
+    "hash": "a107e8717f674aed2d13ea51875f05c0"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\FINANCIAL_GOVERNANCE_RULES.md": {
+    "mtime": 1779064708.4913268,
+    "hash": "f420afabf62d287986ea44fcefb04c62"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\FINANCIAL_INTEGRITY.md": {
-    "mtime": 1778886287.9159007,
-    "hash": "202b6dd1e5e94c582dea0de52e4e4659"
+    "mtime": 1779064738.6057584,
+    "hash": "41618deb866dd028468e9b1504189e66"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\FINANCIAL_TRACEABILITY.md": {
+    "mtime": 1779116691.4893453,
+    "hash": "361ae40dc6c32b945f429abf4849ecc1"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\INTEGRATIONS.md": {
-    "mtime": 1778886287.9174268,
-    "hash": "31fc24e50cefb5b83bcb6824903c12ae"
+    "mtime": 1779061497.1915648,
+    "hash": "2c316bcc6f4efaa893fed8eecc74b736"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\KNOWN_RISKS_AND_TECH_DEBT.md": {
-    "mtime": 1778886287.9184372,
-    "hash": "9f7787fa699e3eca80b2e96788ef6df8"
+    "mtime": 1779061678.272945,
+    "hash": "6c9d1bed05a6a524938854d9cc46b9b0"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\OBSERVABILITY_ARCHITECTURE.md": {
+    "mtime": 1779115480.4978812,
+    "hash": "f4dbf9b9148d7f6e86b2e06c97c5ad75"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\OPEN_QUESTIONS.md": {
-    "mtime": 1778886287.9199452,
-    "hash": "4465d0c08a0fb658b424d4b367ed528e"
+    "mtime": 1779061697.1017828,
+    "hash": "e4b5ce3506d13e66d75319d6091ea491"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\OPERATIONAL_MONITORING.md": {
+    "mtime": 1779115563.6351297,
+    "hash": "7b12dd942321438d4c311427e33473da"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\OVERRIDE_WORKFLOW.md": {
+    "mtime": 1779113686.7803392,
+    "hash": "d80d2e64516f717844eb986a7a3ba5b4"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\PERFORMANCE_AND_SCALING.md": {
-    "mtime": 1778886287.9184372,
-    "hash": "c75b067775f1696cd74ab2d7a3aea6fb"
+    "mtime": 1779061676.1144576,
+    "hash": "1409d56fc44bcbb6700f569f4b459fcc"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\PERIOD_LOCKING_AND_OVERRIDE_POLICY.md": {
+    "mtime": 1779113668.8345454,
+    "hash": "050627be2b610de42bc80ee5d8b92a33"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\PROJECT_BRAIN.md": {
-    "mtime": 1778886287.8982074,
-    "hash": "6d40b074e35aee1227bd4022923787f9"
+    "mtime": 1779061224.6802025,
+    "hash": "4323ab334bfe21f654750c293de56037"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\PROJECT_MATURITY_SCORECARD.md": {
+    "mtime": 1779113704.5842223,
+    "hash": "933d3b1b658ef099524a0264a56c0547"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\SECURITY_AND_TENANT_ISOLATION.md": {
-    "mtime": 1778886287.9159007,
-    "hash": "81a3b62585681f07cdbc48e2eeeb10a6"
+    "mtime": 1779064751.434104,
+    "hash": "6feacd690f93e4114103b28ae5e31c4d"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\SECURITY_GOVERNANCE_MAP.md": {
+    "mtime": 1779113651.2739756,
+    "hash": "5345e91c233ef4c7e5a3fb4e4ef617a5"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\SEED_DATA_ARCHITECTURE.md": {
+    "mtime": 1779113684.8193197,
+    "hash": "8358d631d78cfef100578db62eb23ecf"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\SYSTEM_MAP.md": {
-    "mtime": 1778886287.899716,
-    "hash": "9efa241cdd1397ee13f7b752c4c5cb93"
+    "mtime": 1779061336.6074033,
+    "hash": "8b6a178255ae2e0aae465c5dc3845fab"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\TENANT_ISOLATION_ARCHITECTURE.md": {
+    "mtime": 1779113653.2989912,
+    "hash": "8e3fc6ec84a56fa4df916f29b33612b4"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\TESTING_GOVERNANCE.md": {
+    "mtime": 1779113670.8491786,
+    "hash": "470347e88259d37eceac52ed874f933a"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\TESTING_STRATEGY.md": {
-    "mtime": 1778886287.9184372,
-    "hash": "736e83d863a1de4f2546598f04c263b4"
+    "mtime": 1779061673.9776433,
+    "hash": "bb54523703875be2c0532c7507de0fa1"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\VALIDATION_SUMMARY.md": {
+    "mtime": 1779061021.5190904,
+    "hash": "a00746d2dc25c187d685fb6b336e22de"
   },
   "D:\\namasoft9-3-main\\docs\\ai-brain\\WORKFLOWS.md": {
-    "mtime": 1778886287.9143684,
-    "hash": "91cc1f3975c1a0bc1ea98ea4a9c5714e"
+    "mtime": 1779064764.2148125,
+    "hash": "32ce86d15d2c5f0bf0884715b9056056"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\_API_ROUTE_INVENTORY.md": {
+    "mtime": 1779060795.392465,
+    "hash": "7cd58be52f9977f9bfdefdb1ea4223e6"
+  },
+  "D:\\namasoft9-3-main\\docs\\ai-brain\\_PRISMA_MODEL_INVENTORY.md": {
+    "mtime": 1779060821.173501,
+    "hash": "1cb83fb013e5590011f86609b28ff97a"
   },
   "D:\\namasoft9-3-main\\docs\\api\\openapi-summary.md": {
     "mtime": 1778369728.1876342,
@@ -16406,6 +16998,10 @@
   "D:\\namasoft9-3-main\\docs\\database\\erd.md": {
     "mtime": 1778369776.7282934,
     "hash": "7d1bab761d10ac104a8125677407f18b"
+  },
+  "D:\\namasoft9-3-main\\docs\\database\\erd\\README.md": {
+    "mtime": 1779066367.0658097,
+    "hash": "14a5a5544be57614d889432093eb9d81"
   },
   "D:\\namasoft9-3-main\\docs\\deployment\\deployment-plan.md": {
     "mtime": 1778369864.0148003,
@@ -16787,9 +17383,57 @@
     "mtime": 1778370365.1199431,
     "hash": "cee91753a2e2ee932257b16a2409113e"
   },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\accounting.md": {
+    "mtime": 1779066538.3700657,
+    "hash": "7878695a96a0bf790ecb8c326741491c"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\ai-rag.md": {
+    "mtime": 1779066538.409233,
+    "hash": "ffc8fdfd130c38b19f0ed5c7f33f6a5b"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\assets.md": {
+    "mtime": 1779066538.4001153,
+    "hash": "9a81e83b7ddf977a31423f4607ec9094"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\compliance-zatca-gosi-socpa.md": {
+    "mtime": 1779066538.4157,
+    "hash": "e895e98214386445fe1feefd9cd12846"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\hr-payroll.md": {
+    "mtime": 1779066538.3844972,
+    "hash": "3bc2c3d4e0aa342bb28fa9cdd0a81679"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\inventory.md": {
+    "mtime": 1779066538.3819904,
+    "hash": "ca9602aad6c676e1f445627e91afe320"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\manufacturing.md": {
+    "mtime": 1779066538.3890216,
+    "hash": "e1a264b47d3dc669ae6fadfa1397037f"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\procurement.md": {
+    "mtime": 1779066538.4042037,
+    "hash": "ec72276c4b8a49e375f9c2fff5580b90"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\README.md": {
+    "mtime": 1779066538.4157,
+    "hash": "9bd5bb81a98ab088aff0621cab25c848"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\sales.md": {
+    "mtime": 1779066538.3774383,
+    "hash": "6857d7b5a87f518ee329d10780c100f6"
+  },
   "D:\\namasoft9-3-main\\docs\\user-stories\\sample-user-stories.md": {
     "mtime": 1778370299.2714782,
     "hash": "891613a35432ed55ff490b4aec429b0f"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\tenant-security.md": {
+    "mtime": 1779066538.413182,
+    "hash": "536df1df0ab98fd398476abb968c3d97"
+  },
+  "D:\\namasoft9-3-main\\docs\\user-stories\\treasury.md": {
+    "mtime": 1779066538.396057,
+    "hash": "662db56689eafb63f4d707b3f3dd1860"
   },
   "D:\\namasoft9-3-main\\docs\\ux\\style-guide.md": {
     "mtime": 1778370066.121777,
@@ -16811,6 +17455,10 @@
     "mtime": 1728806608.0,
     "hash": "cd15df070dd4da33e0e30f146e0c6eda"
   },
+  "D:\\namasoft9-3-main\\graphify-out\\converted\\readme_58cfe33a.md": {
+    "mtime": 1779175057.439895,
+    "hash": "14c47af6547d3e9dc9677286f4779353"
+  },
   "D:\\namasoft9-3-main\\electron\\zatca-sdk\\Readme\\Java\\readme.md": {
     "mtime": 1701838784.0,
     "hash": "085c7d79daa2e7ec279e1577ea0bad47"
@@ -16826,6 +17474,10 @@
   "D:\\namasoft9-3-main\\electron-protected\\zatca-sdk\\Data\\PIH\\pih.txt": {
     "mtime": 1728806608.0,
     "hash": "cd15df070dd4da33e0e30f146e0c6eda"
+  },
+  "D:\\namasoft9-3-main\\graphify-out\\converted\\readme_9c895588.md": {
+    "mtime": 1779175062.2458096,
+    "hash": "14c47af6547d3e9dc9677286f4779353"
   },
   "D:\\namasoft9-3-main\\electron-protected\\zatca-sdk\\Readme\\Java\\readme.md": {
     "mtime": 1701838784.0,
@@ -17407,6 +18059,22 @@
     "mtime": 1778262602.142847,
     "hash": "c6b2acbc9c98dc3b09aec229947f705f"
   },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\architecture-doc.md": {
+    "mtime": 1779160107.7046206,
+    "hash": "343d470ea3568b36e147412a03dd80e5"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\electron-builder.yml": {
+    "mtime": 1779160057.9768622,
+    "hash": "03bb0ff5cb837a2f71e31ef621714a32"
+  },
+  "D:\\namasoft9-3-main\\namasoft-erp-launcher\\index.html": {
+    "mtime": 1779160059.3400903,
+    "hash": "1dca44cb092cef157f66af652f8ef1df"
+  },
+  "D:\\namasoft9-3-main\\prisma\\seeds\\verticals\\retail\\README.md": {
+    "mtime": 1779067991.6789303,
+    "hash": "bcf9302f3258a6f88c439b0e8b0f6f99"
+  },
   "D:\\namasoft9-3-main\\project-docs\\PROJECT_ARCHIVE.md": {
     "mtime": 1778880973.974952,
     "hash": "66e9098e9edd1568306aafa4ac4775b3"
@@ -17799,6 +18467,10 @@
     "mtime": 1778262630.304098,
     "hash": "698f5d7d1f6e7a6f20695c160566e1eb"
   },
+  "D:\\namasoft9-3-main\\tests\\README.md": {
+    "mtime": 1779066731.9242282,
+    "hash": "9f0e089bb7996b0587a4edfbe5d0cdf4"
+  },
   "D:\\namasoft9-3-main\\tmp\\accounting-hardening-report.md": {
     "mtime": 1778882705.0679595,
     "hash": "79db2750df3aa23489bc5e5c5b65b1a8"
@@ -17848,8 +18520,20 @@
     "hash": "668be37d9d22b67251e4dc311896f031"
   },
   "D:\\namasoft9-3-main\\tmp\\agent-scan-report.md": {
-    "mtime": 1779026728.3262756,
-    "hash": "197c3fa7554673a88e229ef66ca1a3ab"
+    "mtime": 1779107448.0327523,
+    "hash": "9f41ae58c2e0cd30b6cd6bac6aed7979"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ARCHITECTURE_WARNING_pdpl_breaches.md": {
+    "mtime": 1779158943.7667842,
+    "hash": "68bb087020923bd279d1df67bebc5473"
+  },
+  "D:\\namasoft9-3-main\\tmp\\coming-soon-audit.md": {
+    "mtime": 1779127879.362843,
+    "hash": "0f909368be7b2e2ff15cf8b5a11b7591"
+  },
+  "D:\\namasoft9-3-main\\tmp\\config-security-audit.md": {
+    "mtime": 1779142462.2145436,
+    "hash": "735a78bc514b18ba81df854a10adb639"
   },
   "D:\\namasoft9-3-main\\tmp\\enterprise-deep-audit-report.md": {
     "mtime": 1778740049.5509484,
@@ -17859,9 +18543,25 @@
     "mtime": 1778884912.2330437,
     "hash": "6210aa2aac970b67c0c3840e51a91e92"
   },
+  "D:\\namasoft9-3-main\\tmp\\final-financial-governance-report.md": {
+    "mtime": 1779064785.575319,
+    "hash": "ed67c73a24926e4f0f757840d9d5cc29"
+  },
+  "D:\\namasoft9-3-main\\tmp\\frontend-legacy-audit.md": {
+    "mtime": 1779143690.2621553,
+    "hash": "1c7fc06ebd5ecc160556198d7d99f6a7"
+  },
   "D:\\namasoft9-3-main\\tmp\\full-architecture-scan-report.md": {
     "mtime": 1778881595.0752404,
     "hash": "bde7ba52d856148129842dc53c18d717"
+  },
+  "D:\\namasoft9-3-main\\tmp\\hr-scope-isolation-scan.md": {
+    "mtime": 1779138763.295061,
+    "hash": "d36c4aaf3ae6288a9229d7f0556c2a75"
+  },
+  "D:\\namasoft9-3-main\\tmp\\hr-security-audit.md": {
+    "mtime": 1779138763.1113157,
+    "hash": "8f18746877c9daedc406314010e42cb1"
   },
   "D:\\namasoft9-3-main\\tmp\\InventoryAtomicityReport.md": {
     "mtime": 1778882306.5535069,
@@ -17871,17 +18571,93 @@
     "mtime": 1778882817.290775,
     "hash": "30686c42ea770910448b52c0fdccd6e0"
   },
+  "D:\\namasoft9-3-main\\tmp\\master-data-security-audit.md": {
+    "mtime": 1779142660.1522284,
+    "hash": "c199e22c55cda2f08ad088271a315660"
+  },
+  "D:\\namasoft9-3-main\\tmp\\observability-audit-report.md": {
+    "mtime": 1779115145.373953,
+    "hash": "5c18053a9adfd2946e09a60cb9d9a432"
+  },
   "D:\\namasoft9-3-main\\tmp\\observability-report.md": {
     "mtime": 1778883048.7240663,
     "hash": "1cd5615adcf350124ad4057d02bf4ec3"
+  },
+  "D:\\namasoft9-3-main\\tmp\\period-lock-phase-1-implementation.md": {
+    "mtime": 1779062976.7186105,
+    "hash": "c8c92b8e9a74ffea2dba3253b11fa0bf"
+  },
+  "D:\\namasoft9-3-main\\tmp\\period-lock-phase-2-implementation.md": {
+    "mtime": 1779063484.2270784,
+    "hash": "3a0eb601571ba5dc6e351f1d313181cd"
+  },
+  "D:\\namasoft9-3-main\\tmp\\period-lock-phase-4-implementation.md": {
+    "mtime": 1779064532.2804463,
+    "hash": "1b46338de702e9ec1621339448d6bc86"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-10-financial-tracing-report.md": {
+    "mtime": 1779116737.5080028,
+    "hash": "c5c1a0915e26cfa8421f61203a932f7b"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-10-scan-report.md": {
+    "mtime": 1779116093.8403835,
+    "hash": "958a6dc0563ca095fdb3a8a03a01da8d"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-3-7-final-security-baseline.md": {
+    "mtime": 1779137143.7804744,
+    "hash": "e15e58e7c6345aa017e60b3e325ef498"
   },
   "D:\\namasoft9-3-main\\tmp\\phase-3.1.4-plan.md": {
     "mtime": 1778967418.25415,
     "hash": "89eb696c00212fcb2ec679deb067c536"
   },
+  "D:\\namasoft9-3-main\\tmp\\phase-4-2-final-config-baseline.md": {
+    "mtime": 1779140887.200767,
+    "hash": "22efe7ffb8c44c04f4a3913c407f8087"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-7-3-report.md": {
+    "mtime": 1779105092.864406,
+    "hash": "413d75d5341930454247c971b21e1b34"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-7-4-final-report.md": {
+    "mtime": 1779106899.8513596,
+    "hash": "41c0239c580c780373af3b0ad5b7c5f0"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-7-4-override-expansion-report.md": {
+    "mtime": 1779113561.2051787,
+    "hash": "830bd633d6f17c228d73c62b28c3a785"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-7-5-final-report.md": {
+    "mtime": 1779107037.248701,
+    "hash": "b8877ac27d2845ed40b8ad4b4dacdce1"
+  },
+  "D:\\namasoft9-3-main\\tmp\\phase-8-final-report.md": {
+    "mtime": 1779113847.807596,
+    "hash": "b1014e2fc34a48bce76cbe3cde67c75a"
+  },
+  "D:\\namasoft9-3-main\\tmp\\route-guard-migration-phase-6-1-report.md": {
+    "mtime": 1779102023.2953088,
+    "hash": "dd5905d220c13fb0de9edd7cf3b30f92"
+  },
+  "D:\\namasoft9-3-main\\tmp\\route-guard-migration-report.md": {
+    "mtime": 1779101616.5020409,
+    "hash": "5311fc23a1b81d7b749da0e669b41b8d"
+  },
+  "D:\\namasoft9-3-main\\tmp\\security-baseline-rescan.md": {
+    "mtime": 1779137093.2452905,
+    "hash": "b803a41c5ef9ac6bcbe49361f605fb17"
+  },
   "D:\\namasoft9-3-main\\tmp\\service-layer-report.md": {
     "mtime": 1778882952.302493,
     "hash": "db4c6545102440b5e5f9e96d5c07cac7"
+  },
+  "D:\\namasoft9-3-main\\tmp\\soft-lock-period-enforcement-report.md": {
+    "mtime": 1779103466.0886717,
+    "hash": "aa16b716dbb0cd0d2c8839625fa5479f"
+  },
+  "D:\\namasoft9-3-main\\tmp\\status-changing-api-security-scan.md": {
+    "mtime": 1779132655.0001218,
+    "hash": "e5979639d189df97572f6598de328468"
   },
   "D:\\namasoft9-3-main\\tmp\\tenant-isolation-p0-report.md": {
     "mtime": 1778956246.5192668,
@@ -17891,9 +18667,33 @@
     "mtime": 1778881870.2814226,
     "hash": "cf288ad420c43c4fe855c53fd41f2841"
   },
+  "D:\\namasoft9-3-main\\tmp\\tenant-middleware-hardening-report.md": {
+    "mtime": 1779100668.9484825,
+    "hash": "03779a24fba64856cf4ee2518a84b382"
+  },
   "D:\\namasoft9-3-main\\tmp\\tenant-p0-audit.md": {
     "mtime": 1778970666.5680726,
     "hash": "a3b42082bd2ab857073d79740002416a"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-api-fixed-summary.md": {
+    "mtime": 1779127996.3199835,
+    "hash": "47d1961045a4ae8b340886dc369cdf31"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-api-gap-report.md": {
+    "mtime": 1779127878.8368814,
+    "hash": "e3f8c7fae3fc49eb5dd934c4b34ce197"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-implementation-plan.md": {
+    "mtime": 1779128072.228587,
+    "hash": "da84ee43a5c2f52dfd4e25f61d022088"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-modernization-report.md": {
+    "mtime": 1779144604.0586016,
+    "hash": "4f35d28eac07b42145006396434a8bd6"
+  },
+  "D:\\namasoft9-3-main\\tmp\\ui-phase-1-verification.md": {
+    "mtime": 1779128281.7818844,
+    "hash": "6e59d4f8243655957d6c4716e8a7e254"
   },
   "D:\\namasoft9-3-main\\tmp\\webhook-governance-report.md": {
     "mtime": 1778881975.787866,
