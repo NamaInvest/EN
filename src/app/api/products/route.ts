@@ -118,20 +118,22 @@ async function _POST(request: Request) {
         let barcode = body.barcode || null;
         if (!barcode) {
             // Use a dedicated counter in settings, starting from 1000
-            const setting = await prisma.setting.findUnique({ where: { key: 'next_barcode' } });
+            const settingKey = `next_barcode_${auth.tenantId}`;
+            const setting = await prisma.setting.findUnique({ where: { key: settingKey } });
             const nextBarcode = setting && setting.value ? parseInt(String(setting.value), 10) : 1000;
             barcode = String(nextBarcode);
             // Update counter for next time
             await prisma.setting.upsert({
-                where: { key: 'next_barcode' },
+                where: { key: settingKey },
                 update: { value: String(nextBarcode + 1) },
-                create: { key: 'next_barcode', value: String(nextBarcode + 1), tenantId: auth.tenantId },
+                create: { key: settingKey, value: String(nextBarcode + 1), tenantId: auth.tenantId },
             });
         }
 
         // Use raw SQL to bypass Prisma 5.22.0 XOR type detection bug
         const uId = body.unitId ? parseInt(body.unitId) : 1;
-        const catId = body.categoryId ? parseInt(body.categoryId) : null;
+        const parsedCat = parseInt(body.categoryId);
+        const catId = isNaN(parsedCat) ? null : parsedCat;
         const bPrice = parseFloat(body.buyPrice) || 0;
         const sPrice = parseFloat(body.sellPrice) || 0;
         const tRate = parseFloat(body.taxRate) || 15;
@@ -140,7 +142,7 @@ async function _POST(request: Request) {
 
         const result: any[] = await prisma.$queryRawUnsafe(`
             INSERT INTO products (tenant_id, name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, tax_type, min_quantity, current_stock, description, active, name_en, brand_ar, brand_en, size_info, image_path, sell_by_weight, expiry_date, bin_location, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
+            VALUES ($1, $2, $3, $4, $5, $6::numeric, $7::numeric, $8::numeric, $9, $10::numeric, $11::numeric, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
             RETURNING *`,
             auth.tenantId, body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
             body.description || null, true,
@@ -155,12 +157,12 @@ async function _POST(request: Request) {
         // Create product units if provided
         if (body.productUnits && Array.isArray(body.productUnits) && body.productUnits.length > 0) {
             for (const pu of body.productUnits) {
-                const _uId_dup143 = parseInt(pu.unitId);
-                if (isNaN(uId)) continue; // Skip invalid units
+                const puUnitId = parseInt(pu.unitId);
+                if (isNaN(puUnitId)) continue; // Skip invalid units
                 await prisma.$queryRawUnsafe(`
                     INSERT INTO product_units (tenant_id, product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-                    auth.tenantId, product.id, uId, pu.barcode || null,
+                    VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, $7::numeric, $8, $9::numeric, $10::numeric, $11, $12::numeric, $13::numeric, $14::numeric)`,
+                    auth.tenantId, product.id, puUnitId, pu.barcode || null,
                     parseFloat(pu.sellPrice) || 0, parseFloat(pu.buyPrice) || 0,
                     parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
                     Boolean(pu.isBase), parseFloat(pu.unitStock) || 0,

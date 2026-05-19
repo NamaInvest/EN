@@ -15,7 +15,8 @@ async function _POST(request: NextRequest) {
             return NextResponse.json({ error: 'صلاحية المسؤول مطلوبة' }, { status: 403 });
         }
 
-        const setting = await prisma.setting.findFirst({ where: { key: 'next_barcode', tenantId: user.tenantId } });
+        const settingKey = `next_barcode_${user.tenantId}`;
+        const setting = await prisma.setting.findUnique({ where: { key: settingKey } });
         const nextBarcode = setting && setting.value ? parseInt(String(setting.value), 10) : 1000;
         
         if (setting) {
@@ -25,7 +26,7 @@ async function _POST(request: NextRequest) {
             });
         } else {
             await prisma.setting.create({
-                data: { key: 'next_barcode', value: String(nextBarcode + 1), tenantId: user.tenantId }
+                data: { key: settingKey, value: String(nextBarcode + 1), tenantId: user.tenantId }
             });
         }
 
