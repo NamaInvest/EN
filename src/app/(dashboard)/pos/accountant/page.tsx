@@ -1,13 +1,21 @@
-﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
+import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
+import { PosAccountantClient } from './PosAccountantClient';
 
-export default function DisabledModulePage() {
-  return (
-    <FeatureDisabledPanel 
-      moduleName="pos/accountant"
-      apiExists={false}
-      apiPath="/api/pos/accountant"
-      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
-      reportLink="/reports"
-    />
-  );
+// Feature Flag for progressive rollout
+const ENABLE_UI = true;
+
+export default function PosAccountantPage() {
+  if (!ENABLE_UI) {
+    return (
+      <FeatureDisabledPanel 
+        moduleName="pos/accountant"
+        apiExists={true}
+        apiPath="/api/pos/accountant"
+        missingFeatures="الواجهة قيد التطوير - يتم الاعتماد على FeatureDisabledPanel"
+        reportLink="/reports"
+      />
+    );
+  }
+
+  return <PosAccountantClient />;
 }

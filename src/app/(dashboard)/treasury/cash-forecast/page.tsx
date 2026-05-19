@@ -1,13 +1,21 @@
-﻿import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
+import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
+import { CashForecastClient } from './CashForecastClient';
 
-export default function DisabledModulePage() {
-  return (
-    <FeatureDisabledPanel 
-      moduleName="treasury/cash-forecast"
-      apiExists={false}
-      apiPath="/api/treasury/cash-forecast"
-      missingFeatures="لا يوجد ربط بين واجهة المستخدم وخدمات الواجهة الخلفية. الشاشة غير مبنية بعد."
-      reportLink="/reports"
-    />
-  );
+// Feature Flag for progressive rollout
+const ENABLE_UI = true;
+
+export default function CashForecastPage() {
+  if (!ENABLE_UI) {
+    return (
+      <FeatureDisabledPanel 
+        moduleName="treasury/cash-forecast"
+        apiExists={true}
+        apiPath="/api/treasury/cash-forecast"
+        missingFeatures="الواجهة قيد التطوير - يتم الاعتماد على FeatureDisabledPanel"
+        reportLink="/reports"
+      />
+    );
+  }
+
+  return <CashForecastClient />;
 }

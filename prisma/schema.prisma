@@ -10365,27 +10365,39 @@ model TPDocumentation {
 
 // F-04 ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ·ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¹ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹ط¢آ©ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ·ط·آ·ط¢آ¢ط·آ¢ط¢آ£ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¹ط£آ¢أ¢â€ڑآ¬ط¹آ©ط·آ·ط¢آ·ط·آ¢ط¢آ¢ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¹أ¢â‚¬ع©ط·آ·ط¢آ¢ط·آ¢ط¢آ¬ط·آ·ط¢آ·ط·آ¢ط¢آ¥ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط£آ¢أ¢â‚¬â€چط¢آ¢ Intercompany Netting
 model ICNettingCycle {
-  id             Int      @id @default(autoincrement())
-  tenantId       String   @map("tenant_id")
-  cycleName      String   @map("cycle_name")
-  cutOffDate     DateTime @map("cut_off_date")
-  settlementDate DateTime @map("settlement_date")
-  status         String   @default("DRAFT") // DRAFT, PROPOSED, SETTLED
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                   Int      @id @default(autoincrement())
+  tenantId             String   @map("tenant_id")
+  counterpartyTenantId String?  @map("counterparty_tenant_id")
+  cycleName            String   @map("cycle_name")
+  cutOffDate           DateTime @map("cut_off_date")
+  settlementDate       DateTime @map("settlement_date")
+  status               String   @default("DRAFT") // DRAFT, PROPOSED, SETTLED
+  createdAt            DateTime @default(now()) @map("created_at")
 
   @@map("ic_netting_cycle")
 }
 
 model ICNettingLine {
-  id            Int     @id @default(autoincrement())
-  cycleId       Int     @map("cycle_id")
-  fromCompanyId Int     @map("from_company_id")
-  toCompanyId   Int     @map("to_company_id")
-  invoiceId     Int?    @map("invoice_id")
-  currency      String
-  grossAmount   Decimal @map("gross_amount") @db.Decimal(18, 2)
-  nettingAmount Decimal @map("netting_amount") @db.Decimal(18, 2)
-  settledAmount Decimal @map("settled_amount") @db.Decimal(18, 2)
+  id               Int       @id @default(autoincrement())
+  tenantId         String?   @map("tenant_id")
+  cycleId          Int?      @map("cycle_id")
+  fromCompanyId    Int?      @map("from_company_id")
+  toCompanyId      Int?      @map("to_company_id")
+  debtorTenantId   String?   @map("debtor_tenant_id")
+  creditorTenantId String?   @map("creditor_tenant_id")
+  invoiceId        Int?      @map("invoice_id")
+  fromJournalId    Int?      @map("from_journal_id")
+  toJournalId      Int?      @map("to_journal_id")
+  currency         String
+  grossAmount      Decimal?  @map("gross_amount") @db.Decimal(18, 2)
+  nettingAmount    Decimal?  @map("netting_amount") @db.Decimal(18, 2)
+  settledAmount    Decimal?  @map("settled_amount") @db.Decimal(18, 2)
+  amount           Decimal?  @db.Decimal(18, 2)
+  type             String?
+  description      String?
+  reference        String?
+  status           String?
+  nettedAt         DateTime? @map("netted_at")
 
   @@map("ic_netting_line")
 }

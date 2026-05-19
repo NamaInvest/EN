@@ -114,7 +114,7 @@ export function LicenseSetupScreen({ onBack, onSuccess, fingerprint }: LicenseSe
     name: keyof typeof formData, 
     label: string, 
     placeholder: string, 
-    Icon: React.ElementType,
+    Icon: any,
     type: string = 'text'
   ) => (
     <div className="flex flex-col gap-1.5">

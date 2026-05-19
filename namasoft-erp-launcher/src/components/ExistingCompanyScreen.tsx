@@ -32,7 +32,7 @@ export function ExistingCompanyScreen({ onBack, onDashboard, data }: ExistingCom
     if (onDashboard) onDashboard();
   };
 
-  const renderItem = (Icon: React.ElementType, label: string, value: string) => (
+  const renderItem = (Icon: any, label: string, value: string) => (
     <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors">
       <div className="p-3 bg-white rounded-lg shadow-sm">
         <Icon className="w-5 h-5 text-slate-600" />
