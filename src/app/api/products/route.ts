@@ -144,7 +144,7 @@ async function _POST(request: Request) {
             INSERT INTO products (tenant_id, name, barcode, category_id, unit_id, buy_price, sell_price, tax_rate, tax_type, min_quantity, current_stock, description, active, name_en, brand_ar, brand_en, size_info, image_path, sell_by_weight, expiry_date, bin_location, created_at)
             VALUES ($1, $2, $3, $4, $5, $6::numeric, $7::numeric, $8::numeric, $9, $10::numeric, $11::numeric, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
             RETURNING *`,
-            auth.tenantId, body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
+            (auth.tenantId || 'default'), body.name, barcode, catId, uId, bPrice, sPrice, tRate, 'VAT', minQty, curStock,
             body.description || null, true,
             body.nameEn || body.name || '',
             body.brandAr || '', body.brandEn || '', body.sizeInfo || '',
@@ -162,7 +162,7 @@ async function _POST(request: Request) {
                 await prisma.$queryRawUnsafe(`
                     INSERT INTO product_units (tenant_id, product_id, unit_id, barcode, sell_price, buy_price, factor, is_base, unit_stock, parent_qty, sort_order, weight, length, width)
                     VALUES ($1, $2, $3, $4, $5::numeric, $6::numeric, $7::numeric, $8, $9::numeric, $10::numeric, $11, $12::numeric, $13::numeric, $14::numeric)`,
-                    auth.tenantId, product.id, puUnitId, pu.barcode || null,
+                    (auth.tenantId || 'default'), product.id, puUnitId, pu.barcode || null,
                     parseFloat(pu.sellPrice) || 0, parseFloat(pu.buyPrice) || 0,
                     parseFloat(pu.factor) || parseFloat(pu.parentQty) || 1,
                     Boolean(pu.isBase), parseFloat(pu.unitStock) || 0,
