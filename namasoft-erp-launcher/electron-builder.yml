@@ -1,0 +1,19 @@
+appId: com.namasoft.erplauncher
+productName: NamasoftERPLauncher
+directories:
+  output: release/${version}
+files:
+  - dist
+  - dist-electron
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Namasoft ERP
