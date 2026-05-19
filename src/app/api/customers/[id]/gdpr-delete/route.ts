@@ -22,10 +22,10 @@ async function _DELETE(req: Request, { params }: { params: Promise<{ id: string 
     return NextResponse.json({ error: 'صلاحية المدير مطلوبة' }, { status: 403 });
   }
 
-  const prisma = new PrismaClient();
+  const prisma = require('@/lib/prisma').getPrisma(req);
   try {
     const customerId = parseInt(id);
-    const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    const customer = await prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId } });
     if (!customer) {
       return NextResponse.json({ error: 'العميل غير موجود' }, { status: 404 });
     }
@@ -53,6 +53,7 @@ async function _DELETE(req: Request, { params }: { params: Promise<{ id: string 
     // تسجيل في سجل المراقبة
     await prisma.auditLog.create({
       data: {
+        tenantId: user.tenantId,
         userId: user.userId,
         action: 'GDPR_DELETE',
         tableName: 'customers',
@@ -67,8 +68,6 @@ async function _DELETE(req: Request, { params }: { params: Promise<{ id: string 
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

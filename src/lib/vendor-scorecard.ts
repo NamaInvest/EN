@@ -32,19 +32,21 @@ export class VendorScorecardEngine {
     static async evaluate(
         prisma: PrismaClient,
         supplierId: number,
+        tenantId: string,
         periodFrom?: Date,
         periodTo?: Date
     ): Promise<VendorScore> {
         const from = periodFrom || new Date(Date.now() - 365 * 86400000);
         const to = periodTo || new Date();
 
-        const supplier = await (prisma as any).customer.findUnique({ where: { id: supplierId } });
+        const supplier = await (prisma as any).customer.findFirst({ where: { id: supplierId, tenantId } });
         if (!supplier) throw new Error('مورد غير موجود');
 
         // Purchase orders analysis
         const pos = await (prisma as any).purchaseOrder.findMany({
             take: 100,
             where: {
+                tenantId,
                 supplierId,
                 createdAt: { gte: from, lte: to },
             },
@@ -57,6 +59,7 @@ export class VendorScorecardEngine {
         const invoices = await (prisma as any).purchaseInvoice.findMany({
             take: 100,
             where: {
+                tenantId,
                 supplierId,
                 invoiceDate: { gte: from.toISOString(), lte: to.toISOString() },
             },
@@ -111,17 +114,17 @@ export class VendorScorecardEngine {
     /**
      * Rank all vendors
      */
-    static async rankAll(prisma: PrismaClient): Promise<VendorScore[]> {
+    static async rankAll(prisma: PrismaClient, tenantId: string): Promise<VendorScore[]> {
         const suppliers = await (prisma as any).customer.findMany({
             take: 100,
-            where: { isActive: true, isSupplier: true },
+            where: { tenantId, type: 1 },
             select: { id: true },
         });
 
         const scores: VendorScore[] = [];
         for (const s of suppliers) {
             try {
-                const score = await this.evaluate(prisma, s.id);
+                const score = await this.evaluate(prisma, s.id, tenantId);
                 if (score.totalOrders > 0) scores.push(score);
             } catch { /* skip */ }
         }

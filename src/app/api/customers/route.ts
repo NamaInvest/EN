@@ -10,11 +10,14 @@ const log = logger.child({ service: 'customers' });
 async function _GET(request: Request) {
   const prisma = getPrisma(request);
   try {
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const type = searchParams.get("type");
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { tenantId: auth.tenantId };
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
@@ -54,6 +57,12 @@ const _POSTSchema = z.object({
 async function _POST(request: Request) {
   const prisma = getPrisma(request);
   try {
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'sales_manager', 'purchasing_manager'].includes(auth.role)) {
+      return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+    }
+
     const body = await request.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -68,6 +77,7 @@ async function _POST(request: Request) {
     );
     const customer = await prisma.customer.create({
       data: {
+        tenantId: auth.tenantId,
         customerNo: seqResult.formatted,
         name: body.name,
         phone: body.phone || null,
@@ -99,10 +109,10 @@ async function _DELETE(request: Request) {
     // Auth check — only admin/owner can delete all customers
     const { getUserFromRequest } = require("@/lib/auth");
     const auth = getUserFromRequest(request as any);
-    if (!auth || !["admin", "owner", "system_admin"].includes(auth.role)) {
+    if (!auth || !["admin", "owner"].includes(auth.role)) {
       return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     }
-    await prisma.customer.deleteMany();
+    await prisma.customer.deleteMany({ where: { tenantId: auth.tenantId } });
     return NextResponse.json({ message: "تم حذف الكل" });
   } catch (error: any) {
     log.error("Customers delete all error:", error);

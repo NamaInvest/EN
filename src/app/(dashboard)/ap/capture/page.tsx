@@ -13,6 +13,7 @@ export default function InvoiceCaptureInboxPage() {
     const [filter, setFilter] = useState('ALL');
     const [showUpload, setShowUpload] = useState(false);
     const [ocrText, setOcrText] = useState('');
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => { fetchCaptures(); }, [filter]);
@@ -27,13 +28,34 @@ export default function InvoiceCaptureInboxPage() {
     async function handleUpload(e: any) {
         e.preventDefault();
         setUploading(true);
+
+        let imageBase64 = null;
+        let mimeType = null;
+
+        if (imageFile) {
+            imageBase64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(imageFile);
+            });
+            mimeType = imageFile.type;
+        }
+
         const res = await fetch('/api/ap/capture', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ source: 'UPLOAD', ocrText, fileUrl: 'manual-entry' })
+            body: JSON.stringify({ 
+                source: 'UPLOAD', 
+                ocrText, 
+                imageBase64, 
+                mimeType,
+                fileUrl: imageFile ? imageFile.name : 'manual-entry' 
+            })
         });
+        
         if (res.ok) {
             setOcrText('');
+            setImageFile(null);
             setShowUpload(false);
             fetchCaptures();
         }
@@ -90,20 +112,29 @@ export default function InvoiceCaptureInboxPage() {
             {/* Upload Form */}
             {showUpload && (
                 <Card>
-                    <CardHeader><CardTitle>رفع نص فاتورة للمعالجة بالذكاء الاصطناعي</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>رفع فاتورة أو صورة للمعالجة بالذكاء الاصطناعي</CardTitle></CardHeader>
                     <CardContent>
                         <form onSubmit={handleUpload} className="space-y-4">
                             <div>
-                                <label className="block text-sm mb-1">انسخ والصق نص الفاتورة (أو سيتم استخراجه من PDF لاحقاً)</label>
+                                <label className="block text-sm mb-1 font-bold">صورة أو ملف الفاتورة (للقراءة الآلية OCR)</label>
+                                <input 
+                                    type="file" 
+                                    accept="image/*,application/pdf"
+                                    onChange={e => setImageFile(e.target.files?.[0] || null)}
+                                    className="w-full border rounded-md p-2 text-sm mb-4"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm mb-1 text-gray-500">أو انسخ والصق نص الفاتورة يدوياً</label>
                                 <textarea
-                                    className="w-full h-40 border rounded-md p-3 text-sm"
+                                    className="w-full h-32 border rounded-md p-3 text-sm"
                                     placeholder="مثال:&#10;شركة التقنية المتقدمة&#10;الرقم الضريبي: 300012345600003&#10;فاتورة رقم: INV-2026-0455&#10;التاريخ: 2026-05-01&#10;المبلغ: 15,000 ر.س&#10;ضريبة: 2,250 ر.س&#10;الإجمالي: 17,250 ر.س&#10;مرجع أمر الشراء: PO-1234"
                                     value={ocrText}
                                     onChange={e => setOcrText(e.target.value)}
-                                    required
+                                    required={!imageFile && !ocrText}
                                 />
                             </div>
-                            <Button type="submit" disabled={uploading}>
+                            <Button type="submit" disabled={uploading || (!imageFile && !ocrText)}>
                                 {uploading ? 'جاري المعالجة بالذكاء الاصطناعي...' : 'معالجة واستخراج البيانات (AI OCR)'}
                             </Button>
                         </form>

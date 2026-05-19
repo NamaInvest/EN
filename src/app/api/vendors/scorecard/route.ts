@@ -22,12 +22,12 @@ async function _GET(req: NextRequest) {
 
     try {
         if (action === 'rank') {
-            const rankings = await VendorScorecardEngine.rankAll(prisma);
+            const rankings = await VendorScorecardEngine.rankAll(prisma, user.tenantId || 'default');
             return NextResponse.json(rankings);
         }
 
         if (supplierId) {
-            const score = await VendorScorecardEngine.evaluate(prisma, parseInt(supplierId));
+            const score = await VendorScorecardEngine.evaluate(prisma, parseInt(supplierId), user.tenantId || 'default');
             return NextResponse.json(score);
         }
 

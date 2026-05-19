@@ -87,6 +87,15 @@ const nextConfig: NextConfig = {
     return config;
   },
 
+  async redirects() {
+    return [
+      { source: '/ar/:path*', destination: '/:path*', permanent: true },
+      { source: '/en/:path*', destination: '/:path*', permanent: true },
+      { source: '/ar', destination: '/', permanent: true },
+      { source: '/en', destination: '/', permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       // ── Security Headers (global) ─────────────────────────────────────────

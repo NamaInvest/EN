@@ -2,6 +2,7 @@
 import { prisma } from './prisma';
 import { createJournalEntry, ACCOUNTS } from '@/lib/auto-journal';
 import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
+import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'open-items' });
 

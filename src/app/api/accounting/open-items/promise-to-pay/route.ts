@@ -16,8 +16,9 @@ async function _POST(req: Request) {
     if (!openItemId || !amount || !date) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
+    const tenantId = req.headers.get('x-tenant-id');
 
-    const result = await OpenItemsEngine.recordPromiseToPay(openItemId, amount, new Date(date), userId);
+    const result = await OpenItemsEngine.recordPromiseToPay(openItemId, amount, new Date(date), userId, tenantId);
     return NextResponse.json({ success: true, result });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

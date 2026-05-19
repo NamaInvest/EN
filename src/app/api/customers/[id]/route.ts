@@ -13,7 +13,10 @@ async function _GET(request: Request, { params }: { params: Promise<{ id: string
     const prisma = getPrisma(request);
     try {
         const { id } = await params;
-        const customer = await prisma.customer.findUnique({ where: { id: parseInt(id) } });
+        const auth = getUserFromRequest(request as unknown as NextRequest);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+
+        const customer = await prisma.customer.findFirst({ where: { id: parseInt(id), tenantId: auth.tenantId } });
         if (!customer) return NextResponse.json({ error: 'غير موجود' }, { status: 404 });
         return NextResponse.json(customer);
     } catch (error: any) {
@@ -44,6 +47,10 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         const { id } = await params;
         const customerId = parseInt(id);
         const auth = getUserFromRequest(request as unknown as NextRequest);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+        if (!['admin', 'owner', 'sales_manager', 'purchasing_manager'].includes(auth.role)) {
+          return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+        }
         const body = await request.json();
 
         const _parsed = _PUTSchema.safeParse(body);
@@ -52,7 +59,8 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
         }
 
         // 1. Read before state for audit
-        const before = await prisma.customer.findUnique({ where: { id: customerId } });
+        const before = await prisma.customer.findFirst({ where: { id: customerId, tenantId: auth.tenantId } });
+        if (!before) return NextResponse.json({ error: 'غير موجود' }, { status: 404 });
 
         // 2. Perform update
         const customer = await prisma.customer.update({
@@ -84,6 +92,9 @@ async function _PUT(request: Request, { params }: { params: Promise<{ id: string
 async function _DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const auth = getUserFromRequest(request as unknown as NextRequest);
     if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    if (!['admin', 'owner', 'sales_manager', 'purchasing_manager'].includes(auth.role)) {
+      return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
+    }
 
     const prisma = getPrisma(request);
     try {
@@ -92,11 +103,12 @@ async function _DELETE(request: Request, { params }: { params: Promise<{ id: str
 
         // Audit trail — log deletion before it happens
         try {
-            const before = await prisma.customer.findUnique({ where: { id: customerId } });
+            const before = await prisma.customer.findFirst({ where: { id: customerId, tenantId: auth.tenantId } });
+            if (!before) return NextResponse.json({ error: 'غير موجود' }, { status: 404 });
             if (before) await logDelete(prisma, 'Customer', customerId, before as any, auditContextFromRequest(request, auth));
         } catch (e: any) { log.error('[audit] Customer delete audit failed:', e); }
 
-        await prisma.customer.delete({ where: { id: customerId } });
+        await prisma.customer.deleteMany({ where: { id: customerId, tenantId: auth.tenantId } });
         return NextResponse.json({ message: 'تم الحذف' });
     } catch (error: any) {
         log.error(error);

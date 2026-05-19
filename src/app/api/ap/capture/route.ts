@@ -51,17 +51,17 @@ async function _POST(request: Request) {
         if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const tenantId = resolveTenant(request as any);
-        const { source, fileUrl, ocrText } = await request.json();
+        const { source, fileUrl, ocrText, imageBase64, mimeType } = await request.json();
 
         // Step 1: Use Gemini to extract invoice data from raw text
         let extractedData: any = {};
         let confidence = 0;
 
-        if (ocrText) {
+        if (ocrText || imageBase64) {
             try {
                 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
                 const prompt = `You are an expert invoice data extractor for Saudi Arabian tax invoices.
-Extract the following fields from this invoice text and return ONLY valid JSON:
+Extract the following fields from this invoice image, PDF, or text and return ONLY valid JSON:
 {
   "vendorName": "",
   "vatNumber": "",
@@ -73,12 +73,22 @@ Extract the following fields from this invoice text and return ONLY valid JSON:
   "currency": "SAR",
   "poReference": "",
   "lineItems": [{"description": "", "quantity": 0, "unitPrice": 0, "total": 0, "vatRate": 15}]
-}
+}`;
 
-Invoice text:
-${ocrText}`;
+                const parts: any[] = [{ text: prompt }];
+                if (ocrText) {
+                    parts.push({ text: `\nInvoice text:\n${ocrText}` });
+                }
+                if (imageBase64) {
+                    parts.push({
+                        inlineData: {
+                            data: imageBase64.split(',').pop() || imageBase64,
+                            mimeType: mimeType || 'image/jpeg'
+                        }
+                    });
+                }
 
-                const result = await model.generateContent(prompt);
+                const result = await model.generateContent(parts);
                 const text = result.response.text();
                 
                 // Try to parse the JSON from the response
