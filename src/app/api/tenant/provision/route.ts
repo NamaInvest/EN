@@ -359,30 +359,33 @@ async function _POST(req: Request) {
         const mod = 'ss' + 'h2';
         const { Client } = require(mod);
 
-        const subdomain: string = await new Promise((resolve, reject) => {
-            const conn = new Client();
-            conn.on('ready', () => {
-                const checkCmd = [
-                    `BASE="${baseSlug}"`,
-                    'SLUG="$BASE"',
-                    'COUNTER=2',
-                    'while [ -d "/www/wwwroot/$SLUG.namainvist.com" ]; do',
-                    '  SLUG="$BASE$COUNTER"',
-                    '  COUNTER=$((COUNTER + 1))',
-                    'done',
-                    'echo "$SLUG"',
-                ].join('\n');
+        let subdomain: string = body.subdomain;
+        if (!subdomain) {
+            subdomain = await new Promise((resolve, reject) => {
+                const conn = new Client();
+                conn.on('ready', () => {
+                    const checkCmd = [
+                        `BASE="${baseSlug}"`,
+                        'SLUG="$BASE"',
+                        'COUNTER=2',
+                        'while [ -d "/www/wwwroot/$SLUG.namainvist.com" ]; do',
+                        '  SLUG="$BASE$COUNTER"',
+                        '  COUNTER=$((COUNTER + 1))',
+                        'done',
+                        'echo "$SLUG"',
+                    ].join('\n');
 
-                conn.exec(checkCmd, (err: any, stream: any) => {
-                    if (err) { conn.end(); return reject(err); }
-                    let out = '';
-                    stream.on('data', (d: Buffer) => out += d.toString());
-                    stream.on('close', () => { conn.end(); resolve(out.trim()); });
+                    conn.exec(checkCmd, (err: any, stream: any) => {
+                        if (err) { conn.end(); return reject(err); }
+                        let out = '';
+                        stream.on('data', (d: Buffer) => out += d.toString());
+                        stream.on('close', () => { conn.end(); resolve(out.trim()); });
+                    });
                 });
+                conn.on('error', reject);
+                conn.connect({ host: SSH_HOST, port: 22, username: SSH_USER, password: SSH_PASS, readyTimeout: 15000 });
             });
-            conn.on('error', reject);
-            conn.connect({ host: SSH_HOST, port: 22, username: SSH_USER, password: SSH_PASS, readyTimeout: 15000 });
-        });
+        }
 
         if (!subdomain) {
             return NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.' }, { status: 500 });

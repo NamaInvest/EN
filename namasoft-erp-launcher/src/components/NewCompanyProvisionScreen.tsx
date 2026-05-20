@@ -106,6 +106,13 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         deviceFingerprint: formData?.deviceFingerprint || '',
         subdomain,
         version: '2.4.8',
+        
+        // Map to backend expected fields
+        companyNameAr: companyName,
+        mobile: phone,
+        city: 'الرياض',
+        clerkEmail: email,
+        trialSource: 'DESKTOP_APP'
       };
       const res = await api.provisionTenant(payload);
       if (res.success) {
