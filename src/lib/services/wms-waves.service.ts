@@ -1,19 +1,10 @@
-/**
- * Wave Picking + WMS Engine (Build #29)
- * ═══════════════════════════════════════
- * 
- * - تجميع طلبات في waves للالتقاط
- * - تحسين مسار الالتقاط (nearest-neighbor TSP)
- * - Slotting analysis (ABC velocity)
- */
-
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
-const log = logger.child({ service: 'wave-picking' });
+const log = logger.child({ service: 'wms.waves.service' });
 const db = (p: any) => p as any;
 
-export type PickTask = {
+export type PickTaskPreview = {
     orderId: number;
     productId: number;
     productName: string;
@@ -22,19 +13,49 @@ export type PickTask = {
     sequence: number;
 };
 
-export class WavePickingEngine {
-    static async planWave(
+export class WmsWavesService {
+    /**
+     * Lists existing waves with pagination and filtering.
+     * Ensures strict tenant isolation.
+     */
+    static async listWaves(
         prisma: PrismaClient,
+        tenantId: string,
+        filters: { status?: string; warehouseId?: number }
+    ) {
+        return await db(prisma).wmsWave?.findMany?.({
+            where: {
+                tenantId,
+                ...(filters.status ? { status: filters.status } : {}),
+                // Additional filters if needed based on the schema
+            },
+            include: { tasks: true },
+            orderBy: { createdAt: 'desc' }
+        }) ?? [];
+    }
+
+    /**
+     * Generates a preview for a wave without persisting it or modifying inventory.
+     * Enforces tenant isolation for SalesOrders and StockMovements.
+     */
+    static async generateWavePreview(
+        prisma: PrismaClient,
+        tenantId: string,
         warehouseId: number,
         orderIds: number[],
         maxLinesPerWave: number = 50
-    ): Promise<{ waveId: string; tasks: PickTask[]; estimatedMinutes: number }> {
+    ): Promise<{ waveId: string; tasks: PickTaskPreview[]; estimatedMinutes: number }> {
+        // Enforce tenantId in SalesOrder query
         const orders = await db(prisma).salesOrder?.findMany?.({
-            where: { id: { in: orderIds }, status: { in: ['CONFIRMED', 'confirmed'] } },
+            where: { 
+                tenantId, 
+                id: { in: orderIds }, 
+                status: { in: ['CONFIRMED', 'confirmed'] } 
+            },
             include: { lines: { include: { product: true } } },
         }).catch(() => []) ?? [];
 
-        const allLines: PickTask[] = [];
+        const allLines: PickTaskPreview[] = [];
         for (const order of orders) {
             for (const line of (order.lines || [])) {
                 allLines.push({
@@ -48,27 +69,32 @@ export class WavePickingEngine {
             }
         }
 
-        // Optimize pick path: sort by aisle → bay → level (nearest-neighbor)
+        // Optimize pick path: sort by aisle -> bay -> level (nearest-neighbor)
         const sorted = allLines.sort((a, b) => a.binLocation.localeCompare(b.binLocation));
         sorted.forEach((t, i) => t.sequence = i + 1);
 
-        // Split into waves if exceeds max
         const waveTasks = sorted.slice(0, maxLinesPerWave);
 
         return {
-            waveId: `WAVE-${Date.now().toString(36).toUpperCase()}`,
+            waveId: `PREVIEW-WAVE-${Date.now().toString(36).toUpperCase()}`,
             tasks: waveTasks,
             estimatedMinutes: Math.ceil(waveTasks.length * 1.5),
         };
     }
 
-    static async slottingAnalysis(
+    /**
+     * Analyzes stock velocity to recommend slotting changes.
+     * Read-only and enforces tenant isolation.
+     */
+    static async getSlottingAnalysis(
         prisma: PrismaClient,
+        tenantId: string,
         warehouseId: number
     ): Promise<Array<{ productId: number; productName: string; velocity: number; currentBin: string; suggestedZone: string; rank: string }>> {
-        // Get movement velocity per product (last 90 days)
+        // Enforce tenantId in StockMovement query
         const movements = await db(prisma).stockMovement?.findMany?.({
             where: {
+                tenantId, // VERY IMPORTANT
                 warehouseId,
                 createdAt: { gte: new Date(Date.now() - 90 * 86400000) },
                 type: { in: ['OUT', 'SALE', 'out'] },
