@@ -107,6 +107,13 @@ async function _GET(req: NextRequest) {
       return NextResponse.json({ conflicts });
     }
 
+    if (action === 'dashboard') {
+      const dashboard = await runInventoryTx(prisma, async (tx) => {
+        return await ManufacturingApsService.getDashboard(tx, tenantId);
+      });
+      return NextResponse.json(dashboard);
+    }
+
     if (action === 'schedule') {
         const orderId = Number(searchParams.get('manufacturingOrderId') ?? 0);
         if (!orderId) {

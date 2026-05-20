@@ -120,4 +120,59 @@ export class ManufacturingApsService {
     }
     return conflicts;
   }
+
+  /**
+   * Retrieves dashboard statistics and recent data for the APS UI.
+   */
+  static async getDashboard(tx: Prisma.TransactionClient, tenantId: string) {
+    const [
+      openOrdersCount,
+      workCentersCount,
+      scheduledOpsCount,
+      latestRun,
+      recentOperations,
+      recentRuns,
+      conflictsCount
+    ] = await Promise.all([
+      tx.manufacturingOrder.count({
+        where: { tenantId, status: { in: ['draft', 'in_progress'] } }
+      }),
+      tx.workCenter.count({
+        where: { tenantId, isActive: true }
+      }),
+      tx.scheduledOperation.count({
+        where: { tenantId, status: { in: ['PLANNED', 'SCHEDULED'] } }
+      }),
+      tx.scheduleRun.findFirst({
+        where: { tenantId },
+        orderBy: { runDate: 'desc' }
+      }),
+      tx.scheduledOperation.findMany({
+        where: { tenantId },
+        orderBy: { plannedStart: 'desc' },
+        take: 20
+      }),
+      tx.scheduleRun.findMany({
+        where: { tenantId },
+        orderBy: { runDate: 'desc' },
+        take: 10
+      }),
+      // A quick estimate of conflicts: we can just return 0 for the overview or do a fast check
+      tx.scheduledOperation.count({
+        where: { tenantId, status: 'CONFLICT' } // If there was a conflict status
+      }).catch(() => 0)
+    ]);
+
+    return {
+      stats: {
+        openOrdersCount,
+        workCentersCount,
+        scheduledOpsCount,
+        latestRunDate: latestRun?.runDate || null,
+        conflictsCount
+      },
+      recentOperations,
+      recentRuns
+    };
+  }
 }
