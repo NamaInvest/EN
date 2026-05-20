@@ -34,7 +34,7 @@ ipcMain.handle('license:verify', async (_, data: LicensePayload) => checkLicense
 ipcMain.handle('license:saveProvision', async (_, data: any) => saveProvisionedLicense(data));
 ipcMain.handle('app:checkSubdomain', async (_, subdomain: string) => {
   try {
-    const res = await fetch(`https://namainvist.com/api/tenant/check-status`, {
+    await fetch(`https://namainvist.com/api/tenant/check-status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subdomain })
