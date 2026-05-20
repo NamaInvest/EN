@@ -32,7 +32,7 @@ app.whenReady().then(async () => {
 ipcMain.handle('app:fingerprint', async () => generateDeviceFingerprint());
 ipcMain.handle('license:verify', async (_, data: LicensePayload) => checkLicense(data));
 ipcMain.handle('license:saveProvision', async (_, data: any) => saveProvisionedLicense(data));
-ipcMain.handle('app:checkSubdomain', async (_, subdomain: string) => {
+ipcMain.handle('app:checkSubdomain', async () => {
   return { available: true };
 });
 ipcMain.handle('app:provisionTenant', async (_, data: any) => {
