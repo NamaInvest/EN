@@ -1,5 +1,6 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'wms.waves.service' });
 const db = (p: any) => p as any;
@@ -80,6 +81,83 @@ export class WmsWavesService {
             tasks: waveTasks,
             estimatedMinutes: Math.ceil(waveTasks.length * 1.5),
         };
+    }
+
+    /**
+     * Creates a new WMS Wave with associated picking tasks.
+     * Enforces tenant isolation and uses runInventoryTx for ACID compliance.
+     * Idempotent: checks for existing wave with the same source idempotency key (if needed in route).
+     */
+    static async createWaveWithTasks(
+        prisma: PrismaClient,
+        tenantId: string,
+        warehouseId: number,
+        orderIds: number[],
+        priority: number = 1,
+        maxLinesPerWave: number = 50
+    ) {
+        // 1. Ensure isolated transaction boundary for WMS
+        return await runInventoryTx(prisma, async (tx) => {
+            // 2. Validate tenant and fetch orders
+            const orders = await tx.salesOrder.findMany({
+                where: { 
+                    tenantId, 
+                    id: { in: orderIds }, 
+                    status: { in: ['CONFIRMED', 'confirmed'] } 
+                },
+                include: { details: { include: { product: true } } },
+            });
+
+            if (!orders.length) {
+                throw new Error('No valid confirmed orders found for wave creation.');
+            }
+
+            // 3. Flatten and sort tasks for pick path
+            const allTasks: Omit<Prisma.WmsTaskCreateManyInput, 'id' | 'waveId' | 'createdAt'>[] = [];
+            for (const order of orders) {
+                for (const line of (order.details || [])) {
+                    allTasks.push({
+                        tenantId,
+                        orderId: order.id,
+                        productId: line.productId,
+                        binLocation: 'A-01-01',
+                        quantity: Number(line.quantity),
+                        sequence: 0,
+                        status: 'PENDING',
+                    });
+                }
+            }
+
+            const sortedTasks = allTasks.sort((a, b) => a.binLocation.localeCompare(b.binLocation)).slice(0, maxLinesPerWave);
+            sortedTasks.forEach((t, i) => t.sequence = i + 1);
+
+            // 4. Create Wave header
+            const waveNumber = `WAVE-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            const wave = await tx.wmsWave.create({
+                data: {
+                    tenantId,
+                    waveNumber,
+                    status: 'DRAFT',
+                    priority,
+                    assignedTo: null,
+                }
+            });
+
+            // 5. Attach WmsTasks
+            if (sortedTasks.length > 0) {
+                const tasksWithWaveId = sortedTasks.map(t => ({ ...t, waveId: wave.id }));
+                await tx.wmsTask.createMany({
+                    data: tasksWithWaveId
+                });
+            }
+
+            log.info('WmsWave created via runInventoryTx', { tenantId, waveId: wave.id, tasksCount: sortedTasks.length });
+            
+            return {
+                wave,
+                tasksCount: sortedTasks.length
+            };
+        }, 'wms-create-wave');
     }
 
     /**

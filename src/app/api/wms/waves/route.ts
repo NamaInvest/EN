@@ -5,14 +5,15 @@ import { WmsWavesService } from '@/lib/services/wms-waves.service';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { runFinancialTx } from '@/lib/db/transaction';
+import { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'api.wms.waves' });
 
 const _POSTSchema = z.object({
-  action: z.enum(['slotting', 'plan_wave']).default('plan_wave'),
+  action: z.enum(['slotting', 'plan_wave', 'create_wave']).default('plan_wave'),
   warehouseId: z.coerce.number().optional().default(1),
   orderIds: z.array(z.number()).optional(),
+  priority: z.coerce.number().optional().default(1),
   maxLines: z.number().max(200).optional().default(50),
 });
 
@@ -50,6 +51,40 @@ async function _POST(req: NextRequest) {
                 payload.maxLines
             );
             return NextResponse.json(wave);
+        }
+
+        if (payload.action === 'create_wave') {
+            if (!payload.orderIds?.length) {
+                return NextResponse.json({ error: 'مطلوب: orderIds[]' }, { status: 400 });
+            }
+
+            const idempotencyKey = req.headers.get('x-idempotency-key');
+            if (!idempotencyKey) {
+                return NextResponse.json({ error: "Missing x-idempotency-key header." }, { status: 400 });
+            }
+
+            const isUnique = await lockIdempotencyKey(tenantId, 'wms_create_wave', idempotencyKey);
+            if (!isUnique) {
+                return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
+            }
+
+            try {
+                const waveResult = await WmsWavesService.createWaveWithTasks(
+                    prisma,
+                    tenantId,
+                    payload.warehouseId,
+                    payload.orderIds,
+                    payload.priority,
+                    payload.maxLines
+                );
+
+                await completeIdempotencyKey(tenantId, 'wms_create_wave', idempotencyKey);
+                return NextResponse.json(waveResult, { status: 201 });
+            } catch (err: any) {
+                await unlockIdempotencyKey(tenantId, 'wms_create_wave', idempotencyKey);
+                log.error('WMS Create Wave Error', { err });
+                return NextResponse.json({ error: err.message || 'فشل في إنشاء الموجة' }, { status: 500 });
+            }
         }
 
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
