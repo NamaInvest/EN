@@ -116,10 +116,19 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
       };
       const res = await api.provisionTenant(payload);
       if (res.success) {
+        // Fallback to local computation if backend doesn't return it
+        const finalWorkspaceUrl = res.workspaceUrl || `https://${subdomain}.namainvist.com`;
+        res.workspaceUrl = finalWorkspaceUrl;
+        
         // Save to local cache
         await api.saveProvision(res);
         setProvisionResult({ type: 'success', message: res.message || i18n.status.success, data: res });
-        // User will click the button manually
+        
+        // Automatically open the workspace and exit this screen
+        setTimeout(() => {
+          api.openWorkspace(finalWorkspaceUrl);
+          if (onDashboard) onDashboard();
+        }, 1500);
       } else {
         setProvisionResult({ type: 'error', message: res.message || i18n.status.error });
       }
@@ -272,18 +281,19 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
                 </div>
               </div>
               
-              {provisionResult.type === 'success' && provisionResult.data?.workspaceUrl && (
+              {provisionResult.type === 'success' && (
                 <div className="mt-4 p-3 bg-white/60 rounded-lg border border-emerald-100 flex flex-col gap-2">
-                  <p className="text-sm font-semibold">رابط الشركة: <span className="font-mono text-emerald-700">{provisionResult.data.workspaceUrl}</span></p>
+                  <p className="text-sm font-semibold">رابط الشركة: <span className="font-mono text-emerald-700">{provisionResult.data?.workspaceUrl || `https://${subdomain}.namainvist.com`}</span></p>
                   <p className="text-sm">مدة التجربة: 7 أيام</p>
                   <button 
                     onClick={() => {
-                      api.openWorkspace(provisionResult.data.workspaceUrl);
+                      const url = provisionResult.data?.workspaceUrl || `https://${subdomain}.namainvist.com`;
+                      api.openWorkspace(url);
                       if (onDashboard) onDashboard();
                     }}
-                    className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-max font-medium"
+                    className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-max font-medium flex items-center gap-2"
                   >
-                    فتح مساحة العمل
+                    جاري التوجيه تلقائياً...
                   </button>
                 </div>
               )}
