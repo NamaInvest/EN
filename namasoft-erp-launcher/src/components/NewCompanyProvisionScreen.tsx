@@ -105,7 +105,7 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         phone,
         deviceFingerprint: formData?.deviceFingerprint || '',
         subdomain,
-        version: '2.4.8',
+        version: '2.4.9',
         
         // Map to backend expected fields
         companyNameAr: companyName,
