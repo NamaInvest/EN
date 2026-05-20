@@ -58,9 +58,10 @@ const i18n = {
 interface OfflineDashboardProps {
   onBack: () => void;
   onCheckUpdates: () => void;
+  licenseData?: any;
 }
 
-export function OfflineDashboard({ onBack, onCheckUpdates }: OfflineDashboardProps) {
+export function OfflineDashboard({ onBack, onCheckUpdates, licenseData }: OfflineDashboardProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [qzStatus, setQzStatus] = useState<'notChecked' | 'installed' | 'notInstalled'>('notChecked');
   const [syncLoading, setSyncLoading] = useState(false);
@@ -118,7 +119,9 @@ export function OfflineDashboard({ onBack, onCheckUpdates }: OfflineDashboardPro
   };
 
   const handleOpenWorkspace = () => {
-    console.log('Open workspace');
+    if (licenseData?.status === 'ACTIVE' && licenseData?.workspaceUrl) {
+      api.openWorkspace(licenseData.workspaceUrl);
+    }
   };
 
   return (
@@ -135,6 +138,12 @@ export function OfflineDashboard({ onBack, onCheckUpdates }: OfflineDashboardPro
               <h1 className="text-2xl font-bold text-slate-900">{i18n.title}</h1>
             </div>
             <p className="text-slate-500 mt-1 mr-12">{i18n.subtitle}</p>
+            {licenseData?.status === 'OFFLINE_GRACE' && (
+              <div className="mt-3 mr-12 p-2 bg-amber-50 text-amber-700 text-sm font-semibold rounded-lg border border-amber-200 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                تحذير: أنت تعمل في وضع الاوفلاين (Offline Grace). بعض الميزات قد لا تكون متوفرة وسيتم تسجيل الحركات كمُسودات.
+              </div>
+            )}
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
@@ -158,12 +167,14 @@ export function OfflineDashboard({ onBack, onCheckUpdates }: OfflineDashboardPro
               <Play className={`w-4 h-4 ${syncLoading ? 'animate-pulse' : ''}`} /> 
               {syncLoading ? 'جاري المزامنة...' : i18n.buttons.runSync}
             </button>
-            <button 
-              onClick={handleOpenWorkspace}
-              className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-md flex items-center gap-2 font-medium transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" /> {i18n.buttons.openWorkspace}
-            </button>
+            {licenseData?.status === 'ACTIVE' && (
+              <button 
+                onClick={handleOpenWorkspace}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-md flex items-center gap-2 font-medium transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" /> {i18n.buttons.openWorkspace}
+              </button>
+            )}
           </div>
         </div>
 

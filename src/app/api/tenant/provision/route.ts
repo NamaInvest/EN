@@ -164,10 +164,14 @@ async function seedCompanyData(params: {
         await upsertSetting('zatca_building', params.buildingNo);
         await upsertSetting('zatca_postal_code', params.postalCode);
 
-        // إعدادات النظام
-        const trialEndMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        // إعدادات النظام وتتبع الرخصة
+        const nowMs = Date.now();
+        const trialEndMs = nowMs + (7 * 24 * 60 * 60 * 1000);
         await upsertSetting('trialActive', 'true');
+        await upsertSetting('trialStartsAt', nowMs.toString());
         await upsertSetting('trialEndsAt', trialEndMs.toString());
+        await upsertSetting('trialStatus', 'ACTIVE');
+        await upsertSetting('trialSource', 'DESKTOP_APP');
         await upsertSetting('maxTrialInvoices', '30');
         await upsertSetting('tax_rate', '15');
         await upsertSetting('POS_TAX_ENABLED', 'true');
@@ -427,14 +431,16 @@ async function _POST(req: Request) {
             masterPrisma = new PrismaClient({
                 datasources: { db: { url: getDbUrl('n11') } },
             });
-            await masterPrisma.tenantAccount.upsert({
+            const account = await masterPrisma.tenantAccount.upsert({
                 where: { userEmail: clerkEmail || `${subdomain}@namainvist.com` },
                 update: {
                     subdomain,
                     status: 'active',
                     orgName: companyNameAr,
                     vatNumber: vatNumber || '',
-                    // ← حفظ clerkUserId دائماً لضمان check-status يعمل
+                    subscriptionStatus: 'trial',
+                    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    // ← clerkUserId ضروري لربط الجلسة بالـ tenant
                     ...(clerkUserId ? { clerkUserId } : {}),
                 },
                 create: {
@@ -443,10 +449,26 @@ async function _POST(req: Request) {
                     vatNumber: vatNumber || '',
                     subdomain,
                     status: 'active',
+                    subscriptionStatus: 'trial',
+                    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                     // ← clerkUserId ضروري لربط الجلسة بالـ tenant
                     ...(clerkUserId ? { clerkUserId } : {}),
                 },
             });
+            
+            // Create Desktop License if this is from desktop
+            await masterPrisma.desktopLicense.create({
+                data: {
+                    licenseKey: `TRIAL-${subdomain}-${Date.now()}`,
+                    tenantAccountId: account.id,
+                    status: 'trial',
+                    trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                    companyNameAr: companyNameAr,
+                    contactEmail: clerkEmail,
+                    activatedAt: new Date(),
+                }
+            }).catch(() => { /* non-blocking */ });
+
         } catch (e: any) {
             log.error('[provision] TenantAccount upsert failed:', e);
         } finally {
@@ -464,10 +486,25 @@ async function _POST(req: Request) {
             }).catch(() => { /* non-blocking */ });
         }
 
+        const trialEndMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        
+        // توليد JWT مبسط للديسكتوب كإثبات موقّع للرخصة
+        const jwtPayload = Buffer.from(JSON.stringify({
+            subdomain,
+            trialEndsAt: trialEndMs,
+            source: 'DESKTOP_APP',
+            ts: Date.now()
+        })).toString('base64url');
+        const jwtSig = createHmac('sha256', PROVISION_SECRET).update(jwtPayload).digest('hex');
+        const trialToken = `${jwtPayload}.${jwtSig}`;
+
         return NextResponse.json({
             success: true,
             subdomain,
             ssoToken,
+            trialToken,
+            trialEndsAt: trialEndMs,
+            workspaceUrl: `https://${subdomain}.namainvist.com`,
             seedOk: seedResult.ok,
             message: 'تم تأسيس نظامك بنجاح.',
         });

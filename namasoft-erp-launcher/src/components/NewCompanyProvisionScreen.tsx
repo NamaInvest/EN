@@ -7,6 +7,10 @@ const i18n = {
   subtitle: 'الرجاء اختيار نطاق فرعي لشركتك الجديدة',
   labels: {
     companyName: 'اسم المنشأة',
+    adminName: 'اسم المسؤول',
+    email: 'البريد الإلكتروني',
+    phone: 'رقم الجوال',
+    password: 'كلمة المرور',
     subdomain: 'النطاق الفرعي المطلوب',
   },
   errors: {
@@ -35,13 +39,18 @@ interface NewCompanyProvisionScreenProps {
 
 export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData }: NewCompanyProvisionScreenProps) {
   const [subdomain, setSubdomain] = useState(data?.suggestedSubdomain || '');
+  const [adminName, setAdminName] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(formData?.email || '');
+  const [phone, setPhone] = useState(formData?.phone || '');
+  
   const [error, setError] = useState('');
   
   const [isChecking, setIsChecking] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   
   const [isProvisioning, setIsProvisioning] = useState(false);
-  const [provisionResult, setProvisionResult] = useState<{ type: 'success' | 'error', message?: string } | null>(null);
+  const [provisionResult, setProvisionResult] = useState<any>(null);
 
   const subdomainRegex = /^[a-z0-9-]{3,30}$/;
 
@@ -82,20 +91,22 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
       const payload = {
         licenseKey: formData?.licenseKey || '',
         companyName: formData?.companyName || '',
+        adminName,
+        password,
         crNumber: formData?.crNumber,
         vatNumber: formData?.vatNumber,
-        email: formData?.email,
-        phone: formData?.phone,
+        email,
+        phone,
         deviceFingerprint: formData?.deviceFingerprint || '',
         subdomain,
         version: '2.4.8',
       };
       const res = await api.provisionTenant(payload);
       if (res.success) {
-        setProvisionResult({ type: 'success', message: res.message || i18n.status.success });
-        if (onDashboard) {
-          setTimeout(() => onDashboard(), 1500);
-        }
+        // Save to local cache
+        await api.saveProvision(res);
+        setProvisionResult({ type: 'success', message: res.message || i18n.status.success, data: res });
+        // User will click the button manually
       } else {
         setProvisionResult({ type: 'error', message: res.message || i18n.status.error });
       }
@@ -137,7 +148,51 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
           </div>
 
           <div className="space-y-4">
-            <label className="text-sm font-semibold text-slate-700">{i18n.labels.subdomain}</label>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">{i18n.labels.adminName}</label>
+                <input
+                  type="text"
+                  value={adminName}
+                  onChange={(e) => setAdminName(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-4 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200"
+                  placeholder="أحمد محمد"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">{i18n.labels.password}</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-4 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200"
+                  placeholder="كلمة مرور الدخول"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">{i18n.labels.email}</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  dir="ltr"
+                  className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-4 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 text-left"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">{i18n.labels.phone}</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  dir="ltr"
+                  className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-4 text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 text-left"
+                />
+              </div>
+            </div>
+
+            <label className="text-sm font-semibold text-slate-700 mt-4 block">{i18n.labels.subdomain}</label>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -183,16 +238,34 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
 
           {/* Result Card */}
           {provisionResult && (
-            <div className={`mt-6 p-4 rounded-xl flex items-start gap-3 border ${
+            <div className={`mt-6 p-4 rounded-xl border ${
               provisionResult.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}>
-              {provisionResult.type === 'success' ? <CheckCircle2 className="w-6 h-6 shrink-0" /> : <XCircle className="w-6 h-6 shrink-0" />}
-              <div>
-                <h3 className="font-bold mb-1">
-                  {provisionResult.type === 'success' ? i18n.status.success : i18n.status.error}
-                </h3>
-                {provisionResult.message && <p className="text-sm opacity-90">{provisionResult.message}</p>}
+              <div className="flex items-start gap-3">
+                {provisionResult.type === 'success' ? <CheckCircle2 className="w-6 h-6 shrink-0" /> : <XCircle className="w-6 h-6 shrink-0" />}
+                <div>
+                  <h3 className="font-bold mb-1">
+                    {provisionResult.type === 'success' ? i18n.status.success : i18n.status.error}
+                  </h3>
+                  {provisionResult.message && <p className="text-sm opacity-90 mb-2">{provisionResult.message}</p>}
+                </div>
               </div>
+              
+              {provisionResult.type === 'success' && provisionResult.data?.workspaceUrl && (
+                <div className="mt-4 p-3 bg-white/60 rounded-lg border border-emerald-100 flex flex-col gap-2">
+                  <p className="text-sm font-semibold">رابط الشركة: <span className="font-mono text-emerald-700">{provisionResult.data.workspaceUrl}</span></p>
+                  <p className="text-sm">مدة التجربة: 7 أيام</p>
+                  <button 
+                    onClick={() => {
+                      api.openWorkspace(provisionResult.data.workspaceUrl);
+                      if (onDashboard) onDashboard();
+                    }}
+                    className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-max font-medium"
+                  >
+                    فتح مساحة العمل
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

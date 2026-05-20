@@ -21,8 +21,20 @@ export async function initializeDatabase() {
     db = new SQL.Database();
   }
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS cached_license (id TEXT PRIMARY KEY, key_hash TEXT, expires_at TEXT, status TEXT);
+    db.run(`
+      DROP TABLE IF EXISTS cached_license;
+      CREATE TABLE cached_license (
+        id TEXT PRIMARY KEY, 
+        trialToken TEXT, 
+        tenantId TEXT, 
+        subdomain TEXT, 
+        workspaceUrl TEXT, 
+        trialEndsAt TEXT, 
+        serverTimeAtLastVerify TEXT, 
+        localTimeAtLastVerify TEXT, 
+        lastSeenLocalTime TEXT, 
+        status TEXT
+      );
     CREATE TABLE IF NOT EXISTS cached_company (company_id TEXT PRIMARY KEY, tenant_id TEXT, name TEXT, subdomain TEXT);
     CREATE TABLE IF NOT EXISTS cached_user (user_id TEXT PRIMARY KEY, name TEXT, role TEXT);
     CREATE TABLE IF NOT EXISTS local_outbox (

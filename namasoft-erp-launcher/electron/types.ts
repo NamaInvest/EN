@@ -12,7 +12,7 @@ export interface LicensePayload {
 }
 
 export interface LicenseVerifyResponse {
-  status: 'existing_company' | 'new_company' | 'invalid_license';
+  status: 'existing_company' | 'new_company' | 'invalid_license' | 'ACTIVE' | 'EXPIRED' | 'INVALID' | 'OFFLINE_GRACE' | 'LOCKED';
   valid: boolean;
   tenantId?: string;
   companyId?: string;
@@ -21,11 +21,17 @@ export interface LicenseVerifyResponse {
   licenseExpiresAt?: string;
   suggestedSubdomain?: string;
   message?: string;
+  workspaceUrl?: string;
+  daysRemaining?: number;
+  trialEndsAt?: string;
+  serverTime?: string;
 }
 
 export interface ProvisionTenantPayload {
   licenseKey: string;
   companyName: string;
+  adminName?: string;
+  password?: string;
   crNumber?: string;
   vatNumber?: string;
   email?: string;
@@ -33,6 +39,18 @@ export interface ProvisionTenantPayload {
   subdomain: string;
   deviceFingerprint: string;
   version: string;
+}
+
+export interface ProvisionTenantResponse {
+  success: boolean;
+  message?: string;
+  tenantId?: string;
+  subdomain?: string;
+  workspaceUrl?: string;
+  trialToken?: string;
+  trialStartsAt?: string;
+  trialEndsAt?: string;
+  serverTime?: string;
 }
 
 export interface SyncEvent {

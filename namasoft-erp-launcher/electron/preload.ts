@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkUpdates: () => ipcRenderer.invoke('app:checkUpdate'),
   getQzStatus: () => ipcRenderer.invoke('qz:status'),
   runSync: () => ipcRenderer.invoke('sync:runOnce'),
-  getSyncStatus: () => ipcRenderer.invoke('sync:getStatus')
+  getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
+  openWorkspace: (url: string) => ipcRenderer.invoke('app:openWorkspace', url),
+  saveProvision: (data: any) => ipcRenderer.invoke('license:saveProvision', data)
 });

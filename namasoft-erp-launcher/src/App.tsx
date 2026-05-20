@@ -19,6 +19,24 @@ export default function App() {
 
   useEffect(() => {
     api.getFingerprint().then((fp) => setFingerprint(fp));
+    
+    // Auto-check license on startup
+    api.checkLicense({}).then((res) => {
+      setLicenseData(res);
+      if (res.status === 'ACTIVE') {
+        setScreen('dashboard'); // For now, dashboard represents Workspace
+      } else if (res.status === 'OFFLINE_GRACE') {
+        setScreen('dashboard');
+      } else if (res.status === 'EXPIRED') {
+        setScreen('expired');
+      } else if (res.status === 'INVALID' || res.status === 'LOCKED') {
+        setScreen('welcome');
+      } else if (res.status === 'existing_company') {
+        setScreen('existing_company');
+      } else if (res.status === 'new_company') {
+        setScreen('new_company');
+      }
+    });
   }, []);
 
   if (screen === 'welcome') {
@@ -73,11 +91,26 @@ export default function App() {
   }
 
   if (screen === 'dashboard') {
-    return <OfflineDashboard onBack={() => setScreen('welcome')} onCheckUpdates={() => setScreen('update_screen')} />;
+    return <OfflineDashboard onBack={() => setScreen('welcome')} onCheckUpdates={() => setScreen('update_screen')} licenseData={licenseData} />;
   }
 
   if (screen === 'update_screen') {
     return <AppUpdateScreen onBack={() => setScreen('dashboard')} />;
+  }
+
+  if (screen === 'expired') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6" dir="rtl">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-rose-100 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            ⚠️
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">انتهت فترة التجربة</h2>
+          <p className="text-slate-600 mb-6">لقد انتهت فترة الـ 7 أيام التجريبية الخاصة بك.</p>
+          <button onClick={() => setScreen('welcome')} className="px-6 py-2 bg-slate-900 text-white rounded-lg w-full">رجوع</button>
+        </div>
+      </div>
+    );
   }
 
   return null;

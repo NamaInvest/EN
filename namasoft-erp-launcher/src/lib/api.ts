@@ -6,11 +6,13 @@ declare global {
       getFingerprint: () => Promise<string>;
       checkLicense: (data: LicensePayload) => Promise<LicenseVerifyResponse>;
       checkSubdomain: (subdomain: string) => Promise<{ available: boolean }>;
-      provisionTenant: (data: ProvisionTenantPayload) => Promise<{ success: boolean; message?: string }>;
+      provisionTenant: (data: ProvisionTenantPayload) => Promise<import('../../electron/types').ProvisionTenantResponse>;
       checkUpdates: () => Promise<AppUpdateInfo>;
       getQzStatus: () => Promise<QzTrayStatus>;
       runSync: () => Promise<{ success: number, failed: number }>;
       getSyncStatus: () => Promise<SyncStatusReport>;
+      openWorkspace: (url: string) => Promise<void>;
+      saveProvision: (data: any) => Promise<boolean>;
     }
   }
 }
@@ -23,5 +25,7 @@ export const api = {
   checkUpdates: () => window.electronAPI.checkUpdates(),
   getQzStatus: () => window.electronAPI.getQzStatus(),
   runSync: () => window.electronAPI.runSync(),
-  getSyncStatus: () => window.electronAPI.getSyncStatus()
+  getSyncStatus: () => window.electronAPI.getSyncStatus(),
+  openWorkspace: (url: string) => window.electronAPI.openWorkspace(url),
+  saveProvision: (data: any) => window.electronAPI.saveProvision(data)
 };
