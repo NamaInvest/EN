@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Box, GitMerge, AlertCircle, CheckCircle2, TrendingUp, Search, Calendar, FileText, BarChart3, Database } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Loader2, Box, GitMerge, AlertCircle, CheckCircle2, TrendingUp, Search, Calendar, FileText, BarChart3, Database, Plus } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 type Wave = {
@@ -43,6 +44,15 @@ export default function WmsWavesClient() {
   // Preview State
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewData, setPreviewData] = useState<{waveId: string, estimatedMinutes: number, tasks: PickTaskPreview[]} | null>(null);
+
+  // Create Wave State
+  const [createLoading, setCreateLoading] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    warehouseId: 1,
+    priority: 1,
+    orderIdsText: '1,2,3',
+  });
 
   useEffect(() => {
     fetchWaves();
@@ -93,6 +103,42 @@ export default function WmsWavesClient() {
     }
   };
 
+  const handleCreateWave = async () => {
+    try {
+      const orderIds = createForm.orderIdsText.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+      if (orderIds.length === 0) {
+        toastError('Please provide valid order IDs.');
+        return;
+      }
+
+      setCreateLoading(true);
+      const res = await fetch('/api/wms/waves', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-idempotency-key': crypto.randomUUID()
+        },
+        body: JSON.stringify({ 
+          action: 'create_wave', 
+          warehouseId: createForm.warehouseId, 
+          orderIds: orderIds,
+          priority: createForm.priority
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create wave');
+      
+      toastSuccess(`Wave created successfully! ID: ${data.wave.waveNumber}`);
+      setIsCreateOpen(false);
+      fetchWaves(); // Refresh data
+    } catch (err: any) {
+      toastError(err.message);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   // Derived metrics
   const totalWaves = waves.length;
   const draftWaves = waves.filter(w => w.status === 'DRAFT').length;
@@ -117,10 +163,64 @@ export default function WmsWavesClient() {
           <h1 className="text-3xl font-bold tracking-tight">WMS Waves Control (Read-Only)</h1>
           <p className="text-muted-foreground mt-1">Monitor picking waves, slotting, and task assignments securely.</p>
         </div>
-        <Badge variant="outline" className="px-3 py-1 bg-primary/5 text-primary">
-          <Database className="w-4 h-4 mr-2" />
-          Enterprise WMS
-        </Badge>
+        <div className="flex items-center space-x-3">
+          <Badge variant="outline" className="px-3 py-1 bg-primary/5 text-primary hidden sm:inline-flex">
+            <Database className="w-4 h-4 mr-2" />
+            Enterprise WMS
+          </Badge>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Wave Draft
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Wave Draft</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Warehouse ID</label>
+                  <Input 
+                    type="number" 
+                    value={createForm.warehouseId} 
+                    onChange={e => setCreateForm(prev => ({ ...prev, warehouseId: parseInt(e.target.value) || 1 }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priority (1 = High)</label>
+                  <Select 
+                    value={createForm.priority.toString()} 
+                    onValueChange={val => setCreateForm(prev => ({ ...prev, priority: parseInt(val) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Priority 1 (Urgent)</SelectItem>
+                      <SelectItem value="2">Priority 2 (Normal)</SelectItem>
+                      <SelectItem value="3">Priority 3 (Low)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Source Order IDs (comma separated)</label>
+                  <Input 
+                    placeholder="e.g. 1, 2, 3" 
+                    value={createForm.orderIdsText} 
+                    onChange={e => setCreateForm(prev => ({ ...prev, orderIdsText: e.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">Only CONFIRMED orders will be processed.</p>
+                </div>
+                <Button onClick={handleCreateWave} disabled={createLoading} className="w-full">
+                  {createLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Create Wave
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Metrics Dashboard */}
