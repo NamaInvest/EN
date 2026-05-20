@@ -45,7 +45,7 @@ export default function App() {
         fingerprint={fingerprint} 
         onStartSetup={() => {
           console.log("Start setup clicked");
-          setScreen('license');
+          setScreen('new_company');
         }} 
       />
     );
@@ -84,7 +84,7 @@ export default function App() {
       <NewCompanyProvisionScreen 
         data={licenseData} 
         formData={payloadData}
-        onBack={() => setScreen('license')}
+        onBack={() => setScreen('welcome')}
         onDashboard={() => setScreen('dashboard')}
       />
     );

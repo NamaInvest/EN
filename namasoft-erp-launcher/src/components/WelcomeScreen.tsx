@@ -9,7 +9,7 @@ const i18n = {
   items: {
     localDatabase: { label: 'قاعدة البيانات المحلية', status: 'Ready', text: 'جاهز' },
     offlineEngine: { label: 'محرك العمل دون اتصال', status: 'Ready', text: 'جاهز' },
-    license: { label: 'الترخيص', status: 'Not configured', text: 'غير مهيأ' },
+    license: { label: 'الفترة التجريبية', status: 'Not configured', text: 'غير مفعلة' },
     sync: { label: 'المزامنة', status: 'Idle', text: 'خامل' },
     qzTray: { label: 'الطباعة (QZ Tray)', status: 'Not checked', text: 'لم يتم الفحص' },
   },

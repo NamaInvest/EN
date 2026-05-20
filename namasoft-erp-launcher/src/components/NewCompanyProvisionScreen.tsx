@@ -39,6 +39,7 @@ interface NewCompanyProvisionScreenProps {
 
 export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData }: NewCompanyProvisionScreenProps) {
   const [subdomain, setSubdomain] = useState(data?.suggestedSubdomain || '');
+  const [companyName, setCompanyName] = useState(formData?.companyName || '');
   const [adminName, setAdminName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState(formData?.email || '');
@@ -83,6 +84,11 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
 
   const handleProvision = async () => {
     if (!isAvailable) return;
+    
+    if (!companyName.trim() || !adminName.trim() || !password.trim() || !email.trim() || !phone.trim()) {
+      setProvisionResult({ type: 'error', message: 'يرجى تعبئة جميع الحقول المطلوبة' });
+      return;
+    }
 
     setIsProvisioning(true);
     setProvisionResult(null);
@@ -90,7 +96,7 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
     try {
       const payload = {
         licenseKey: formData?.licenseKey || '',
-        companyName: formData?.companyName || '',
+        companyName,
         adminName,
         password,
         crNumber: formData?.crNumber,
@@ -139,11 +145,19 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         {/* Content */}
         <div className="p-8">
           
-          <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-center gap-3">
-            <Building2 className="w-5 h-5 text-blue-600" />
-            <div>
-              <p className="text-sm font-medium text-blue-800">{i18n.labels.companyName}</p>
-              <p className="font-bold text-blue-900">{data?.companyName || formData?.companyName}</p>
+          <div className="mb-6">
+            <label className="text-sm font-semibold text-slate-700">{i18n.labels.companyName}</label>
+            <div className="relative mt-1">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <Building2 className="w-5 h-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-blue-200 rounded-lg py-2.5 pr-10 pl-4 text-slate-800 transition-all outline-none focus:ring-4"
+                placeholder="شركة النماذج الحديثة"
+              />
             </div>
           </div>
 
