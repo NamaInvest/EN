@@ -85,7 +85,6 @@ export default function App() {
         data={licenseData} 
         formData={payloadData}
         onBack={() => setScreen('welcome')}
-        onDashboard={() => setScreen('dashboard')}
       />
     );
   }

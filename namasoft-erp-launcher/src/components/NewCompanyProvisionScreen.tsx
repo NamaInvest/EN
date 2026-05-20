@@ -32,12 +32,11 @@ import { LicenseVerifyResponse, LicensePayload } from '../../electron/types';
 
 interface NewCompanyProvisionScreenProps {
   onBack: () => void;
-  onDashboard?: () => void;
   data: LicenseVerifyResponse | null;
   formData: LicensePayload | null;
 }
 
-export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData }: NewCompanyProvisionScreenProps) {
+export function NewCompanyProvisionScreen({ onBack, data, formData }: NewCompanyProvisionScreenProps) {
   const [subdomain, setSubdomain] = useState(data?.suggestedSubdomain || '');
   const [companyName, setCompanyName] = useState(formData?.companyName || '');
   const [adminName, setAdminName] = useState('');

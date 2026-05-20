@@ -68,7 +68,7 @@ ipcMain.handle('app:openWorkspace', async (_, url: string) => {
     mainWindow.loadURL(url);
 
     // If they go offline or the server is down, fallback to the local dashboard
-    mainWindow.webContents.once('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    mainWindow.webContents.once('did-fail-load', (_, errorCode, errorDescription, validatedURL) => {
       if (validatedURL === url) {
         console.warn('Failed to load workspace, falling back to local app', errorCode, errorDescription);
         if (process.env.VITE_DEV_SERVER_URL) {
