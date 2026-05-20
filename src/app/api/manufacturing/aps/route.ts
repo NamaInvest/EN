@@ -16,6 +16,14 @@ const _POSTSchema = z.discriminatedUnion('type', [
     horizonDays: z.coerce.number().optional().default(30),
   }),
   z.object({
+    type: z.literal('simulate'),
+    horizonDays: z.coerce.number().optional().default(30),
+  }),
+  z.object({
+    type: z.literal('validate_conflicts'),
+    workCenterId: z.coerce.number(),
+  }),
+  z.object({
     type: z.literal('schedule_op'),
     manufacturingOrderId: z.coerce.number(),
     operationId: z.coerce.number(),
@@ -58,7 +66,11 @@ async function _POST(req: NextRequest) {
     try {
       const result = await runInventoryTx(prisma, async (tx) => {
         if (payload.type === 'run') {
-          return await ManufacturingApsService.runSchedule(tx, tenantId, payload.horizonDays);
+          return await ManufacturingApsService.runScheduleControlled(tx, tenantId, payload.horizonDays);
+        } else if (payload.type === 'simulate') {
+          return await ManufacturingApsService.simulateSchedule(tx, tenantId, payload.horizonDays);
+        } else if (payload.type === 'validate_conflicts') {
+          return await ManufacturingApsService.validateScheduleConflicts(tx, tenantId, payload.workCenterId);
         } else if (payload.type === 'schedule_op') {
           return await ManufacturingApsService.scheduleOperation(
             tx,
