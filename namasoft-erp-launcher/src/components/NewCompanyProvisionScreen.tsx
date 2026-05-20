@@ -74,8 +74,8 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         setIsAvailable(false);
         setError(i18n.errors.alreadyTaken);
       }
-    } catch (err) {
-      setError(i18n.status.error);
+    } catch (err: any) {
+      setError(err.message || i18n.status.error);
       setIsAvailable(false);
     } finally {
       setIsChecking(false);

@@ -33,18 +33,7 @@ ipcMain.handle('app:fingerprint', async () => generateDeviceFingerprint());
 ipcMain.handle('license:verify', async (_, data: LicensePayload) => checkLicense(data));
 ipcMain.handle('license:saveProvision', async (_, data: any) => saveProvisionedLicense(data));
 ipcMain.handle('app:checkSubdomain', async (_, subdomain: string) => {
-  try {
-    await fetch(`https://namainvist.com/api/tenant/check-status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subdomain })
-    });
-    // Just simple logic: if it returns an active tenant or error, it's taken. If 404 or something, it's available.
-    // For now, always return available since backend handles duplicates.
-    return { available: true };
-  } catch (e) {
-    return { available: true };
-  }
+  return { available: true };
 });
 ipcMain.handle('app:provisionTenant', async (_, data: any) => {
   try {
