@@ -9,5 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   runSync: () => ipcRenderer.invoke('sync:runOnce'),
   getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
   openWorkspace: (url: string) => ipcRenderer.invoke('app:openWorkspace', url),
-  saveProvision: (data: any) => ipcRenderer.invoke('license:saveProvision', data)
+  saveProvision: (data: any) => ipcRenderer.invoke('license:saveProvision', data),
+  checkSubdomain: (subdomain: string) => ipcRenderer.invoke('app:checkSubdomain', subdomain),
+  provisionTenant: (data: any) => ipcRenderer.invoke('app:provisionTenant', data)
 });
