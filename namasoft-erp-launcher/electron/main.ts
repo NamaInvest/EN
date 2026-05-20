@@ -52,7 +52,6 @@ ipcMain.handle('qz:status', async () => getQzTrayStatus());
 ipcMain.handle('sync:runOnce', async () => processOutboxOnce());
 ipcMain.handle('sync:getStatus', async () => getSyncStatus());
 
-let workspaceWindow: BrowserWindow | null = null;
 ipcMain.handle('app:openWorkspace', async (_, url: string) => {
   // Validate URL (Security Rule)
   try {
@@ -65,51 +64,19 @@ ipcMain.handle('app:openWorkspace', async (_, url: string) => {
     return;
   }
 
-  if (workspaceWindow) {
-    workspaceWindow.focus();
-    return;
+  if (mainWindow) {
+    mainWindow.loadURL(url);
+
+    // If they go offline or the server is down, fallback to the local dashboard
+    mainWindow.webContents.once('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      if (validatedURL === url) {
+        console.warn('Failed to load workspace, falling back to local app', errorCode, errorDescription);
+        if (process.env.VITE_DEV_SERVER_URL) {
+          mainWindow?.loadURL(process.env.VITE_DEV_SERVER_URL);
+        } else {
+          mainWindow?.loadFile(path.join(__dirname, '../dist/index.html'));
+        }
+      }
+    });
   }
-
-  workspaceWindow = new BrowserWindow({
-    width: 1366,
-    height: 768,
-    title: 'Nama Invest ERP Workspace',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      webSecurity: true,
-    }
-  });
-
-  // Security: prevent navigation outside namainvist.com
-  workspaceWindow.webContents.on('will-navigate', (event, targetUrl) => {
-    try {
-      const parsed = new URL(targetUrl);
-      if (!parsed.hostname.endsWith('namainvist.com') && parsed.hostname !== 'namainvist.com') {
-        event.preventDefault();
-        console.warn('Prevented navigation to external domain:', targetUrl);
-      }
-    } catch {
-      event.preventDefault();
-    }
-  });
-
-  // Security: Handle new window attempts (e.g. window.open)
-  workspaceWindow.webContents.setWindowOpenHandler(({ url: targetUrl }) => {
-    try {
-      const parsed = new URL(targetUrl);
-      if (parsed.hostname.endsWith('namainvist.com') || parsed.hostname === 'namainvist.com') {
-        return { action: 'allow' }; // Or 'deny' and load in same window
-      }
-    } catch {}
-    return { action: 'deny' };
-  });
-
-  workspaceWindow.on('closed', () => {
-    workspaceWindow = null;
-  });
-
-  // Ensure trialToken is NOT passed in the URL (it should be handled securely, maybe injected later via session or kept strictly in Desktop)
-  workspaceWindow.loadURL(url);
 });

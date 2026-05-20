@@ -105,7 +105,7 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         phone,
         deviceFingerprint: formData?.deviceFingerprint || '',
         subdomain,
-        version: '2.4.9',
+        version: '2.4.10',
         
         // Map to backend expected fields
         companyNameAr: companyName,
@@ -124,10 +124,9 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
         await api.saveProvision(res);
         setProvisionResult({ type: 'success', message: res.message || i18n.status.success, data: res });
         
-        // Automatically open the workspace and exit this screen
+        // Automatically open the workspace
         setTimeout(() => {
           api.openWorkspace(finalWorkspaceUrl);
-          if (onDashboard) onDashboard();
         }, 1500);
       } else {
         setProvisionResult({ type: 'error', message: res.message || i18n.status.error });
@@ -289,7 +288,6 @@ export function NewCompanyProvisionScreen({ onBack, onDashboard, data, formData 
                     onClick={() => {
                       const url = provisionResult.data?.workspaceUrl || `https://${subdomain}.namainvist.com`;
                       api.openWorkspace(url);
-                      if (onDashboard) onDashboard();
                     }}
                     className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-max font-medium flex items-center gap-2"
                   >
