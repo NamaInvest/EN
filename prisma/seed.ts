@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { runPharmacySeed } from './seeds/verticals/pharmacy/index.js';
 
 const prisma = new PrismaClient();
 
@@ -8,12 +9,20 @@ async function main() {
 
     const args = process.argv.slice(2);
     const verticalArg = args.find(a => a.startsWith('--vertical='));
+    const tenantArg = args.find(a => a.startsWith('--tenantId='));
     
     if (verticalArg) {
         const vertical = verticalArg.split('=')[1];
+        const tenantId = tenantArg ? tenantArg.split('=')[1] : `namasoft-${vertical}-demo`;
+
         if (vertical === 'retail') {
             const { runRetailSeed } = await import('./seeds/verticals/retail/index');
-            await runRetailSeed(prisma, 'namasoft-retail-demo');
+            await runRetailSeed(prisma, tenantId);
+            return;
+        }
+        
+        if (vertical === 'pharmacy') {
+            await runPharmacySeed(prisma, tenantId);
             return;
         }
     }
