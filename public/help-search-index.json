@@ -1,0 +1,32 @@
+[
+  {
+    "id": "\\admin-manual.md",
+    "role": "general",
+    "title": "Admin User Manual — Namasoft ERP",
+    "content": " Admin User Manual — Namasoft ERP  > **آخر تحديث:** 2026-05-10 > **الجمهور:** Tenant admins, accounting admins, HR admins.  ---   1. الإعداد الأول (First-Run Wizard)  عند تسجيل اشتراك جديد، يأخذك النظام عبر:  1. **معلومات المنشأة** — الاسم، الرقم الضريبي (VAT)، رقم السجل التجاري، عنوان الفروع. 2. **الفرع الرئيسي** — البلد (المملكة العربية السعودية)، العملة (SAR)، المنطقة الزمنية (Asia/Riyadh). 3. **شجرة الحسابات** — اختر قالب SOCPA الجاهز أو ارفع شجرتك الخاصة. 4. **الفترة المالية** — تاريخ بداية السنة المالية (افتراضي: 1 يناير). 5. **الضرائب** — VAT 15% مفعّلة افتراضياً، أضف أكواد أخرى عند الحاجة. 6. **المستخدمون** — أنشئ حسابات الموظفين وعيّن الأدوار. 7. **التكامل** — ZATCA certificate upload (Phase 2)، GOSI، WPS، البنوك.  ---   2. Dashboard (الصفحة الرئيسية)  | Element | الوظيفة | |---------|---------| | Top Bar | الشعار، البحث الموحّد، الإشعارات، تبديل اللغة (AR/EN)، حساب المستخدم | | Sidebar | قائمة الموديولات (Sales, Purchases, Inventory, ...) | | KPI Cards | الإيرادات، الأرباح، ا"
+  },
+  {
+    "id": "\\integration_manager\\manual.md",
+    "role": "integration_manager",
+    "title": "دليل المستخدم — مدير التكاملات (Integration Manager)",
+    "content": " دليل المستخدم — مدير التكاملات (Integration Manager)  > الإصدار: 1.0 · 2026-05-21   1. الأدوار والمسؤوليات  أنت مسؤول عن: - إدارة Webhooks (`/settings/webhooks`) - إعداد SSO (`/settings/sso`) - متابعة التكاملات الخارجية (Salla, Zid, WhatsApp, Telegram) - مراقبة failCount + lastDeliveredAt للـ webhooks   2. المهام اليومية   2.1 مراجعة Webhooks الفاشلة 1. افتح **[Webhooks](/settings/webhooks)** 2. ابحث عن أي webhook بـ ⚠️ \"X فشل\" 3. لو failCount > 5 خلال 24 ساعة:    - تحقق من URL — هل الـ endpoint يعمل؟ (`curl -X POST`)    - راجع SSL certificate (لا يقبل النظام HTTP في الإنتاج)    - تحقق من الجهة المستقبلة — هل تقبل HMAC signing؟   2.2 إضافة Webhook جديد 1. اضغط \"webhook جديد\" 2. أدخل:    - **URL** (يجب HTTPS في الإنتاج)    - **الوصف** (مثل \"Slack invoices integration\")    - **الأحداث** — اختر فقط ما تحتاجه (لا تختر الكل!) 3. اضغط \"إنشاء\" 4. **⚠️ مهم جداً:** سيظهر **secret** مرة واحدة فقط:    - **انسخه فوراً** (زر النسخ بجانبه)    - احفظه في مكان آمن (Password Manager)    - أعطه للمطوّر"
+  },
+  {
+    "id": "\\pharmacist\\manual.md",
+    "role": "pharmacist",
+    "title": "دليل المستخدم — الصيدلي (Pharmacist)",
+    "content": " دليل المستخدم — الصيدلي (Pharmacist)  > الإصدار: 1.0 · 2026-05-21 · المرجع: AI_EXECUTION_STANDARD v2.0   1. تسجيل الدخول والإعداد الأولي  - افتح `https://<your-tenant>.namainvist.com` - سجّل الدخول بحسابك الذي أعطاك إياه مدير الصيدلية - لو السجلة الأولى: يطلب منك تأكيد MFA (Google Authenticator أو SMS) - اقرأ شروط الاستخدام + سياسة الخصوصية (مرة واحدة فقط)   2. المهام اليومية   2.1 صرف وصفة طبية 1. افتح **[الصيدلية](/pharmacy)** من القائمة الجانبية 2. اضغط على \"الوصفات الأخيرة\" → اختر الوصفة المطلوبة 3. تحقق من:    - اسم المريض + رقم الهوية    - الأدوية + الكميات + التركيز    - **هل أي منها محكوم (Controlled)؟** → يحتاج توقيع طبيب إضافي 4. لو الأدوية متعددة → استخدم [SCREENSHOT: /pharmacy?tab=interactions] **فاحص التفاعلات**:    - أدخل معرّفات الأدوية (2+)    - اضغط \"فحص التفاعلات\"    - **لو خرج تحذير CRITICAL أو HIGH** → اتصل بالطبيب قبل الصرف 5. اطبع الفاتورة وأعطها للمريض   2.2 إدخال دواء جديد 1. افتح **[إدارة الصيدلية](/pharmacy/manager)** 2. اضغط \"دواء جديد\" 3. املأ:    - الاسم ا"
+  },
+  {
+    "id": "\\tax_officer\\manual.md",
+    "role": "tax_officer",
+    "title": "دليل مأمور الضرائب (Tax Officer)",
+    "content": " دليل مأمور الضرائب (Tax Officer)   1. المهام اليومية - مراجعة الفواتير المصدرة والتأكد من مطابقتها لمتطلبات هيئة الزكاة والضريبة والجمارك (ZATCA). - فحص تصنيفات الضرائب (VAT Categories) والتأكد من صحتها.   2. المهام الشهرية - تقديم إقرار ضريبة القيمة المضافة (VAT Return) في موعد أقصاه 15 من الشهر التالي. - تقديم نموذج 14 الخاص بضريبة الاستقطاع (WHT Form 14) في موعد أقصاه 10 من الشهر التالي.   3. الشاشات المسؤولة عنها - `/finance/vat/categories` - `/finance/wht/form14` - `/finance/zakat`   4. أخطاء شائعة - **إرسال فاتورة غير معتمدة لـ ZATCA**: الحل هو استخدام زر (إعادة محاولة الإرسال).  --- **Summary in English:**  This manual outlines daily and monthly tasks for the Tax Officer, including ZATCA invoice reviews, VAT return submissions by the 15th, and WHT Form 14 by the 10th. Includes troubleshooting for failed ZATCA submissions. "
+  },
+  {
+    "id": "\\_tooltips\\zatca-code.md",
+    "role": "tooltip",
+    "title": "zatca-code",
+    "content": "رمز معتمد من هيئة الزكاة والضريبة والجمارك (مثل VATEX-SA-29) يستخدم لتمييز الإعفاءات الضريبية أو النسب الصفرية. يجب اختياره بدقة لأنه يظهر في فاتورة الـ XML المرسلة للهيئة. "
+  }
+]
