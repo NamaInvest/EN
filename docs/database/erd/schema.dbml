@@ -9569,6 +9569,53 @@ Table outbox_events {
   }
 }
 
+Table sprints {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default']
+  name String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  status String [not null, default: 'PLANNING']
+  velocity Int [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  stories sprint_stories [not null]
+}
+
+Table stories {
+  id String [pk]
+  tenantId String [not null, default: 'default']
+  module String [not null]
+  role String [not null]
+  action String [not null]
+  businessValue String [not null]
+  acceptanceCriteria String [not null]
+  edgeCases String [not null]
+  points Int [not null, default: 1]
+  status String [not null, default: 'BACKLOG']
+  jiraTicketId String
+  apiEndpoint String
+  prismaModels String
+  uiRoute String
+  testFiles String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  sprints sprint_stories [not null]
+}
+
+Table sprint_stories {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default']
+  sprintId Int [not null]
+  storyId String [not null]
+  sprint sprints [not null]
+  story stories [not null]
+
+  indexes {
+    (sprintId, storyId) [unique]
+  }
+}
+
 Enum FinancialPeriodStatus {
   OPEN
   SOFT_LOCKED
@@ -10448,3 +10495,7 @@ Ref: ice_support_tickets.assignedTo > ice_admins.id
 Ref: ice_support_replies.ticketId > ice_support_tickets.id [delete: Cascade]
 
 Ref: ice_support_replies.adminId > ice_admins.id
+
+Ref: sprint_stories.sprintId > sprints.id
+
+Ref: sprint_stories.storyId > stories.id
