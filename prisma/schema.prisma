@@ -12085,3 +12085,17 @@ model TestRun {
   storyId String?
   createdAt DateTime @default(now())
 }
+
+
+model MigrationRun {
+  id Int @id @default(autoincrement())
+  tenantId String
+  source String
+  fileName String
+  status String
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  stats Json?
+  errors Json?
+  dryRun Boolean @default(true)
+}

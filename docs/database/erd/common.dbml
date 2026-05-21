@@ -5648,6 +5648,19 @@ Table TestRun {
   createdAt DateTime [default: `now()`, not null]
 }
 
+Table MigrationRun {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  source String [not null]
+  fileName String [not null]
+  status String [not null]
+  startedAt DateTime [default: `now()`, not null]
+  completedAt DateTime
+  stats Json
+  errors Json
+  dryRun Boolean [not null, default: true]
+}
+
 Table users {
   id Int [pk, increment]
   username String [unique, not null]
