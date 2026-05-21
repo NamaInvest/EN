@@ -1,0 +1,1337 @@
+Table users {
+  id Int [pk, increment]
+  username String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  role String [not null, default: 'cashier']
+  phone String
+  active Boolean [not null, default: true]
+  sessionToken String
+  deviceToken String
+  deviceName String
+  deviceBoundAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  permissions user_permissions [not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  approvals purchase_orders [not null]
+  expenses expenses [not null]
+  treasuryEntries treasury [not null]
+  auditLogs audit_logs [not null]
+  stockMovements stock_movements [not null]
+  shifts shifts [not null]
+  branchId Int
+  branch branches
+  approvalRules approval_rules [not null]
+  approvalRequests approval_requests [not null]
+  approvalSteps approval_steps [not null]
+  archives document_archives [not null]
+  prRequisitions purchase_requisitions [not null]
+  prApprovals purchase_requisitions [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  alerts sys_alerts [not null]
+  defaultPage String
+  totpSecretEncrypted String
+  totpIv String
+  totpAuthTag String
+  mfaEnabled Boolean [not null, default: false]
+  mfaMethod String
+  mfaPendingActivation Boolean [not null, default: false]
+  mfaEnrolledAt DateTime
+  mfaLastUsedAt DateTime
+  mfaFailedAttempts Int [not null, default: 0]
+  mfaLockedUntil DateTime
+  mfaRequiredByPolicy Boolean [not null, default: false]
+  mfaPolicyId Int
+  mfaPolicy MfaPolicy
+  mfaGracePeriodEndsAt DateTime
+  mfaPhoneVerified String
+  mfaPhoneVerifiedAt DateTime
+  backupCodes UserBackupCode [not null]
+  mfaAttempts MfaAttempt [not null]
+  trustedDevices TrustedDevice [not null]
+  recoveryRequests MfaRecoveryRequest [not null]
+  usedTokens MfaUsedToken [not null]
+  dispensedRx prescriptions [not null]
+  controlledLogs controlled_drug_logs [not null, note: '🟡 Controlled']
+  posSessions pos_sessions [not null]
+  DocumentStateLog document_state_logs [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table UserBackupCode {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  user users [not null]
+  codeHash String [not null]
+  codeHint String [not null]
+  usedAt DateTime
+  ipUsedFrom String
+  userAgentUsed String
+  createdAt DateTime [default: `now()`, not null]
+  generatedBatchId String [not null]
+}
+
+Table MfaAttempt {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  user users [not null]
+  success Boolean [not null]
+  method String [not null]
+  ipAddress String
+  userAgent String
+  countryCode String
+  city String
+  failureReason String
+  attemptedAt DateTime [default: `now()`, not null]
+  sessionId String
+  deviceFingerprint String
+}
+
+Table MfaPolicy {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  description String
+  enabled Boolean [not null, default: true]
+  requireForRoles String[] [not null]
+  requireForActions String[] [not null]
+  allowedMethods String[] [not null]
+  trustedDeviceDays Int [not null, default: 30]
+  sessionTimeoutMinutes Int [not null, default: 480]
+  enforceFromDate DateTime [not null]
+  gracePeriodDays Int [not null, default: 7]
+  stepUpRequired Boolean [not null, default: false]
+  stepUpAfterMinutes Int [not null, default: 60]
+  createdByUserId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  users users [not null]
+}
+
+Table MfaRecoveryRequest {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  user users [not null]
+  requestedAt DateTime [default: `now()`, not null]
+  reason String [not null]
+  evidenceFileUrl String
+  ipAddress String [not null]
+  status String [not null, default: 'PENDING']
+  reviewedByUserId Int
+  reviewedAt DateTime
+  reviewNotes String
+  newSecretGenerated Boolean [not null, default: false]
+}
+
+Table MfaUsedToken {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  user users [not null]
+  tokenHash String [not null]
+  usedAt DateTime [default: `now()`, not null]
+  expiresAt DateTime [not null]
+
+  indexes {
+    (userId, tokenHash) [unique]
+  }
+}
+
+Table user_permissions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  module String [not null]
+  canView Boolean [not null, default: true]
+  canAdd Boolean [not null, default: false]
+  canEdit Boolean [not null, default: false]
+  canDelete Boolean [not null, default: false]
+  canPrint Boolean [not null, default: false]
+  user users [not null]
+
+  indexes {
+    (userId, module) [unique]
+  }
+}
+
+Table settings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  key String [unique, not null]
+  value String
+  description String
+}
+
+Table audit_logs {
+  id String [pk]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int
+  action String [not null]
+  entityType String [not null, default: 'Unknown']
+  entityId String [not null, default: '0']
+  route String
+  oldData Json
+  newData Json
+  metadata Json
+  tableName String
+  recordId String
+  details String
+  diff Json
+  userAgent String
+  ipAddress String
+  createdAt DateTime [default: `now()`, not null]
+  user users
+}
+
+Table document_state_machines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  docType String [not null]
+  fromState String [not null]
+  toState String [not null]
+  action String [not null]
+  requiredRole String
+  autoActions Json
+  isActive Boolean [not null, default: true]
+
+  indexes {
+    (docType, fromState, toState) [unique]
+  }
+}
+
+Table branches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  companyId Int [not null]
+  name String [not null]
+  nameEn String
+  address String
+  phone String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  company companies [not null]
+  users users [not null]
+  stocks stocks [not null]
+  salesInvoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  purchases purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  expenses expenses [not null]
+  treasury treasury [not null]
+  journals journal_entries [not null]
+  shifts shifts [not null]
+  bankAccounts bank_accounts [not null]
+  employees employees [not null]
+  costCenters cost_centers [not null]
+  purchaseReturns purchase_returns [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table document_archives {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  documentType String [not null]
+  documentId Int [not null]
+  docName String [not null]
+  fileUrl String [not null]
+  expiryDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  createdBy Int
+  creator users
+}
+
+Table tenant_feature_flags {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  moduleName String [not null]
+  isEnabled Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`]
+  tenantAccountId Int
+  tenantAccount tenant_accounts
+  desktopLicenseId Int
+  desktopLicense desktop_licenses
+
+  indexes {
+    (tenantAccountId, moduleName) [unique]
+    (desktopLicenseId, moduleName) [unique]
+  }
+}
+
+Table field_audit_logs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  entityType String [not null]
+  entityId Int [not null]
+  fieldName String [not null]
+  oldValue String
+  newValue String
+  changeType String [not null]
+  userId Int
+  userEmail String
+  ipAddress String
+  userAgent String
+  transactionId String
+  changedAt DateTime [default: `now()`, not null]
+}
+
+Table role_field_permissions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  roleName String [not null]
+  modelName String [not null]
+  fieldName String [not null]
+  permission String [not null, default: 'READ']
+
+  indexes {
+    (roleName, modelName, fieldName) [unique]
+  }
+}
+
+Table user_delegations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  delegatorUserId String [not null]
+  delegateeUserId String [not null]
+  module String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  isActive Boolean [not null, default: true]
+}
+
+Table document_expiry_alerts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  holderType String [not null]
+  holderId Int
+  holderName String [not null]
+  documentType String [not null]
+  documentNumber String
+  expiryDate DateTime [not null]
+  daysRemaining Int [not null]
+  severity String [not null]
+  estimatedCost Decimal
+  status String [not null, default: 'ACTIVE']
+  renewedAt DateTime
+  renewedBy Int
+  newExpiryDate DateTime
+  dismissedAt DateTime
+  dismissReason String
+  notifiedVia String
+  lastNotifiedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table document_state_logs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  entityType String [not null]
+  entityId Int [not null]
+  fromState String [not null]
+  toState String [not null]
+  userId Int
+  user users
+  reason String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table portal_users {
+  id Int [pk, increment]
+  partyId Int
+  name String [not null]
+  email String [not null]
+  passwordHash String [not null]
+  lastLogin DateTime
+  status String [not null, default: 'ACTIVE']
+  tenantId String [not null, note: '🔴 Tenant']
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table tenant_quotas {
+  id String [pk]
+  tenantId String [unique, not null, note: '🔴 Tenant']
+  tier String [not null, default: 'free']
+  maxAiTokens Int [not null, default: 500000]
+  maxApiCalls Int [not null, default: 10000]
+  maxStorageGb Decimal [not null, default: 5]
+  usedAiTokens Int [not null, default: 0]
+  usedApiCalls Int [not null, default: 0]
+  usedStorageGb Decimal [not null, default: 0]
+  resetAt DateTime [not null]
+}
+
+Table ice_admin_roles {
+  id Int [pk, increment]
+  name String [unique, not null]
+  permissions String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  admins ice_admins [not null]
+}
+
+Table ice_tenant_subscriptions {
+  id Int [pk, increment]
+  tenantId String [unique, not null, note: '🔴 Tenant']
+  planId Int [not null]
+  status String [not null, default: 'TRIAL']
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  billingCycle String [not null, default: 'YEARLY']
+  paymentMethod String
+  autoRenew Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  plan ice_plans [not null]
+  invoices ice_subscription_invoices [not null]
+  desktopLicenses ice_desktop_licenses [not null]
+}
+
+Table ice_tenant_modules {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  moduleId Int [not null]
+  isActive Boolean [not null, default: true]
+  module ice_system_modules [not null]
+
+  indexes {
+    (tenantId, moduleId) [unique]
+  }
+}
+
+Table ice_audit_logs {
+  id Int [pk, increment]
+  adminId Int [not null]
+  action String [not null]
+  entityType String [not null]
+  entityId String [not null]
+  oldValues String
+  newValues String
+  ipAddress String [not null]
+  userAgent String
+  createdAt DateTime [default: `now()`, not null]
+  admin ice_admins [not null]
+}
+
+Table ice_system_settings {
+  id Int [pk, increment]
+  key String [unique, not null]
+  value String [not null]
+  description String
+  updatedAt DateTime [not null]
+}
+
+Table TrustedDevice {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  user users [not null]
+  deviceFingerprint String [unique, not null]
+  deviceName String [not null]
+  browser String
+  os String
+  ipAddress String [not null]
+  countryCode String
+  city String
+  trustedAt DateTime [default: `now()`, not null]
+  trustedUntil DateTime [not null]
+  lastUsedAt DateTime
+  revokedAt DateTime
+  revokedReason String
+  revokedByUserId Int
+}
+
+Table stocks {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  address String
+  active Boolean [not null, default: true]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  stockMovements stock_movements [not null]
+  productStocks product_stocks [not null]
+  warehouseZones warehouse_zones [not null]
+  branch branches
+  branchId Int
+  goodsReceipts goods_receipt_notes [not null]
+  ProductSerialNumber inv_serial_numbers [not null]
+}
+
+Table sales_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  paid Decimal [not null, default: 0]
+  remaining Decimal [not null, default: 0]
+  paymentType String [not null, default: 'cash']
+  splitCash Decimal [default: 0]
+  splitCard Decimal [default: 0]
+  status String [not null, default: 'completed']
+  userId Int
+  notes String
+  taxType String [default: 'VAT']
+  currencyId Int
+  exchangeRate Decimal [default: 1]
+  currency currencies
+  zatcaStatus String [default: 'pending']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  salesRepId Int
+  docType String [default: 'invoice']
+  originalInvoiceId Int
+  customer customers
+  stock stocks
+  salesRep employees
+  user users
+  details sales_invoice_details [not null]
+  branchId Int
+  branch branches
+  shift shifts
+  shiftId Int
+  costCenterId Int
+  costCenter cost_centers
+  payments payment_transactions [not null]
+  subscriptionInvoices subscription_invoices [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+  zatcaUuid String
+  zatcaIcv Int
+  zatcaPih String
+  zatcaSignedXml String
+  zatcaReportedAt DateTime
+  cleared Boolean [not null, default: false]
+  clearedAt DateTime
+  clearanceUuid String
+}
+
+Table sales_returns {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  returnNo Int [not null]
+  originalInvoiceId Int
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  userId Int
+  notes String
+  destinationStockId Int
+  restockingFee Decimal [not null, default: 0]
+  zatcaStatus String [default: 'pending']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  status String [not null, default: 'REQUESTED']
+  branch branches
+  shift shifts
+  branchId Int
+  shiftId Int
+  details sales_return_details [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table purchase_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  status String [not null, default: 'pending']
+  approvedBy Int
+  userId Int
+  branchId Int
+  notes String
+  isForeign Boolean [not null, default: false]
+  letterOfCreditId Int
+  salesOrderId Int
+  supplier customers
+  salesOrder sales_orders
+  stock stocks
+  user users
+  approver users
+  branch branches
+  details purchase_order_details [not null]
+  letterOfCredit letters_of_credit
+  landedCosts landed_costs [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  ThreeWayMatch three_way_matches [not null]
+  deletedAt DateTime [note: '[SD]']
+  promisedDate DateTime
+}
+
+Table purchase_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo Int [not null]
+  isManual Boolean [not null, default: false]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  paid Decimal [not null, default: 0]
+  remaining Decimal [not null, default: 0]
+  supplierInvoiceNo String
+  purchaseOrderId Int
+  ppvAmount Decimal [not null, default: 0]
+  paymentType String [not null, default: 'cash']
+  status String [not null, default: 'completed']
+  receiptStatus String [not null, default: 'received']
+  userId Int
+  notes String
+  taxType String [default: 'VAT']
+  currencyId Int
+  exchangeRate Decimal [default: 1]
+  currency currencies
+  supplier customers
+  stock stocks
+  user users
+  details purchase_invoice_details [not null]
+  branchId Int
+  branch branches
+  ThreeWayMatch three_way_matches
+  whtTransactions wht_transactions [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+  hasException Boolean [not null, default: false]
+}
+
+Table purchase_returns {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  returnNo Int [not null]
+  originalInvoiceId Int
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  userId Int
+  branchId Int
+  notes String
+  zatcaStatus String [default: 'pending']
+  zatcaQr String
+  supplier customers
+  branch branches
+  details purchase_return_details [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table stock_movements {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  productId Int [not null]
+  stockId Int [not null, default: 1]
+  type String [not null]
+  quantity Decimal [not null, default: 0]
+  referenceType String
+  referenceId Int
+  date DateTime [default: `now()`, not null]
+  userId Int
+  notes String
+  product products [not null]
+  stock stocks [not null]
+  user users
+  batch product_batches
+  batchId Int
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table expenses {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  date DateTime [default: `now()`, not null]
+  category String
+  description String [not null]
+  amount Decimal [not null, default: 0]
+  userId Int
+  costCenterId Int
+  notes String
+  user users
+  branchId Int
+  branch branches
+  costCenter cost_centers
+}
+
+Table treasury {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  date DateTime [default: `now()`, not null]
+  type String [not null]
+  amount Decimal [not null, default: 0]
+  description String
+  referenceType String
+  referenceId Int
+  userId Int
+  user users
+  branch branches
+  branchId Int
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table employees {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeNo String [unique]
+  name String [not null]
+  phone String
+  position String
+  salary Decimal [not null, default: 0]
+  housingAllowance Decimal [not null, default: 0]
+  transportAllowance Decimal [not null, default: 0]
+  otherAllowance Decimal [not null, default: 0]
+  bankName String
+  iban String
+  startDate String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  branchId Int
+  branch branches
+  nationality String [not null, default: 'SAUDI']
+  iqamaNumber String
+  passportNumber String
+  idNumber String
+  birthDate DateTime
+  gender String
+  maritalStatus String
+  faceDescriptor String
+  department String
+  managerId Int
+  manager employees
+  subordinates employees [not null]
+  attendance attendance [not null]
+  salaries salaries [not null]
+  pettyCashes petty_cash_transactions [not null]
+  salesTargets sales_targets [not null]
+  salesOrders sales_orders [not null]
+  salesInvoices sales_invoices [not null]
+  routes routes [not null]
+  evaluationsReceived hr_employee_evaluations [not null]
+  evaluationsGiven hr_employee_evaluations [not null]
+  trainings hr_training_enrollments [not null]
+  fleetTrips fms_trips [not null]
+  fuelLogs fms_fuel_logs [not null]
+  classesTaught shl_academic_classes [not null]
+  commissions com_salesman_commissions [not null]
+  pettyCashFunds fng_petty_cash_funds [not null]
+  Vacation vacations [not null]
+  EmployeeLoan employee_loans [not null]
+  PayrollInvoice payroll_invoices [not null]
+  EndOfServiceCalculation end_of_service_calculations [not null]
+  WPSBatchItem wps_batch_items [not null]
+  LeaveBalance leave_balances [not null]
+  LeaveAccrual leave_accruals [not null]
+  LeaveRequest leave_requests [not null]
+  DoctorSchedule clinic_schedules [not null]
+  Appointment clinic_appointments [not null]
+  ClinicPrescription clinic_rx [not null]
+  LabOrder clinic_lab_orders [not null]
+  qiwaWageProtectionId String
+  mudadStatus String
+  qiwaContracts qiwa_contracts [not null]
+  projectResources project_resources [not null]
+  projectTimeEntries project_time_entries [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table journal_entries {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  entryNumber String [not null]
+  entryDate String [not null]
+  description String
+  reference String
+  totalDebit Decimal [not null, default: 0]
+  totalCredit Decimal [not null, default: 0]
+  status String [not null, default: 'posted']
+  createdBy Int
+  createdAt DateTime [default: `now()`, not null]
+  currencyId Int
+  exchangeRate Decimal [not null, default: 1]
+  autoReverseDate DateTime
+  isReversal Boolean [not null, default: false]
+  lines journal_lines [not null]
+  branch branches
+  branchId Int
+  bookId Int
+  book accounting_books
+  replicatedFromId Int
+  replicatedFrom journal_entries
+  replications journal_entries [not null]
+  bookOnly Boolean [not null, default: false]
+  fxRateUsed Decimal
+  fxRateDate DateTime
+  fxRateSource String
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table companies {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  nameEn String
+  taxNumber String
+  commercialRecord String
+  address String
+  logoPath String
+  ownershipPct Decimal [not null, default: 100]
+  createdAt DateTime [default: `now()`, not null]
+  branches branches [not null]
+  subscriptions subscriptions [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table shifts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  stockId Int
+  startTime DateTime [default: `now()`, not null]
+  endTime DateTime
+  status String [not null, default: 'open']
+  startingCash Decimal [not null, default: 0]
+  endingCashExpected Decimal
+  endingCashActual Decimal
+  difference Decimal
+  notes String
+  user users [not null]
+  invoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  branchId Int
+  branch branches
+}
+
+Table bank_accounts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  branchId Int
+  bankName String [not null]
+  accountName String [not null]
+  accountNumber String [not null]
+  iban String
+  currency String [not null, default: 'SAR']
+  currentBalance Decimal [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  bankCode String
+  preferredFileFormat String
+  fileEncoding String [not null, default: 'utf-8']
+  fileColumnMapping Json
+  openBankingProvider String
+  openBankingAccountId String
+  openBankingConsentExpiresAt DateTime
+  openBankingLastFetchAt DateTime
+  openBankingFetchEnabled Boolean [not null, default: false]
+  openBankingFetchFrequency String [not null, default: 'DAILY']
+  intraDayBalance Decimal
+  intraDayBalanceUpdatedAt DateTime
+  branch branches
+  transactions bank_transactions [not null]
+  lcs letters_of_credit [not null]
+  lgs letters_of_guarantee [not null]
+  statements bank_statements [not null]
+  intraDayBalances IntraDayBalance [not null]
+  BankReconRule bank_recon_rules [not null]
+  BankReconPeriod BankReconPeriod [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table cost_centers {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [unique, not null]
+  name String [not null]
+  nameEn String
+  isActive Boolean [not null, default: true]
+  branchId Int
+  createdAt DateTime [default: `now()`, not null]
+  branch branches
+  journalLines journal_lines [not null]
+  expenses expenses [not null]
+  salesInvoices sales_invoices [not null]
+  BudgetLine fng_budget_lines [not null]
+  Encumbrance fng_encumbrances [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table approval_rules {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  documentType String [not null]
+  minAmount Decimal [not null, default: 0]
+  maxAmount Decimal
+  approverRole String [not null]
+  approverId Int
+  level Int [not null, default: 1]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  approver users
+}
+
+Table approval_requests {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  documentType String [not null]
+  documentId Int [not null]
+  status String [not null, default: 'pending']
+  requestedBy Int [not null]
+  requestedAt DateTime [default: `now()`, not null]
+  steps approval_steps [not null]
+  requester users [not null]
+}
+
+Table approval_steps {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  requestId Int [not null]
+  approverId Int
+  status String [not null, default: 'pending']
+  notes String
+  actionDate DateTime
+  level Int [not null, default: 1]
+  request approval_requests [not null]
+  approver users
+}
+
+Table purchase_requisitions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  reqNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  department String
+  status String [not null, default: 'pending']
+  requestedBy Int
+  approvedBy Int
+  notes String
+  requester users
+  approver users
+  details purchase_requisition_details [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table request_for_quotations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  rfqNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  dueDate DateTime
+  supplierId Int
+  status String [not null, default: 'draft']
+  userId Int
+  notes String
+  supplier customers
+  user users
+  details request_for_quotation_details [not null]
+}
+
+Table goods_receipt_notes {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  grnNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  orderId Int
+  stockId Int [not null, default: 1]
+  status String [not null, default: 'received']
+  receivedBy Int
+  notes String
+  supplier customers
+  order purchase_orders
+  stock stocks
+  receiver users
+  details goods_receipt_note_details [not null]
+  asnId String
+  expectedArrivalDate DateTime
+  rejectionQty Decimal
+}
+
+Table sys_alerts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  title String [not null]
+  message String [not null]
+  read Boolean [not null, default: false]
+  alertType String [not null, default: 'INFO']
+  linkUrl String
+  createdAt DateTime [default: `now()`, not null]
+  user users [not null]
+}
+
+Table tenant_accounts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  clerkUserId String [unique]
+  userEmail String [unique, not null]
+  orgName String [not null]
+  vatNumber String [not null]
+  subdomain String [unique, not null]
+  status String [not null, default: 'pending']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  paymentStatus String [not null, default: 'pending']
+  subscriptionDuration String [not null, default: '1_year']
+  subscriptionStatus String [default: 'trial']
+  plan String [default: 'free']
+  trialEndsAt DateTime
+  invoiceQuota Int [default: 30]
+  productQuota Int [default: 1000]
+  userQuota Int [default: 1]
+  desktopLicenses desktop_licenses [not null]
+  featureFlags tenant_feature_flags [not null]
+}
+
+Table desktop_licenses {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  licenseKey String [unique, not null]
+  hardwareId String
+  companyNameAr String
+  companyNameEn String
+  businessDomain String
+  mobile String
+  vatNumber String
+  crnNumber String
+  city String
+  cityEn String
+  district String
+  streetName String
+  buildingNo String
+  postalCode String
+  contactEmail String
+  contactPhone String
+  status String [default: 'trial']
+  appVersion String
+  maxDevices Int [default: 1]
+  activatedDevices Int [default: 0]
+  trialEndsAt DateTime
+  expiresAt DateTime
+  activatedAt DateTime
+  lastVerifiedAt DateTime
+  notes String
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`]
+  tenantAccountId Int
+  tenantAccount tenant_accounts
+  featureFlags tenant_feature_flags [not null]
+}
+
+Table prescriptions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  patientId Int [not null]
+  wasfatyRef String
+  doctorName String
+  doctorLicense String
+  clinicName String
+  prescriptionDate String [not null]
+  expiryDate String
+  source String [not null, default: 'wasfaty']
+  status String [not null, default: 'pending']
+  imageUrl String
+  pharmacistId Int
+  dispensedAt DateTime
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  patient pharmacy_patients [not null]
+  pharmacist users
+  items prescription_items [not null]
+  claims insurance_claims [not null]
+}
+
+Table controlled_drug_logs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  drugId Int [not null]
+  patientNationalId String [not null]
+  patientName String [not null]
+  doctorName String [not null]
+  doctorLicense String [not null]
+  pharmacistId Int [not null]
+  quantity Decimal [not null]
+  batchNo String
+  dispensedAt DateTime [default: `now()`, not null]
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  drug pharmacy_drugs [not null]
+  pharmacist users [not null]
+}
+
+Table pos_sessions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  terminalId Int
+  branchId Int
+  openingFloat Decimal [not null, default: 0]
+  closingFloat Decimal
+  expectedClosing Decimal
+  variance Decimal
+  openedAt DateTime [default: `now()`, not null]
+  closedAt DateTime
+  status String [not null, default: 'OPEN']
+  notes String
+  user users [not null]
+  movements pos_session_movements [not null]
+}
+
+Table ice_admins {
+  id Int [pk, increment]
+  username String [unique, not null]
+  email String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  roleId Int [not null]
+  active Boolean [not null, default: true]
+  twoFactorSecret String
+  twoFactorEnabled Boolean [not null, default: false]
+  lastLoginAt DateTime
+  lastLoginIp String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime [note: '[SD]']
+  role ice_admin_roles [not null]
+  auditLogs ice_audit_logs [not null]
+  supportTickets ice_support_tickets [not null]
+  loginLogs ice_login_logs [not null]
+  supportReplies ice_support_replies [not null]
+}
+
+Table ice_plans {
+  id Int [pk, increment]
+  name String [unique, not null]
+  priceMonthly Decimal [not null, default: 0]
+  priceYearly Decimal [not null, default: 0]
+  maxUsers Int [not null, default: 1]
+  maxBranches Int [not null, default: 1]
+  maxInvoices Int [not null, default: 100]
+  maxProducts Int [not null, default: 100]
+  maxDesktopDevices Int [not null, default: 0]
+  allowZatcaPhase2 Boolean [not null, default: false]
+  allowDesktop Boolean [not null, default: false]
+  dailyBackups Boolean [not null, default: false]
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime [note: '[SD]']
+  subscriptions ice_tenant_subscriptions [not null]
+  planModules ice_plan_modules [not null]
+}
+
+Table ice_subscription_invoices {
+  id Int [pk, increment]
+  invoiceNo String [unique, not null]
+  tenantId String [not null, note: '🔴 Tenant']
+  subscriptionId Int [not null]
+  amount Decimal [not null, default: 0]
+  vatAmount Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  status String [not null, default: 'PENDING']
+  paymentMethod String
+  paymentGateRef String
+  receiptNo String
+  issueDate DateTime [default: `now()`, not null]
+  dueDate DateTime [not null]
+  paidAt DateTime
+  subscription ice_tenant_subscriptions [not null]
+}
+
+Table ice_system_modules {
+  id Int [pk, increment]
+  code String [unique, not null]
+  nameAr String [not null]
+  nameEn String [not null]
+  description String
+  parentId Int
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  parent ice_system_modules
+  subModules ice_system_modules [not null]
+  planModules ice_plan_modules [not null]
+  tenantModules ice_tenant_modules [not null]
+}
+
+Table ice_desktop_licenses {
+  id Int [pk, increment]
+  licenseKey String [unique, not null]
+  tenantId String [not null, note: '🔴 Tenant']
+  subscriptionId Int [not null]
+  hardwareId String [unique]
+  deviceName String
+  status String [not null, default: 'ACTIVE']
+  appVersion String
+  lastSyncAt DateTime
+  offlineGraceDays Int [not null, default: 7]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  subscription ice_tenant_subscriptions [not null]
+}
+
+Ref: users.branchId > branches.id
+
+Ref: users.mfaPolicyId > MfaPolicy.id
+
+Ref: UserBackupCode.userId > users.id [delete: Cascade]
+
+Ref: MfaAttempt.userId > users.id [delete: Cascade]
+
+Ref: TrustedDevice.userId > users.id [delete: Cascade]
+
+Ref: MfaRecoveryRequest.userId > users.id
+
+Ref: MfaUsedToken.userId > users.id [delete: Cascade]
+
+Ref: user_permissions.userId > users.id
+
+Ref: stocks.branchId > branches.id
+
+Ref: sales_invoices.userId > users.id
+
+Ref: sales_invoices.branchId > branches.id
+
+Ref: sales_returns.branchId > branches.id
+
+Ref: purchase_orders.userId > users.id
+
+Ref: purchase_orders.approvedBy > users.id
+
+Ref: purchase_orders.branchId > branches.id
+
+Ref: purchase_invoices.userId > users.id
+
+Ref: purchase_invoices.branchId > branches.id
+
+Ref: purchase_returns.branchId > branches.id
+
+Ref: stock_movements.userId > users.id
+
+Ref: expenses.userId > users.id
+
+Ref: expenses.branchId > branches.id
+
+Ref: treasury.userId > users.id
+
+Ref: treasury.branchId > branches.id
+
+Ref: audit_logs.userId > users.id
+
+Ref: employees.branchId > branches.id
+
+Ref: journal_entries.branchId > branches.id
+
+Ref: branches.companyId > companies.id
+
+Ref: shifts.userId > users.id
+
+Ref: shifts.branchId > branches.id
+
+Ref: bank_accounts.branchId > branches.id
+
+Ref: cost_centers.branchId > branches.id
+
+Ref: approval_rules.approverId > users.id
+
+Ref: approval_requests.requestedBy > users.id
+
+Ref: approval_steps.approverId > users.id
+
+Ref: document_archives.createdBy > users.id
+
+Ref: purchase_requisitions.requestedBy > users.id
+
+Ref: purchase_requisitions.approvedBy > users.id
+
+Ref: request_for_quotations.userId > users.id
+
+Ref: goods_receipt_notes.receivedBy > users.id
+
+Ref: sys_alerts.userId > users.id
+
+Ref: tenant_feature_flags.tenantAccountId > tenant_accounts.id
+
+Ref: tenant_feature_flags.desktopLicenseId > desktop_licenses.id
+
+Ref: prescriptions.pharmacistId > users.id
+
+Ref: controlled_drug_logs.pharmacistId > users.id
+
+Ref: pos_sessions.userId > users.id
+
+Ref: document_state_logs.userId > users.id
+
+Ref: ice_admins.roleId > ice_admin_roles.id
+
+Ref: ice_tenant_subscriptions.planId > ice_plans.id
+
+Ref: ice_subscription_invoices.subscriptionId > ice_tenant_subscriptions.id
+
+Ref: ice_tenant_modules.moduleId > ice_system_modules.id [delete: Cascade]
+
+Ref: ice_desktop_licenses.subscriptionId > ice_tenant_subscriptions.id [delete: Cascade]
+
+Ref: ice_audit_logs.adminId > ice_admins.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

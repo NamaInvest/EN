@@ -132,6 +132,9 @@ async function seedCompanyData(params: {
     zatcaBranchNameEn: string;
     zatcaCityEn: string;
     clerkEmail: string;  // ← البريد الإلكتروني للمستخدم الرئيسي
+    password?: string;
+    adminName?: string;
+    username?: string;
 }): Promise<{ ok: boolean; error?: string }> {
     let prisma: PrismaClient | null = null;
     try {
@@ -177,37 +180,42 @@ async function seedCompanyData(params: {
         await upsertSetting('POS_TAX_ENABLED', 'true');
         await upsertSetting('POS_TAX_INCLUSIVE', 'true');
 
-        // مستخدم رئيسي — البريد الإلكتروني من Clerk كـ username
+        // مستخدم رئيسي — البريد الإلكتروني من Clerk كـ username أو ما أدخله المستخدم
         const bcryptjs = require('bcryptjs');
-        const adminHash = bcryptjs.hashSync('admin7773', 10);
+        const adminHash = bcryptjs.hashSync(params.password || 'admin7773', 10);
 
-        // توليد username من البريد: user@example.com → user
-        const emailUsername = params.clerkEmail
-            ? params.clerkEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase() || 'admin'
-            : 'admin';
+        // توليد username من البريد إذا لم يتم توفيره صراحة
+        let finalUsername = params.username?.trim();
+        if (!finalUsername) {
+            finalUsername = params.clerkEmail
+                ? params.clerkEmail.split('@')[0].replace(/[^a-z0-9._-]/gi, '').toLowerCase() || 'admin'
+                : 'admin';
+        }
 
-        // إنشاء المستخدم الرئيسي بالبريد كـ username (مع admin كـ fallback إضافي)
+        const finalFullName = params.adminName?.trim() || `${params.companyNameAr} - مدير النظام`;
+
+        // إنشاء المستخدم الرئيسي بالبيانات المقدمة
         await prisma.user.upsert({
-            where: { username: emailUsername },
-            update: { passwordHash: adminHash, role: 'admin', active: true },
+            where: { username: finalUsername },
+            update: { passwordHash: adminHash, role: 'admin', active: true, fullName: finalFullName },
             create: {
-                username: emailUsername,
-                fullName: `${params.companyNameAr} - مدير النظام`,
+                username: finalUsername,
+                fullName: finalFullName,
                 passwordHash: adminHash,
                 role: 'admin',
                 active: true,
             },
         });
 
-        // أيضاً ننشئ مستخدم admin قياسي إذا لم يكن emailUsername هو admin
-        if (emailUsername !== 'admin') {
+        // أيضاً ننشئ مستخدم admin قياسي دائمًا كإجراء احتياطي إذا لم يكن المستخدم نفسه هو admin
+        if (finalUsername !== 'admin') {
             await prisma.user.upsert({
                 where: { username: 'admin' },
                 update: {},  
                 create: {
                     username: 'admin',
                     fullName: `${params.companyNameAr} - مدير النظام`,
-                    passwordHash: adminHash,
+                    passwordHash: bcryptjs.hashSync('admin7773', 10),
                     role: 'admin',
                     active: true,
                 },
@@ -325,6 +333,9 @@ async function _POST(req: Request) {
             clerkEmail,
             city,
             cityEn: cityEnFromClient,
+            password,
+            adminName,
+            username,
         } = body;
 
 
@@ -420,6 +431,9 @@ async function _POST(req: Request) {
             zatcaBranchNameEn,
             zatcaCityEn,
             clerkEmail: clerkEmail || '',  // ← البريد الإلكتروني للمستخدم الرئيسي
+            password: password || '',
+            adminName: adminName || '',
+            username: username || '',
         });
 
         if (!seedResult.ok) {

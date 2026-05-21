@@ -5,5 +5,13 @@ if git diff --cached --name-only | grep -E '\.env$|\.env\..+$|\.pem$|\.key$|_sec
   echo "Please remove it from the index using 'git rm --cached <file>'."
   exit 1
 fi
+
+if git diff --cached --name-only | grep -q "prisma/schema.prisma"; then
+  echo "🔄 prisma/schema.prisma changed. Regenerating modular ERDs..."
+  npx prisma generate
+  npx ts-node scripts/split-erd.ts
+  git add docs/database/erd/
+fi
+
 # Done — commit allowed
 exit 0

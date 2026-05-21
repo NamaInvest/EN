@@ -1,0 +1,83 @@
+Table ai_conversations {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  userId String [not null]
+  title String
+  startedAt DateTime [default: `now()`, not null]
+  endedAt DateTime
+  messages ai_conversation_messages [not null]
+}
+
+Table ai_conversation_messages {
+  id String [pk]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  conversationId String [not null]
+  role String [not null]
+  content String [not null]
+  toolCalls Json
+  toolResults Json
+  promptTokens Int
+  completionTokens Int
+  createdAt DateTime [default: `now()`, not null]
+  conversation ai_conversations [not null]
+}
+
+Table ai_tool_definition {
+  id String [pk]
+  tenantId String [note: '🔴 Tenant']
+  name String [not null]
+  description String [not null]
+  parameters Json [not null]
+  handlerType String [not null]
+  permission String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (tenantId, name) [unique]
+  }
+}
+
+Table ai_tool_call_log {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  conversationId String
+  toolName String [not null]
+  arguments Json [not null]
+  result Json
+  success Boolean [not null]
+  errorMessage String
+  durationMs Int [not null]
+  invokedBy String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Ref: ai_conversation_messages.conversationId > ai_conversations.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

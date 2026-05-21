@@ -1,0 +1,930 @@
+Table purchase_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  status String [not null, default: 'pending']
+  approvedBy Int
+  userId Int
+  branchId Int
+  notes String
+  isForeign Boolean [not null, default: false]
+  letterOfCreditId Int
+  salesOrderId Int
+  supplier customers
+  salesOrder sales_orders
+  stock stocks
+  user users
+  approver users
+  branch branches
+  details purchase_order_details [not null]
+  letterOfCredit letters_of_credit
+  landedCosts landed_costs [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  ThreeWayMatch three_way_matches [not null]
+  deletedAt DateTime [note: '[SD]']
+  promisedDate DateTime
+}
+
+Table purchase_order_details {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null, default: 1]
+  price Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  order purchase_orders [not null]
+  product products [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table purchase_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo Int [not null]
+  isManual Boolean [not null, default: false]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  paid Decimal [not null, default: 0]
+  remaining Decimal [not null, default: 0]
+  supplierInvoiceNo String
+  purchaseOrderId Int
+  ppvAmount Decimal [not null, default: 0]
+  paymentType String [not null, default: 'cash']
+  status String [not null, default: 'completed']
+  receiptStatus String [not null, default: 'received']
+  userId Int
+  notes String
+  taxType String [default: 'VAT']
+  currencyId Int
+  exchangeRate Decimal [default: 1]
+  currency currencies
+  supplier customers
+  stock stocks
+  user users
+  details purchase_invoice_details [not null]
+  branchId Int
+  branch branches
+  ThreeWayMatch three_way_matches
+  whtTransactions wht_transactions [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+  hasException Boolean [not null, default: false]
+}
+
+Table purchase_invoice_details {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null, default: 1]
+  price Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  invoice purchase_invoices [not null]
+  product products [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table purchase_returns {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  returnNo Int [not null]
+  originalInvoiceId Int
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  userId Int
+  branchId Int
+  notes String
+  zatcaStatus String [default: 'pending']
+  zatcaQr String
+  supplier customers
+  branch branches
+  details purchase_return_details [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table purchase_return_details {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  returnId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null, default: 1]
+  price Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  return purchase_returns [not null]
+  product products [not null]
+}
+
+Table landed_costs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  purchaseOrderId Int
+  letterOfCreditId Int
+  expenseAccountId Int [not null]
+  description String [not null]
+  amount Decimal [not null]
+  currencyId Int
+  exchangeRate Decimal [not null, default: 1]
+  allocationMethod String [not null, default: 'value']
+  isAllocated Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  purchaseOrder purchase_orders
+  letterOfCredit letters_of_credit
+  expenseAccount accounts [not null]
+  currency currencies
+}
+
+Table supplier_contracts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  contractNo String [unique, not null]
+  supplierId Int [not null]
+  title String [not null]
+  description String
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  value Decimal [not null, default: 0]
+  currency String [not null, default: 'SAR']
+  paymentTerms String
+  status String [not null, default: 'active']
+  autoRenew Boolean [not null, default: false]
+  alertDaysBefore Int [not null, default: 30]
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  supplier customers [not null]
+}
+
+Table purchase_requisitions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  reqNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  department String
+  status String [not null, default: 'pending']
+  requestedBy Int
+  approvedBy Int
+  notes String
+  requester users
+  approver users
+  details purchase_requisition_details [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table purchase_requisition_details {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  reqId Int [not null]
+  productId Int [not null]
+  productName String
+  quantity Decimal [not null, default: 1]
+  notes String
+  requisition purchase_requisitions [not null]
+  product products [not null]
+}
+
+Table vendor_ratings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  supplierId Int [not null]
+  grnId Int
+  quality Int [not null, default: 5]
+  delivery Int [not null, default: 5]
+  pricing Int [not null, default: 5]
+  notes String
+  ratedBy Int
+  ratedAt DateTime [default: `now()`, not null]
+}
+
+Table three_way_matches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceId Int [unique, not null]
+  invoice purchase_invoices [not null]
+  purchaseOrderId Int [not null]
+  purchaseOrder purchase_orders [not null]
+  poTotalAmount Decimal [not null]
+  poTotalQuantity Decimal [not null]
+  grnTotalAmount Decimal [not null]
+  grnTotalQuantity Decimal [not null]
+  invoiceTotalAmount Decimal [not null]
+  invoiceTotalQuantity Decimal [not null]
+  priceVariance Decimal [not null]
+  priceVariancePercent Decimal [not null]
+  quantityVariance Decimal [not null]
+  quantityVariancePercent Decimal [not null]
+  priceTolerancePercent Decimal [not null]
+  quantityTolerancePercent Decimal [not null]
+  matchStatus String [not null]
+  isWithinTolerance Boolean [not null]
+  paymentBlocked Boolean [not null, default: false]
+  approvalRequestId Int
+  matchedAt DateTime [default: `now()`, not null]
+  resolvedBy Int
+  resolvedAt DateTime
+  resolutionNotes String
+  lines three_way_match_lines [not null]
+}
+
+Table three_way_match_lines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  matchId Int [not null]
+  match three_way_matches [not null]
+  productId Int [not null]
+  poQuantity Decimal [not null]
+  poUnitPrice Decimal [not null]
+  grnQuantity Decimal [not null]
+  invoiceQuantity Decimal [not null]
+  invoiceUnitPrice Decimal [not null]
+  priceMatched Boolean [not null]
+  qtyMatched Boolean [not null]
+}
+
+Table SupplierBankAccount {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  supplierId Int [not null]
+  supplier customers [not null]
+  isDefault Boolean [not null, default: false]
+  isActive Boolean [not null, default: true]
+  isVerified Boolean [not null, default: false]
+  verificationDate DateTime
+  verificationMethod String
+  beneficiaryName String [not null]
+  iban String
+  swift String
+  bankName String [not null]
+  bankAddress String
+  countryCode String [not null]
+  currency String [not null]
+  accountNumber String
+  routingNumber String
+  branchCode String
+  intermediaryBankSwift String
+  intermediaryBankAccount String
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  createdByUserId String [not null]
+  lastUsedAt DateTime
+
+  indexes {
+    (supplierId, iban) [unique]
+  }
+}
+
+Table subcontract_movements {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  scPoId Int [not null]
+  type String [not null]
+  productId Int [not null]
+  qty Decimal [not null]
+  postedAt DateTime [default: `now()`, not null]
+  po subcontracting_pos [not null]
+  product products [not null]
+}
+
+Table VendorPortalUser {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  vendorName String [not null]
+  email String [unique, not null]
+  passwordHash String [not null]
+  status String [not null, default: 'ACTIVE']
+  createdAt DateTime [default: `now()`, not null]
+  bids VendorBid [not null]
+}
+
+Table VendorBid {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  rfqId Int [not null]
+  vendorId Int [not null]
+  vendor VendorPortalUser [not null]
+  amount Decimal [not null]
+  status String [not null, default: 'SUBMITTED']
+  createdAt DateTime [default: `now()`, not null]
+  details VendorBidDetail [not null]
+}
+
+Table VendorBidDetail {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bidId Int [not null]
+  bid VendorBid [not null]
+  rfqDetailId Int [not null]
+  unitPrice Decimal [not null]
+  deliveryDays Int [not null, default: 0]
+}
+
+Table VendorPortalToken {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  token String [unique, not null]
+  vendorId Int [not null]
+  rfqId Int [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table vendor_onboarding {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  vendorId Int
+  applicationData Json [not null]
+  kycDocuments Json
+  riskScore Decimal
+  sanctionsMatch Boolean [not null, default: false]
+  amlChecks Json
+  status String [not null, default: 'PENDING']
+  currentStage String [not null, default: 'INITIAL']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table VendorOnboardingStep {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  vendorId String [not null]
+  step String [not null]
+  data Json [not null]
+  status String [not null]
+  submittedAt DateTime
+  reviewedById String
+  reviewedAt DateTime
+
+  indexes {
+    (vendorId, step) [unique]
+  }
+}
+
+Table customers {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  customerNo String [unique]
+  name String [not null]
+  phone String
+  email String
+  address String
+  street String
+  buildingNumber String
+  district String
+  city String
+  postalCode String
+  type Int [not null, default: 0]
+  balance Decimal [not null, default: 0]
+  creditLimit Decimal [not null, default: 0]
+  taxNumber String
+  crNo String
+  notes String
+  active Boolean [not null, default: true]
+  status String [not null, default: 'ACTIVE']
+  password String
+  b2bEnabled Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  installments installments [not null]
+  loyaltyPoints loyalty_points [not null]
+  bookings bookings [not null]
+  lettersOfCredit letters_of_credit [not null]
+  customerChecks check_transactions [not null]
+  supplierChecks check_transactions [not null]
+  routeId Int
+  route routes
+  salesOrders sales_orders [not null]
+  deliveryNotes delivery_notes [not null]
+  projects projects [not null]
+  promissoryNotes promissory_notes [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  leaseContracts rem_lease_contracts [not null]
+  purchaseReturns purchase_returns [not null]
+  supplierContracts supplier_contracts [not null]
+  whtTransactions wht_transactions [not null]
+  RentInvoice rent_invoices [not null]
+  ECLAssessment ecl_assessments [not null]
+  PaymentRunLine payment_run_lines [not null]
+  SubcontractingPO subcontracting_pos [not null]
+  savedPaymentMethods saved_payment_methods [not null]
+  dunningRuns dunning_runs [not null]
+  subscriptions customer_subscriptions [not null]
+  emailStatementsEnabled Boolean [not null, default: false]
+  statementFrequency String [not null, default: 'NEVER']
+  statementChannel String [not null, default: 'EMAIL']
+  statementEmail String
+  statementWhatsapp String
+  statementCcEmails String
+  statementBccEmails String
+  statementLanguage String [not null, default: 'ar']
+  statementTemplateId Int
+  statementTemplate StatementTemplate
+  statementDayOfMonth Int [not null, default: 1]
+  statementSendTime String [not null, default: '06:00']
+  statementIncludeAging Boolean [not null, default: true]
+  statementIncludeClosed Boolean [not null, default: false]
+  statementIncludeOpenOnly Boolean [not null, default: false]
+  statementWatermark String
+  statementSinceLastSent Boolean [not null, default: false]
+  emailDeliveryIssue String
+  emailDeliveryIssueDate DateTime
+  emailLastBounceReason String
+  statementDispatchLogs StatementDispatchLog [not null]
+  statementAccessLogs StatementAccessLog [not null]
+  dunningCurrentLevel Int [not null, default: 0]
+  dunningLastRunAt DateTime
+  dunningSnoozeUntil DateTime
+  dunningSnoozeReason String
+  dunningSnoozedByUserId String
+  dunningPaused Boolean [not null, default: false]
+  dunningPauseReason String
+  creditHold Boolean [not null, default: false]
+  creditHoldReason String
+  creditHoldDate DateTime
+  creditHoldByUserId String
+  creditHoldExpiresAt DateTime
+  legalActionInProgress Boolean [not null, default: false]
+  legalCaseId Int
+  inCollectionAgency Boolean [not null, default: false]
+  dunningPreferredChannel String [not null, default: 'EMAIL']
+  dunningOptOutChannels String[] [not null]
+  promisesToPay PromiseToPay [not null]
+  campaigns DunningCampaign [not null]
+  letters DunningLetter [not null]
+  collectionAssignments CollectionAssignment [not null]
+  creditActions CustomerCreditAction [not null]
+  SupplierBankAccount SupplierBankAccount [not null]
+  SalesContract SalesContract [not null]
+  IfrsLeaseContract IfrsLeaseContract [not null]
+  FixedAsset FixedAsset [not null]
+  PriceList price_lists [not null]
+  Appointment clinic_appointments [not null]
+  ClinicPrescription clinic_rx [not null]
+  LabOrder clinic_lab_orders [not null]
+  isForeignVendor Boolean [not null, default: false]
+  whtCountryCode String
+  whtTaxResidencyCert String
+  whtTaxResidencyExpiry DateTime
+  defaultWhtRuleId Int
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table sales_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  stockId Int [not null, default: 1]
+  salesRepId Int
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  status String [not null, default: 'pending']
+  isDropShip Boolean [not null, default: false]
+  userId Int
+  notes String
+  customer customers
+  salesRep employees
+  details sales_order_details [not null]
+  deliveryNotes delivery_notes [not null]
+  purchaseOrders purchase_orders [not null]
+}
+
+Table stocks {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  address String
+  active Boolean [not null, default: true]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  stockMovements stock_movements [not null]
+  productStocks product_stocks [not null]
+  warehouseZones warehouse_zones [not null]
+  branch branches
+  branchId Int
+  goodsReceipts goods_receipt_notes [not null]
+  ProductSerialNumber inv_serial_numbers [not null]
+}
+
+Table users {
+  id Int [pk, increment]
+  username String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  role String [not null, default: 'cashier']
+  phone String
+  active Boolean [not null, default: true]
+  sessionToken String
+  deviceToken String
+  deviceName String
+  deviceBoundAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  permissions user_permissions [not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  approvals purchase_orders [not null]
+  expenses expenses [not null]
+  treasuryEntries treasury [not null]
+  auditLogs audit_logs [not null]
+  stockMovements stock_movements [not null]
+  shifts shifts [not null]
+  branchId Int
+  branch branches
+  approvalRules approval_rules [not null]
+  approvalRequests approval_requests [not null]
+  approvalSteps approval_steps [not null]
+  archives document_archives [not null]
+  prRequisitions purchase_requisitions [not null]
+  prApprovals purchase_requisitions [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  alerts sys_alerts [not null]
+  defaultPage String
+  totpSecretEncrypted String
+  totpIv String
+  totpAuthTag String
+  mfaEnabled Boolean [not null, default: false]
+  mfaMethod String
+  mfaPendingActivation Boolean [not null, default: false]
+  mfaEnrolledAt DateTime
+  mfaLastUsedAt DateTime
+  mfaFailedAttempts Int [not null, default: 0]
+  mfaLockedUntil DateTime
+  mfaRequiredByPolicy Boolean [not null, default: false]
+  mfaPolicyId Int
+  mfaPolicy MfaPolicy
+  mfaGracePeriodEndsAt DateTime
+  mfaPhoneVerified String
+  mfaPhoneVerifiedAt DateTime
+  backupCodes UserBackupCode [not null]
+  mfaAttempts MfaAttempt [not null]
+  trustedDevices TrustedDevice [not null]
+  recoveryRequests MfaRecoveryRequest [not null]
+  usedTokens MfaUsedToken [not null]
+  dispensedRx prescriptions [not null]
+  controlledLogs controlled_drug_logs [not null, note: '🟡 Controlled']
+  posSessions pos_sessions [not null]
+  DocumentStateLog document_state_logs [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table branches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  companyId Int [not null]
+  name String [not null]
+  nameEn String
+  address String
+  phone String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  company companies [not null]
+  users users [not null]
+  stocks stocks [not null]
+  salesInvoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  purchases purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  expenses expenses [not null]
+  treasury treasury [not null]
+  journals journal_entries [not null]
+  shifts shifts [not null]
+  bankAccounts bank_accounts [not null]
+  employees employees [not null]
+  costCenters cost_centers [not null]
+  purchaseReturns purchase_returns [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table letters_of_credit {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  lcNumber String [unique, not null]
+  bankId Int [not null]
+  supplierId Int [not null]
+  amount Decimal [not null]
+  currencyId Int [not null]
+  exchangeRate Decimal [not null, default: 1]
+  openDate DateTime [default: `now()`, not null]
+  expiryDate DateTime [not null]
+  status String [not null, default: 'draft']
+  marginPercent Decimal [not null, default: 0]
+  marginPaid Decimal [not null, default: 0]
+  portOfLoading String
+  portOfDischarge String
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  bank bank_accounts [not null]
+  supplier customers [not null]
+  currency currencies [not null]
+  purchaseOrders purchase_orders [not null]
+  landedCosts landed_costs [not null]
+}
+
+Table products {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  barcode String
+  categoryId Int
+  unitId Int [not null, default: 1]
+  buyPrice Decimal [not null, default: 0]
+  sellPrice Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxType String [not null, default: 'VAT']
+  minQuantity Decimal [not null, default: 0]
+  currentStock Decimal [not null, default: 0]
+  description String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  nameEn String [not null, default: '']
+  brandAr String [not null, default: '']
+  brandEn String [not null, default: '']
+  sizeInfo String [not null, default: '']
+  imagePath String [not null, default: '']
+  sellByWeight Boolean [not null, default: false]
+  expiryDate String
+  binLocation String
+  category categories
+  unit units
+  salesDetails sales_invoice_details [not null]
+  purchaseDetails purchase_invoice_details [not null]
+  purchaseOrderDetails purchase_order_details [not null]
+  stockMovements stock_movements [not null]
+  productStocks product_stocks [not null]
+  batches product_batches [not null]
+  finishedRecipes recipes [not null]
+  rawRecipes recipe_ingredients [not null]
+  wastages manufacturing_wastage [not null]
+  recipeByProducts recipe_byproducts [not null]
+  salesReturnDetails sales_return_details [not null]
+  purchaseReturnDetails purchase_return_details [not null]
+  pharmacyDrug pharmacy_drugs
+  SalesOrderDetail sales_order_details [not null]
+  DeliveryNoteDetail delivery_note_details [not null]
+  prDetails purchase_requisition_details [not null]
+  rfqDetails request_for_quotation_details [not null]
+  grnDetails goods_receipt_note_details [not null]
+  serialNumbers inv_serial_numbers [not null]
+  productUnits product_units [not null]
+  EngineeringChangeOrder engineering_change_orders [not null]
+  StandardCostVersion standard_cost_versions [not null]
+  VarianceTransaction variance_transactions [not null]
+  SubcontractingPO subcontracting_pos [not null]
+  SubcontractMovement subcontract_movements [not null]
+  QualitySpec quality_specs
+  QualityInspection quality_inspections [not null]
+  variants product_variants [not null]
+  hasVariants Boolean [not null, default: false]
+  variantAttributeIds String
+  PriceRule price_rules [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+
+  indexes {
+    (tenantId, barcode) [unique]
+  }
+}
+
+Table currencies {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [unique, not null]
+  nameAr String [not null]
+  nameEn String
+  symbol String
+  exchangeRate Decimal [not null, default: 1]
+  isDefault Boolean [not null, default: false]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  exchangeRates exchange_rates [not null]
+  LetterOfCredit letters_of_credit [not null]
+  LandedCost landed_costs [not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+}
+
+Table accounts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [not null]
+  name String [not null]
+  nameEn String [not null, default: '']
+  type String [not null]
+  parentId Int [not null, default: 0]
+  level Int [not null, default: 1]
+  isActive Boolean [not null, default: true]
+  balance Decimal [not null, default: 0]
+  zakatCategory String
+  journalLines journal_lines [not null]
+  LandedCost landed_costs [not null]
+  bankChecks check_transactions [not null]
+  bankRecons bank_reconciliations [not null]
+  BudgetLine fng_budget_lines [not null]
+  Encumbrance fng_encumbrances [not null]
+  sourceMappings account_mappings [not null]
+  targetMappings account_mappings [not null]
+  OpeningBalance OpeningBalance [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table goods_receipt_notes {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  grnNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  supplierId Int
+  orderId Int
+  stockId Int [not null, default: 1]
+  status String [not null, default: 'received']
+  receivedBy Int
+  notes String
+  supplier customers
+  order purchase_orders
+  stock stocks
+  receiver users
+  details goods_receipt_note_details [not null]
+  asnId String
+  expectedArrivalDate DateTime
+  rejectionQty Decimal
+}
+
+Table wht_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  supplierId Int [not null]
+  invoiceId Int [not null]
+  baseAmount Decimal [not null]
+  whtRate Decimal [not null]
+  whtAmount Decimal [not null]
+  certificateNumber String
+  paidToZATCA Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  supplier customers [not null]
+  invoice purchase_invoices [not null]
+  serviceCategory String
+  treatyApplied Boolean [not null, default: false]
+  treatyCountry String
+  form14BatchId Int
+  form14Batch wht_form14_batches
+}
+
+Table subcontracting_pos {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  supplierId Int [not null]
+  productToReceive Int [not null]
+  productsToSend String [not null]
+  expectedDate DateTime [not null]
+  status String [not null, default: 'DRAFT']
+  createdAt DateTime [default: `now()`, not null]
+  supplier customers [not null]
+  product products [not null]
+  movements subcontract_movements [not null]
+}
+
+Ref: purchase_orders.supplierId > customers.id
+
+Ref: purchase_orders.salesOrderId > sales_orders.id
+
+Ref: purchase_orders.stockId > stocks.id
+
+Ref: purchase_orders.userId > users.id
+
+Ref: purchase_orders.approvedBy > users.id
+
+Ref: purchase_orders.branchId > branches.id
+
+Ref: purchase_orders.letterOfCreditId > letters_of_credit.id
+
+Ref: purchase_order_details.orderId > purchase_orders.id [delete: Cascade]
+
+Ref: purchase_order_details.productId > products.id
+
+Ref: purchase_invoices.currencyId > currencies.id
+
+Ref: purchase_invoices.supplierId > customers.id
+
+Ref: purchase_invoices.stockId > stocks.id
+
+Ref: purchase_invoices.userId > users.id
+
+Ref: purchase_invoices.branchId > branches.id
+
+Ref: purchase_invoice_details.invoiceId > purchase_invoices.id [delete: Cascade]
+
+Ref: purchase_invoice_details.productId > products.id
+
+Ref: purchase_returns.supplierId > customers.id
+
+Ref: purchase_returns.branchId > branches.id
+
+Ref: purchase_return_details.returnId > purchase_returns.id [delete: Cascade]
+
+Ref: purchase_return_details.productId > products.id
+
+Ref: landed_costs.purchaseOrderId > purchase_orders.id [delete: Cascade]
+
+Ref: landed_costs.letterOfCreditId > letters_of_credit.id [delete: Cascade]
+
+Ref: landed_costs.expenseAccountId > accounts.id
+
+Ref: landed_costs.currencyId > currencies.id
+
+Ref: supplier_contracts.supplierId > customers.id
+
+Ref: purchase_requisitions.requestedBy > users.id
+
+Ref: purchase_requisitions.approvedBy > users.id
+
+Ref: purchase_requisition_details.reqId > purchase_requisitions.id [delete: Cascade]
+
+Ref: purchase_requisition_details.productId > products.id
+
+Ref: goods_receipt_notes.orderId > purchase_orders.id
+
+Ref: three_way_matches.purchaseOrderId > purchase_orders.id
+
+Ref: three_way_match_lines.matchId > three_way_matches.id
+
+Ref: SupplierBankAccount.supplierId > customers.id
+
+Ref: wht_transactions.invoiceId > purchase_invoices.id
+
+Ref: subcontract_movements.scPoId > subcontracting_pos.id
+
+Ref: subcontract_movements.productId > products.id
+
+Ref: VendorBid.vendorId > VendorPortalUser.id [delete: Cascade]
+
+Ref: VendorBidDetail.bidId > VendorBid.id [delete: Cascade]
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

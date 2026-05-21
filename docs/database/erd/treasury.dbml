@@ -1,0 +1,1139 @@
+Table treasury {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  date DateTime [default: `now()`, not null]
+  type String [not null]
+  amount Decimal [not null, default: 0]
+  description String
+  referenceType String
+  referenceId Int
+  userId Int
+  user users
+  branch branches
+  branchId Int
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table bank_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankAccountId Int [not null]
+  transactionDate DateTime [not null]
+  type String [not null]
+  amount Decimal [not null]
+  description String
+  reference String
+  isReconciled Boolean [not null, default: false]
+  reconciledWithId Int
+  createdAt DateTime [default: `now()`, not null]
+  bankAccount bank_accounts [not null]
+}
+
+Table bank_reconciliations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankAccountId Int [not null]
+  statementDate DateTime [not null]
+  statementBalance Decimal [not null]
+  systemBalance Decimal [not null]
+  difference Decimal [not null]
+  status String [not null, default: 'DRAFT']
+  createdAt DateTime [default: `now()`, not null]
+  bankAccount accounts [not null]
+  journalLines journal_lines [not null]
+}
+
+Table petty_cash_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  amount Decimal [not null]
+  requestDate DateTime [default: `now()`, not null]
+  status String [not null, default: 'PENDING']
+  purpose String
+  settlementAmount Decimal [not null, default: 0]
+  difference Decimal [not null, default: 0]
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+}
+
+Table fng_petty_cash_funds {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  custodianId Int [not null]
+  fundName String [not null]
+  maxLimit Decimal [not null]
+  currentBalance Decimal [not null]
+  status String [not null, default: 'ACTIVE']
+  createdAt DateTime [default: `now()`, not null]
+  custodian employees [not null]
+}
+
+Table payment_terms {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [unique, not null]
+  name String [not null]
+  type String [not null]
+  netDays Int
+  discountDays Int
+  discountPercent Decimal
+  installments payment_term_installments [not null]
+}
+
+Table bank_statements {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankAccountId Int [not null]
+  bankAccount bank_accounts [not null]
+  statementNumber String
+  sequenceNumber Int
+  fileFormat String [not null]
+  fileUrl String
+  fileName String
+  fileHash String
+  fileSizeBytes Int
+  importedAt DateTime [default: `now()`, not null]
+  importedByUserId String
+  importMethod String [not null]
+  currency String [not null]
+  openingBalance Decimal [not null]
+  openingDate DateTime [not null]
+  closingBalance Decimal [not null]
+  closingDate DateTime [not null]
+  validationStatus String [not null, default: 'PENDING']
+  validationDifference Decimal
+  validationOverridden Boolean [not null, default: false]
+  validationOverrideReason String
+  duplicatesCount Int [not null, default: 0]
+  lowConfidenceCount Int [not null, default: 0]
+  totalTransactions Int [not null, default: 0]
+  parseConfidence Decimal
+  reconStatus String [not null, default: 'NOT_STARTED']
+  reconciliationId Int
+  lines bank_statement_lines [not null]
+  intraDay Boolean [not null, default: false]
+}
+
+Table bank_statement_lines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  statementId Int [not null]
+  statement bank_statements [not null]
+  transactionDate DateTime [not null]
+  valueDate DateTime
+  postingDate DateTime
+  amount Decimal [not null]
+  currency String [not null, default: 'SAR']
+  type String [not null]
+  description String [not null]
+  reference String
+  externalReference String
+  counterpartyName String
+  counterpartyIBAN String
+  counterpartyBank String
+  counterpartyCountry String
+  category String
+  categoryConfidence Decimal
+  ocrConfidence Decimal
+  needsReview Boolean [not null, default: false]
+  reviewedAt DateTime
+  reviewedByUserId String
+  isDuplicate Boolean [not null, default: false]
+  duplicateOfLineId Int
+  hash String [not null, default: '']
+  rawData Json
+  matchStatus String [not null, default: 'UNMATCHED']
+  matchedToType String
+  matchedToId Int
+  matchedAt DateTime
+  matchedByUserId String
+  matchConfidence Decimal
+  matchStrategy String
+  aiSuggestion Json
+  matchedJournalId Int
+  matchedToIds Int[] [not null]
+  splitParentId Int
+  reconciliationId Int
+  reconciliation BankReconPeriod
+  exception BankReconciliationException
+  BankReconMatch bank_recon_matches [not null]
+  reviewItem BankStatementReviewItem
+}
+
+Table BankImportError {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankAccountId Int
+  fileName String
+  errorType String [not null]
+  errorMessage String [not null]
+  fileSnippet String
+  occurredAt DateTime [default: `now()`, not null]
+  resolvedAt DateTime
+  resolvedByUserId String
+  resolution String
+}
+
+Table BankStatementReviewItem {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  lineId Int [unique, not null]
+  line bank_statement_lines [not null]
+  fieldsToReview String[] [not null]
+  ocrSnippet String
+  suggestedValues Json
+  reviewerNotes String
+  reviewedAt DateTime
+  reviewedByUserId String
+}
+
+Table bank_recon_rules {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  ruleNumber String [unique, not null]
+  name String [not null]
+  bankAccountId Int
+  bankAccount bank_accounts
+  conditions Json [not null]
+  action String [not null]
+  actionParams Json [not null]
+  priority Int [not null, default: 100]
+  successCount Int [not null, default: 0]
+  failureCount Int [not null, default: 0]
+  successRate Decimal
+  enabled Boolean [not null, default: true]
+  learnedFromLineId Int
+  createdByUserId String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  lastAppliedAt DateTime
+}
+
+Table BankReconPeriod {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankAccountId Int [not null]
+  bankAccount bank_accounts [not null]
+  reconciliationNumber String [unique, not null]
+  periodStart DateTime [not null]
+  periodEnd DateTime [not null]
+  bookBalance Decimal [not null]
+  bankBalance Decimal [not null]
+  reconcilingItems Json [not null]
+  totalReconcilingItems Decimal [not null]
+  adjustedBookBalance Decimal [not null]
+  difference Decimal [not null]
+  status String [not null, default: 'DRAFT']
+  pdfUrl String
+  pdfHash String
+  createdByUserId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  submittedAt DateTime
+  approvedByUserId String
+  approvedAt DateTime
+  lockedAt DateTime
+  notes String
+  matchedLines bank_statement_lines [not null]
+
+  indexes {
+    (bankAccountId, periodEnd) [unique]
+  }
+}
+
+Table BankReconciliationException {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  lineId Int [unique, not null]
+  line bank_statement_lines [not null]
+  reason String [not null]
+  suggestions Json [not null]
+  assignedToUserId String
+  priority String [not null, default: 'NORMAL']
+  resolvedAt DateTime
+  resolvedByUserId String
+  resolution String
+  resolutionNotes String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table bank_recon_matches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  bankLineId Int [not null]
+  bankLine bank_statement_lines [not null]
+  matchType String [not null]
+  matchedTo String [not null]
+  confidence Decimal [not null]
+  ruleId Int
+  journalEntryId Int
+  matchedBy Int [not null]
+  matchedAt DateTime [default: `now()`, not null]
+}
+
+Table cash_flow_forecasts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  forecastDate DateTime [not null]
+  period String [not null]
+  scenario String [default: 'REALISTIC']
+  inflows Decimal [not null, default: 0]
+  outflows Decimal [not null, default: 0]
+  netPosition Decimal [not null, default: 0]
+  openingBalance Decimal
+  closingBalance Decimal
+  horizonMonths Int
+  bucketsJson String
+  alertsJson String
+  generatedAt DateTime [default: `now()`, not null]
+}
+
+Table CashGeneratingUnit {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [unique, not null]
+  name String [not null]
+  description String
+  lastTestDate DateTime
+  nextScheduledTestDate DateTime
+  recoverableAmount Decimal
+  responsibleEmployeeId Int
+  assets FixedAsset [not null]
+}
+
+Table cash_application_batches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  customerId Int [not null]
+  paymentId Int [not null]
+  totalReceived Decimal [not null]
+  totalApplied Decimal [not null]
+  unappliedAmount Decimal [not null]
+  applicationMethod String [not null]
+  appliedBy Int [not null]
+  appliedAt DateTime [default: `now()`, not null]
+  applications cash_applications [not null]
+}
+
+Table cash_applications {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  batchId Int [not null]
+  batch cash_application_batches [not null]
+  invoiceId Int [not null]
+  appliedAmount Decimal [not null]
+  discountTaken Decimal [not null, default: 0]
+  writeOffAmount Decimal [not null, default: 0]
+  remainingInvoiceBalance Decimal [not null]
+}
+
+Table payment_runs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  runNumber String [unique, not null]
+  description String
+  status String [not null, default: 'DRAFT']
+  dueDateUntil DateTime [not null]
+  currency String [not null]
+  paymentMethod String [not null]
+  bankAccountId Int [not null]
+  totalAmount Decimal [not null]
+  totalCount Int [not null, default: 0]
+  successCount Int [not null, default: 0]
+  failedCount Int [not null, default: 0]
+  estimatedSavings Decimal
+  actualSavings Decimal
+  bankCharges Decimal
+  proposedAt DateTime
+  proposedByUserId String
+  submittedForApprovalAt DateTime
+  approvedAt DateTime
+  filesGeneratedAt DateTime
+  sentToBankAt DateTime
+  sentToBankByUserId String
+  confirmedAt DateTime
+  confirmedByUserId String
+  postedAt DateTime
+  postedByUserId String
+  cancelledAt DateTime
+  cancelledByUserId String
+  cancellationReason String
+  journalEntryId Int
+  reversalJournalId Int
+  approvalRequiredCount Int [not null, default: 1]
+  approvalReceivedCount Int [not null, default: 0]
+  lines payment_run_lines [not null]
+  bankFiles PaymentRunBankFile [not null]
+  approvals PaymentRunApproval [not null]
+  createdAt DateTime [default: `now()`, not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table payment_run_lines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  runId Int [not null]
+  run payment_runs [not null]
+  supplierId Int [not null]
+  supplier customers [not null]
+  openItemIds Int[] [not null]
+  invoiceCount Int [not null, default: 1]
+  amount Decimal [not null]
+  currency String [not null]
+  exchangeRate Decimal [not null, default: 1]
+  amountFunctional Decimal [not null]
+  discountAmount Decimal
+  discountTaken Boolean [not null, default: false]
+  discountWindowEnds DateTime
+  beneficiaryName String [not null]
+  beneficiaryIBAN String
+  beneficiarySwift String
+  beneficiaryBankName String
+  beneficiaryBankAddress String
+  beneficiaryCountry String
+  beneficiaryAccountNumber String
+  beneficiaryRoutingNumber String
+  paymentMethod String [not null]
+  paymentReference String
+  paymentPurpose String
+  status String [not null]
+  failureReason String
+  failureCode String
+  externalReference String
+  bankConfirmedAt DateTime
+  bankFees Decimal
+  excludedAt DateTime
+  excludedReason String
+  excludedByUserId String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table payment_gateways {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  provider String [not null]
+  credentials String [not null]
+  env String [not null, default: 'TEST']
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  transactions payment_transactions [not null]
+  savedMethods saved_payment_methods [not null]
+}
+
+Table payment_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  gatewayId Int [not null]
+  invoiceId Int [not null]
+  amount Decimal [not null]
+  currency String [not null, default: 'SAR']
+  method String [not null]
+  providerTransactionId String
+  status String [not null]
+  failureReason String
+  createdAt DateTime [default: `now()`, not null]
+  capturedAt DateTime
+  refundedAt DateTime
+  gateway payment_gateways [not null]
+  invoice sales_invoices [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table saved_payment_methods {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  customerId Int [not null]
+  gatewayId Int [not null]
+  type String [not null]
+  last4 String
+  expiry String
+  providerToken String [not null]
+  isDefault Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  customer customers [not null]
+  gateway payment_gateways [not null]
+  subscriptions customer_subscriptions [not null]
+}
+
+Table cash_app_rule {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  name String [not null]
+  matchLevel Int [not null]
+  criteria Json [not null]
+  action String [not null]
+}
+
+Table cash_flow_line {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  period String [not null]
+  method String [not null, default: 'DIRECT']
+  category String [not null]
+  subCategory String [not null]
+  amount Decimal [not null]
+}
+
+Table users {
+  id Int [pk, increment]
+  username String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  role String [not null, default: 'cashier']
+  phone String
+  active Boolean [not null, default: true]
+  sessionToken String
+  deviceToken String
+  deviceName String
+  deviceBoundAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  permissions user_permissions [not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  approvals purchase_orders [not null]
+  expenses expenses [not null]
+  treasuryEntries treasury [not null]
+  auditLogs audit_logs [not null]
+  stockMovements stock_movements [not null]
+  shifts shifts [not null]
+  branchId Int
+  branch branches
+  approvalRules approval_rules [not null]
+  approvalRequests approval_requests [not null]
+  approvalSteps approval_steps [not null]
+  archives document_archives [not null]
+  prRequisitions purchase_requisitions [not null]
+  prApprovals purchase_requisitions [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  alerts sys_alerts [not null]
+  defaultPage String
+  totpSecretEncrypted String
+  totpIv String
+  totpAuthTag String
+  mfaEnabled Boolean [not null, default: false]
+  mfaMethod String
+  mfaPendingActivation Boolean [not null, default: false]
+  mfaEnrolledAt DateTime
+  mfaLastUsedAt DateTime
+  mfaFailedAttempts Int [not null, default: 0]
+  mfaLockedUntil DateTime
+  mfaRequiredByPolicy Boolean [not null, default: false]
+  mfaPolicyId Int
+  mfaPolicy MfaPolicy
+  mfaGracePeriodEndsAt DateTime
+  mfaPhoneVerified String
+  mfaPhoneVerifiedAt DateTime
+  backupCodes UserBackupCode [not null]
+  mfaAttempts MfaAttempt [not null]
+  trustedDevices TrustedDevice [not null]
+  recoveryRequests MfaRecoveryRequest [not null]
+  usedTokens MfaUsedToken [not null]
+  dispensedRx prescriptions [not null]
+  controlledLogs controlled_drug_logs [not null, note: '🟡 Controlled']
+  posSessions pos_sessions [not null]
+  DocumentStateLog document_state_logs [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table branches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  companyId Int [not null]
+  name String [not null]
+  nameEn String
+  address String
+  phone String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  company companies [not null]
+  users users [not null]
+  stocks stocks [not null]
+  salesInvoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  purchases purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  expenses expenses [not null]
+  treasury treasury [not null]
+  journals journal_entries [not null]
+  shifts shifts [not null]
+  bankAccounts bank_accounts [not null]
+  employees employees [not null]
+  costCenters cost_centers [not null]
+  purchaseReturns purchase_returns [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table journal_lines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  entryId Int [not null]
+  accountId Int [not null]
+  costCenterId Int
+  description String
+  debit Decimal [not null, default: 0]
+  credit Decimal [not null, default: 0]
+  foreignDebit Decimal [not null, default: 0]
+  foreignCredit Decimal [not null, default: 0]
+  isReconciled Boolean [not null, default: false]
+  reconciliationId Int
+  profitCenterId Int
+  projectId Int
+  segmentId Int
+  productId Int
+  customerId Int
+  vendorId Int
+  employeeId Int
+  assetId Int
+  bookId Int
+  fxRate Decimal
+  quantity Decimal
+  uom String
+  entry journal_entries [not null]
+  account accounts [not null]
+  costCenter cost_centers
+  bankRecon bank_reconciliations
+  profitCenter profit_centers
+  segment segments
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table bank_accounts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  branchId Int
+  bankName String [not null]
+  accountName String [not null]
+  accountNumber String [not null]
+  iban String
+  currency String [not null, default: 'SAR']
+  currentBalance Decimal [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  bankCode String
+  preferredFileFormat String
+  fileEncoding String [not null, default: 'utf-8']
+  fileColumnMapping Json
+  openBankingProvider String
+  openBankingAccountId String
+  openBankingConsentExpiresAt DateTime
+  openBankingLastFetchAt DateTime
+  openBankingFetchEnabled Boolean [not null, default: false]
+  openBankingFetchFrequency String [not null, default: 'DAILY']
+  intraDayBalance Decimal
+  intraDayBalanceUpdatedAt DateTime
+  branch branches
+  transactions bank_transactions [not null]
+  lcs letters_of_credit [not null]
+  lgs letters_of_guarantee [not null]
+  statements bank_statements [not null]
+  intraDayBalances IntraDayBalance [not null]
+  BankReconRule bank_recon_rules [not null]
+  BankReconPeriod BankReconPeriod [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table accounts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  code String [not null]
+  name String [not null]
+  nameEn String [not null, default: '']
+  type String [not null]
+  parentId Int [not null, default: 0]
+  level Int [not null, default: 1]
+  isActive Boolean [not null, default: true]
+  balance Decimal [not null, default: 0]
+  zakatCategory String
+  journalLines journal_lines [not null]
+  LandedCost landed_costs [not null]
+  bankChecks check_transactions [not null]
+  bankRecons bank_reconciliations [not null]
+  BudgetLine fng_budget_lines [not null]
+  Encumbrance fng_encumbrances [not null]
+  sourceMappings account_mappings [not null]
+  targetMappings account_mappings [not null]
+  OpeningBalance OpeningBalance [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table employees {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeNo String [unique]
+  name String [not null]
+  phone String
+  position String
+  salary Decimal [not null, default: 0]
+  housingAllowance Decimal [not null, default: 0]
+  transportAllowance Decimal [not null, default: 0]
+  otherAllowance Decimal [not null, default: 0]
+  bankName String
+  iban String
+  startDate String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  branchId Int
+  branch branches
+  nationality String [not null, default: 'SAUDI']
+  iqamaNumber String
+  passportNumber String
+  idNumber String
+  birthDate DateTime
+  gender String
+  maritalStatus String
+  faceDescriptor String
+  department String
+  managerId Int
+  manager employees
+  subordinates employees [not null]
+  attendance attendance [not null]
+  salaries salaries [not null]
+  pettyCashes petty_cash_transactions [not null]
+  salesTargets sales_targets [not null]
+  salesOrders sales_orders [not null]
+  salesInvoices sales_invoices [not null]
+  routes routes [not null]
+  evaluationsReceived hr_employee_evaluations [not null]
+  evaluationsGiven hr_employee_evaluations [not null]
+  trainings hr_training_enrollments [not null]
+  fleetTrips fms_trips [not null]
+  fuelLogs fms_fuel_logs [not null]
+  classesTaught shl_academic_classes [not null]
+  commissions com_salesman_commissions [not null]
+  pettyCashFunds fng_petty_cash_funds [not null]
+  Vacation vacations [not null]
+  EmployeeLoan employee_loans [not null]
+  PayrollInvoice payroll_invoices [not null]
+  EndOfServiceCalculation end_of_service_calculations [not null]
+  WPSBatchItem wps_batch_items [not null]
+  LeaveBalance leave_balances [not null]
+  LeaveAccrual leave_accruals [not null]
+  LeaveRequest leave_requests [not null]
+  DoctorSchedule clinic_schedules [not null]
+  Appointment clinic_appointments [not null]
+  ClinicPrescription clinic_rx [not null]
+  LabOrder clinic_lab_orders [not null]
+  qiwaWageProtectionId String
+  mudadStatus String
+  qiwaContracts qiwa_contracts [not null]
+  projectResources project_resources [not null]
+  projectTimeEntries project_time_entries [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table payment_term_installments {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  termId Int [not null]
+  term payment_terms [not null]
+  daysAfterInvoice Int [not null]
+  percentOfTotal Decimal [not null]
+}
+
+Table FixedAsset {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetNumber String [unique, not null]
+  name String [not null]
+  nameAr String
+  description String
+  categoryId Int
+  category FixedAssetCategory
+  parentAssetId Int
+  parentAsset FixedAsset
+  components FixedAsset [not null]
+  isComposite Boolean [not null, default: false]
+  isComponent Boolean [not null, default: false]
+  componentType String
+  acquisitionDate DateTime [not null]
+  acquisitionCost Decimal [not null]
+  currency String [not null, default: 'SAR']
+  vendorId Int
+  vendor customers
+  invoiceId Int
+  acquisitionJournalId Int
+  depreciationMethod String [not null]
+  usefulLifeYears Int
+  usefulLifeMonths Int
+  declineRate Decimal
+  totalEstimatedUnits Decimal
+  unitsConsumed Decimal [not null, default: 0]
+  totalEstimatedHours Decimal
+  hoursOperated Decimal [not null, default: 0]
+  salvageValue Decimal [not null, default: 0]
+  depreciationConvention String [not null, default: 'FULL_MONTH']
+  depreciationStartDate DateTime [not null]
+  accumulatedDepreciation Decimal [not null, default: 0]
+  accumulatedImpairment Decimal [not null, default: 0]
+  currentBookValue Decimal [not null]
+  status String [not null, default: 'ACTIVE']
+  statusChangedAt DateTime
+  disposalDate DateTime
+  disposalProceeds Decimal
+  disposalGainLoss Decimal
+  disposalJournalId Int
+  disposalType String
+  heldForSaleDate DateTime
+  heldForSaleJournalId Int
+  locationId Int
+  branchId Int
+  costCenterId Int
+  custodianEmployeeId Int
+  insurancePolicyNumber String
+  insuranceProvider String
+  insurancePremium Decimal
+  insuranceExpiryDate DateTime
+  insuredValue Decimal
+  serialNumber String
+  barcode String [unique]
+  rfidTag String
+  manufacturer String
+  model String
+  modelYear Int
+  registrationNumber String
+  warrantyStartDate DateTime
+  warrantyEndDate DateTime
+  warrantyVendorId Int
+  cguId Int
+  cgu CashGeneratingUnit
+  assetAccountId Int
+  accumDepAccountId Int
+  depExpenseAccountId Int
+  nextMaintenanceDate DateTime
+  maintenanceFrequencyMonths Int
+  lastPhysicalCountDate DateTime
+  lastPhysicalCountStatus String
+  createdByUserId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  depreciationLog AssetDepreciationLog [not null]
+  impairmentRecords AssetImpairmentRecord [not null]
+  transferRecords AssetTransferRecord [not null]
+  maintenanceRecords AssetMaintenanceRecord [not null]
+  insuranceClaims AssetInsuranceClaim [not null]
+  usageLog AssetUsageLog [not null]
+  documents AssetDocument [not null]
+  reclassifications AssetReclassification [not null]
+}
+
+Table customers {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  customerNo String [unique]
+  name String [not null]
+  phone String
+  email String
+  address String
+  street String
+  buildingNumber String
+  district String
+  city String
+  postalCode String
+  type Int [not null, default: 0]
+  balance Decimal [not null, default: 0]
+  creditLimit Decimal [not null, default: 0]
+  taxNumber String
+  crNo String
+  notes String
+  active Boolean [not null, default: true]
+  status String [not null, default: 'ACTIVE']
+  password String
+  b2bEnabled Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  installments installments [not null]
+  loyaltyPoints loyalty_points [not null]
+  bookings bookings [not null]
+  lettersOfCredit letters_of_credit [not null]
+  customerChecks check_transactions [not null]
+  supplierChecks check_transactions [not null]
+  routeId Int
+  route routes
+  salesOrders sales_orders [not null]
+  deliveryNotes delivery_notes [not null]
+  projects projects [not null]
+  promissoryNotes promissory_notes [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  leaseContracts rem_lease_contracts [not null]
+  purchaseReturns purchase_returns [not null]
+  supplierContracts supplier_contracts [not null]
+  whtTransactions wht_transactions [not null]
+  RentInvoice rent_invoices [not null]
+  ECLAssessment ecl_assessments [not null]
+  PaymentRunLine payment_run_lines [not null]
+  SubcontractingPO subcontracting_pos [not null]
+  savedPaymentMethods saved_payment_methods [not null]
+  dunningRuns dunning_runs [not null]
+  subscriptions customer_subscriptions [not null]
+  emailStatementsEnabled Boolean [not null, default: false]
+  statementFrequency String [not null, default: 'NEVER']
+  statementChannel String [not null, default: 'EMAIL']
+  statementEmail String
+  statementWhatsapp String
+  statementCcEmails String
+  statementBccEmails String
+  statementLanguage String [not null, default: 'ar']
+  statementTemplateId Int
+  statementTemplate StatementTemplate
+  statementDayOfMonth Int [not null, default: 1]
+  statementSendTime String [not null, default: '06:00']
+  statementIncludeAging Boolean [not null, default: true]
+  statementIncludeClosed Boolean [not null, default: false]
+  statementIncludeOpenOnly Boolean [not null, default: false]
+  statementWatermark String
+  statementSinceLastSent Boolean [not null, default: false]
+  emailDeliveryIssue String
+  emailDeliveryIssueDate DateTime
+  emailLastBounceReason String
+  statementDispatchLogs StatementDispatchLog [not null]
+  statementAccessLogs StatementAccessLog [not null]
+  dunningCurrentLevel Int [not null, default: 0]
+  dunningLastRunAt DateTime
+  dunningSnoozeUntil DateTime
+  dunningSnoozeReason String
+  dunningSnoozedByUserId String
+  dunningPaused Boolean [not null, default: false]
+  dunningPauseReason String
+  creditHold Boolean [not null, default: false]
+  creditHoldReason String
+  creditHoldDate DateTime
+  creditHoldByUserId String
+  creditHoldExpiresAt DateTime
+  legalActionInProgress Boolean [not null, default: false]
+  legalCaseId Int
+  inCollectionAgency Boolean [not null, default: false]
+  dunningPreferredChannel String [not null, default: 'EMAIL']
+  dunningOptOutChannels String[] [not null]
+  promisesToPay PromiseToPay [not null]
+  campaigns DunningCampaign [not null]
+  letters DunningLetter [not null]
+  collectionAssignments CollectionAssignment [not null]
+  creditActions CustomerCreditAction [not null]
+  SupplierBankAccount SupplierBankAccount [not null]
+  SalesContract SalesContract [not null]
+  IfrsLeaseContract IfrsLeaseContract [not null]
+  FixedAsset FixedAsset [not null]
+  PriceList price_lists [not null]
+  Appointment clinic_appointments [not null]
+  ClinicPrescription clinic_rx [not null]
+  LabOrder clinic_lab_orders [not null]
+  isForeignVendor Boolean [not null, default: false]
+  whtCountryCode String
+  whtTaxResidencyCert String
+  whtTaxResidencyExpiry DateTime
+  defaultWhtRuleId Int
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table PaymentRunBankFile {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  runId Int [not null]
+  run payment_runs [not null]
+  fileFormat String [not null]
+  bankCode String
+  bankAccountId Int [not null]
+  fileUrl String [not null]
+  fileName String [not null]
+  fileHash String [not null]
+  fileSizeBytes Int [not null]
+  generatedAt DateTime [default: `now()`, not null]
+  generatedByUserId String [not null]
+  txnCount Int [not null]
+  totalAmount Decimal [not null]
+  currency String [not null]
+  uploadedToBankAt DateTime
+  uploadedByUserId String
+  uploadConfirmationRef String
+  confirmationFileUrl String
+  confirmationParsedAt DateTime
+  successCount Int
+  failedCount Int
+  encrypted Boolean [not null, default: false]
+  encryptionKeyId String
+}
+
+Table PaymentRunApproval {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  runId Int [not null]
+  run payment_runs [not null]
+  approverUserId String [not null]
+  approverRole String [not null]
+  level Int [not null]
+  isParallel Boolean [not null, default: false]
+  status String [not null]
+  decisionAt DateTime
+  comments String
+  delegatedToUserId String
+  delegationReason String
+  reminderSentAt DateTime
+  expiresAt DateTime
+}
+
+Table sales_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  paid Decimal [not null, default: 0]
+  remaining Decimal [not null, default: 0]
+  paymentType String [not null, default: 'cash']
+  splitCash Decimal [default: 0]
+  splitCard Decimal [default: 0]
+  status String [not null, default: 'completed']
+  userId Int
+  notes String
+  taxType String [default: 'VAT']
+  currencyId Int
+  exchangeRate Decimal [default: 1]
+  currency currencies
+  zatcaStatus String [default: 'pending']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  salesRepId Int
+  docType String [default: 'invoice']
+  originalInvoiceId Int
+  customer customers
+  stock stocks
+  salesRep employees
+  user users
+  details sales_invoice_details [not null]
+  branchId Int
+  branch branches
+  shift shifts
+  shiftId Int
+  costCenterId Int
+  costCenter cost_centers
+  payments payment_transactions [not null]
+  subscriptionInvoices subscription_invoices [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+  zatcaUuid String
+  zatcaIcv Int
+  zatcaPih String
+  zatcaSignedXml String
+  zatcaReportedAt DateTime
+  cleared Boolean [not null, default: false]
+  clearedAt DateTime
+  clearanceUuid String
+}
+
+Table customer_subscriptions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  customerId Int [not null]
+  planId Int [not null]
+  startDate DateTime [default: `now()`, not null]
+  currentPeriodStart DateTime [not null]
+  currentPeriodEnd DateTime [not null]
+  nextBillingDate DateTime [not null]
+  status String [not null, default: 'ACTIVE']
+  cancelAtPeriodEnd Boolean [not null, default: false]
+  paymentMethodId Int
+  prorationCredit Decimal [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  customer customers [not null]
+  plan subscription_plans [not null]
+  paymentMethod saved_payment_methods
+  invoices subscription_invoices [not null]
+}
+
+Ref: treasury.userId > users.id
+
+Ref: treasury.branchId > branches.id
+
+Ref: journal_lines.reconciliationId > bank_reconciliations.id
+
+Ref: bank_transactions.bankAccountId > bank_accounts.id
+
+Ref: bank_reconciliations.bankAccountId > accounts.id
+
+Ref: petty_cash_transactions.employeeId > employees.id
+
+Ref: fng_petty_cash_funds.custodianId > employees.id
+
+Ref: payment_term_installments.termId > payment_terms.id [delete: Cascade]
+
+Ref: bank_statements.bankAccountId > bank_accounts.id
+
+Ref: bank_statement_lines.statementId > bank_statements.id [delete: Cascade]
+
+Ref: bank_statement_lines.reconciliationId > BankReconPeriod.id
+
+Ref: bank_recon_rules.bankAccountId > bank_accounts.id
+
+Ref: BankReconPeriod.bankAccountId > bank_accounts.id
+
+Ref: bank_recon_matches.bankLineId > bank_statement_lines.id [delete: Cascade]
+
+Ref: FixedAsset.cguId > CashGeneratingUnit.id
+
+Ref: cash_applications.batchId > cash_application_batches.id
+
+Ref: payment_run_lines.runId > payment_runs.id [delete: Cascade]
+
+Ref: payment_run_lines.supplierId > customers.id
+
+Ref: PaymentRunBankFile.runId > payment_runs.id [delete: Cascade]
+
+Ref: PaymentRunApproval.runId > payment_runs.id [delete: Cascade]
+
+Ref: payment_transactions.gatewayId > payment_gateways.id
+
+Ref: payment_transactions.invoiceId > sales_invoices.id
+
+Ref: saved_payment_methods.customerId > customers.id
+
+Ref: saved_payment_methods.gatewayId > payment_gateways.id
+
+Ref: customer_subscriptions.paymentMethodId > saved_payment_methods.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

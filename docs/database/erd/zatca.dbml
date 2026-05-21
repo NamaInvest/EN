@@ -1,0 +1,41 @@
+Table zatca_records {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceId Int [not null]
+  invoiceType String [not null]
+  status String [not null, default: 'sent']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  tenantAccountId Int
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

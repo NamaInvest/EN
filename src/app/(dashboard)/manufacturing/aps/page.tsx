@@ -1,20 +1,24 @@
-import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  Advanced Planning & Scheduling (APS) — `/manufacturing/aps`
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  نظام التخطيط المتقدم — APS = Advanced Planning & Scheduling.
+ *  يجدول أوامر التصنيع على مراكز العمل مع مراعاة:
+ *   - القدرات المتاحة
+ *   - تتابع العمليات (Routing)
+ *   - تواريخ التسليم (Due Dates)
+ *
+ *  يفعل: تشغيل/محاكاة الجدولة، كشف التضاربات، جدولة عملية واحدة.
+ *
+ *  @see src/app/api/manufacturing/aps/route.ts
+ *  @see src/services/manufacturing/manufacturing-aps.service.ts
+ *  @see src/lib/aps-scheduler.ts
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
 import ManufacturingApsClient from './ManufacturingApsClient';
 
 export default function ManufacturingApsPage() {
-  const isEnabled = process.env.NEXT_PUBLIC_ENABLE_MANUFACTURING_APS === 'true';
-
-  if (!isEnabled) {
-    return (
-      <FeatureDisabledPanel 
-        moduleName="manufacturing/aps"
-        apiExists={true}
-        apiPath="/api/manufacturing/aps"
-        missingFeatures="هذه الشاشة تحت التطوير وسيتم إطلاقها قريباً بعد استكمال الفحوصات الأمنية."
-        reportLink="/reports"
-      />
-    );
-  }
-
   return <ManufacturingApsClient />;
 }

@@ -4,7 +4,7 @@ import { CheckCircle2, XCircle, AlertCircle, Clock, Server, Database, Key, Refre
 // Ready for i18n extraction
 const i18n = {
   appName: 'نما سوفت | بيئة التشغيل',
-  version: 'الإصدار 2.4.8',
+  version: 'الإصدار 2.4.10',
   systemStatus: 'حالة النظام',
   items: {
     localDatabase: { label: 'قاعدة البيانات المحلية', status: 'Ready', text: 'جاهز' },

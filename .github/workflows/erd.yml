@@ -1,0 +1,45 @@
+name: ERD Generator
+
+on:
+  push:
+    paths:
+      - 'prisma/schema.prisma'
+  pull_request:
+    paths:
+      - 'prisma/schema.prisma'
+
+jobs:
+  generate-erd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm i -D prisma-dbml-generator @softwaretechnik/dbml-renderer ts-node
+
+      - name: Generate Prisma DBML
+        run: npx prisma generate
+
+      - name: Split and Render ERDs
+        run: npx ts-node scripts/split-erd.ts
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code docs/database/erd/ || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add docs/database/erd/
+          git commit -m "chore(docs): auto-update ERD diagrams [skip ci]"
+          git push

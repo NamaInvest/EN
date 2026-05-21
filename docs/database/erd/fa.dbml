@@ -1,0 +1,353 @@
+Table assets {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  barcode String [unique, not null]
+  name String [not null]
+  category String [not null]
+  purchasePrice Decimal [not null, default: 0]
+  currentValue Decimal [not null, default: 0]
+  salvageValue Decimal [not null, default: 0]
+  usefulLifeYears Int [not null, default: 5]
+  depreciationType String [not null, default: 'STRAIGHT_LINE']
+  purchaseDate DateTime [default: `now()`, not null]
+  status String [not null, default: 'ACTIVE']
+  location String
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  AssetImpairment asset_impairments [not null]
+  AssetRevaluation asset_revaluations [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table AssetDepreciationLog {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  periodStart DateTime [not null]
+  periodEnd DateTime [not null]
+  openingNbv Decimal [not null]
+  depreciationAmount Decimal [not null]
+  closingNbv Decimal [not null]
+  method String [not null]
+  unitsThisPeriod Decimal
+  hoursThisPeriod Decimal
+  journalEntryId Int [not null]
+  recognizedAt DateTime [default: `now()`, not null]
+}
+
+Table AssetImpairmentRecord {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  testDate DateTime [not null]
+  carryingAmount Decimal [not null]
+  fairValueLessCosts Decimal
+  valueInUse Decimal
+  recoverableAmount Decimal [not null]
+  impairmentLoss Decimal [not null]
+  reversal Boolean [not null, default: false]
+  reversalReason String
+  calculationMethod String [not null]
+  evidence String
+  evidenceFileId Int
+  journalEntryId Int [not null]
+  testedByUserId String [not null]
+  approvedByUserId String
+  approvedAt DateTime
+}
+
+Table AssetTransferRecord {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  transferDate DateTime [not null]
+  transferType String [not null]
+  fromLocationId Int
+  toLocationId Int
+  fromBranchId Int
+  toBranchId Int
+  fromCostCenterId Int
+  toCostCenterId Int
+  fromCustodianId Int
+  toCustodianId Int
+  bookValueAtTransfer Decimal [not null]
+  reason String [not null]
+  journalEntryId Int
+  approvedByUserId String
+  createdByUserId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table AssetMaintenanceRecord {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  type String [not null]
+  scheduledDate DateTime
+  performedDate DateTime
+  cost Decimal
+  capitalize Boolean [not null, default: false]
+  capitalizationReason String
+  description String [not null]
+  performedByVendorId Int
+  performedByEmployeeId Int
+  partsReplaced Json
+  hoursWorked Decimal
+  journalEntryId Int
+  nextDueDate DateTime
+  attachments Json
+}
+
+Table AssetInsuranceClaim {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  claimNumber String [unique, not null]
+  claimDate DateTime [not null]
+  incidentDate DateTime [not null]
+  incidentDescription String [not null]
+  claimedAmount Decimal [not null]
+  approvedAmount Decimal
+  receivedAmount Decimal
+  status String [not null, default: 'FILED']
+  insuranceCompany String [not null]
+  policyNumber String
+  journalEntryId Int
+  attachments Json
+  filedByUserId String [not null]
+  filedAt DateTime [default: `now()`, not null]
+}
+
+Table AssetUsageLog {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  periodStart DateTime [not null]
+  periodEnd DateTime [not null]
+  unitsProduced Decimal
+  hoursOperated Decimal
+  downtimeHours Decimal
+  efficiency Decimal
+  recordedByUserId String [not null]
+  recordedAt DateTime [default: `now()`, not null]
+}
+
+Table AssetReclassification {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  reclassificationDate DateTime [not null]
+  fromCategoryId Int
+  toCategoryId Int
+  fromStatus String [not null]
+  toStatus String [not null]
+  reason String [not null]
+  fairValueAdjustment Decimal
+  journalEntryId Int
+  approvedByUserId String
+  createdByUserId String [not null]
+}
+
+Table AssetDocument {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset FixedAsset [not null]
+  documentType String [not null]
+  fileUrl String [not null]
+  fileName String [not null]
+  uploadedAt DateTime [default: `now()`, not null]
+  uploadedByUserId String [not null]
+  expiryDate DateTime
+}
+
+Table asset_impairments {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset assets [not null]
+  date DateTime [not null]
+  carryingAmount Decimal [not null]
+  recoverableAmount Decimal [not null]
+  impairmentLoss Decimal [not null]
+  reason String
+  journalEntryId Int
+}
+
+Table asset_revaluations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetId Int [not null]
+  asset assets [not null]
+  date DateTime [not null]
+  carryingAmount Decimal [not null]
+  fairValue Decimal [not null]
+  revaluationSurplus Decimal [not null]
+  revaluationDeficit Decimal [not null]
+  evaluatorName String
+  journalEntryId Int
+}
+
+Table contract_asset {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  contractId Int [not null]
+  amount Decimal [not null]
+  recognizedAt DateTime [not null]
+  expectedBillingDate DateTime [not null]
+  status String [not null, default: 'ACTIVE']
+}
+
+Table asset_retirement_obligation {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  assetId Int [not null]
+  estimatedSettlementCost Decimal [not null]
+  estimatedSettlementDate DateTime [not null]
+  discountRate Decimal [not null]
+  presentValue Decimal [not null]
+  status String [not null, default: 'ACTIVE']
+}
+
+Table FixedAsset {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  assetNumber String [unique, not null]
+  name String [not null]
+  nameAr String
+  description String
+  categoryId Int
+  category FixedAssetCategory
+  parentAssetId Int
+  parentAsset FixedAsset
+  components FixedAsset [not null]
+  isComposite Boolean [not null, default: false]
+  isComponent Boolean [not null, default: false]
+  componentType String
+  acquisitionDate DateTime [not null]
+  acquisitionCost Decimal [not null]
+  currency String [not null, default: 'SAR']
+  vendorId Int
+  vendor customers
+  invoiceId Int
+  acquisitionJournalId Int
+  depreciationMethod String [not null]
+  usefulLifeYears Int
+  usefulLifeMonths Int
+  declineRate Decimal
+  totalEstimatedUnits Decimal
+  unitsConsumed Decimal [not null, default: 0]
+  totalEstimatedHours Decimal
+  hoursOperated Decimal [not null, default: 0]
+  salvageValue Decimal [not null, default: 0]
+  depreciationConvention String [not null, default: 'FULL_MONTH']
+  depreciationStartDate DateTime [not null]
+  accumulatedDepreciation Decimal [not null, default: 0]
+  accumulatedImpairment Decimal [not null, default: 0]
+  currentBookValue Decimal [not null]
+  status String [not null, default: 'ACTIVE']
+  statusChangedAt DateTime
+  disposalDate DateTime
+  disposalProceeds Decimal
+  disposalGainLoss Decimal
+  disposalJournalId Int
+  disposalType String
+  heldForSaleDate DateTime
+  heldForSaleJournalId Int
+  locationId Int
+  branchId Int
+  costCenterId Int
+  custodianEmployeeId Int
+  insurancePolicyNumber String
+  insuranceProvider String
+  insurancePremium Decimal
+  insuranceExpiryDate DateTime
+  insuredValue Decimal
+  serialNumber String
+  barcode String [unique]
+  rfidTag String
+  manufacturer String
+  model String
+  modelYear Int
+  registrationNumber String
+  warrantyStartDate DateTime
+  warrantyEndDate DateTime
+  warrantyVendorId Int
+  cguId Int
+  cgu CashGeneratingUnit
+  assetAccountId Int
+  accumDepAccountId Int
+  depExpenseAccountId Int
+  nextMaintenanceDate DateTime
+  maintenanceFrequencyMonths Int
+  lastPhysicalCountDate DateTime
+  lastPhysicalCountStatus String
+  createdByUserId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  depreciationLog AssetDepreciationLog [not null]
+  impairmentRecords AssetImpairmentRecord [not null]
+  transferRecords AssetTransferRecord [not null]
+  maintenanceRecords AssetMaintenanceRecord [not null]
+  insuranceClaims AssetInsuranceClaim [not null]
+  usageLog AssetUsageLog [not null]
+  documents AssetDocument [not null]
+  reclassifications AssetReclassification [not null]
+}
+
+Ref: AssetDepreciationLog.assetId > FixedAsset.id [delete: Cascade]
+
+Ref: AssetImpairmentRecord.assetId > FixedAsset.id
+
+Ref: AssetTransferRecord.assetId > FixedAsset.id
+
+Ref: AssetMaintenanceRecord.assetId > FixedAsset.id
+
+Ref: AssetInsuranceClaim.assetId > FixedAsset.id
+
+Ref: AssetUsageLog.assetId > FixedAsset.id
+
+Ref: AssetReclassification.assetId > FixedAsset.id
+
+Ref: AssetDocument.assetId > FixedAsset.id [delete: Cascade]
+
+Ref: asset_impairments.assetId > assets.id
+
+Ref: asset_revaluations.assetId > assets.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

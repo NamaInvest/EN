@@ -1,0 +1,415 @@
+Table recipes {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  finishedProductId Int [not null]
+  name String [not null]
+  totalCost Decimal [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  scrapPercentage Decimal [not null, default: 0]
+  expectedYieldQty Decimal
+  expectedYieldWeight Decimal
+  weightBefore Decimal
+  weightAfter Decimal
+  qtyBefore Decimal
+  qtyAfter Decimal
+  createdAt DateTime [default: `now()`, not null]
+  finishedProduct products [not null]
+  ingredients recipe_ingredients [not null]
+  orders manufacturing_orders [not null]
+  operations recipe_operations [not null]
+  byProducts recipe_byproducts [not null]
+  BOMVersion bom_versions [not null]
+}
+
+Table recipe_ingredients {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  recipeId Int [not null]
+  rawProductId Int [not null]
+  quantity Decimal [not null, default: 1]
+  estimatedCost Decimal [not null, default: 0]
+  scrapPercentage Decimal [not null, default: 0]
+  weightBefore Decimal
+  weightAfter Decimal
+  qtyBefore Decimal
+  qtyAfter Decimal
+  recipe recipes [not null]
+  rawProduct products [not null]
+}
+
+Table manufacturing_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderNumber String [not null]
+  recipeId Int [not null]
+  machineId Int
+  quantityToProduce Decimal [not null]
+  startDate DateTime [default: `now()`, not null]
+  endDate DateTime
+  status String [not null, default: 'draft']
+  totalCost Decimal [not null, default: 0]
+  wipAccountId Int
+  stockId Int [not null, default: 1]
+  userId Int
+  notes String
+  yieldQty Decimal
+  yieldWeight Decimal
+  journalEntryId Int
+  recipe recipes [not null]
+  machine machines
+  wastages manufacturing_wastage [not null]
+  costs manufacturing_costs [not null]
+  qualityChecks quality_checks [not null]
+  VarianceTransaction variance_transactions [not null]
+}
+
+Table manufacturing_wastage {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  manufacturingOrderId Int [not null]
+  rawProductId Int [not null]
+  lostQuantity Decimal [not null]
+  wastedCost Decimal [not null, default: 0]
+  reason String
+  wastageWeight Decimal
+  wastagePhotoUrl String
+  serialOrBatchNumber String
+  journalEntryId Int
+  reportedAt DateTime [default: `now()`, not null]
+  order manufacturing_orders [not null]
+  rawProduct products [not null]
+}
+
+Table recipe_operations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  recipeId Int [not null]
+  workCenterId Int [not null]
+  operationName String [not null]
+  sequenceNumber Int [not null]
+  durationMinutes Decimal [not null, default: 0]
+  recipe recipes [not null]
+  workCenter work_centers [not null]
+}
+
+Table recipe_byproducts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  recipeId Int [not null]
+  productId Int [not null]
+  quantity Decimal [not null, default: 0]
+  costShare Decimal [not null, default: 0]
+  recipe recipes [not null]
+  product products [not null]
+}
+
+Table manufacturing_costs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  manufacturingOrderId Int [not null]
+  costType String [not null]
+  amount Decimal [not null]
+  description String
+  createdAt DateTime [default: `now()`, not null]
+  order manufacturing_orders [not null]
+}
+
+Table quality_checks {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  manufacturingOrderId Int [not null]
+  inspectorName String [not null]
+  checkType String [not null]
+  status String [not null]
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  order manufacturing_orders [not null]
+}
+
+Table quality_inspections {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  referenceNumber String [unique, not null]
+  inspectorId Int [not null]
+  status String [not null, default: 'PENDING']
+  notes String
+  inspectionDate DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  NonConformanceReport non_conformance_reports [not null]
+  productId Int
+  inspectedQty Decimal
+  results String
+  product products
+}
+
+Table bom_versions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  recipeId Int [not null]
+  recipe recipes [not null]
+  versionNumber String [not null]
+  effectiveFrom DateTime [not null]
+  effectiveTo DateTime
+  status String [not null, default: 'DRAFT']
+  ecoFrom engineering_change_orders [not null]
+  ecoTo engineering_change_orders [not null]
+}
+
+Table quality_specs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  productId Int [unique, not null]
+  parameters String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  product products [not null]
+}
+
+Table ManufacturingBOM {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  productId Int [not null]
+  components Json [not null]
+  version String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table maintenance_work_orders {
+  id Int [pk, increment]
+  scheduleId Int
+  assetId Int
+  priority String [not null, default: 'MEDIUM']
+  description String
+  startDate DateTime
+  completedDate DateTime
+  cost Decimal [not null, default: 0]
+  technicianNotes String
+  status String [not null, default: 'OPEN']
+  tenantId String [not null, note: '🔴 Tenant']
+  createdAt DateTime [default: `now()`, not null]
+  schedule maintenance_schedules
+}
+
+Table products {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  barcode String
+  categoryId Int
+  unitId Int [not null, default: 1]
+  buyPrice Decimal [not null, default: 0]
+  sellPrice Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxType String [not null, default: 'VAT']
+  minQuantity Decimal [not null, default: 0]
+  currentStock Decimal [not null, default: 0]
+  description String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  nameEn String [not null, default: '']
+  brandAr String [not null, default: '']
+  brandEn String [not null, default: '']
+  sizeInfo String [not null, default: '']
+  imagePath String [not null, default: '']
+  sellByWeight Boolean [not null, default: false]
+  expiryDate String
+  binLocation String
+  category categories
+  unit units
+  salesDetails sales_invoice_details [not null]
+  purchaseDetails purchase_invoice_details [not null]
+  purchaseOrderDetails purchase_order_details [not null]
+  stockMovements stock_movements [not null]
+  productStocks product_stocks [not null]
+  batches product_batches [not null]
+  finishedRecipes recipes [not null]
+  rawRecipes recipe_ingredients [not null]
+  wastages manufacturing_wastage [not null]
+  recipeByProducts recipe_byproducts [not null]
+  salesReturnDetails sales_return_details [not null]
+  purchaseReturnDetails purchase_return_details [not null]
+  pharmacyDrug pharmacy_drugs
+  SalesOrderDetail sales_order_details [not null]
+  DeliveryNoteDetail delivery_note_details [not null]
+  prDetails purchase_requisition_details [not null]
+  rfqDetails request_for_quotation_details [not null]
+  grnDetails goods_receipt_note_details [not null]
+  serialNumbers inv_serial_numbers [not null]
+  productUnits product_units [not null]
+  EngineeringChangeOrder engineering_change_orders [not null]
+  StandardCostVersion standard_cost_versions [not null]
+  VarianceTransaction variance_transactions [not null]
+  SubcontractingPO subcontracting_pos [not null]
+  SubcontractMovement subcontract_movements [not null]
+  QualitySpec quality_specs
+  QualityInspection quality_inspections [not null]
+  variants product_variants [not null]
+  hasVariants Boolean [not null, default: false]
+  variantAttributeIds String
+  PriceRule price_rules [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+
+  indexes {
+    (tenantId, barcode) [unique]
+  }
+}
+
+Table machines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  code String [unique]
+  hourlyCost Decimal [not null, default: 0]
+  energyCost Decimal [not null, default: 0]
+  carbonRate Decimal [not null, default: 0]
+  status String [not null, default: 'active']
+  branchId Int
+  createdAt DateTime [default: `now()`, not null]
+  orders manufacturing_orders [not null]
+  workCenters work_centers [not null]
+  maintenanceLogs machine_maintenance [not null]
+  telemetry machine_telemetry [not null]
+}
+
+Table work_centers {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  code String [unique]
+  costPerHour Decimal [not null, default: 0]
+  capacity Decimal [not null, default: 1]
+  isActive Boolean [not null, default: true]
+  machineId Int
+  operations recipe_operations [not null]
+  machine machines
+}
+
+Table engineering_change_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  ecoNumber String [unique, not null]
+  productId Int [not null]
+  product products [not null]
+  fromBomVersionId Int
+  fromBomVersion bom_versions
+  toBomVersionId Int
+  toBomVersion bom_versions
+  reason String [not null]
+  status String [not null, default: 'PENDING']
+  effectiveDate DateTime
+  requestedBy Int [not null]
+  requestedAt DateTime [default: `now()`, not null]
+  approvedBy Int
+  approvedAt DateTime
+}
+
+Table variance_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  type String [not null]
+  productId Int [not null]
+  manufacturingOrderId Int
+  amount Decimal [not null]
+  debit Decimal [not null]
+  credit Decimal [not null]
+  postedAt DateTime [default: `now()`, not null]
+  product products [not null]
+  mo manufacturing_orders
+}
+
+Table non_conformance_reports {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  inspectionId Int [not null]
+  severity String [not null]
+  description String [not null]
+  dispositionType String [not null]
+  costImpact Decimal [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  inspection quality_inspections [not null]
+  capas corrective_actions [not null]
+}
+
+Table maintenance_schedules {
+  id Int [pk, increment]
+  assetId Int
+  assetName String
+  type String [not null, default: 'PREVENTIVE']
+  frequency String [not null, default: 'MONTHLY']
+  lastDate DateTime
+  nextDate DateTime
+  assignedTo String
+  status String [not null, default: 'ACTIVE']
+  tenantId String [not null, note: '🔴 Tenant']
+  createdAt DateTime [default: `now()`, not null]
+  workOrders maintenance_work_orders [not null]
+}
+
+Ref: recipes.finishedProductId > products.id
+
+Ref: recipe_ingredients.recipeId > recipes.id [delete: Cascade]
+
+Ref: recipe_ingredients.rawProductId > products.id
+
+Ref: manufacturing_orders.recipeId > recipes.id
+
+Ref: manufacturing_orders.machineId > machines.id
+
+Ref: manufacturing_wastage.manufacturingOrderId > manufacturing_orders.id [delete: Cascade]
+
+Ref: manufacturing_wastage.rawProductId > products.id
+
+Ref: recipe_operations.recipeId > recipes.id [delete: Cascade]
+
+Ref: recipe_operations.workCenterId > work_centers.id
+
+Ref: recipe_byproducts.recipeId > recipes.id [delete: Cascade]
+
+Ref: recipe_byproducts.productId > products.id
+
+Ref: manufacturing_costs.manufacturingOrderId > manufacturing_orders.id [delete: Cascade]
+
+Ref: quality_checks.manufacturingOrderId > manufacturing_orders.id [delete: Cascade]
+
+Ref: quality_inspections.productId > products.id
+
+Ref: bom_versions.recipeId > recipes.id
+
+Ref: engineering_change_orders.fromBomVersionId > bom_versions.id
+
+Ref: engineering_change_orders.toBomVersionId > bom_versions.id
+
+Ref: variance_transactions.manufacturingOrderId > manufacturing_orders.id
+
+Ref: non_conformance_reports.inspectionId > quality_inspections.id
+
+Ref: maintenance_work_orders.scheduleId > maintenance_schedules.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}

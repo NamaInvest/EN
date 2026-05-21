@@ -1,0 +1,964 @@
+Table employees {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeNo String [unique]
+  name String [not null]
+  phone String
+  position String
+  salary Decimal [not null, default: 0]
+  housingAllowance Decimal [not null, default: 0]
+  transportAllowance Decimal [not null, default: 0]
+  otherAllowance Decimal [not null, default: 0]
+  bankName String
+  iban String
+  startDate String
+  active Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  branchId Int
+  branch branches
+  nationality String [not null, default: 'SAUDI']
+  iqamaNumber String
+  passportNumber String
+  idNumber String
+  birthDate DateTime
+  gender String
+  maritalStatus String
+  faceDescriptor String
+  department String
+  managerId Int
+  manager employees
+  subordinates employees [not null]
+  attendance attendance [not null]
+  salaries salaries [not null]
+  pettyCashes petty_cash_transactions [not null]
+  salesTargets sales_targets [not null]
+  salesOrders sales_orders [not null]
+  salesInvoices sales_invoices [not null]
+  routes routes [not null]
+  evaluationsReceived hr_employee_evaluations [not null]
+  evaluationsGiven hr_employee_evaluations [not null]
+  trainings hr_training_enrollments [not null]
+  fleetTrips fms_trips [not null]
+  fuelLogs fms_fuel_logs [not null]
+  classesTaught shl_academic_classes [not null]
+  commissions com_salesman_commissions [not null]
+  pettyCashFunds fng_petty_cash_funds [not null]
+  Vacation vacations [not null]
+  EmployeeLoan employee_loans [not null]
+  PayrollInvoice payroll_invoices [not null]
+  EndOfServiceCalculation end_of_service_calculations [not null]
+  WPSBatchItem wps_batch_items [not null]
+  LeaveBalance leave_balances [not null]
+  LeaveAccrual leave_accruals [not null]
+  LeaveRequest leave_requests [not null]
+  DoctorSchedule clinic_schedules [not null]
+  Appointment clinic_appointments [not null]
+  ClinicPrescription clinic_rx [not null]
+  LabOrder clinic_lab_orders [not null]
+  qiwaWageProtectionId String
+  mudadStatus String
+  qiwaContracts qiwa_contracts [not null]
+  projectResources project_resources [not null]
+  projectTimeEntries project_time_entries [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table attendance {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  date String [not null]
+  checkIn String
+  checkOut String
+  notes String
+  employee employees [not null]
+}
+
+Table shifts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  userId Int [not null]
+  stockId Int
+  startTime DateTime [default: `now()`, not null]
+  endTime DateTime
+  status String [not null, default: 'open']
+  startingCash Decimal [not null, default: 0]
+  endingCashExpected Decimal
+  endingCashActual Decimal
+  difference Decimal
+  notes String
+  user users [not null]
+  invoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  branchId Int
+  branch branches
+}
+
+Table employee_loans {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  amount Decimal [not null]
+  monthlyDeduction Decimal [not null]
+  remainingAmount Decimal [not null]
+  reason String
+  startDate DateTime [not null]
+  status String [not null, default: 'active']
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table hr_job_applicants {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  jobPostingId Int [not null]
+  name String [not null]
+  email String
+  phone String
+  resumeUrl String
+  status String [not null, default: 'APPLIED']
+  appliedAt DateTime [default: `now()`, not null]
+  jobPosting hr_job_postings [not null]
+}
+
+Table hr_employee_evaluations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  evaluatorId Int [not null]
+  evaluationDate DateTime [not null]
+  period String [not null, default: 'ANNUAL']
+  score Float [not null, default: 0]
+  strengths String
+  weaknesses String
+  recommendations String
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+  evaluator employees [not null]
+}
+
+Table hr_training_courses {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  title String [not null]
+  provider String
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  cost Decimal [not null, default: 0]
+  status String [not null, default: 'SCHEDULED']
+  createdAt DateTime [default: `now()`, not null]
+  enrollments hr_training_enrollments [not null]
+}
+
+Table hr_training_enrollments {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  courseId Int [not null]
+  employeeId Int [not null]
+  status String [not null, default: 'ENROLLED']
+  score Float
+  course hr_training_courses [not null]
+  employee employees [not null]
+}
+
+Table work_shifts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  startTime String [not null]
+  endTime String [not null]
+  breakMins Int [not null, default: 60]
+  active Boolean [not null, default: true]
+}
+
+Table payroll_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo String [not null]
+  period String
+  total Decimal [not null, default: 0]
+  employeeId Int
+  tenantAccountId Int
+  createdAt DateTime [default: `now()`, not null]
+  employee employees
+  details payroll_invoice_details [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table payroll_invoice_details {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceId Int [not null]
+  description String
+  amount Decimal [not null, default: 0]
+  type String [not null, default: 'addition']
+  invoice payroll_invoices [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table payroll_runs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  month Int [not null]
+  year Int [not null]
+  runDate DateTime [default: `now()`, not null]
+  totalAmount Decimal [not null]
+  status String [not null, default: 'DRAFT']
+  approvedBy Int
+  journalEntryId Int
+  wpsBatches wps_batches [not null]
+  gosiContributions gosi_contributions [not null]
+}
+
+Table leave_balances {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  employee employees [not null]
+  year Int [not null]
+  leaveType String [not null]
+  entitlement Decimal [not null]
+  accrued Decimal [not null, default: 0]
+  used Decimal [not null, default: 0]
+  pending Decimal [not null, default: 0]
+  carryOver Decimal [not null, default: 0]
+  balance Decimal [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (employeeId, year, leaveType) [unique]
+  }
+}
+
+Table leave_accruals {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  employee employees [not null]
+  accrualDate DateTime [not null]
+  leaveType String [not null]
+  daysAccrued Decimal [not null]
+  runBy String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table leave_requests {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  employee employees [not null]
+  leaveType String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  days Decimal [not null]
+  reason String
+  attachmentUrl String
+  status String [not null, default: 'PENDING']
+  approvedBy Int
+  approvedAt DateTime
+  rejectedBy Int
+  rejectedAt DateTime
+  rejectionReason String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table shift_schedule {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  employeeId Int [not null]
+  date DateTime [not null]
+  shiftType String [not null]
+  startTime DateTime [not null]
+  endTime DateTime [not null]
+  status String [not null, default: 'PUBLISHED']
+}
+
+Table employee_competency {
+  id Int [pk, increment]
+  employeeId Int [not null]
+  competencyId Int [not null]
+  currentLevel Int [not null]
+  assessedAt DateTime [not null]
+  assessedBy Int [not null]
+}
+
+Table employee_comp_proposal {
+  id Int [pk, increment]
+  cycleId Int [not null]
+  employeeId Int [not null]
+  currentSalary Decimal [not null]
+  proposedIncrease Decimal [not null]
+  proposedNewSalary Decimal [not null]
+  approvalStatus String [not null, default: 'PENDING']
+}
+
+Table attendance_device {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  deviceCode String [unique, not null]
+  location String [not null]
+  type String [not null]
+  lastSync DateTime
+}
+
+Table attendance_punch {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  employeeId Int [not null]
+  deviceId Int
+  punchType String [not null]
+  punchTime DateTime [not null]
+  geoLatitude Decimal
+  geoLongitude Decimal
+  matchConfidence Decimal
+}
+
+Table sales_invoices {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  invoiceNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  stockId Int [not null, default: 1]
+  subtotal Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountValue Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  paid Decimal [not null, default: 0]
+  remaining Decimal [not null, default: 0]
+  paymentType String [not null, default: 'cash']
+  splitCash Decimal [default: 0]
+  splitCard Decimal [default: 0]
+  status String [not null, default: 'completed']
+  userId Int
+  notes String
+  taxType String [default: 'VAT']
+  currencyId Int
+  exchangeRate Decimal [default: 1]
+  currency currencies
+  zatcaStatus String [default: 'pending']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  salesRepId Int
+  docType String [default: 'invoice']
+  originalInvoiceId Int
+  customer customers
+  stock stocks
+  salesRep employees
+  user users
+  details sales_invoice_details [not null]
+  branchId Int
+  branch branches
+  shift shifts
+  shiftId Int
+  costCenterId Int
+  costCenter cost_centers
+  payments payment_transactions [not null]
+  subscriptionInvoices subscription_invoices [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+  zatcaUuid String
+  zatcaIcv Int
+  zatcaPih String
+  zatcaSignedXml String
+  zatcaReportedAt DateTime
+  cleared Boolean [not null, default: false]
+  clearedAt DateTime
+  clearanceUuid String
+}
+
+Table sales_returns {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  returnNo Int [not null]
+  originalInvoiceId Int
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  userId Int
+  notes String
+  destinationStockId Int
+  restockingFee Decimal [not null, default: 0]
+  zatcaStatus String [default: 'pending']
+  zatcaHash String
+  zatcaQr String
+  zatcaResponse String
+  zatcaXml String
+  status String [not null, default: 'REQUESTED']
+  branch branches
+  shift shifts
+  branchId Int
+  shiftId Int
+  details sales_return_details [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table branches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  companyId Int [not null]
+  name String [not null]
+  nameEn String
+  address String
+  phone String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  company companies [not null]
+  users users [not null]
+  stocks stocks [not null]
+  salesInvoices sales_invoices [not null]
+  salesReturns sales_returns [not null]
+  purchases purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  expenses expenses [not null]
+  treasury treasury [not null]
+  journals journal_entries [not null]
+  shifts shifts [not null]
+  bankAccounts bank_accounts [not null]
+  employees employees [not null]
+  costCenters cost_centers [not null]
+  purchaseReturns purchase_returns [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table salaries {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  month Int [not null]
+  year Int [not null]
+  basicSalary Decimal [not null, default: 0]
+  additions Decimal [not null, default: 0]
+  deductions Decimal [not null, default: 0]
+  gosiDeduction Decimal [not null, default: 0]
+  loanDeduction Decimal [not null, default: 0]
+  netSalary Decimal [not null, default: 0]
+  paidDate DateTime [default: `now()`, not null]
+  notes String
+  employee employees [not null]
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
+Table vacations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  type String [not null, default: 'annual']
+  dateFrom String [not null]
+  dateTo String [not null]
+  status String [not null, default: 'approved']
+  notes String
+  employee employees [not null]
+}
+
+Table users {
+  id Int [pk, increment]
+  username String [unique, not null]
+  passwordHash String [not null]
+  fullName String [not null]
+  role String [not null, default: 'cashier']
+  phone String
+  active Boolean [not null, default: true]
+  sessionToken String
+  deviceToken String
+  deviceName String
+  deviceBoundAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  permissions user_permissions [not null]
+  salesInvoices sales_invoices [not null]
+  purchaseInvoices purchase_invoices [not null]
+  purchaseOrders purchase_orders [not null]
+  approvals purchase_orders [not null]
+  expenses expenses [not null]
+  treasuryEntries treasury [not null]
+  auditLogs audit_logs [not null]
+  stockMovements stock_movements [not null]
+  shifts shifts [not null]
+  branchId Int
+  branch branches
+  approvalRules approval_rules [not null]
+  approvalRequests approval_requests [not null]
+  approvalSteps approval_steps [not null]
+  archives document_archives [not null]
+  prRequisitions purchase_requisitions [not null]
+  prApprovals purchase_requisitions [not null]
+  rfqs request_for_quotations [not null]
+  goodsReceipts goods_receipt_notes [not null]
+  alerts sys_alerts [not null]
+  defaultPage String
+  totpSecretEncrypted String
+  totpIv String
+  totpAuthTag String
+  mfaEnabled Boolean [not null, default: false]
+  mfaMethod String
+  mfaPendingActivation Boolean [not null, default: false]
+  mfaEnrolledAt DateTime
+  mfaLastUsedAt DateTime
+  mfaFailedAttempts Int [not null, default: 0]
+  mfaLockedUntil DateTime
+  mfaRequiredByPolicy Boolean [not null, default: false]
+  mfaPolicyId Int
+  mfaPolicy MfaPolicy
+  mfaGracePeriodEndsAt DateTime
+  mfaPhoneVerified String
+  mfaPhoneVerifiedAt DateTime
+  backupCodes UserBackupCode [not null]
+  mfaAttempts MfaAttempt [not null]
+  trustedDevices TrustedDevice [not null]
+  recoveryRequests MfaRecoveryRequest [not null]
+  usedTokens MfaUsedToken [not null]
+  dispensedRx prescriptions [not null]
+  controlledLogs controlled_drug_logs [not null, note: '🟡 Controlled']
+  posSessions pos_sessions [not null]
+  DocumentStateLog document_state_logs [not null]
+  deletedAt DateTime [note: '[SD]']
+}
+
+Table petty_cash_transactions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  amount Decimal [not null]
+  requestDate DateTime [default: `now()`, not null]
+  status String [not null, default: 'PENDING']
+  purpose String
+  settlementAmount Decimal [not null, default: 0]
+  difference Decimal [not null, default: 0]
+  notes String
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+}
+
+Table routes {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  name String [not null]
+  description String
+  active Boolean [not null, default: true]
+  salesRepId Int
+  createdAt DateTime [default: `now()`, not null]
+  customers customers [not null]
+  salesRep employees
+}
+
+Table sales_targets {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  year Int [not null]
+  month Int [not null]
+  targetAmount Decimal [not null]
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+}
+
+Table sales_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  orderNo Int [not null]
+  date DateTime [default: `now()`, not null]
+  customerId Int
+  stockId Int [not null, default: 1]
+  salesRepId Int
+  subtotal Decimal [not null, default: 0]
+  taxValue Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  status String [not null, default: 'pending']
+  isDropShip Boolean [not null, default: false]
+  userId Int
+  notes String
+  customer customers
+  salesRep employees
+  details sales_order_details [not null]
+  deliveryNotes delivery_notes [not null]
+  purchaseOrders purchase_orders [not null]
+}
+
+Table hr_job_postings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  title String [not null]
+  department String
+  description String
+  requirements String
+  status String [not null, default: 'OPEN']
+  createdAt DateTime [default: `now()`, not null]
+  applicants hr_job_applicants [not null]
+}
+
+Table fms_trips {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  vehicleId Int [not null]
+  driverId Int [not null]
+  departureTime DateTime [not null]
+  arrivalTime DateTime
+  startLocation String [not null]
+  endLocation String [not null]
+  distanceKm Decimal [not null, default: 0]
+  notes String
+  status String [not null, default: 'IN_PROGRESS']
+  vehicle fleet_vehicles [not null]
+  driver employees [not null]
+}
+
+Table fms_fuel_logs {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  vehicleId Int [not null]
+  driverId Int [not null]
+  date DateTime [default: `now()`, not null]
+  liters Decimal [not null]
+  cost Decimal [not null]
+  odometerReading Int [not null]
+  receiptUrl String
+  vehicle fleet_vehicles [not null]
+  driver employees [not null]
+}
+
+Table shl_academic_classes {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  className String [not null]
+  gradeLevel String [not null]
+  academicYear String [not null]
+  capacity Int [not null, default: 30]
+  teacherId Int
+  teacher employees
+  enrollments shl_class_enrollments [not null]
+}
+
+Table com_salesman_commissions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  ruleId Int [not null]
+  calculatedAmount Decimal [not null]
+  periodMonth Int [not null]
+  periodYear Int [not null]
+  isPaid Boolean [not null, default: false]
+  paymentDate DateTime
+  employee employees [not null]
+  rule com_commission_rules [not null]
+}
+
+Table fng_petty_cash_funds {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  custodianId Int [not null]
+  fundName String [not null]
+  maxLimit Decimal [not null]
+  currentBalance Decimal [not null]
+  status String [not null, default: 'ACTIVE']
+  createdAt DateTime [default: `now()`, not null]
+  custodian employees [not null]
+}
+
+Table end_of_service_calculations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  employee employees [not null]
+  calculationDate DateTime [default: `now()`, not null]
+  joinDate DateTime [not null]
+  endDate DateTime [not null]
+  reasonForLeaving String [not null]
+  yearsOfService Decimal [not null]
+  lastBasicSalary Decimal [not null]
+  lastFullSalary Decimal [not null]
+  firstFiveYearsAmount Decimal [not null]
+  remainingYearsAmount Decimal [not null]
+  resignationFactor Decimal [not null]
+  unpaidVacationAmount Decimal [not null]
+  unpaidOvertimeAmount Decimal [not null]
+  outstandingLoanAmount Decimal [not null]
+  totalEOS Decimal [not null]
+  netSettlement Decimal [not null]
+  status String [not null, default: 'DRAFT']
+  journalEntryId Int
+  approvedBy Int
+  approvedAt DateTime
+  paidAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table wps_batches {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  payrollRunId Int [not null]
+  payrollRun payroll_runs [not null]
+  bankCode String [not null]
+  batchNumber String [unique, not null]
+  totalAmount Decimal [not null]
+  totalEmployees Int [not null]
+  fileFormat String [not null, default: 'SIF_V2']
+  fileContent String
+  fileGeneratedAt DateTime
+  uploadedAt DateTime
+  status String [not null, default: 'PENDING']
+  rejectionReason String
+  items wps_batch_items [not null]
+}
+
+Table wps_batch_items {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  batchId Int [not null]
+  batch wps_batches [not null]
+  employeeId Int [not null]
+  employee employees [not null]
+  iban String [not null]
+  basicSalary Decimal [not null]
+  housingAllowance Decimal [not null]
+  otherAllowance Decimal [not null]
+  totalSalary Decimal [not null]
+  paymentStatus String [not null, default: 'PENDING']
+}
+
+Table gosi_contributions {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  payrollRunId Int [not null]
+  payrollRun payroll_runs [not null]
+  contributionMonth DateTime [not null]
+  isSaudi Boolean [not null]
+  basicSalary Decimal [not null]
+  housingAllowance Decimal [not null]
+  subjectWage Decimal [not null]
+  employeePensionAmount Decimal [not null, default: 0]
+  employerPensionAmount Decimal [not null, default: 0]
+  employeeSANEDAmount Decimal [not null, default: 0]
+  employerSANEDAmount Decimal [not null, default: 0]
+  occupationalHazardsAmount Decimal [not null, default: 0]
+  totalEmployeeDeduction Decimal [not null]
+  totalEmployerContribution Decimal [not null]
+  totalAmount Decimal [not null]
+  status String [not null, default: 'PENDING']
+  journalEntryId Int
+}
+
+Table clinic_schedules {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  doctorId Int [not null]
+  dayOfWeek Int [not null]
+  startTime String [not null]
+  endTime String [not null]
+  slotDuration Int [not null, default: 15]
+  doctor employees [not null]
+}
+
+Table clinic_appointments {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  patientId Int [not null]
+  doctorId Int [not null]
+  roomId Int
+  type String [not null, default: 'CONSULT']
+  status String [not null, default: 'SCHEDULED']
+  date DateTime [not null]
+  startTime String [not null]
+  duration Int [not null, default: 15]
+  notes String
+  patient customers [not null]
+  doctor employees [not null]
+  room clinic_rooms
+}
+
+Table clinic_rx {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  patientId Int [not null]
+  doctorId Int [not null]
+  date DateTime [default: `now()`, not null]
+  status String [not null, default: 'ACTIVE']
+  notes String
+  patient customers [not null]
+  doctor employees [not null]
+  items clinic_rx_items [not null]
+}
+
+Table clinic_lab_orders {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  patientId Int [not null]
+  doctorId Int [not null]
+  date DateTime [default: `now()`, not null]
+  status String [not null, default: 'PENDING']
+  notes String
+  patient customers [not null]
+  doctor employees [not null]
+  results clinic_lab_results [not null]
+}
+
+Table qiwa_contracts {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  employeeId Int [not null]
+  contractNo String [unique, not null]
+  contractType String [not null]
+  qiwaStatus String [not null]
+  startDate DateTime [not null]
+  endDate DateTime
+  position String
+  wageAmount Decimal
+  wageCurrency String [not null, default: 'SAR']
+  syncedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  employee employees [not null]
+}
+
+Table project_resources {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  projectId Int [not null]
+  employeeId Int
+  resourceName String
+  role String [not null, default: 'MEMBER']
+  allocation Decimal [not null, default: 100]
+  hourlyRate Decimal [not null, default: 0]
+  startDate DateTime
+  endDate DateTime
+  createdAt DateTime [default: `now()`, not null]
+  project projects [not null]
+  employee employees
+}
+
+Table project_time_entries {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  projectId Int [not null]
+  taskId Int
+  employeeId Int
+  date DateTime [not null]
+  hours Decimal [not null, default: 0]
+  description String
+  billable Boolean [not null, default: true]
+  approved Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  project projects [not null]
+  task project_tasks
+  employee employees
+}
+
+Ref: sales_invoices.salesRepId > employees.id
+
+Ref: sales_invoices.shiftId > shifts.id
+
+Ref: sales_returns.shiftId > shifts.id
+
+Ref: employees.branchId > branches.id
+
+Ref: attendance.employeeId > employees.id
+
+Ref: salaries.employeeId > employees.id
+
+Ref: vacations.employeeId > employees.id
+
+Ref: shifts.userId > users.id
+
+Ref: shifts.branchId > branches.id
+
+Ref: employee_loans.employeeId > employees.id
+
+Ref: petty_cash_transactions.employeeId > employees.id
+
+Ref: routes.salesRepId > employees.id
+
+Ref: sales_targets.employeeId > employees.id
+
+Ref: sales_orders.salesRepId > employees.id
+
+Ref: hr_job_applicants.jobPostingId > hr_job_postings.id
+
+Ref: hr_employee_evaluations.employeeId > employees.id
+
+Ref: hr_employee_evaluations.evaluatorId > employees.id
+
+Ref: hr_training_enrollments.courseId > hr_training_courses.id
+
+Ref: hr_training_enrollments.employeeId > employees.id
+
+Ref: fms_trips.driverId > employees.id
+
+Ref: fms_fuel_logs.driverId > employees.id
+
+Ref: shl_academic_classes.teacherId > employees.id
+
+Ref: com_salesman_commissions.employeeId > employees.id
+
+Ref: fng_petty_cash_funds.custodianId > employees.id
+
+Ref: payroll_invoices.employeeId > employees.id
+
+Ref: payroll_invoice_details.invoiceId > payroll_invoices.id [delete: Cascade]
+
+Ref: end_of_service_calculations.employeeId > employees.id
+
+Ref: wps_batches.payrollRunId > payroll_runs.id
+
+Ref: wps_batch_items.employeeId > employees.id
+
+Ref: gosi_contributions.payrollRunId > payroll_runs.id
+
+Ref: leave_balances.employeeId > employees.id
+
+Ref: leave_accruals.employeeId > employees.id
+
+Ref: leave_requests.employeeId > employees.id
+
+Ref: clinic_schedules.doctorId > employees.id
+
+Ref: clinic_appointments.doctorId > employees.id
+
+Ref: clinic_rx.doctorId > employees.id
+
+Ref: clinic_lab_orders.doctorId > employees.id
+
+Ref: qiwa_contracts.employeeId > employees.id [delete: Cascade]
+
+Ref: project_resources.employeeId > employees.id
+
+Ref: project_time_entries.employeeId > employees.id
+
+Enum FinancialPeriodStatus {
+  OPEN
+  SOFT_LOCKED
+  HARD_LOCKED
+}
+
+Enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  POST
+  REVERSE
+  CANCEL
+  VOID
+  PRINT
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+Enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
