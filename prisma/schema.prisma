@@ -12099,3 +12099,23 @@ model MigrationRun {
   errors Json?
   dryRun Boolean @default(true)
 }
+
+
+model TrainingVideo {
+  id Int @id @default(autoincrement())
+  title String
+  role String
+  videoUrl String
+  duration Int
+  quizQuestions Json
+}
+
+model TrainingProgress {
+  id Int @id @default(autoincrement())
+  userId Int
+  videoId Int
+  watchedSeconds Int
+  completedAt DateTime?
+  quizScore Int?
+  certificateUrl String?
+}

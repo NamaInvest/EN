@@ -5661,6 +5661,25 @@ Table MigrationRun {
   dryRun Boolean [not null, default: true]
 }
 
+Table TrainingVideo {
+  id Int [pk, increment]
+  title String [not null]
+  role String [not null]
+  videoUrl String [not null]
+  duration Int [not null]
+  quizQuestions Json [not null]
+}
+
+Table TrainingProgress {
+  id Int [pk, increment]
+  userId Int [not null]
+  videoId Int [not null]
+  watchedSeconds Int [not null]
+  completedAt DateTime
+  quizScore Int
+  certificateUrl String
+}
+
 Table users {
   id Int [pk, increment]
   username String [unique, not null]
