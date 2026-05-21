@@ -5680,6 +5680,20 @@ Table TrainingProgress {
   certificateUrl String
 }
 
+Table ChainState {
+  id Int [pk, increment]
+  tenantId String [not null, note: '🔴 Tenant']
+  chainName String [not null]
+  status String [not null]
+  actor String
+  payload Json
+  results Json
+  errors Json
+  audit Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
 Table users {
   id Int [pk, increment]
   username String [unique, not null]

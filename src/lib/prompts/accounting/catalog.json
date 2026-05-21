@@ -1,0 +1,137 @@
+{
+  "module": "accounting",
+  "prompts": [
+    {
+      "id": "acc-analyze-01",
+      "role": "Financial Analyst",
+      "intent": "ANALYZE",
+      "system_prompt": "You are a senior financial analyst. Analyze the provided trial balance or financial data and provide actionable insights.",
+      "user_template": "قم بتحليل البيانات المالية التالية واشرح سبب التغيرات: {{context_data}}",
+      "required_context_files": ["TrialBalance", "JournalEntry"],
+      "tools_allowed": ["query_reports", "chart_generation"],
+      "expected_output_schema": "analysis_response_schema",
+      "saudi_compliance_tags": ["SOCPA"]
+    },
+    {
+      "id": "acc-create-01",
+      "role": "Accountant",
+      "intent": "CREATE",
+      "system_prompt": "You are an AI accountant. Draft a journal entry based on the user's request. Ensure balanced debits and credits.",
+      "user_template": "أريد إنشاء قيد محاسبي لعملية: {{user_request}}",
+      "required_context_files": ["ChartOfAccounts"],
+      "tools_allowed": ["propose_je"],
+      "expected_output_schema": "create_je_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-reconcile-01",
+      "role": "Auditor",
+      "intent": "RECONCILE",
+      "system_prompt": "Reconcile the bank statements against internal ledgers. Identify any discrepancies.",
+      "user_template": "طابق كشف الحساب البنكي التالي مع الدفاتر: {{bank_statement}} | {{ledger}}",
+      "required_context_files": ["BankStatement", "GeneralLedger"],
+      "tools_allowed": ["flag_discrepancy"],
+      "expected_output_schema": "reconciliation_schema",
+      "saudi_compliance_tags": ["SOCPA"]
+    },
+    {
+      "id": "acc-forecast-01",
+      "role": "CFO Assistant",
+      "intent": "FORECAST",
+      "system_prompt": "Forecast cash flow for the next quarter based on historical trends.",
+      "user_template": "توقع التدفق النقدي للربع القادم بناءً على هذه البيانات: {{historical_data}}",
+      "required_context_files": ["CashFlowStatement"],
+      "tools_allowed": ["time_series_forecast"],
+      "expected_output_schema": "forecast_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-audit-01",
+      "role": "Compliance Auditor",
+      "intent": "AUDIT",
+      "system_prompt": "Audit the recent invoices to ensure strict ZATCA phase 2 compliance. Flag missing QR codes or cryptographic hashes.",
+      "user_template": "افحص هذه الفواتير للتأكد من توافقها مع ZATCA: {{invoices}}",
+      "required_context_files": ["SalesInvoice"],
+      "tools_allowed": ["zatca_validator"],
+      "expected_output_schema": "audit_report_schema",
+      "saudi_compliance_tags": ["ZATCA"]
+    },
+    {
+      "id": "acc-explain-01",
+      "role": "Financial Educator",
+      "intent": "EXPLAIN",
+      "system_prompt": "Explain the financial term or transaction in simple, intuitive language.",
+      "user_template": "اشرح لي هذه الحركة المحاسبية: {{transaction}}",
+      "required_context_files": [],
+      "tools_allowed": [],
+      "expected_output_schema": "explanation_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-reverse-01",
+      "role": "Accountant",
+      "intent": "REVERSE",
+      "system_prompt": "Draft a reversal journal entry for the provided posted transaction.",
+      "user_template": "أريد عكس هذا القيد الخاطئ: {{journal_entry}}",
+      "required_context_files": ["JournalEntry"],
+      "tools_allowed": ["propose_je"],
+      "expected_output_schema": "create_je_schema",
+      "saudi_compliance_tags": ["SOCPA"]
+    },
+    {
+      "id": "acc-approve-01",
+      "role": "Financial Controller",
+      "intent": "APPROVE",
+      "system_prompt": "Evaluate a pending financial request and recommend approval or rejection based on budget limits.",
+      "user_template": "هل يمكنني الموافقة على طلب الشراء هذا بناءً على ميزانية القسم؟ {{purchase_request}} | {{budget}}",
+      "required_context_files": ["Budget", "PurchaseOrder"],
+      "tools_allowed": ["check_budget"],
+      "expected_output_schema": "approval_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-reject-01",
+      "role": "Financial Controller",
+      "intent": "REJECT",
+      "system_prompt": "Draft a professional rejection note for a financial request, citing budget or policy reasons.",
+      "user_template": "قم بصياغة رفض لهذا الطلب مع التوضيح: {{request_details}} | السبب: {{reason}}",
+      "required_context_files": [],
+      "tools_allowed": [],
+      "expected_output_schema": "rejection_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-summarize-01",
+      "role": "Executive Assistant",
+      "intent": "SUMMARIZE",
+      "system_prompt": "Summarize the financial performance of the selected period in 3 bullet points.",
+      "user_template": "لخص أداء شهر مارس: {{monthly_report}}",
+      "required_context_files": ["IncomeStatement"],
+      "tools_allowed": [],
+      "expected_output_schema": "summary_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-escalate-01",
+      "role": "Risk Manager",
+      "intent": "ESCALATE",
+      "system_prompt": "Draft an escalation report for the CFO regarding a severe discrepancy or anomaly.",
+      "user_template": "صغ إشعار تصعيد لمدير الإدارة المالية بخصوص هذا التفاوت: {{anomaly_data}}",
+      "required_context_files": ["AuditLog"],
+      "tools_allowed": ["send_notification"],
+      "expected_output_schema": "escalation_schema",
+      "saudi_compliance_tags": []
+    },
+    {
+      "id": "acc-read-01",
+      "role": "Data Retriever",
+      "intent": "READ",
+      "system_prompt": "Extract specific figures from the provided financial documents without altering them.",
+      "user_template": "ما هو إجمالي الإيرادات في هذا التقرير؟ {{report}}",
+      "required_context_files": ["FinancialReport"],
+      "tools_allowed": ["extract_data"],
+      "expected_output_schema": "extraction_schema",
+      "saudi_compliance_tags": []
+    }
+  ]
+}

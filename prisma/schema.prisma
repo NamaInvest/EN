@@ -12130,3 +12130,18 @@ model UserAgreement {
   ipAddress String?
   userAgent String?
 }
+
+
+model ChainState {
+  id Int @id @default(autoincrement())
+  tenantId String
+  chainName String
+  status String // PENDING, RUNNING, PAUSED, COMPLETED, FAILED
+  actor String?
+  payload Json?
+  results Json?
+  errors Json?
+  audit Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
