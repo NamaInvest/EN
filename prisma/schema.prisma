@@ -12075,3 +12075,13 @@ model SprintStory {
   @@unique([sprintId, storyId])
   @@map("sprint_stories")
 }
+
+
+model TestRun {
+  id Int @id @default(autoincrement())
+  testName String
+  status String
+  duration Int
+  storyId String?
+  createdAt DateTime @default(now())
+}

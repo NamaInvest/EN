@@ -9616,6 +9616,15 @@ Table sprint_stories {
   }
 }
 
+Table TestRun {
+  id Int [pk, increment]
+  testName String [not null]
+  status String [not null]
+  duration Int [not null]
+  storyId String
+  createdAt DateTime [default: `now()`, not null]
+}
+
 Enum FinancialPeriodStatus {
   OPEN
   SOFT_LOCKED
