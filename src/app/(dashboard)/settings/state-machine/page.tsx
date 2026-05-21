@@ -30,14 +30,14 @@ export default function StateMachinePage() {
           <p>Failed to load state machine data. {data?.error}</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="card p-8 text-center border border-[var(--border)] bg-[var(--bg-secondary)] rounded-xl shadow-sm">
+        <div className="card p-8 text-center border border-(--) bg-(--) rounded-xl shadow-sm">
           <Workflow className="mx-auto mb-4 text-gray-400" size={48} />
-          <p className="text-[var(--text-muted)]">No transitions configured yet.</p>
+          <p className="text-(--)">No transitions configured yet.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto card border border-[var(--border)] rounded-xl shadow-sm">
+        <div className="overflow-x-auto card border border-(--) rounded-xl shadow-sm">
           <table className="w-full text-left border-collapse" dir="ltr">
-            <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border)]">
+            <thead className="bg-(--) border-b border-(--)">
               <tr>
                 <th className="p-4 font-semibold text-sm">Doc Type</th>
                 <th className="p-4 font-semibold text-sm">From State</th>
@@ -48,7 +48,7 @@ export default function StateMachinePage() {
             </thead>
             <tbody>
               {data.map((rule: any, i: number) => (
-                <tr key={i} className="border-b border-[var(--border)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] transition-colors">
+                <tr key={i} className="border-b border-(--) bg-(--) hover:bg-(--) transition-colors">
                   <td className="p-4 font-medium text-blue-600">{rule.docType}</td>
                   <td className="p-4 font-mono text-sm">{rule.fromState}</td>
                   <td className="p-4 font-mono text-sm">{rule.toState}</td>
@@ -57,7 +57,7 @@ export default function StateMachinePage() {
                       {rule.action}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-[var(--text-muted)]">{rule.requiredRole || '*'}</td>
+                  <td className="p-4 text-xs text-(--)">{rule.requiredRole || '*'}</td>
                 </tr>
               ))}
             </tbody>

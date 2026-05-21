@@ -32,30 +32,30 @@ export default function InterCompanyPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] rounded-xl shadow-sm">
-              <div className="text-sm text-[var(--text-muted)] mb-1">Total Receivable</div>
+            <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
+              <div className="text-sm text-(--) mb-1">Total Receivable</div>
               <div className="text-3xl font-bold text-green-600" dir="ltr">{data.summary?.totalReceivable || 0}</div>
             </div>
-            <div className="card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] rounded-xl shadow-sm">
-              <div className="text-sm text-[var(--text-muted)] mb-1">Total Payable</div>
+            <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
+              <div className="text-sm text-(--) mb-1">Total Payable</div>
               <div className="text-3xl font-bold text-red-600" dir="ltr">{data.summary?.totalPayable || 0}</div>
             </div>
-            <div className="card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] rounded-xl shadow-sm">
-              <div className="text-sm text-[var(--text-muted)] mb-1">Net Balance</div>
+            <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
+              <div className="text-sm text-(--) mb-1">Net Balance</div>
               <div className="text-3xl font-bold text-blue-600" dir="ltr">{data.summary?.netBalance || 0}</div>
             </div>
           </div>
 
-          <div className="card p-6 border border-[var(--border)] bg-[var(--bg-primary)] rounded-xl shadow-sm">
+          <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <Building2 className="text-gray-500" size={20} /> Counterparty Details
             </h2>
             {data.balances?.length === 0 ? (
-              <p className="text-[var(--text-muted)] text-center p-4">No active inter-company transactions found.</p>
+              <p className="text-(--) text-center p-4">No active inter-company transactions found.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse" dir="ltr">
-                  <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border)]">
+                  <thead className="bg-(--) border-b border-(--)">
                     <tr>
                       <th className="p-3 font-semibold text-sm">Counterparty Tenant</th>
                       <th className="p-3 font-semibold text-sm">Receivable</th>
@@ -65,7 +65,7 @@ export default function InterCompanyPage() {
                   </thead>
                   <tbody>
                     {data.balances.map((b: any, i: number) => (
-                      <tr key={i} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
+                      <tr key={i} className="border-b border-(--) hover:bg-(--) transition-colors">
                         <td className="p-3 font-medium">{b.counterparty}</td>
                         <td className="p-3 text-green-600 font-mono">{b.receivable}</td>
                         <td className="p-3 text-red-600 font-mono">{b.payable}</td>

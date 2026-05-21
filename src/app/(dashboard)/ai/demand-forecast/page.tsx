@@ -31,18 +31,18 @@ export default function DemandForecastPage() {
           <p className="text-sm opacity-80 mt-2">{data?.error || 'No data found'}</p>
         </div>
       ) : (
-        <div className="card p-6 border border-[var(--border)] bg-[var(--bg-secondary)] rounded-xl shadow-sm">
+        <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
           <h2 className="text-xl mb-4">Forecast for: {data.product?.name || 'Product ' + data.product?.id}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border)]">
+            <div className="p-4 bg-(--) rounded-lg border border-(--)">
               <div className="text-sm text-gray-500">Current Stock</div>
               <div className="text-2xl font-bold">{data.product?.currentStock || 0}</div>
             </div>
-            <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border)]">
+            <div className="p-4 bg-(--) rounded-lg border border-(--)">
               <div className="text-sm text-gray-500">Forecasted Demand ({data.forecast?.period})</div>
               <div className="text-2xl font-bold">{data.forecast?.forecastedDemand || 0}</div>
             </div>
-            <div className="p-4 bg-[var(--bg-primary)] rounded-lg border border-[var(--border)]">
+            <div className="p-4 bg-(--) rounded-lg border border-(--)">
               <div className="text-sm text-gray-500">Trend</div>
               <div className="text-2xl font-bold">{data.forecast?.trendLabel || 'N/A'}</div>
             </div>

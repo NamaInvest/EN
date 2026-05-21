@@ -203,7 +203,7 @@ export default function NewJournalEntryPage() {
         <Link href="/accounting/journal" className="text-gray-500 hover:text-gray-900 flex items-center gap-2">
           <ArrowRight size={20} /> العودة
         </Link>
-        <h1 className="text-2xl font-bold m-0 text-[var(--primary)]">إضافة قيد يومية جديد</h1>
+        <h1 className="text-2xl font-bold m-0 text-(--)">إضافة قيد يومية جديد</h1>
       </div>
 
       {globalError && (
