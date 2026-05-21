@@ -13,7 +13,7 @@ export default async function FeatureFlagsDashboard() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Feature Flags Management</h1>
-        <button className="bg-[var(--primary)] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+        <button className="bg-(--primary) text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
           Add New Flag
         </button>
       </div>
@@ -23,9 +23,9 @@ export default async function FeatureFlagsDashboard() {
         <span className="font-medium">Cache is updated every 5 minutes. Changes might not reflect immediately.</span>
       </div>
 
-      <div className="bg-[var(--bg-primary)] border border-(--border) rounded-xl overflow-hidden">
+      <div className="bg-(--bg-primary) border border-(--border) rounded-xl overflow-hidden">
         <table className="w-full text-left" dir="ltr">
-          <thead className="bg-[var(--bg-secondary)] border-b border-(--border)">
+          <thead className="bg-(--bg-secondary) border-b border-(--border)">
             <tr>
               <th className="p-4 text-sm font-semibold">Key</th>
               <th className="p-4 text-sm font-semibold">Description</th>
@@ -37,9 +37,9 @@ export default async function FeatureFlagsDashboard() {
           </thead>
           <tbody>
             {flags.map(flag => (
-              <tr key={flag.id} className="border-b border-(--border) hover:bg-[var(--bg-secondary)]">
+              <tr key={flag.id} className="border-b border-(--border) hover:bg-(--bg-secondary)">
                 <td className="p-4 text-sm font-medium">{flag.key}</td>
-                <td className="p-4 text-sm text-[var(--text-muted)]">{flag.description || '-'}</td>
+                <td className="p-4 text-sm text-(--text-muted)">{flag.description || '-'}</td>
                 <td className="p-4 text-sm">
                   {flag.enabled ? (
                     <span className="inline-flex items-center gap-1 text-green-700 bg-green-100 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -52,22 +52,22 @@ export default async function FeatureFlagsDashboard() {
                   )}
                 </td>
                 <td className="p-4 text-sm">
-                  <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2.5 dark:bg-gray-700 mt-1">
-                    <div className="bg-[var(--primary)] h-2.5 rounded-full" style={{ width: `${flag.percentage}%` }}></div>
+                  <div className="w-full bg-(--bg-secondary) rounded-full h-2.5 dark:bg-gray-700 mt-1">
+                    <div className="bg-(--primary) h-2.5 rounded-full" style={{ width: `${flag.percentage}%` }}></div>
                   </div>
-                  <span className="text-xs text-[var(--text-muted)] mt-1 inline-block">{flag.percentage}%</span>
+                  <span className="text-xs text-(--text-muted) mt-1 inline-block">{flag.percentage}%</span>
                 </td>
-                <td className="p-4 text-sm text-[var(--text-muted)] truncate max-w-xs">
+                <td className="p-4 text-sm text-(--text-muted) truncate max-w-xs">
                   {flag.targetTenants ? JSON.stringify(flag.targetTenants) : 'All'}
                 </td>
-                <td className="p-4 text-sm text-[var(--text-muted)] truncate max-w-xs">
+                <td className="p-4 text-sm text-(--text-muted) truncate max-w-xs">
                   {flag.targetUsers ? JSON.stringify(flag.targetUsers) : 'All'}
                 </td>
               </tr>
             ))}
             {flags.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-[var(--text-muted)]">
+                <td colSpan={6} className="p-8 text-center text-(--text-muted)">
                   No feature flags found. Create one to begin.
                 </td>
               </tr>

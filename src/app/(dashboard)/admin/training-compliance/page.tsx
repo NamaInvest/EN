@@ -1,53 +1,78 @@
 import React from 'react';
+import { BookOpen, UserCheck, AlertOctagon } from 'lucide-react';
 
-export default function TrainingCompliancePage() {
-    return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6 text-gray-900">Training & Compliance Oversight</h1>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-500">Overall Compliance Rate</h3>
-                    <p className="text-3xl font-bold mt-2 text-green-600">92%</p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-500">Overdue Trainings</h3>
-                    <p className="text-3xl font-bold mt-2 text-red-600">14 Users</p>
-                </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-500">Certificates Issued (30 Days)</h3>
-                    <p className="text-3xl font-bold mt-2 text-blue-600">45</p>
-                </div>
-            </div>
+export default function TrainingComplianceDashboard() {
+  const employees = [
+    { id: 1, name: 'Ahmad M.', role: 'DevOps', status: 'Compliant', lastCompleted: '2026-01-15' },
+    { id: 2, name: 'Sarah T.', role: 'HR Manager', status: 'Pending', lastCompleted: '2025-04-10' },
+    { id: 3, name: 'Omar K.', role: 'Backend Dev', status: 'Compliant', lastCompleted: '2026-02-20' },
+    { id: 4, name: 'Nour S.', role: 'Accountant', status: 'Overdue', lastCompleted: '2025-01-05' },
+  ];
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Employees Overdue for Mandatory Training</h2>
-                    <button className="text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1.5 rounded-md font-medium transition-colors">
-                        Send Reminders to All
-                    </button>
-                </div>
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-white">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Missing Course</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">Ahmed Al-Fahad</td>
-                            <td className="px-6 py-4 text-sm text-gray-500">Cashier</td>
-                            <td className="px-6 py-4 text-sm text-gray-900">PDPL Data Privacy</td>
-                            <td className="px-6 py-4 text-sm text-red-600 font-medium">2 Days Ago</td>
-                            <td className="px-6 py-4 text-sm text-teal-600 hover:text-teal-800 cursor-pointer font-medium">Remind</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Security Awareness Training Compliance</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
+          <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><BookOpen size={24} /></div>
+          <div>
+            <p className="text-sm text-(--text-muted)">Total Employees</p>
+            <p className="text-2xl font-bold">142</p>
+          </div>
         </div>
-    );
+        <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
+          <div className="p-3 bg-green-100 text-green-600 rounded-lg"><UserCheck size={24} /></div>
+          <div>
+            <p className="text-sm text-(--text-muted)">Compliant (Last 12 Mo)</p>
+            <p className="text-2xl font-bold">128</p>
+          </div>
+        </div>
+        <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
+          <div className="p-3 bg-red-100 text-red-600 rounded-lg"><AlertOctagon size={24} /></div>
+          <div>
+            <p className="text-sm text-(--text-muted)">Overdue</p>
+            <p className="text-2xl font-bold">14</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-(--bg-primary) border border-(--border) rounded-xl overflow-hidden">
+        <table className="w-full text-left" dir="ltr">
+          <thead className="bg-(--bg-secondary) border-b border-(--border)">
+            <tr>
+              <th className="p-4 text-sm font-semibold">Employee</th>
+              <th className="p-4 text-sm font-semibold">Role</th>
+              <th className="p-4 text-sm font-semibold">Status</th>
+              <th className="p-4 text-sm font-semibold">Last Completed</th>
+              <th className="p-4 text-sm font-semibold">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map(emp => (
+              <tr key={emp.id} className="border-b border-(--border) hover:bg-(--bg-secondary)">
+                <td className="p-4 text-sm font-medium">{emp.name}</td>
+                <td className="p-4 text-sm text-(--text-muted)">{emp.role}</td>
+                <td className="p-4 text-sm">
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+                    ${emp.status === 'Compliant' ? 'bg-green-100 text-green-800' :
+                      emp.status === 'Overdue' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                    {emp.status}
+                  </span>
+                </td>
+                <td className="p-4 text-sm text-(--text-muted)">{emp.lastCompleted}</td>
+                <td className="p-4 text-sm">
+                  {emp.status !== 'Compliant' && (
+                    <button className="text-blue-600 hover:underline">Send Reminder</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

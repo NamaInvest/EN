@@ -16,7 +16,7 @@ export default function RagCostDashboard() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">RAG Analytics & Cost Monitoring</h1>
-        <button className="bg-[var(--primary)] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+        <button className="bg-(--primary) text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
           Download Report
         </button>
       </div>
@@ -29,34 +29,34 @@ export default function RagCostDashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--bg-secondary)] border border-(--border) p-6 rounded-xl">
+        <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <DollarSign className="text-green-600" size={24} />
-            <h3 className="font-semibold text-[var(--text-muted)]">Daily Cost</h3>
+            <h3 className="font-semibold text-(--text-muted)">Daily Cost</h3>
           </div>
           <p className="text-3xl font-bold">${stats.dailyCost.toFixed(2)}</p>
         </div>
 
-        <div className="bg-[var(--bg-secondary)] border border-(--border) p-6 rounded-xl">
+        <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="text-blue-600" size={24} />
-            <h3 className="font-semibold text-[var(--text-muted)]">Tokens Embedded</h3>
+            <h3 className="font-semibold text-(--text-muted)">Tokens Embedded</h3>
           </div>
           <p className="text-3xl font-bold">{stats.tokensUsed.toLocaleString()}</p>
         </div>
 
-        <div className="bg-[var(--bg-secondary)] border border-(--border) p-6 rounded-xl">
+        <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Database className="text-purple-600" size={24} />
-            <h3 className="font-semibold text-[var(--text-muted)]">Total Chunks</h3>
+            <h3 className="font-semibold text-(--text-muted)">Total Chunks</h3>
           </div>
           <p className="text-3xl font-bold">{stats.totalChunks.toLocaleString()}</p>
         </div>
 
-        <div className="bg-[var(--bg-secondary)] border border-(--border) p-6 rounded-xl">
+        <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="text-orange-600" size={24} />
-            <h3 className="font-semibold text-[var(--text-muted)]">Active Tenants</h3>
+            <h3 className="font-semibold text-(--text-muted)">Active Tenants</h3>
           </div>
           <p className="text-3xl font-bold">{stats.activeTenants}</p>
         </div>
