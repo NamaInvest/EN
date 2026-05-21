@@ -1,0 +1,49 @@
+name: OpenAPI Validation
+
+on:
+  pull_request:
+    paths:
+      - 'src/app/api/**'
+      - 'src/lib/openapi.ts'
+
+jobs:
+  validate-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm i -D openapi-to-postmanv2 openapi-typescript @redocly/cli --legacy-peer-deps
+
+      - name: Validate OpenAPI Schema
+        run: npx @redocly/cli lint public/openapi.json
+
+      - name: Generate Postman Collection
+        run: npx openapi-to-postmanv2 -s public/openapi.json -o postman/namasoft.json -p -O folderStrategy=Tags
+
+      - name: Generate SDK Types
+        run: npx openapi-typescript public/openapi.json -o src/sdk/types.ts
+
+      - name: Build Docs
+        run: npx @redocly/cli build-docs public/openapi.json -o docs/api-docs.html
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code postman/ src/sdk/types.ts docs/api-docs.html || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add postman/ src/sdk/types.ts docs/api-docs.html
+          git commit -m "chore(api): auto-update OpenAPI assets [skip ci]"
+          git push
