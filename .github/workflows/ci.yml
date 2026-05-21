@@ -83,7 +83,29 @@ jobs:
         run: |
           FILE_COUNT=$(npx tsx scripts/find-untranslated.ts 2>&1 | grep 'Files with issues' | grep -o '[0-9]*' || echo 0)
           echo "Files with untranslated strings: $FILE_COUNT"
-          # Warn but don't block — tracking via untranslated-strings.json
+        continue-on-error: true
+
+  mutation-test:
+    name: Mutation Test (Critical)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Stryker Mutator
+        run: npx stryker run
         continue-on-error: true
 
   prompt-eval:

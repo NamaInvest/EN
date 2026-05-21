@@ -1,0 +1,41 @@
+name: Load Testing (k6)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target environment URL'
+        required: true
+        default: 'http://localhost:3000'
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Start Application (Background)
+        run: npm run start &
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DB_URL }}
+
+      - name: Wait for App
+        run: npx wait-on http://localhost:3000
+
+      - name: Setup k6
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/load/k6/auth.js
+
+      - name: Run Invoice Load Test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/load/k6/invoice-creation.js

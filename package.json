@@ -126,6 +126,7 @@
         "@redocly/cli": "^2.31.2",
         "@softwaretechnik/dbml-renderer": "^1.0.31",
         "@storybook/react": "^10.4.0",
+        "@stryker-mutator/core": "^9.6.1",
         "@tailwindcss/postcss": "^4",
         "@testcontainers/postgresql": "^11.14.0",
         "@testcontainers/redis": "^11.14.0",
