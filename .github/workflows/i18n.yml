@@ -1,0 +1,34 @@
+name: i18n Translation Check
+
+on:
+  pull_request:
+    paths:
+      - 'src/locales/*.json'
+      - 'src/**/*.tsx'
+      - 'src/**/*.ts'
+
+jobs:
+  scan-i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm i -D ts-node glob
+
+      - name: Run i18n Scanner
+        run: npx ts-node scripts/i18n-scan.ts
+
+      - name: Upload Scan Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: i18n-report
+          path: tmp/i18n-report.md

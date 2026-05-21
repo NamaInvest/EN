@@ -1,0 +1,33 @@
+{
+  "common": {
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "submit": "जमा करें",
+    "confirm": "पुष्टि करें",
+    "loading": "लोड हो रहा है..."
+  },
+  "portal": {
+    "welcome": "स्वागत है",
+    "profile": "मेरी प्रोफ़ाइल",
+    "payslip": "वेतन पर्ची",
+    "attendance": "उपस्थिति",
+    "requests": "मेरे अनुरोध",
+    "logout": "लॉग आउट"
+  },
+  "hr": {
+    "leaveRequest": "छुट्टी का अनुरोध",
+    "loanRequest": "ऋण का अनुरोध",
+    "sickLeave": "बीमारी की छुट्टी",
+    "annualLeave": "वार्षिक छुट्टी",
+    "manager": "प्रबंधक",
+    "department": "विभाग"
+  },
+  "errors": {
+    "networkError": "नेटवर्क त्रुटि",
+    "unauthorized": "आप अधिकृत नहीं हैं",
+    "notFound": "नहीं मिला",
+    "serverError": "सर्वर त्रुटि"
+  }
+}

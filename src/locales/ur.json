@@ -1,0 +1,33 @@
+{
+  "common": {
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ کریں",
+    "edit": "ترمیم کریں",
+    "delete": "حذف کریں",
+    "submit": "جمع کرائیں",
+    "confirm": "تصدیق کریں",
+    "loading": "لوڈ ہو رہا ہے..."
+  },
+  "portal": {
+    "welcome": "خوش آمدید",
+    "profile": "میری پروفائل",
+    "payslip": "تنخواہ کی رسید",
+    "attendance": "حاضری",
+    "requests": "میری درخواستیں",
+    "logout": "لاگ آؤٹ"
+  },
+  "hr": {
+    "leaveRequest": "چھٹی کی درخواست",
+    "loanRequest": "قرض کی درخواست",
+    "sickLeave": "بیماری کی چھٹی",
+    "annualLeave": "سالانہ چھٹی",
+    "manager": "مینیجر",
+    "department": "شعبہ"
+  },
+  "errors": {
+    "networkError": "نیٹ ورک کی خرابی",
+    "unauthorized": "آپ کو اجازت نہیں ہے",
+    "notFound": "نہیں ملا",
+    "serverError": "سرور کی خرابی"
+  }
+}

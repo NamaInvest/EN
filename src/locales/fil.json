@@ -1,0 +1,33 @@
+{
+  "common": {
+    "save": "I-save",
+    "cancel": "Kanselahin",
+    "edit": "I-edit",
+    "delete": "I-delete",
+    "submit": "I-submit",
+    "confirm": "Kumpirmahin",
+    "loading": "Naglo-load..."
+  },
+  "portal": {
+    "welcome": "Maligayang pagdating",
+    "profile": "Aking Profile",
+    "payslip": "Payslip",
+    "attendance": "Attendance",
+    "requests": "Mga Request Ko",
+    "logout": "Mag-logout"
+  },
+  "hr": {
+    "leaveRequest": "Leave Request",
+    "loanRequest": "Loan Request",
+    "sickLeave": "Sick Leave",
+    "annualLeave": "Annual Leave",
+    "manager": "Manager",
+    "department": "Departamento"
+  },
+  "errors": {
+    "networkError": "Network Error",
+    "unauthorized": "Hindi ka awtorisado",
+    "notFound": "Hindi nahanap",
+    "serverError": "Server Error"
+  }
+}
