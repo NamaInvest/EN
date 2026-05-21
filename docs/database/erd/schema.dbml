@@ -9657,6 +9657,16 @@ Table TrainingProgress {
   certificateUrl String
 }
 
+Table UserAgreement {
+  id Int [pk, increment]
+  userId Int [not null]
+  agreementType String [not null]
+  version String [not null]
+  acceptedAt DateTime [default: `now()`, not null]
+  ipAddress String
+  userAgent String
+}
+
 Enum FinancialPeriodStatus {
   OPEN
   SOFT_LOCKED

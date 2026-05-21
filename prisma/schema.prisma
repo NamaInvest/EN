@@ -12119,3 +12119,14 @@ model TrainingProgress {
   quizScore Int?
   certificateUrl String?
 }
+
+
+model UserAgreement {
+  id Int @id @default(autoincrement())
+  userId Int
+  agreementType String
+  version String
+  acceptedAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+}

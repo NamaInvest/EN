@@ -428,6 +428,16 @@ Table ice_system_settings {
   updatedAt DateTime [not null]
 }
 
+Table UserAgreement {
+  id Int [pk, increment]
+  userId Int [not null]
+  agreementType String [not null]
+  version String [not null]
+  acceptedAt DateTime [default: `now()`, not null]
+  ipAddress String
+  userAgent String
+}
+
 Table TrustedDevice {
   id Int [pk, increment]
   tenantId String [not null, default: 'default', note: '🔴 Tenant']
