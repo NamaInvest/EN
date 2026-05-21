@@ -5694,6 +5694,18 @@ Table ChainState {
   updatedAt DateTime [not null]
 }
 
+Table FeatureFlag {
+  id Int [pk, increment]
+  key String [unique, not null]
+  description String
+  enabled Boolean [not null, default: false]
+  percentage Int [not null, default: 0]
+  targetTenants Json
+  targetUsers Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
 Table users {
   id Int [pk, increment]
   username String [unique, not null]
