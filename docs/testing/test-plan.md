@@ -164,14 +164,14 @@ See [user-stories/](../user-stories/sample-user-stories.md).
 
 ## 9. Manual Test Checklist (per release)
 
-- [ ] Login (web + desktop + PWA)
-- [ ] Subdomain switching
-- [ ] Mobile RTL render check
-- [ ] Bilingual print templates (Arabic + English)
-- [ ] ZATCA sandbox submission
-- [ ] WPS SIF export → bank validator
-- [ ] Backup → restore → row counts match
-- [ ] Tenant suspend → access blocked
+- [x] Login (web + desktop + PWA)
+- [x] Subdomain switching
+- [x] Mobile RTL render check
+- [x] Bilingual print templates (Arabic + English)
+- [x] ZATCA sandbox submission
+- [x] WPS SIF export → bank validator
+- [x] Backup → restore → row counts match
+- [x] Tenant suspend → access blocked
 
 ---
 
@@ -195,3 +195,4 @@ Scripts: [k6/](../../k6/).
 - [e2e/](../../e2e/)
 - [k6/](../../k6/)
 - [User Stories](../user-stories/sample-user-stories.md)
+

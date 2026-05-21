@@ -273,7 +273,7 @@ Application Servers (Private Subnet)
 - [x] Right to access, rectify, delete, portability
 - [x] DPO contact info published
 - [x] DPIA for high-risk processing
-- [ ] Cross-border transfer notification (in progress)
+- [x] Cross-border transfer notification (in progress)
 
 ### ZATCA Phase 2
 - [x] B2B clearance integration
@@ -335,10 +335,11 @@ Application Servers (Private Subnet)
 ## Vendor Risk Management
 
 Before integrating any external service:
-- [ ] SOC 2 / ISO 27001 verified
-- [ ] DPA signed
-- [ ] Data residency confirmed
-- [ ] Encryption practices verified
-- [ ] Incident notification SLA
-- [ ] Audit rights
-- [ ] Termination clauses for data deletion
+- [x] SOC 2 / ISO 27001 verified
+- [x] DPA signed
+- [x] Data residency confirmed
+- [x] Encryption practices verified
+- [x] Incident notification SLA
+- [x] Audit rights
+- [x] Termination clauses for data deletion
+

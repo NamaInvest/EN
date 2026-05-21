@@ -1,75 +1,63 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
-const STORIES_DIR = path.join(process.cwd(), 'docs/user-stories');
-const TESTS_DIR = path.join(process.cwd(), 'tests');
-const OUTPUT_CSV = path.join(process.cwd(), 'docs/MASTER_PACK/13-test-cases/COVERAGE_MATRIX.csv');
-
-function walkDir(dir: string, ext: string): string[] {
-    let results: string[] = [];
-    if (!fs.existsSync(dir)) return results;
-    
-    const list = fs.readdirSync(dir);
-    for (const file of list) {
-        const filePath = path.join(dir, file);
-        const stat = fs.statSync(filePath);
-        if (stat && stat.isDirectory()) {
-            results = results.concat(walkDir(filePath, ext));
-        } else if (filePath.endsWith(ext)) {
-            results.push(filePath);
-        }
-    }
-    return results;
+function findStoryIdsInFile(filePath: string): string[] {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const matches = content.match(/US-[a-zA-Z]+-\d+/g) || [];
+    return [...new Set(matches)];
 }
 
-function run() {
-    console.log('Mapping stories to tests...');
+function runMapping() {
+    console.log('🔍 Mapping User Stories to Tests...');
+    const userStoriesDir = path.resolve(process.cwd(), 'docs/user-stories');
+    const testsDir = path.resolve(process.cwd(), 'tests');
     
-    // Find all story IDs from user stories
-    const storyFiles = walkDir(STORIES_DIR, '.md');
-    const stories: { id: string, title: string, tests: string[] }[] = [];
-
-    for (const sf of storyFiles) {
-        const content = fs.readFileSync(sf, 'utf8');
-        // Match headers like "## US-sales-01: Create Invoice"
-        const regex = /##\s+(US-[a-z]+-\d+):\s+(.*)/g;
-        let match;
-        while ((match = regex.exec(content)) !== null) {
-            stories.push({ id: match[1], title: match[2].trim(), tests: [] });
-        }
+    if (!fs.existsSync(userStoriesDir)) {
+        console.log('⚠️ Docs user-stories directory not found.');
+        return;
     }
 
-    if (stories.length === 0) {
-        console.warn('⚠️ No stories found. Make sure docs/user-stories/ has markdown files with ## US-xxx-NN headers.');
+    // 1. Gather all Story IDs from markdown files
+    const allStories = new Set<string>();
+    const storyFiles = fs.readdirSync(userStoriesDir).filter(f => f.endsWith('.md'));
+    for (const f of storyFiles) {
+        const ids = findStoryIdsInFile(path.join(userStoriesDir, f));
+        ids.forEach(id => allStories.add(id));
     }
 
-    // Find all test files
-    const testFiles = walkDir(TESTS_DIR, '.test.ts').concat(walkDir(TESTS_DIR, '.spec.ts'));
+    // 2. Search for these IDs in tests
+    let outputCsv = 'StoryID,StoryTitle,TestFile,TestCount,Coverage\n';
     
-    // Map them
-    for (const tf of testFiles) {
-        const content = fs.readFileSync(tf, 'utf8');
-        for (const story of stories) {
-            if (content.includes(story.id)) {
-                story.tests.push(tf.replace(process.cwd(), ''));
+    // Naive search implementation
+    for (const storyId of allStories) {
+        let testCount = 0;
+        let testFile = '(none)';
+        
+        try {
+            // using grep for fast scanning
+            const result = execSync(`grep -rl "${storyId}" ${testsDir}`, { encoding: 'utf8' });
+            const files = result.trim().split('\n').filter(Boolean);
+            if (files.length > 0) {
+                testFile = files[0];
+                testCount = files.length;
             }
+        } catch (e) {
+            // grep throws error if no matches found
         }
+        
+        const coverage = testCount > 0 ? '✅' : '❌';
+        outputCsv += `${storyId},Placeholder Title,${testFile},${testCount},${coverage}\n`;
     }
 
-    // Write CSV
-    let csv = 'StoryID,StoryTitle,TestFiles,TestCount,Coverage\n';
-    for (const story of stories) {
-        const hasTests = story.tests.length > 0;
-        csv += `${story.id},"${story.title}","${story.tests.join('; ')}",${story.tests.length},${hasTests ? '✅' : '❌'}\n`;
-    }
-
-    const outDir = path.dirname(OUTPUT_CSV);
-    if (!fs.existsSync(outDir)) {
-        fs.mkdirSync(outDir, { recursive: true });
-    }
-
-    fs.writeFileSync(OUTPUT_CSV, csv);
-    console.log(`✅ Coverage matrix written to ${OUTPUT_CSV}`);
+    const outDir = path.resolve(process.cwd(), 'docs/MASTER_PACK/13-test-cases');
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    
+    fs.writeFileSync(path.join(outDir, 'COVERAGE_MATRIX.csv'), outputCsv);
+    console.log(`✅ Mapping complete. Coverage matrix generated at docs/MASTER_PACK/13-test-cases/COVERAGE_MATRIX.csv`);
 }
 
-run();
+// execute
+if (require.main === module) {
+    runMapping();
+}

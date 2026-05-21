@@ -1,30 +1,31 @@
-# UAT Signoff Template
+# User Acceptance Testing (UAT) Sign-off
 
-**Release Version:** vX.X.X  
-**Environment:** Staging (`staging.namainvest.com`)  
-**Date:** YYYY-MM-DD  
+**Release Tag:** ________________  
+**Date:** ________________  
+**Environment:** STAGING
 
-## 1. Stakeholder Acceptance
+## Scenarios Tested
 
-| Role | Name | Status | Signature (Date) |
-|------|------|--------|------------------|
-| Product Manager | | [ ] Pending / [ ] Approved / [ ] Rejected | |
-| CFO / Finance Lead | | [ ] Pending / [ ] Approved / [ ] Rejected | |
-| Sales Lead | | [ ] Pending / [ ] Approved / [ ] Rejected | |
-| Compliance Officer | | [ ] Pending / [ ] Approved / [ ] Rejected | |
+| Scenario ID | Feature | Tested By | Status (Pass/Fail) | Notes |
+|---|---|---|---|---|
+| UAT-01 | Create Sales Invoice | _________ | [ ] | |
+| UAT-02 | Period Close Wizard | _________ | [ ] | |
+| UAT-03 | Payroll Approvals | _________ | [ ] | |
+| UAT-04 | ZATCA B2C QR Code | _________ | [ ] | |
 
-## 2. Test Scenarios Execution
+## Defect Log
 
-| Story ID | Scenario Description | Tested By | Result | Notes/Issues |
-|----------|----------------------|-----------|--------|--------------|
-| US-XXX-1 | Create invoice and post | | Pass/Fail | |
-| US-XXX-2 | Generate ZATCA Phase 2 XML | | Pass/Fail | |
+| ID | Issue Description | Severity | Target Fix Version |
+|---|---|---|---|
+| | | | |
+| | | | |
 
-## 3. Known Issues (Deferred)
-*List any bugs found during UAT that are deemed low-priority and deferred to the next release.*
-- Bug 1: ...
-- Bug 2: ...
+## Sign-off
 
-## 4. Final Decision
-- [ ] **GO**: Ready for Production Deployment.
-- [ ] **NO GO**: Critical issues found. Must be fixed and re-tested.
+By signing below, stakeholders agree that the release criteria have been met and the system is ready for production deployment.
+
+- **Product Manager:** ________________ (Date: ________)
+- **QA Lead:** ________________ (Date: ________)
+- **Technical Lead:** ________________ (Date: ________)
+
+*Decision: [ ] GO / [ ] NO-GO*

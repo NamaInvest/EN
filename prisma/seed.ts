@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { runPharmacySeed } from './seeds/verticals/pharmacy/index.js';
+import { seedFeatureDemo } from './seeds/feature-demo.js';
 
 const prisma = new PrismaClient();
 
@@ -25,6 +26,12 @@ async function main() {
             await runPharmacySeed(prisma, tenantId);
             return;
         }
+    }
+
+    if (args.includes('--features-only')) {
+        const tenantId = tenantArg ? tenantArg.split('=')[1] : 'demo-features';
+        await seedFeatureDemo(prisma, tenantId);
+        return;
     }
 
     // 1. Admin User

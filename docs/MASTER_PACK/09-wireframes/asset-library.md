@@ -1,40 +1,44 @@
-# Asset Library & Illustrations
+# Asset Library & Wireframes Documentation
 
-## Overview
-This document tracks all external visual assets used in the application.
+## 1. Wireframes Overview
+Wireframes for this project follow standard design tokens defined in the `DESIGN.md` of the `designs/wireframes/` directory.
 
-## Licensing
-All assets must be completely open-source and free for commercial use without attribution requirements (e.g., MIT, CC0, unDraw license). 
-**NO AI-generated images without legal approval.**
+### Design Tokens
+- **Direction:** RTL (Right-to-Left) for Arabic interfaces
+- **Font:** IBM Plex Sans Arabic
+- **Primary Color:** `#0F766E` (Teal 700)
+- **Density:** Compact
+- **Theme:** Light mode (with partial dark mode variants)
 
-## Sources
-1. **unDraw** (https://undraw.co/): Primary source for empty state SVG illustrations.
-2. **Lucide Icons** (https://lucide.dev/): Primary UI icon set (used via `lucide-react`).
+## 2. Empty States & Illustrations
+We avoid paid assets (like Shutterstock) for standard UI empty states. Instead, we rely on open-source vector illustrations from [unDraw](https://undraw.co/) which provides commercial-free MIT/Open source SVGs that can be recolored.
 
-## Included Assets
+### Usage
+We have a shared React component `EmptyState` (`src/components/ui/empty-state.tsx`) to standardize all "No Data", "No Results", or "Error" screens.
 
-### 1. Empty States (`public/assets/empty-states/`)
-- `no-data.svg`: Used when a table or list has no records.
-- `empty.svg`: Generic empty result or search with no matches.
-
-### 2. Errors (`public/assets/errors/`)
-- `404.svg`: Page not found illustration.
-- `500.svg`: Server error or network failure illustration.
-
-## Usage
-Import and use the `<EmptyState>` component:
-
+**Example Implementation:**
 ```tsx
-import { EmptyState } from '@/components/ui/EmptyState';
+import { EmptyState } from '@/components/ui/empty-state';
 
-<EmptyState
-  variant="no-data"
-  illustration="/assets/empty-states/no-data.svg"
-  title="لا يوجد عملاء"
-  message="لم يتم إضافة أي عملاء بعد."
-/>
+export default function NoInvoicesView() {
+  return (
+    <EmptyState
+      variant="no-data"
+      illustration="/assets/empty-states/no-data.svg"
+      title="لا توجد فواتير"
+      message="لم تقم بإنشاء أي فاتورة حتى الآن."
+      cta={{ label: 'إنشاء فاتورة', onClick: () => console.log('Create') }}
+    />
+  );
+}
 ```
 
-## Maintenance
-To download or refresh the assets, run:
-`bash scripts/download-assets.sh`
+## 3. Automating Downloads
+To refresh or add new assets, simply edit `assets-manifest.json` and run:
+```bash
+./scripts/download-assets.sh
+```
+
+## 4. Licensing
+All icons from `lucide-react` are MIT Licensed.
+All illustrations downloaded from `unDraw` are Open Source and royalty-free for commercial projects without attribution requirements.

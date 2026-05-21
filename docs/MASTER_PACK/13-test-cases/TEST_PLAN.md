@@ -1,24 +1,24 @@
-# Master Test Plan & QA Strategy
+# Master Test Plan
 
-## 1. Test Strategy (The Testing Pyramid)
-- **Unit Tests (60%)**: Validate pure logic engines (`auto-journal.ts`, `tax-calc.ts`). Fast, cheap, and isolated.
-- **Integration Tests (30%)**: Validate APIs and DB transactions. Uses test DB and `PrismaClient` with rollback.
-- **E2E Tests (10%)**: Validate critical business flows via Playwright (e.g. ZATCA submission, POS checkout).
+## 1. Test Strategy (Pyramid)
+- **Unit Tests (70%)**: Business logic, Prisma engines, utilities. (Jest)
+- **Integration Tests (20%)**: API Routes, Database transactions. (Jest + Supertest)
+- **E2E Tests (10%)**: Critical user flows, ZATCA submissions, Payroll. (Playwright)
 
 ## 2. Test Environments
-1. **Dev (Local)**: SQLite or local Postgres for fast iteration.
-2. **Staging (UAT)**: Replicates Production. Seeded with anonymized data.
-3. **Production**: Read-only monitoring checks (Health checks, Smoke tests).
+- `DEV`: Local environment. Developers must run `npm test` before pushing.
+- `STAGING`: Ephemeral DB with anonymized production data. Used for CI.
+- `PROD-MIRROR`: Read-only clone for performance and load testing.
 
 ## 3. Test Data Management
-- We use **Prisma Factories** (e.g., `customer.factory.ts`) instead of hardcoded data.
-- **NEVER** use random data in tests without a fixed seed. Reproducibility is key.
+- We use **Factories** (e.g., `customer.factory.ts`) instead of hardcoded data.
+- E2E tests seed data via `prisma/seed-staging.ts` on initialization.
+- **Never test with real PII data.**
 
 ## 4. Execution Schedule
-- **On every commit**: Lint, TypeCheck, Unit Tests.
-- **On every PR**: Integration Tests, Mutation Testing (on critical files), E2E Smoke Tests, Lighthouse budgets.
-- **Nightly**: Full E2E suite, Load Tests (k6), Security Scans.
+- **On Commit**: Lint, Typecheck, Unit Tests (changed files only).
+- **On PR**: Full Unit Suite, E2E Smoke Tests, Mutation Testing (Critical), Lighthouse CI.
+- **Weekly**: Full Load Testing & Security Scanning.
 
-## 5. UAT & Release Signoff
-Before tagging a release, a formal UAT must be executed.
-See `UAT_SIGNOFF_TEMPLATE.md`.
+## 5. Regression Suite
+A subset of tests covering ZATCA, Journals, and Auth must always pass. Any failure blocks deployment.

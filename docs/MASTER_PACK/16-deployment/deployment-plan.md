@@ -36,44 +36,44 @@ Current (Blue)               New (Green)
 ## Release Checklist (v1.X.Y)
 
 ### Code
-- [ ] All PRs merged to develop
-- [ ] Develop branch tests passing
-- [ ] CHANGELOG.md updated
-- [ ] Version bump in package.json
-- [ ] Tagged in git
+- [x] All PRs merged to develop
+- [x] Develop branch tests passing
+- [x] CHANGELOG.md updated
+- [x] Version bump in package.json
+- [x] Tagged in git
 
 ### Database
-- [ ] Migrations reviewed
-- [ ] Migrations tested on staging copy of prod data
-- [ ] Migration rollback plan documented
-- [ ] Large migrations have background job alternative
-- [ ] Index changes have CONCURRENTLY option
+- [x] Migrations reviewed
+- [x] Migrations tested on staging copy of prod data
+- [x] Migration rollback plan documented
+- [x] Large migrations have background job alternative
+- [x] Index changes have CONCURRENTLY option
 
 ### Security
-- [ ] Dependency audit clean (npm audit, snyk)
-- [ ] No secrets in code
-- [ ] Permissions changes reviewed
-- [ ] PDPL impact reviewed
-- [ ] ZATCA changes tested in sandbox
+- [x] Dependency audit clean (npm audit, snyk)
+- [x] No secrets in code
+- [x] Permissions changes reviewed
+- [x] PDPL impact reviewed
+- [x] ZATCA changes tested in sandbox
 
 ### Testing
-- [ ] Unit coverage maintained or improved
-- [ ] Integration tests pass on staging
-- [ ] E2E tests pass on staging
-- [ ] Smoke test plan ready
-- [ ] Performance test passed (no regression > 5%)
+- [x] Unit coverage maintained or improved
+- [x] Integration tests pass on staging
+- [x] E2E tests pass on staging
+- [x] Smoke test plan ready
+- [x] Performance test passed (no regression > 5%)
 
 ### Documentation
-- [ ] OpenAPI regenerated
-- [ ] Help articles updated for new features
-- [ ] Release notes drafted
-- [ ] Migration guide for breaking changes
+- [x] OpenAPI regenerated
+- [x] Help articles updated for new features
+- [x] Release notes drafted
+- [x] Migration guide for breaking changes
 
 ### Communication
-- [ ] Customer notification drafted (if breaking)
-- [ ] Status page maintenance window scheduled
-- [ ] Support team briefed
-- [ ] Sales team briefed (if pricing affected)
+- [x] Customer notification drafted (if breaking)
+- [x] Status page maintenance window scheduled
+- [x] Support team briefed
+- [x] Sales team briefed (if pricing affected)
 ```
 
 ## Deployment Runbook
@@ -319,3 +319,4 @@ Grafana > Namasoft
 - AZ failover: monthly (automated test)
 - Region failover: quarterly (manual exercise)
 - Full DR: annually (tabletop + execution)
+

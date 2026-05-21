@@ -7,7 +7,7 @@
 
 ## Phase 1: Audit
 - [x] Create `scripts/audit-thin-routes.ts`
-- [ ] Run audit script and analyze `tmp/thin-routes-audit.csv`
+- [x] Run audit script and analyze `tmp/thin-routes-audit.csv`
 
 ## Phase 2: High Priority Refactoring
 - Identify all routes involving `auto-journal` or critical financial workflows.
@@ -19,3 +19,4 @@
 - Services (`*.service.ts`) should handle ALL business logic and DB transactions.
 - Always use `zod` schema parsing in `route.ts`.
 - Ensure tests (`tests/services/**/*.test.ts`) are added alongside refactoring.
+

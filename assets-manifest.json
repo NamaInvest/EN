@@ -1,0 +1,8 @@
+{
+  "empty-states": {
+    "no-data.svg": "https://raw.githubusercontent.com/KaterinaLupacheva/react-undraw/master/src/illustrations/empty.svg",
+    "no-results.svg": "https://raw.githubusercontent.com/KaterinaLupacheva/react-undraw/master/src/illustrations/search.svg",
+    "error-404.svg": "https://raw.githubusercontent.com/KaterinaLupacheva/react-undraw/master/src/illustrations/page_not_found.svg",
+    "server-error.svg": "https://raw.githubusercontent.com/KaterinaLupacheva/react-undraw/master/src/illustrations/server_down.svg"
+  }
+}

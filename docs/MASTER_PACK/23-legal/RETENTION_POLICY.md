@@ -1,23 +1,14 @@
-# Data Retention Policy (PDPL & ZATCA Compliant)
+# Data Retention Policy
 
-This policy defines how long Namasoft retains different types of data across its services.
+This document outlines the retention limits for various data types within Nama ERP.
 
-## 1. Financial Records (ZATCA Compliance)
-- **Data Type**: Sales Invoices, Purchase Orders, Journal Entries, Tax Returns.
-- **Retention Period**: **7 Years** from the end of the financial year.
-- **Action Post-Retention**: Archived to cold storage (AWS Glacier), removed from active DB.
+| Data Type | Retention Period | Reason |
+|---|---|---|
+| Financial Invoices & Journals | 7 Years | ZATCA requirement & SOCPA |
+| Employee Contracts & Payroll | 7 Years post-termination | Saudi Labor Law |
+| Audit Logs | 7 Years | Security & Compliance |
+| Customer PII | Account Active + 1 Year | PDPL Data Minimization |
+| Marketing Data | 2 Years | Opt-in standard |
+| Application Debug Logs | 90 Days | Operational usage |
 
-## 2. Personal Identifiable Information (PDPL Compliance)
-- **Data Type**: Customer names, phone numbers, employee civil IDs.
-- **Retention Period**: While active + **1 Year** post-termination of business relationship.
-- **Action Post-Retention**: Data Anonymization (irreversible masking).
-
-## 3. Audit Trails & Logs
-- **Data Type**: Login history, system configuration changes.
-- **Retention Period**: **7 Years** (for compliance audits).
-- **Action Post-Retention**: Hard delete.
-
-## 4. Application Debug Logs
-- **Data Type**: HTTP access logs, error stack traces.
-- **Retention Period**: **90 Days**.
-- **Action Post-Retention**: Hard delete via daily cron job.
+Data exceeding these limits will be anonymized or archived automatically by the `retention-cleanup.ts` cron job.

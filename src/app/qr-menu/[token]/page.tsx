@@ -130,10 +130,36 @@ export default function QRMenuPage({ params }: { params: { token: string } }) {
           )}
         </div>
 
-        {/* Menu Items Placeholder */}
-        <div className="mt-12 text-center text-slate-400">
-          <p className="text-sm">هنا سيتم عرض أصناف القائمة الرقمية الخاصة بالمطعم لتتمكن من الطلب المباشر قريباً.</p>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {/* Example Categories & Items Mapping from Dummy Data */}
+            <div className="bg-white/5 dark:bg-black/20 p-6 rounded-2xl border border-white/10">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">العروض والمميزات (Specials)</h3>
+              <ul className="space-y-4">
+                <li className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <div>
+                    <h4 className="font-bold text-slate-800">وجبة الكومبو العائلي</h4>
+                    <p className="text-sm text-slate-500">تشمل 3 أطباق رئيسية، مقبلات، ومشروبات</p>
+                  </div>
+                  <span className="text-emerald-600 font-bold">120 SAR</span>
+                </li>
+                <li className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                  <div>
+                    <h4 className="font-bold text-slate-800">عصير برتقال طازج</h4>
+                    <p className="text-sm text-slate-500">محضر يومياً</p>
+                  </div>
+                  <span className="text-emerald-600 font-bold">15 SAR</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center">
+                <h3 className="text-xl font-bold text-slate-800 mb-2">هل أنت جاهز للطلب؟</h3>
+                <p className="text-sm text-slate-500 mb-6">يمكنك الإضافة للسلة مباشرة وإرسال الطلب للمطبخ دون الحاجة للنادل.</p>
+                <button className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold shadow-lg shadow-blue-500/20 transition-all">
+                  فتح القائمة الكاملة (View Full Menu)
+                </button>
+            </div>
+          </div>
       </div>
     </div>
   );

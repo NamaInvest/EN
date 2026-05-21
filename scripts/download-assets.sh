@@ -1,20 +1,36 @@
 #!/bin/bash
+# scripts/download-assets.sh
+# Reads assets-manifest.json and downloads SVGs from unDraw/public sources.
 
-# Download free open source assets from unDraw (no API key required, static SVG links)
-# Using unDraw's direct raw github links for common SVGs
+set -e
 
-echo "Downloading unDraw assets..."
+echo "📦 Starting Asset Downloader..."
 
 mkdir -p public/assets/empty-states
-mkdir -p public/assets/onboarding
-mkdir -p public/assets/errors
 
-# Empty States
-curl -s -L "https://raw.githubusercontent.com/undrawio/undraw/master/illustrations/undraw_no_data_qbuo.svg" -o public/assets/empty-states/no-data.svg
-curl -s -L "https://raw.githubusercontent.com/undrawio/undraw/master/illustrations/undraw_empty_re_opql.svg" -o public/assets/empty-states/empty.svg
+if ! command -v jq &> /dev/null; then
+    echo "❌ jq is not installed. Please install jq to run this script."
+    exit 1
+fi
 
-# Errors
-curl -s -L "https://raw.githubusercontent.com/undrawio/undraw/master/illustrations/undraw_page_not_found_re_e9o6.svg" -o public/assets/errors/404.svg
-curl -s -L "https://raw.githubusercontent.com/undrawio/undraw/master/illustrations/undraw_server_down_s4lk.svg" -o public/assets/errors/500.svg
+MANIFEST="assets-manifest.json"
 
-echo "Assets downloaded successfully!"
+if [ ! -f "$MANIFEST" ]; then
+    echo "❌ $MANIFEST not found."
+    exit 1
+fi
+
+echo "⬇️ Downloading Empty States SVGs..."
+KEYS=$(jq -r '.["empty-states"] | keys[]' "$MANIFEST")
+
+for KEY in $KEYS; do
+    URL=$(jq -r ".[\"empty-states\"][\"$KEY\"]" "$MANIFEST")
+    DEST="public/assets/empty-states/$KEY"
+    
+    echo "Downloading $KEY from $URL..."
+    curl -sL "$URL" -o "$DEST"
+    
+    # Optional: If you had squoosh-cli, you could optimize it here, but SVG is already small.
+done
+
+echo "✅ Assets download complete! Files are in public/assets/"
