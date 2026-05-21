@@ -30,12 +30,12 @@ export default function SpendAnalyticsPage() {
           <p>No spend analytics data available. Missing tenant or data.</p>
         </div>
       ) : (
-        <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
+        <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Layers className="text-blue-500" size={20} /> Analytics Cube
           </h2>
-          <div className="bg-(--) p-4 rounded-lg border border-(--)">
-            <pre className="overflow-auto text-sm text-(--)" dir="ltr" style={{ maxHeight: '500px' }}>
+          <div className="bg-(--bg-primary) p-4 rounded-lg border border-(--border)">
+            <pre className="overflow-auto text-sm text-(--text-muted)" dir="ltr" style={{ maxHeight: '500px' }}>
               {JSON.stringify(data.cube || data, null, 2)}
             </pre>
           </div>

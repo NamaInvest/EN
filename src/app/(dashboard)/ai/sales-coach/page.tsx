@@ -32,31 +32,31 @@ export default function SalesCoachPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm text-center">
+            <div className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm text-center">
               <div className="text-sm text-gray-500 mb-1">Coach Score</div>
               <div className="text-3xl font-bold text-blue-600">{data.score}/100</div>
             </div>
-            <div className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm text-center">
+            <div className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm text-center">
               <div className="text-sm text-gray-500 mb-1">Total Sales ({data.period})</div>
               <div className="text-2xl font-bold">{data.performance?.totalSales || 0}</div>
             </div>
-            <div className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm text-center">
+            <div className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm text-center">
               <div className="text-sm text-gray-500 mb-1">Total Invoices</div>
               <div className="text-2xl font-bold">{data.performance?.totalInvoices || 0}</div>
             </div>
-            <div className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm text-center">
+            <div className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm text-center">
               <div className="text-sm text-gray-500 mb-1">Credit Ratio</div>
               <div className="text-2xl font-bold text-orange-500">{data.performance?.creditRatio || 0}%</div>
             </div>
           </div>
           
-          <div className="card p-6 border border-(--) bg-(--) rounded-xl shadow-sm">
+          <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <TrendingUp className="text-green-500" size={20} /> AI Recommendations
             </h2>
             <ul className="space-y-3">
               {data.recommendations?.map((r: string, i: number) => (
-                <li key={i} className="p-4 bg-(--) rounded-lg border border-(--) shadow-sm text-(--)">
+                <li key={i} className="p-4 bg-(--bg-primary) rounded-lg border border-(--border) shadow-sm text-(--text)">
                   {r}
                 </li>
               ))}

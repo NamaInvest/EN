@@ -30,17 +30,17 @@ export default function CashForecastPage() {
           <p>Failed to load forecast data. {data?.error}</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="card p-8 text-center border border-(--) bg-(--) rounded-xl shadow-sm">
+        <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
           <Wallet className="mx-auto mb-4 text-gray-400" size={48} />
-          <p className="text-(--)">No cash forecasts generated for this tenant yet.</p>
+          <p className="text-(--text-muted)">No cash forecasts generated for this tenant yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map((f: any, i: number) => (
-            <div key={i} className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm">
-              <h3 className="text-lg font-bold mb-2 text-(--)">Forecast Date: <span dir="ltr">{new Date(f.forecastDate).toLocaleDateString()}</span></h3>
-              <div className="text-sm text-(--) mb-4">Period: {f.period}</div>
-              <div className="flex justify-between items-center text-sm border-t border-(--) pt-3">
+            <div key={i} className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
+              <h3 className="text-lg font-bold mb-2 text-(--text)">Forecast Date: <span dir="ltr">{new Date(f.forecastDate).toLocaleDateString()}</span></h3>
+              <div className="text-sm text-(--text-muted) mb-4">Period: {f.period}</div>
+              <div className="flex justify-between items-center text-sm border-t border-(--border) pt-3">
                 <span>Net Position:</span>
                 <span className={`font-bold ${f.netPosition >= 0 ? 'text-green-500' : 'text-red-500'}`} dir="ltr">
                   {f.netPosition?.toLocaleString() || 0} {f.currency || 'SAR'}

@@ -30,14 +30,14 @@ export default function PreventiveMaintenancePage() {
           <p>Failed to load maintenance data. {data?.error}</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="card p-8 text-center border border-(--) bg-(--) rounded-xl shadow-sm">
+        <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
           <CheckCircle className="mx-auto mb-4 text-green-500" size={48} />
-          <p className="text-(--)">All assets are up to date. No preventive maintenance due.</p>
+          <p className="text-(--text-muted)">All assets are up to date. No preventive maintenance due.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto card border border-(--) rounded-xl shadow-sm">
+        <div className="overflow-x-auto card border border-(--border) rounded-xl shadow-sm">
           <table className="w-full text-left border-collapse" dir="ltr">
-            <thead className="bg-(--) border-b border-(--)">
+            <thead className="bg-(--bg-secondary) border-b border-(--border)">
               <tr>
                 <th className="p-4 font-semibold text-sm">Asset ID</th>
                 <th className="p-4 font-semibold text-sm">Status</th>
@@ -45,7 +45,7 @@ export default function PreventiveMaintenancePage() {
             </thead>
             <tbody>
               {data.map((asset: any, i: number) => (
-                <tr key={i} className="border-b border-(--) bg-(--)">
+                <tr key={i} className="border-b border-(--border) bg-(--bg-primary)">
                   <td className="p-4 font-mono">{asset.id || asset.assetId || 'Unknown'}</td>
                   <td className="p-4">
                     <span className="text-red-500 font-medium">Due Now</span>

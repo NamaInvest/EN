@@ -38,7 +38,7 @@ async function runCleanup() {
         // Example: Identifying old financial records (older than 7 years)
         // Normally we would archive them to S3/Glacier before deletion
         const oldInvoices = await prisma.salesInvoice.count({
-            where: { createdAt: { lt: sevenYearsAgo } }
+            where: { date: { lt: sevenYearsAgo } }
         });
 
         console.log(`Found ${oldInvoices} Sales Invoices older than 7 years.`);

@@ -30,16 +30,16 @@ export default function SupplierContractsPage() {
           <p>Failed to load contracts data or schema is syncing.</p>
         </div>
       ) : data.contracts?.length === 0 ? (
-        <div className="card p-8 text-center border border-(--) bg-(--) rounded-xl shadow-sm">
+        <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
           <Calendar className="mx-auto mb-4 text-gray-400" size={48} />
-          <p className="text-(--)">No active contracts expiring soon.</p>
+          <p className="text-(--text-muted)">No active contracts expiring soon.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.contracts?.map((c: any, i: number) => (
-            <div key={i} className="card p-5 border border-(--) bg-(--) rounded-xl shadow-sm">
+            <div key={i} className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
               <h3 className="text-lg font-bold mb-2">{c.title || c.contractNo}</h3>
-              <div className="text-sm text-(--) mb-4">{c.supplier?.name || 'Unknown Supplier'}</div>
+              <div className="text-sm text-(--text-muted) mb-4">{c.supplier?.name || 'Unknown Supplier'}</div>
               <div className="flex justify-between items-center text-sm">
                 <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded font-medium">
                   {c.daysRemaining} days left

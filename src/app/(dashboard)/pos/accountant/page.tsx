@@ -30,14 +30,14 @@ export default function POSAccountantPage() {
           <p>Failed to load POS sessions. {data?.error}</p>
         </div>
       ) : data.length === 0 ? (
-        <div className="card p-8 text-center border border-(--) bg-(--) rounded-xl shadow-sm">
+        <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
           <MonitorPlay className="mx-auto mb-4 text-gray-400" size={48} />
-          <p className="text-(--)">No POS sessions found for this tenant.</p>
+          <p className="text-(--text-muted)">No POS sessions found for this tenant.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto card border border-(--) rounded-xl shadow-sm">
+        <div className="overflow-x-auto card border border-(--border) rounded-xl shadow-sm">
           <table className="w-full text-left border-collapse" dir="ltr">
-            <thead className="bg-(--) border-b border-(--)">
+            <thead className="bg-(--bg-secondary) border-b border-(--border)">
               <tr>
                 <th className="p-4 font-semibold text-sm">Session ID</th>
                 <th className="p-4 font-semibold text-sm">User</th>
@@ -47,10 +47,10 @@ export default function POSAccountantPage() {
             </thead>
             <tbody>
               {data.map((s: any, i: number) => (
-                <tr key={i} className="border-b border-(--) bg-(--) hover:bg-(--) transition-colors">
+                <tr key={i} className="border-b border-(--border) bg-(--bg-primary) hover:bg-(--bg-secondary) transition-colors">
                   <td className="p-4 font-mono">{s.id}</td>
                   <td className="p-4 font-medium">{s.user?.name || 'Unknown'}</td>
-                  <td className="p-4 text-sm text-(--)">{new Date(s.openedAt).toLocaleString()}</td>
+                  <td className="p-4 text-sm text-(--text-muted)">{new Date(s.openedAt).toLocaleString()}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${s.closedAt ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'}`}>
                       {s.closedAt ? 'Closed' : 'Active'}
