@@ -8,9 +8,12 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
+import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function QualityInspectionsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const inspections = await prisma.qualityInspection.findMany({
         include: {
             product: true
@@ -96,7 +99,7 @@ export default async function QualityInspectionsPage() {
                                         {insp.inspectedQty !== null ? Number(insp.inspectedQty) : '-'}
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">
-                                        USER-{insp.inspectorId}
+                                        {_t('مستخدم-', 'USER-')}{insp.inspectorId}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(insp.status)}`}>

@@ -136,7 +136,7 @@ export default async function RFQDetailPage() {
                         </tbody>
                         <tfoot className="bg-gray-50 dark:bg-gray-900 font-bold">
                             <tr>
-                                <td colSpan={3} className="px-6 py-4 text-left border-l border-gray-300 dark:border-gray-700">الإجمالي (Total Cost)</td>
+                                <td colSpan={3} className="px-6 py-4 text-left border-l border-gray-300 dark:border-gray-700">{_t('الإجمالي (الإجمالي التكلفة)', 'الإجمالي (Total Cost)')}</td>
                                 {ranking.map((vendor: any) => (
                                     <td key={vendor.vendorId} className="px-6 py-4 text-center border-l border-gray-300 dark:border-gray-700">
                                         <div className="text-lg text-blue-600 dark:text-blue-400">

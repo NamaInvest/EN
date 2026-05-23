@@ -1,7 +1,10 @@
 import React from 'react';
 import { BookOpen, UserCheck, AlertOctagon } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function TrainingComplianceDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const employees = [
     { id: 1, name: 'Ahmad M.', role: 'DevOps', status: 'Compliant', lastCompleted: '2026-01-15' },
     { id: 2, name: 'Sarah T.', role: 'HR Manager', status: 'Pending', lastCompleted: '2025-04-10' },
@@ -31,7 +34,7 @@ export default function TrainingComplianceDashboard() {
         <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
           <div className="p-3 bg-red-100 text-red-600 rounded-lg"><AlertOctagon size={24} /></div>
           <div>
-            <p className="text-sm text-(--text-muted)">Overdue</p>
+            <p className="text-sm text-(--text-muted)">{_t('متأخر', 'Overdue')}</p>
             <p className="text-2xl font-bold">14</p>
           </div>
         </div>
@@ -41,11 +44,11 @@ export default function TrainingComplianceDashboard() {
         <table className="w-full text-left" dir="ltr">
           <thead className="bg-(--bg-secondary) border-b border-(--border)">
             <tr>
-              <th className="p-4 text-sm font-semibold">Employee</th>
-              <th className="p-4 text-sm font-semibold">Role</th>
-              <th className="p-4 text-sm font-semibold">Status</th>
-              <th className="p-4 text-sm font-semibold">Last Completed</th>
-              <th className="p-4 text-sm font-semibold">Action</th>
+              <th className="p-4 text-sm font-semibold">{_t('موظف', 'Employee')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('الدور', 'Role')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('الحالة', 'Status')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('أخير مكتمل', 'Last Completed')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('إجراء', 'Action')}</th>
             </tr>
           </thead>
           <tbody>

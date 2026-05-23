@@ -17,6 +17,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function EmployeeEvaluationsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { t } = useTranslation();
  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
  const [evaluations, setEvaluations] = useState<any[]>([]);
@@ -148,7 +150,7 @@ export default function EmployeeEvaluationsPage() {
  <table className="w-full text-left border-collapse" dir="ltr">
  <thead>
  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600">
- <th className="p-4 font-semibold">Date / Period</th>
+ <th className="p-4 font-semibold">{_t('التاريخ / فترة', 'Date / Period')}</th>
  <th className="p-4 font-semibold">الموظف</th>
  <th className="p-4 font-semibold">المقيّم</th>
  <th className="p-4 font-semibold">ملخص التقييم</th>

@@ -93,7 +93,7 @@ export default function CashFlowDashboard() {
  </td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Supplier: IT Solutions LLC (INV-992)</td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-bold text-red-600">- 45,000.00</td>
- <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">High (100%)</td>
+ <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">{_t('مرتفع (100%)', 'High (100%)')}</td>
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-gray-700/50">
  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
@@ -104,7 +104,7 @@ export default function CashFlowDashboard() {
  </td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Customer: Alpha Trading (INV-1020)</td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-bold text-green-600">+ 120,000.00</td>
- <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">Medium (75%)</td>
+ <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">{_t('متوسطة (75%)', 'Medium (75%)')}</td>
  </tr>
  <tr className="hover:bg-slate-50 dark:hover:bg-gray-700/50">
  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 flex items-center">
@@ -115,7 +115,7 @@ export default function CashFlowDashboard() {
  </td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{_t('الرواتب المقدرة لشهر مايو 2026', 'Estimated May 2026 Salaries')}</td>
  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono font-bold text-red-600">- 350,000.00</td>
- <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">Certain (100%)</td>
+ <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">{_t('مؤكد (100%)', 'Certain (100%)')}</td>
  </tr>
  </tbody>
  </table>

@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Target, Loader2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function SalesCoachPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +48,7 @@ export default function SalesCoachPage() {
               <div className="text-2xl font-bold">{data.performance?.totalInvoices || 0}</div>
             </div>
             <div className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm text-center">
-              <div className="text-sm text-gray-500 mb-1">Credit Ratio</div>
+              <div className="text-sm text-gray-500 mb-1">{_t('دائن نسبة', 'Credit Ratio')}</div>
               <div className="text-2xl font-bold text-orange-500">{data.performance?.creditRatio || 0}%</div>
             </div>
           </div>

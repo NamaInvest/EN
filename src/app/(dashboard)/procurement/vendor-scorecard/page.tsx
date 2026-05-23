@@ -1,8 +1,11 @@
 'use client';
 import React from 'react';
 import { Award, Star } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function VendorScorecardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -15,12 +18,12 @@ export default function VendorScorecardPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="font-bold text-lg text-(--text)">Supplier Placeholder {i}</h3>
-                <div className="text-sm text-(--text-muted)">Category: General</div>
+                <div className="text-sm text-(--text-muted)">{_t('الفئة: عام', 'Category: General')}</div>
               </div>
               <div className="flex text-yellow-400" dir="ltr"><Star size={16} fill="currentColor" /><Star size={16} fill="currentColor" /></div>
             </div>
             <div className="space-y-3 text-sm text-(--text)">
-              <div className="flex justify-between border-b border-(--border) pb-2"><span>Quality</span><span className="font-mono">--</span></div>
+              <div className="flex justify-between border-b border-(--border) pb-2"><span>{_t('جودة', 'Quality')}</span><span className="font-mono">--</span></div>
               <div className="flex justify-between border-b border-(--border) pb-2"><span>Delivery</span><span className="font-mono">--</span></div>
               <div className="flex justify-between"><span>Pricing</span><span className="font-mono">--</span></div>
             </div>

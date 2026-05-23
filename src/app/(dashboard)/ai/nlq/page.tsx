@@ -1,8 +1,11 @@
 'use client';
 import React, { useState } from 'react';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function NLQPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -52,7 +55,7 @@ export default function NLQPage() {
 
       {result && (
         <div className="card p-6 border border-(--border) bg-(--bg-primary) rounded-xl shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Result</h2>
+          <h2 className="text-xl font-bold mb-4">{_t('نتيجة', 'Result')}</h2>
           <pre className="p-4 bg-gray-50 dark:bg-gray-900 border border-(--border) rounded-lg overflow-auto text-sm" dir="ltr">
             {JSON.stringify(result, null, 2)}
           </pre>

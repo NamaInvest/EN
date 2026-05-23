@@ -7,9 +7,12 @@ import { format } from 'date-fns';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
+import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function MfaPolicyPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const policies = await prisma.mfaPolicy.findMany({
             take: 100,
         orderBy: { createdAt: 'desc' }
@@ -79,7 +82,7 @@ export default async function MfaPolicyPage() {
                                         <ul className="space-y-1.5 text-sm text-gray-600">
                                             <li>Allowed Methods: {policy.allowedMethods.join(', ') || 'All'}</li>
                                             <li>Grace Period: {policy.gracePeriodDays} days</li>
-                                            <li>Device Trust: {policy.trustedDeviceDays} days</li>
+                                            <li>{_t('جهاز ثقة:', 'Device Trust:')}{policy.trustedDeviceDays} days</li>
                                         </ul>
                                     </div>
                                     <div>

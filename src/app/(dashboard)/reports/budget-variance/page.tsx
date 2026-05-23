@@ -5,6 +5,8 @@ import { AlertTriangle, CheckCircle, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function BudgetVarianceReportPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { t } = useTranslation();
  const [budgets, setBudgets] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
@@ -26,7 +28,7 @@ export default function BudgetVarianceReportPage() {
  return (
  <>
  <div className="page-header">
- <h1 className="page-title">تقرير انحراف الموازنة (Budget Variance Report)</h1>
+ <h1 className="page-title">{_t('تقرير انحراف الموازنة (الميزانية الفرق تقرير)', 'تقرير انحراف الموازنة (Budget Variance Report)')}</h1>
  </div>
 
  <div className="page-content animate-fade-in">
@@ -67,7 +69,7 @@ export default function BudgetVarianceReportPage() {
  <th>المبلغ المعتمد</th>
  <th>المنصرف الفعلي</th>
  <th>المحجوز (Encumbered)</th>
- <th>المتبقي (Variance)</th>
+ <th>{_t('المتبقي (الفرق)', 'المتبقي (Variance)')}</th>
  <th>الحالة</th>
  </tr>
  </thead>

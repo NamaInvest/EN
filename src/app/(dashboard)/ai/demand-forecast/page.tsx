@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { BarChart3, Loader2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function DemandForecastPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +35,7 @@ export default function DemandForecastPage() {
         </div>
       ) : (
         <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
-          <h2 className="text-xl mb-4">Forecast for: {data.product?.name || 'Product ' + data.product?.id}</h2>
+          <h2 className="text-xl mb-4">{_t('التوقع for:', 'Forecast for:')}{data.product?.name || 'Product ' + data.product?.id}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-(--bg-primary) rounded-lg border border-(--border)">
               <div className="text-sm text-gray-500">Current Stock</div>

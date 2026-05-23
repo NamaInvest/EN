@@ -14,6 +14,8 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useToast } from '@/components/Toast';
 
 export default function RestaurantPOS() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { t } = useTranslation();
     const { error: toastError, success: toastSuccess } = useToast();
     const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
@@ -865,8 +867,7 @@ export default function RestaurantPOS() {
                             <CreditCard className="w-5 h-5" /> MADA
                         </button>
                         <button onClick={() => handleCheckout('CASH')} disabled={cart.length === 0 || isProcessing} className="py-4 bg-[#10B981] hover:bg-[#059669] text-white rounded-[1.25rem] font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-[0_8px_20px_rgba(16,185,129,0.25)] active:scale-95 disabled:opacity-50">
-                            <Banknote className="w-5 h-5" /> CASH
-                        </button>
+                            <Banknote className="w-5 h-5" /> {_t('نقد', 'CASH')}</button>
                         <button 
                             onClick={() => {
                                 if (typeof setShowSplitModal !== 'undefined') setShowSplitModal(true);
@@ -932,11 +933,11 @@ export default function RestaurantPOS() {
                         
                         <div className="space-y-5 mb-8">
                             <div className="relative">
-                                <label className="block text-xs font-extrabold text-slate-500 mb-2 uppercase tracking-widest absolute -top-2.5 right-4 bg-white px-2">المبلغ النقدي (Cash)</label>
+                                <label className="block text-xs font-extrabold text-slate-500 mb-2 uppercase tracking-widest absolute -top-2.5 right-4 bg-white px-2">{_t('المبلغ النقدي (نقد)', 'المبلغ النقدي (Cash)')}</label>
                                 <input type="number" className="w-full p-5 bg-slate-50 border border-slate-200 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 rounded-[1.25rem] font-black text-2xl text-center text-slate-800 transition-all" value={splitCash} onChange={e => { const val = Number(e.target.value); setSplitCash(e.target.value); setSplitCard(val < finalTotal ? (finalTotal - val).toFixed(2) : '0'); }} />
                             </div>
                             <div className="relative">
-                                <label className="block text-xs font-extrabold text-slate-500 mb-2 uppercase tracking-widest absolute -top-2.5 right-4 bg-white px-2">متبقي الشبكة (Card)</label>
+                                <label className="block text-xs font-extrabold text-slate-500 mb-2 uppercase tracking-widest absolute -top-2.5 right-4 bg-white px-2">{_t('متبقي الشبكة (بطاقة)', 'متبقي الشبكة (Card)')}</label>
                                 <input type="number" disabled className="w-full p-5 bg-slate-100 border border-slate-200 rounded-[1.25rem] font-black text-2xl text-center text-slate-500" value={splitCard} />
                             </div>
                         </div>

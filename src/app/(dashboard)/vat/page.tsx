@@ -4,6 +4,8 @@ import { Calculator, ServerCrash, Loader2, FileSpreadsheet, Send, History, Check
 import { useTranslation } from "@/lib/i18n";
 
 export default function VATDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -69,8 +71,7 @@ export default function VATDashboardPage() {
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>الفترة الحالية: {data?.currentPeriod}</span>
           <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', background: '#fef08a', color: '#854d0e', fontSize: '0.85rem', fontWeight: 'bold' }}>
-            مسودة (Draft)
-          </span>
+            {_t('مسودة (مسودة)', 'مسودة (Draft)')}</span>
         </div>
       </div>
 

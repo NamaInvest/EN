@@ -36,7 +36,7 @@ export default function CostCenterAllocationRulesPage() {
                                 <tr>
                                     <th className="px-4 py-3">{_t('اسم القاعدة', 'Rule Name')}</th>
                                     <th className="px-4 py-3">{_t('مركز التكلفة المصدر', 'Source Cost Center')}</th>
-                                    <th className="px-4 py-3">Distribution Method / Targets</th>
+                                    <th className="px-4 py-3">{_t('توزيع طريقة / أهداف', 'Distribution Method / Targets')}</th>
                                     <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                                     <th className="px-4 py-3 text-right">{_t('إجراءات', 'Actions')}</th>
                                 </tr>

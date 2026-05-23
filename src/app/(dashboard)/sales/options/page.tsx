@@ -216,7 +216,7 @@ export default function SalesOptionsPage() {
  </select>
  </div>
  <div style={{ flex: '2 1 200px' }}>
- <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>مسار الطابعة (OS Name أو IP Address)</label>
+ <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>{_t('مسار الطابعة (OS الاسم أو IP العنوان)', 'مسار الطابعة (OS Name أو IP Address)')}</label>
  <input type="text" className="input" style={{ width: '100%' }} value={printer.connectionString} onChange={e => { const updated = [...kitchenPrinters]; updated[index].connectionString = e.target.value; setKitchenPrinters(updated); }} placeholder={printer.connectionType === 'IP' ? '192.168.1.100' : 'POS Printer 80mm'} />
  </div>
  <div style={{ flex: '2 1 200px' }}>

@@ -3,6 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { logger } from '@/lib/logger';
+import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 
@@ -11,6 +12,8 @@ export const metadata = {
 };
 
 export default async function CostDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const prisma = getPrisma();
     
     // Aggregations
@@ -63,7 +66,7 @@ export default async function CostDashboardPage() {
 
     return (
         <div className="p-6 space-y-6" dir="rtl">
-            <h1 className="text-2xl font-bold">لوحة تحكم تكلفة الذكاء الاصطناعي (AI Cost)</h1>
+            <h1 className="text-2xl font-bold">{_t('لوحة تحكم تكلفة الذكاء الاصطناعي (AI التكلفة)', 'لوحة تحكم تكلفة الذكاء الاصطناعي (AI Cost)')}</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>

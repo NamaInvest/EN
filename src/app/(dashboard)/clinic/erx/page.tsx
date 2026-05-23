@@ -186,8 +186,7 @@ export default function ElectronicPrescriptionPage() {
                             </div>
                             <div className="p-3 bg-gray-100 dark:bg-gray-800 border-t dark:border-gray-700 text-center">
                                 <button className="text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:underline">
-                                    🖨️ طباعة الـ QR Code للصيدلية
-                                </button>
+                                    {_t('🖨️ طباعة الـ QR الرمز للصيدلية', '🖨️ طباعة الـ QR Code للصيدلية')}</button>
                             </div>
                         </div>
                     ))}

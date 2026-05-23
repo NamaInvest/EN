@@ -127,8 +127,7 @@ export default function AICFODashboard() {
  <LineChart className="w-5 h-5 ml-2 text-indigo-500" /> تنبؤات السيولة (Cash runway)
  </h2>
  <span className="text-xs font-bold px-3 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
- AI Model: v2.4
- </span>
+ {_t('AI نموذج: v2.4', 'AI Model: v2.4')}</span>
  </div>
  
  <div className="h-64 flex items-end justify-between gap-2 border-b border-slate-200 dark:border-slate-700 pb-2 relative">

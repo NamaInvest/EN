@@ -236,7 +236,7 @@ export default function BOMVersionsPage({ params }: { params: Promise<{ id: stri
                             </div>
                             <div className="flex justify-end space-x-2 rtl:space-x-reverse mt-6">
                                 <button type="button" onClick={() => { setIsCloneModalOpen(false); reset(); }} className="px-4 py-2 text-gray-600">إلغاء</button>
-                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md font-bold" disabled={loading}>حفظ وإنشاء DRAFT</button>
+                                <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md font-bold" disabled={loading}>{_t('حفظ وإنشاء مسودة', 'حفظ وإنشاء DRAFT')}</button>
                             </div>
                         </form>
                     </div>

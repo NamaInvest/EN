@@ -36,7 +36,7 @@ export default function BlockchainTracePage() {
  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><Link className="w-8 h-8" /></div>
  <div>
  <h1 className="text-2xl font-bold text-slate-900">سجل المنشأ اللامركزي (Blockchain Traceability)</h1>
- <p className="text-slate-500 font-mono text-sm mt-1">Network: {ledger?.network || 'Loading...'} | Consensus: {ledger?.consensus || '...'}</p>
+ <p className="text-slate-500 font-mono text-sm mt-1">{_t('شبكة:', 'Network:')}{ledger?.network || 'Loading...'} | Consensus: {ledger?.consensus || '...'}</p>
  </div>
  </div>
  
@@ -65,7 +65,7 @@ export default function BlockchainTracePage() {
  
  <div className="flex justify-between items-start mb-4 relative z-10">
  <div>
- <h3 className="text-xl font-bold text-white mb-1">Block #{block.blockId}</h3>
+ <h3 className="text-xl font-bold text-white mb-1">{_t('حظر #', 'Block #')}{block.blockId}</h3>
  <p className="text-emerald-400 font-mono text-xs mb-2">Timestamp: {new Date(block.timestamp).toISOString()}</p>
  </div>
  {block.isValid && <div className="flex items-center gap-1 text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full text-xs font-bold"><ShieldCheck className="w-4 h-4"/>{_t('تم التحقق منه', 'Verified')}</div>}

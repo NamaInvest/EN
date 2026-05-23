@@ -125,7 +125,7 @@ export default function CreatePaymentRunPage() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700">Payment Method / Format</label>
+                                    <label className="text-sm font-medium text-gray-700">{_t('دفعة طريقة / تنسيق', 'Payment Method / Format')}</label>
                                     <select 
                                         className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                                         {...register('paymentMethod')}
@@ -183,7 +183,7 @@ export default function CreatePaymentRunPage() {
                             <CardContent className="p-4">
                                 <p className="text-xs font-medium text-green-600 uppercase tracking-wider">{_t('وفورات الخصم', 'Discount Savings')}</p>
                                 <h3 className="text-2xl font-bold text-gray-900 mt-1">+{proposalData.discountSavings.toLocaleString()} <span className="text-sm font-normal text-gray-500">{formData.currency}</span></h3>
-                                <p className="text-xs text-green-700 mt-1">From {proposalData.discountOpportunitiesCount} opportunities</p>
+                                <p className="text-xs text-green-700 mt-1">{_t('من', 'From')}{proposalData.discountOpportunitiesCount} {_t('فرص', 'opportunities')}</p>
                             </CardContent>
                         </Card>
                     </div>

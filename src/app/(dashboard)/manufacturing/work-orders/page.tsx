@@ -6,6 +6,8 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function WorkOrdersPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { success, info } = useToast();
 
  const [orders, setOrders] = useState<any[]>([]);
@@ -261,7 +263,7 @@ export default function WorkOrdersPage() {
  <input type="text" value={completionData.reason} onChange={e => setCompletionData({...completionData, reason: e.target.value})} className="input" />
  </div>
  <div>
- <label className="block text-sm font-bold text-slate-600 mb-1">صورة إثبات الهالك (URL/Path)</label>
+ <label className="block text-sm font-bold text-slate-600 mb-1">{_t('صورة إثبات الهالك (الرابط/مسار)', 'صورة إثبات الهالك (URL/Path)')}</label>
  <input type="text" placeholder="https://..." value={completionData.wastagePhotoUrl} onChange={e => setCompletionData({...completionData, wastagePhotoUrl: e.target.value})} className="input" />
  <p className="text-xs font-medium text-slate-500 mt-1">أرفق رابط صورة توثيق وزن الهالك إن لزم</p>
  </div>
@@ -301,7 +303,7 @@ export default function WorkOrdersPage() {
  <th>تاريخ البدء</th>
  <th>الحالة</th>
  <th>تكلفة WIP المبدئية</th>
- <th>إجراءات (Actions)</th>
+ <th>{_t('إجراءات (إجراءات)', 'إجراءات (Actions)')}</th>
  </tr>
  </thead>
  <tbody>

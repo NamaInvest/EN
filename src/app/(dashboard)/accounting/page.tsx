@@ -33,6 +33,8 @@ const TYPE_COLORS: Record<string, string> = {
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function AccountingPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t, lang } = useTranslation();
   const { error: toastError, success: toastSuccess } = useToast();
   
@@ -817,7 +819,7 @@ export default function AccountingPage() {
                     {/* Assets Side */}
                     <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-200 dark:border-emerald-800/30 overflow-hidden flex flex-col h-full">
                       <h4 className="font-bold text-emerald-800 dark:text-emerald-400 p-5 border-b border-emerald-100 dark:border-emerald-800/30 bg-emerald-100/50 dark:bg-emerald-900/20 text-xl flex items-center justify-between">
-                        الأصول والممتلكات <span className="bg-emerald-200 dark:bg-emerald-800/50 px-3 py-1 rounded-full text-sm">Asset</span>
+                        الأصول والممتلكات <span className="bg-emerald-200 dark:bg-emerald-800/50 px-3 py-1 rounded-full text-sm">{_t('أصل', 'Asset')}</span>
                       </h4>
                       <div className="p-5 flex-1 space-y-3">
                         {balanceData.assets.items.map((a, i) => (
@@ -838,7 +840,7 @@ export default function AccountingPage() {
                       
                       <div className="bg-red-50/50 dark:bg-red-900/10 rounded-2xl border border-red-200 dark:border-red-800/30 overflow-hidden flex flex-col">
                         <h4 className="font-bold text-red-800 dark:text-red-400 p-5 border-b border-red-100 dark:border-red-800/30 bg-red-100/50 dark:bg-red-900/20 text-xl flex items-center justify-between">
-                          الخصوم والالتزامات <span className="bg-red-200 dark:bg-red-800/50 px-3 py-1 rounded-full text-sm">Liability</span>
+                          الخصوم والالتزامات <span className="bg-red-200 dark:bg-red-800/50 px-3 py-1 rounded-full text-sm">{_t('التزام', 'Liability')}</span>
                         </h4>
                         <div className="p-5 space-y-3">
                           {balanceData.liabilities.items.map((l, i) => (
@@ -856,7 +858,7 @@ export default function AccountingPage() {
 
                       <div className="bg-purple-50/50 dark:bg-purple-900/10 rounded-2xl border border-purple-200 dark:border-purple-800/30 overflow-hidden flex flex-col flex-1">
                         <h4 className="font-bold text-purple-800 dark:text-purple-400 p-5 border-b border-purple-100 dark:border-purple-800/30 bg-purple-100/50 dark:bg-purple-900/20 text-xl flex items-center justify-between">
-                          حقوق الملكية <span className="bg-purple-200 dark:bg-purple-800/50 px-3 py-1 rounded-full text-sm">Equity</span>
+                          حقوق الملكية <span className="bg-purple-200 dark:bg-purple-800/50 px-3 py-1 rounded-full text-sm">{_t('حقوق ملكية', 'Equity')}</span>
                         </h4>
                         <div className="p-5 flex-1 space-y-3">
                           {balanceData.equity.items.map((e, i) => (

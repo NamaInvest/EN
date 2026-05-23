@@ -26,7 +26,7 @@ export default function RetailPOS() {
               <div className="w-16 h-16 bg-slate-100 rounded-full mb-2 flex items-center justify-center">
                 <span className="text-2xl">📦</span>
               </div>
-              <p className="font-semibold text-slate-700">Product Item {i}</p>
+              <p className="font-semibold text-slate-700">{_t('منتج صنف', 'Product Item')}{i}</p>
               <p className="text-indigo-600 font-bold mt-1">SAR {(Math.random() * 100 + 50).toFixed(2)}</p>
             </Card>
           ))}

@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Layers, Loader2, AlertTriangle, Search } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function WMSWavesPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,8 +44,8 @@ export default function WMSWavesPage() {
               <tr>
                 <th className="p-4 font-semibold text-sm">Wave ID</th>
                 <th className="p-4 font-semibold text-sm">Warehouse</th>
-                <th className="p-4 font-semibold text-sm">Status</th>
-                <th className="p-4 font-semibold text-sm">Tasks</th>
+                <th className="p-4 font-semibold text-sm">{_t('الحالة', 'Status')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('مهام', 'Tasks')}</th>
               </tr>
             </thead>
             <tbody>

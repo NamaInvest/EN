@@ -439,7 +439,7 @@ export default function WhtForm14Page() {
             <div className="modal-header">
               <h2>
                 <FileText size={20} style={{ display: 'inline', marginInlineEnd: '6px' }} />
-                Form 14 — {detail.period}
+                {_t('نموذج 14 —', 'Form 14 —')}{detail.period}
               </h2>
               <button type="button" className="btn btn-ghost" onClick={() => setDetail(null)} aria-label={_t('إغلاق', 'Close')}>✕</button>
             </div>

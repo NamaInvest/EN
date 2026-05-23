@@ -142,7 +142,7 @@ export default function CRMOpportunitiesPage() {
                 </div>
                 <div className="flex gap-6 items-center">
                     <div className="text-left rtl:text-right hidden sm:block">
-                        <div className="text-xs text-gray-500 uppercase">قيمة التوقع (Forecast Value)</div>
+                        <div className="text-xs text-gray-500 uppercase">{_t('قيمة التوقع (التوقع قيمة)', 'قيمة التوقع (Forecast Value)')}</div>
                         <div className="text-lg font-bold text-green-600 dark:text-green-400">{forecast.toLocaleString()} SAR</div>
                     </div>
                     <button 
@@ -232,7 +232,7 @@ export default function CRMOpportunitiesPage() {
                                 {errors.name && <span className="text-red-500 text-xs mt-1 block">{errors.name.message}</span>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">العميل (Account)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{_t('العميل (الحساب)', 'العميل (Account)')}</label>
                                 <select 
                                     className={`mt-1 w-full border ${errors.accountId ? 'border-red-500' : 'border-gray-300'} rounded-md p-2 dark:bg-gray-700 dark:text-white`}
                                     {...register('accountId')}

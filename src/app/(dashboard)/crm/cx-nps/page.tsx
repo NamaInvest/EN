@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Smile, Loader2, MessageSquare } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function CxNpsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,8 +16,7 @@ export default function CxNpsPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Smile className="text-primary" /> Customer Experience & NPS
-      </h1>
+        <Smile className="text-primary" /> {_t('عميل خبرة & NPS', 'Customer Experience & NPS')}</h1>
       
       {loading ? (
         <div className="flex justify-center p-12"><Loader2 className="animate-spin text-primary" size={48} /></div>

@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { LineChart, Loader2, AlertTriangle, Wallet } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function CashForecastPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +30,7 @@ export default function CashForecastPage() {
       ) : !data || data.error ? (
         <div className="card p-8 text-center text-red-500 border border-red-200 bg-red-50 rounded-xl shadow-sm">
           <AlertTriangle className="mx-auto mb-4" size={48} />
-          <p>Failed to load forecast data. {data?.error}</p>
+          <p>{_t('فشل إلى تحميل التوقع بيانات.', 'Failed to load forecast data.')}{data?.error}</p>
         </div>
       ) : data.length === 0 ? (
         <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
@@ -38,10 +41,10 @@ export default function CashForecastPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.map((f: any, i: number) => (
             <div key={i} className="card p-5 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
-              <h3 className="text-lg font-bold mb-2 text-(--text)">Forecast Date: <span dir="ltr">{new Date(f.forecastDate).toLocaleDateString()}</span></h3>
-              <div className="text-sm text-(--text-muted) mb-4">Period: {f.period}</div>
+              <h3 className="text-lg font-bold mb-2 text-(--text)">{_t('التوقع التاريخ:', 'Forecast Date:')}<span dir="ltr">{new Date(f.forecastDate).toLocaleDateString()}</span></h3>
+              <div className="text-sm text-(--text-muted) mb-4">{_t('فترة:', 'Period:')}{f.period}</div>
               <div className="flex justify-between items-center text-sm border-t border-(--border) pt-3">
-                <span>Net Position:</span>
+                <span>{_t('Net منصب:', 'Net Position:')}</span>
                 <span className={`font-bold ${f.netPosition >= 0 ? 'text-green-500' : 'text-red-500'}`} dir="ltr">
                   {f.netPosition?.toLocaleString() || 0} {f.currency || 'SAR'}
                 </span>

@@ -4,12 +4,15 @@ import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 // Revalidate every 60 seconds or make it dynamic
 export const dynamic = 'force-dynamic';
 
 export default async function CustomerStatementsOverview() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     let thisMonthSent = 0;
     let deliveryIssues = 0;
     let activeSchedules = 0;
@@ -75,7 +78,7 @@ export default async function CustomerStatementsOverview() {
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-gray-600">معدل الفتح (Open Rate)</h3>
+                        <h3 className="text-sm font-medium text-gray-600">{_t('معدل الفتح (مفتوح معدل)', 'معدل الفتح (Open Rate)')}</h3>
                         <CheckCircle className="h-5 w-5 text-green-500" />
                     </div>
                     <div className="mt-4 text-3xl font-bold text-gray-900">{openRate}%</div>

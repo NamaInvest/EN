@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Play, Plus, Upload, History, BrainCircuit, Settings, Link as LinkIcon, List, RotateCcw, RotateCw, Maximize, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, SkipBack, SkipForward, Trash, Copy, RefreshCw, ChevronDown, FileText } from 'lucide-react';
 
 export default function InvoiceCaptureInboxPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { t } = useTranslation();
 
     const [data, setData] = useState<any>({ captures: [], counts: {} });
@@ -570,7 +572,7 @@ export default function InvoiceCaptureInboxPage() {
                     <CardHeader className="bg-gray-50 border-b">
                         <CardTitle className="text-gray-800 text-lg flex items-center gap-2">
                             ✏️ إدخال يدوي — بدون معالجة AI
-                            <span className="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">تحفظ مباشرة بالحالة PENDING</span>
+                            <span className="text-xs font-normal text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{_t('تحفظ مباشرة بالحالة قيد الانتظار', 'تحفظ مباشرة بالحالة PENDING')}</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5">

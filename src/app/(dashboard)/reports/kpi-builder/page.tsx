@@ -18,7 +18,7 @@ export default function KPIBuilderPage() {
         <div className="p-6 space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">{_t('KPI لوحة التحكم Builder', 'KPI Dashboard Builder')}</h1>
-                <Button>+ Create New Dashboard</Button>
+                <Button>{_t('+ إنشاء جديد لوحة القيادة', '+ Create New Dashboard')}</Button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

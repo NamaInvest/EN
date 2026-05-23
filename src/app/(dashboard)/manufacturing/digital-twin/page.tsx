@@ -134,7 +134,7 @@ export default function DigitalTwinPage() {
  {data?.blockchain?.map((block: any, idx: number) => (
  <div key={idx} className="p-3 bg-slate-950 rounded-xl border border-slate-800">
  <div className="flex justify-between items-center mb-2">
- <span className="text-xs font-mono text-slate-500">Block #{block.block}</span>
+ <span className="text-xs font-mono text-slate-500">{_t('حظر #', 'Block #')}{block.block}</span>
  <ShieldCheck className="w-4 h-4 text-emerald-500" />
  </div>
  <p className="text-xs text-slate-300 mb-2">{block.action}</p>

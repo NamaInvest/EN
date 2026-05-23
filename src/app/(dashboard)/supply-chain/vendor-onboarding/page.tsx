@@ -363,7 +363,7 @@ export default function VendorOnboardingPage() {
                      <option value="IT Services">IT Services (خدمات تقنية)</option>
                      <option value="Logistics">Logistics (خدمات لوجستية)</option>
                      <option value="Raw Materials">Raw Materials (مواد خام)</option>
-                     <option value="Maintenance">Maintenance (صيانة)</option>
+                     <option value="Maintenance">{_t('صيانة (صيانة)', 'Maintenance (صيانة)')}</option>
                   </select>
                </div>
             </div>

@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Calculator, Loader2, AlertTriangle, MonitorPlay } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function POSAccountantPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,9 +43,9 @@ export default function POSAccountantPage() {
             <thead className="bg-(--bg-secondary) border-b border-(--border)">
               <tr>
                 <th className="p-4 font-semibold text-sm">Session ID</th>
-                <th className="p-4 font-semibold text-sm">User</th>
+                <th className="p-4 font-semibold text-sm">{_t('مستخدم', 'User')}</th>
                 <th className="p-4 font-semibold text-sm">Opened At</th>
-                <th className="p-4 font-semibold text-sm">Status</th>
+                <th className="p-4 font-semibold text-sm">{_t('الحالة', 'Status')}</th>
               </tr>
             </thead>
             <tbody>

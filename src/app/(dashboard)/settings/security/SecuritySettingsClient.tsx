@@ -5,8 +5,11 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Shield, ShieldAlert, Smartphone, Monitor, Key, RefreshCw, Trash2, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useTranslation } from "@/lib/i18n";
 
 export default function SecuritySettingsClient({ initialData }: { initialData: any }) {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
     const [data, setData] = useState(initialData);
     const [isEnrolling, setIsEnrolling] = useState(false);
@@ -100,7 +103,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
     return (
         <div className="max-w-5xl mx-auto space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Security Settings</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('أمان الإعدادات', 'Security Settings')}</h1>
                 <p className="text-gray-500 mt-2">Manage your account security, multi-factor authentication, and trusted devices.</p>
             </div>
 
@@ -132,7 +135,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                         <p className="text-xs text-gray-500">Configured on {data.mfaEnrolledAt ? new Date(data.mfaEnrolledAt).toLocaleDateString() : 'recently'}</p>
                                     </div>
                                 </div>
-                                <Button variant="destructive" size="sm" onClick={disableMfa} disabled={isSubmitting}>Disable</Button>
+                                <Button variant="destructive" size="sm" onClick={disableMfa} disabled={isSubmitting}>{_t('تعطيل', 'Disable')}</Button>
                             </div>
 
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -263,7 +266,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                 </Button>
                             ) : (
                                 <>
-                                    <Button variant="ghost" onClick={() => setIsEnrolling(false)} disabled={isSubmitting}>Cancel</Button>
+                                    <Button variant="ghost" onClick={() => setIsEnrolling(false)} disabled={isSubmitting}>{_t('إلغاء', 'Cancel')}</Button>
                                     <Button 
                                         className="bg-blue-600 hover:bg-blue-700 text-white" 
                                         onClick={confirmEnrollment} 

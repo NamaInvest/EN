@@ -36,7 +36,7 @@ export default function ProjectTimeBillingPage() {
                                 <tr>
                                     <th className="px-4 py-3">{_t('معرف الدخول', 'Entry ID')}</th>
                                     <th className="px-4 py-3">{_t('الموظف', 'Employee')}</th>
-                                    <th className="px-4 py-3">Project / Task</th>
+                                    <th className="px-4 py-3">{_t('مشروع / مهمة', 'Project / Task')}</th>
                                     <th className="px-4 py-3 text-center">{_t('ساعات', 'Hours')}</th>
                                     <th className="px-4 py-3 text-center">{_t('قابلة للفوترة', 'Billable')}</th>
                                     <th className="px-4 py-3 text-right">{_t('الإجمالي (ريال سعودي)', 'Total (SAR)')}</th>

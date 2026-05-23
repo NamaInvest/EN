@@ -5,6 +5,8 @@ import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function QualityControlPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { t } = useTranslation();
  const { success, error } = useToast();
  const [pending, setPending] = useState<any[]>([]);
@@ -65,14 +67,14 @@ export default function QualityControlPage() {
  return (
  <>
  <div className="page-header">
- <h1 className="page-title">إدارة الجودة (Quality Control & NCR)</h1>
+ <h1 className="page-title">{_t('إدارة الجودة (جودة تحكم & NCR)', 'إدارة الجودة (Quality Control & NCR)')}</h1>
  </div>
 
  <div className="page-content animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '20px' }}>
  <div>
  <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
  <h2 style={{ fontSize: '18px', margin: '0 0 20px 0', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
- الفحوصات المعلقة (Pending Inspections) <span className="badge badge-warning">{pending.length}</span>
+ {_t('الفحوصات المعلقة (قيد الانتظار فحوصات)', 'الفحوصات المعلقة (Pending Inspections)')}<span className="badge badge-warning">{pending.length}</span>
  </h2>
  {pending.length === 0 ? (
  <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>لا توجد فحوصات معلقة</div>

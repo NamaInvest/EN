@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function ShopFloorTerminalPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t } = useTranslation();
 
     const [sessions, setSessions] = useState<any[]>([]);
@@ -79,7 +81,7 @@ export default function ShopFloorTerminalPage() {
                                 <Input value={startForm.manufacturingOrderId} onChange={e => setStartForm({...startForm, manufacturingOrderId: e.target.value})} placeholder="MO-2026-0055" required />
                             </div>
                             <div>
-                                <label className="block text-sm mb-1">العملية (Operation)</label>
+                                <label className="block text-sm mb-1">{_t('العملية (تشغيل)', 'العملية (Operation)')}</label>
                                 <Input value={startForm.operationId} onChange={e => setStartForm({...startForm, operationId: e.target.value})} placeholder="OP-101" required />
                             </div>
                             <div className="md:col-span-3">

@@ -1,8 +1,11 @@
 'use client';
 import React from 'react';
 import { LayoutDashboard, BarChart, LineChart, PieChart, Info } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function BICubePage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -12,7 +15,7 @@ export default function BICubePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl text-center shadow-sm">
           <BarChart size={48} className="mx-auto mb-4 text-blue-500" />
-          <h3 className="text-lg font-bold">Revenue Growth</h3>
+          <h3 className="text-lg font-bold">{_t('إيراد نمو', 'Revenue Growth')}</h3>
           <p className="text-sm text-(--text-muted) mt-2">Data syncing...</p>
         </div>
         <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl text-center shadow-sm">
@@ -22,7 +25,7 @@ export default function BICubePage() {
         </div>
         <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl text-center shadow-sm">
           <PieChart size={48} className="mx-auto mb-4 text-purple-500" />
-          <h3 className="text-lg font-bold">Expense Distribution</h3>
+          <h3 className="text-lg font-bold">{_t('مصروف توزيع', 'Expense Distribution')}</h3>
           <p className="text-sm text-(--text-muted) mt-2">Data syncing...</p>
         </div>
       </div>

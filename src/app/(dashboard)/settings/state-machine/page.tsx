@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Settings2, Loader2, AlertTriangle, Workflow } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function StateMachinePage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +30,7 @@ export default function StateMachinePage() {
       ) : !data || data.error ? (
         <div className="card p-8 text-center text-red-500 border border-red-200 bg-red-50 rounded-xl shadow-sm">
           <AlertTriangle className="mx-auto mb-4" size={48} />
-          <p>Failed to load state machine data. {data?.error}</p>
+          <p>{_t('فشل إلى تحميل دولة آلة بيانات.', 'Failed to load state machine data.')}{data?.error}</p>
         </div>
       ) : data.length === 0 ? (
         <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
@@ -39,11 +42,11 @@ export default function StateMachinePage() {
           <table className="w-full text-left border-collapse" dir="ltr">
             <thead className="bg-(--bg-secondary) border-b border-(--border)">
               <tr>
-                <th className="p-4 font-semibold text-sm">Doc Type</th>
-                <th className="p-4 font-semibold text-sm">From State</th>
-                <th className="p-4 font-semibold text-sm">To State</th>
-                <th className="p-4 font-semibold text-sm">Action</th>
-                <th className="p-4 font-semibold text-sm">Role</th>
+                <th className="p-4 font-semibold text-sm">{_t('Doc النوع', 'Doc Type')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('من دولة', 'From State')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('إلى دولة', 'To State')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('إجراء', 'Action')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('الدور', 'Role')}</th>
               </tr>
             </thead>
             <tbody>

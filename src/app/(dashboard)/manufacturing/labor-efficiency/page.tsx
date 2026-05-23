@@ -23,7 +23,7 @@ export default function LaborEfficiencyPage() {
  <div className="flex items-center gap-3 mb-8">
  <div className="p-3 bg-blue-100 text-blue-600 rounded-xl"><Users className="w-8 h-8" /></div>
  <div>
- <h1 className="text-2xl font-bold text-slate-900">انحراف كفاءة العمالة (Labor Efficiency)</h1>
+ <h1 className="text-2xl font-bold text-slate-900">{_t('انحراف كفاءة العمالة (عمل كفاءة)', 'انحراف كفاءة العمالة (Labor Efficiency)')}</h1>
  <p className="text-slate-500">مقارنة الساعات المعيارية بالساعات الفعلية المستهلكة</p>
  </div>
  </div>
@@ -35,7 +35,7 @@ export default function LaborEfficiencyPage() {
  <th className="px-6 py-4 text-slate-500 font-medium">أمر الإنتاج</th>
  <th className="px-6 py-4 text-slate-500 font-medium">الساعات المعيارية (المخططة)</th>
  <th className="px-6 py-4 text-slate-500 font-medium">الساعات الفعلية (المقدرة)</th>
- <th className="px-6 py-4 text-slate-500 font-medium">الانحراف (Variance)</th>
+ <th className="px-6 py-4 text-slate-500 font-medium">{_t('الانحراف (الفرق)', 'الانحراف (Variance)')}</th>
  <th className="px-6 py-4 text-slate-500 font-medium">الكفاءة %</th>
  </tr>
  </thead>

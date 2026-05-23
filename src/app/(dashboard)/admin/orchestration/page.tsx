@@ -53,7 +53,7 @@ export default function OrchestrationDashboard() {
                                         {saga.status}
                                     </span>
                                 </div>
-                                <p className="text-xs text-gray-500">Current State: <span className="font-semibold text-gray-800 dark:text-gray-200">{saga.currentState}</span></p>
+                                <p className="text-xs text-gray-500">{_t('حالي دولة:', 'Current State:')}<span className="font-semibold text-gray-800 dark:text-gray-200">{saga.currentState}</span></p>
                                 <div className="mt-2 text-xs flex flex-wrap gap-1">
                                     {saga.steps.map((step: any) => (
                                         <span key={step.id} className={`px-2 py-0.5 rounded border ${step.status === 'SUCCESS' ? 'border-green-200 text-green-700 bg-green-50' : 'border-red-200 text-red-700 bg-red-50'}`}>
@@ -106,7 +106,7 @@ export default function OrchestrationDashboard() {
                                         <span className="text-green-600 text-xs bg-green-100 px-2 py-1 rounded">{_t('على المسار الصحيح', 'On Track')}</span>
                                     )}
                                 </div>
-                                <p className="text-sm text-gray-500">Status: {j.status}</p>
+                                <p className="text-sm text-gray-500">{_t('الحالة:', 'Status:')}{j.status}</p>
                                 <p className="text-xs text-gray-400">Started: {new Date(j.startedAt).toLocaleDateString()}</p>
                             </div>
                         ));

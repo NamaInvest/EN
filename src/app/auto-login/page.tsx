@@ -13,7 +13,7 @@ function AutoLoginContent() {
     const [showSwitch, setShowSwitch] = useState(false);
 
     useEffect(() => {
-        if (!isLoaded) return;
+        if (!isLoaded && !searchParams.get('token')) return;
 
         const redirect = searchParams.get('redirect') || '/dashboard';
         const currentSubdomain = window.location.hostname.split('.')[0]; // مثل: ahmedalyamicompany

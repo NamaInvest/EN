@@ -73,12 +73,12 @@ export default function PeriodCloseDashboard() {
                     <h2 className="text-xl font-semibold flex items-center gap-2 text-red-700"><Lock className="text-red-600" /> 3. Lock Fiscal Period</h2>
                     <p className="text-sm text-red-600">{_t('إغلاق الشهر المحدد. ولا يمكن نشر أو تعديل أي إدخالات دفتر يومية أخرى في هذه الفترة.', 'Closes the selected month. No further journal entries can be posted or modified in this period.')}</p>
                     <Button onClick={() => handleAction('close_period')} disabled={loading} className="w-full bg-red-600 hover:bg-red-700 text-white">
-                        Lock Period {month}/{year}
+                        {_t('قفل فترة', 'Lock Period')}{month}/{year}
                     </Button>
                 </Card>
 
                 <Card className="p-6 space-y-4 md:col-span-2 border-t-4 border-t-slate-800 bg-slate-50">
-                    <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-800"><Calendar className="text-slate-800" /> 4. Year-End Close</h2>
+                    <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-800"><Calendar className="text-slate-800" /> {_t('4. سنة-End إغلاق', '4. Year-End Close')}</h2>
                     <p className="text-sm text-slate-600">Closes all 12 months, transfers Revenue/Expenses to Retained Earnings, and locks the year.</p>
                     <Button onClick={() => handleAction('close_year')} disabled={loading} className="w-full bg-slate-800 hover:bg-slate-900 text-white">
                         Close Fiscal Year {year}

@@ -103,8 +103,8 @@ export default function ConsolidationDashboard() {
  <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs font-bold ${statusColor(r.status)}`}>{r.status}</span></td>
  <td className="px-6 py-4 text-sm text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
  <td className="px-6 py-4 flex gap-1">
- <button onClick={()=>viewSummary(r.id)} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="View"><Eye className="w-4 h-4"/></button>
- {r.status==='DRAFT'&&<button onClick={()=>runAction('review',r.id)} className="p-1 text-yellow-600 hover:bg-yellow-50 rounded" title="Review"><CheckCircle className="w-4 h-4"/></button>}
+ <button onClick={()=>viewSummary(r.id)} className="p-1 text-blue-600 hover:bg-blue-50 rounded" title={_t('عرض', 'View')}><Eye className="w-4 h-4"/></button>
+ {r.status==='DRAFT'&&<button onClick={()=>runAction('review',r.id)} className="p-1 text-yellow-600 hover:bg-yellow-50 rounded" title={_t('مراجعة', 'Review')}><CheckCircle className="w-4 h-4"/></button>}
  {r.status==='REVIEWED'&&<button onClick={()=>runAction('post',r.id)} className="p-1 text-green-600 hover:bg-green-50 rounded" title="Post"><CheckCircle className="w-4 h-4"/></button>}
  {r.status!=='REVERSED'&&<button onClick={()=>runAction('reverse',r.id)} className="p-1 text-red-600 hover:bg-red-50 rounded" title="Reverse"><RotateCcw className="w-4 h-4"/></button>}
  </td>

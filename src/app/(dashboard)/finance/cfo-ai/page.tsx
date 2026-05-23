@@ -128,8 +128,7 @@ export default function CFOAIPage() {
  <div className="space-y-8">
  <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 shadow-xl relative h-full">
  <h2 className="text-lg font-bold text-white mb-6 flex items-center">
- <ShieldAlert className="w-5 h-5 ml-2 text-rose-400" /> إدارة المخاطر (Risk Management)
- </h2>
+ <ShieldAlert className="w-5 h-5 ml-2 text-rose-400" /> {_t('إدارة المخاطر (مخاطرة إدارة)', 'إدارة المخاطر (Risk Management)')}</h2>
  <div className="space-y-4">
  {data?.riskManagement?.map((risk: any, idx: number) => (
  <div key={idx} className="bg-slate-950 p-4 rounded-xl border border-slate-800 relative overflow-hidden group">
@@ -137,8 +136,7 @@ export default function CFOAIPage() {
  <div className="flex justify-between items-start mb-2">
  <h3 className="font-bold text-slate-200 text-sm">{risk.entity}</h3>
  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${risk.riskLevel === 'High' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>
- {risk.riskLevel} RISK
- </span>
+ {risk.riskLevel} {_t('مخاطرة', 'RISK')}</span>
  </div>
  <p className="text-xs text-slate-400 leading-relaxed">{risk.reason}</p>
  </div>

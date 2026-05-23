@@ -236,7 +236,7 @@ export default function PricingEnginePage() {
                         <form onSubmit={handleSubmitTest(handleTestPricing)}>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم المنتج (ID)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{_t('رقم المنتج (المعرف)', 'رقم المنتج (ID)')}</label>
                                     <input type="number" className={`mt-1 block w-full border ${testErrors.testProductId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 dark:bg-gray-700 dark:text-white`} {...registerTest('testProductId', { valueAsNumber: true })} />
                                     {testErrors.testProductId && <span className="text-red-500 text-xs mt-1 block">{testErrors.testProductId.message}</span>}
                                 </div>

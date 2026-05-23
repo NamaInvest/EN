@@ -164,7 +164,7 @@ export default function RoutingOptimizationPage() {
                             
                             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="md:col-span-3">
-                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">اسم العملية (Operation Name)</label>
+                                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{_t('اسم العملية (تشغيل الاسم)', 'اسم العملية (Operation Name)')}</label>
                                     <input 
                                         type="text" required 
                                         value={op.operationName} onChange={e => updateOperation(index, 'operationName', e.target.value)}
@@ -200,8 +200,7 @@ export default function RoutingOptimizationPage() {
 
                     {operations.length > 0 && (
                         <button onClick={addOperation} className="w-full border-2 border-dashed border-indigo-300 text-indigo-600 p-4 rounded-lg hover:bg-indigo-50 font-bold bg-white dark:bg-gray-800 dark:border-indigo-800 dark:hover:bg-gray-700">
-                            + إضافة عملية تالية (Add Next Operation)
-                        </button>
+                            {_t('+ إضافة عملية تالية (Add تالي تشغيل)', '+ إضافة عملية تالية (Add Next Operation)')}</button>
                     )}
                 </div>
 

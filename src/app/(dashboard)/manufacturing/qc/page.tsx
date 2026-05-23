@@ -18,6 +18,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function QCPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { success, info, error: toastError } = useToast();
 
  const [orders, setOrders] = useState([]);
@@ -87,8 +89,7 @@ export default function QCPage() {
  <div className="flex justify-between items-center mb-6">
  <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
  <Microscope className="w-6 h-6 text-blue-600" />
- بوابة الجودة والمطابقة (Quality Control)
- </h1>
+ {_t('بوابة الجودة والمطابقة (جودة تحكم)', 'بوابة الجودة والمطابقة (Quality Control)')}</h1>
  <button 
  onClick={() => { setShowForm(!showForm); reset(); }}
  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"

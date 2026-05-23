@@ -1,7 +1,10 @@
 import React from 'react';
 import { ShieldCheck, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function ComplianceDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const complianceStatus = {
     soc2: 95,
     iso27001: 88,
@@ -20,7 +23,7 @@ export default function ComplianceDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">SOC 2 Type II</h3>
+            <h3 className="font-semibold">{_t('SOC 2 النوع II', 'SOC 2 Type II')}</h3>
             <ShieldCheck className="text-green-600" size={24} />
           </div>
           <div className="w-full bg-(--bg-primary) rounded-full h-2.5 mb-2">
@@ -60,7 +63,7 @@ export default function ComplianceDashboard() {
           <div className="flex items-start gap-4 mb-4 pb-4 border-b border-(--border)">
             <AlertTriangle className="text-yellow-600 mt-1" size={20} />
             <div>
-              <h4 className="font-medium">CC7.2 - Incident Response Procedures</h4>
+              <h4 className="font-medium">{_t('CC7.2 - حادث استجابة إجراءات', 'CC7.2 - Incident Response Procedures')}</h4>
               <p className="text-sm text-(--text-muted)">Annual review is due. Please review IR_PLAN.md and update evidence.</p>
               <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-1 rounded mt-2 inline-block">Due in 5 days</span>
             </div>

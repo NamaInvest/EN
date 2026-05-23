@@ -87,7 +87,7 @@ export default function CashFlowForecastPage() {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-b-4 border-emerald-500">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">توقعات التدفقات النقدية (Cash Flow Forecast)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('توقعات التدفقات النقدية (نقد تدفق التوقع)', 'توقعات التدفقات النقدية (Cash Flow Forecast)')}</h1>
                     <p className="text-gray-500 mt-1">تنبؤ بالسيولة بناءً على أعمار الذمم (AR/AP) والمصروفات الثابتة.</p>
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
@@ -126,15 +126,15 @@ export default function CashFlowForecastPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center border-b-2 border-blue-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">النقد المتاح حالياً (Current Cash)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('النقد المتاح حالياً (حالي نقد)', 'النقد المتاح حالياً (Current Cash)')}</h3>
                     <p className="text-3xl font-black text-gray-900 dark:text-white">{Number(data.currentCash).toLocaleString()} SAR</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center border-b-2 border-green-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">إجمالي ذمم مدينة (Total AR)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('إجمالي ذمم مدينة (الإجمالي AR)', 'إجمالي ذمم مدينة (Total AR)')}</h3>
                     <p className="text-3xl font-black text-green-600">{Number(data.totalAR).toLocaleString()} SAR</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex flex-col items-center border-b-2 border-red-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">إجمالي ذمم دائنة (Total AP)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('إجمالي ذمم دائنة (الإجمالي AP)', 'إجمالي ذمم دائنة (Total AP)')}</h3>
                     <p className="text-3xl font-black text-red-600">{Number(data.totalAP).toLocaleString()} SAR</p>
                 </div>
             </div>

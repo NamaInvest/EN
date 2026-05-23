@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function StoriesPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -19,13 +22,13 @@ export default function StoriesPage() {
                     <select className="border border-gray-300 rounded px-3 py-1.5 text-sm">
                         <option>All Modules</option>
                         <option>HR</option>
-                        <option>Accounting</option>
+                        <option>{_t('محاسبة', 'Accounting')}</option>
                         <option>Sales</option>
                     </select>
                     <select className="border border-gray-300 rounded px-3 py-1.5 text-sm">
                         <option>All Statuses</option>
                         <option>BACKLOG</option>
-                        <option>IN PROGRESS</option>
+                        <option>{_t('قيد التنفيذ', 'IN PROGRESS')}</option>
                         <option>DONE</option>
                     </select>
                 </div>
@@ -33,16 +36,16 @@ export default function StoriesPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('المعرف', 'ID')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('إجراء', 'Action')}</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Points</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('الحالة', 'Status')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">US-HR-12</td>
-                            <td className="px-6 py-4 text-sm text-gray-900">Process leave request</td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{_t('عملية مغادرة طلب', 'Process leave request')}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">

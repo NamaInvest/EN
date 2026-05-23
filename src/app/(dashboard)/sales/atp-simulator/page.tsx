@@ -19,6 +19,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ATPSimulatorPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const { t } = useTranslation();
     const [result, setResult] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -94,7 +96,7 @@ export default function ATPSimulatorPage() {
 
                 <Card className="md:col-span-2">
                     <CardHeader>
-                        <CardTitle>نتيجة الفحص (ATP Result)</CardTitle>
+                        <CardTitle>{_t('نتيجة الفحص (ATP نتيجة)', 'نتيجة الفحص (ATP Result)')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {!result ? (
@@ -121,7 +123,7 @@ export default function ATPSimulatorPage() {
                                 </div>
 
                                 <div>
-                                    <h3 className="font-bold mb-3">تفاصيل التوفر الزمني (Breakdown)</h3>
+                                    <h3 className="font-bold mb-3">{_t('تفاصيل التوفر الزمني (تفصيل)', 'تفاصيل التوفر الزمني (Breakdown)')}</h3>
                                     <div className="overflow-x-auto border rounded-lg">
                                         <table className="w-full text-sm text-right">
                                             <thead className="bg-gray-50 text-gray-700">
@@ -149,7 +151,7 @@ export default function ATPSimulatorPage() {
                                 {!result.canPromise && (
                                     <div className="flex gap-2 justify-end mt-4">
                                         <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">إنشاء طلب شراء طارئ (PR)</Button>
-                                        <Button variant="outline">تقسيم الشحنة (Split)</Button>
+                                        <Button variant="outline">{_t('تقسيم الشحنة (تقسيم)', 'تقسيم الشحنة (Split)')}</Button>
                                     </div>
                                 )}
                             </div>

@@ -131,7 +131,7 @@ export default function VendorScorecardPage() {
                                     <tr>
                                         <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الترتيب</th>
                                         <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المورد</th>
-                                        <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">الجودة (Quality)</th>
+                                        <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{_t('الجودة (جودة)', 'الجودة (Quality)')}</th>
                                         <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">التوصيل (OTD)</th>
                                         <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">الأسعار (Pricing)</th>
                                         <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">التقييم الشامل</th>
@@ -224,7 +224,7 @@ export default function VendorScorecardPage() {
                         <h2 className="text-xl font-bold mb-4 dark:text-white">تقييم مورد جديد</h2>
                         <form onSubmit={handleRateSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">رقم تعريف المورد (Supplier ID)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{_t('رقم تعريف المورد (مورد المعرف)', 'رقم تعريف المورد (Supplier ID)')}</label>
                                 <input required type="number" value={newRating.supplierId} onChange={e => setNewRating({...newRating, supplierId: e.target.value})} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:text-white" />
                             </div>
                             <div className="grid grid-cols-3 gap-4">

@@ -295,7 +295,7 @@ export default function BankReconRulesPage() {
                                 </div>
                             </div>
                             <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700">
-                                <h4 className="text-xs font-bold text-indigo-600 mb-2">شروط المطابقة (Conditions)</h4>
+                                <h4 className="text-xs font-bold text-indigo-600 mb-2">{_t('شروط المطابقة (الأحكام)', 'شروط المطابقة (Conditions)')}</h4>
                                 <div>
                                     <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">وصف الحركة يحتوي على (Contains Regex):</label>
                                     <input 
@@ -307,12 +307,12 @@ export default function BankReconRulesPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الإجراء الآلي (Action)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{_t('الإجراء الآلي (إجراء)', 'الإجراء الآلي (Action)')}</label>
                                 <select 
                                     value={action} onChange={e => setAction(e.target.value)}
                                     className="w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white font-bold"
                                 >
-                                    <option value="CREATE_JE">إنشاء قيد يومية (Create JE)</option>
+                                    <option value="CREATE_JE">{_t('إنشاء قيد يومية (إنشاء JE)', 'إنشاء قيد يومية (Create JE)')}</option>
                                     <option value="MATCH_TO_CUSTOMER">تسوية مع عميل (Match AR)</option>
                                     <option value="MATCH_TO_VENDOR">تسوية مع مورد (Match AP)</option>
                                     <option value="IGNORE">تجاهل / استبعاد (Ignore)</option>

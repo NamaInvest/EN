@@ -306,9 +306,9 @@ export default function LabIntegrationPage() {
                             <table className="w-full text-right text-sm">
                                 <thead className="bg-gray-100 dark:bg-gray-700 sticky top-0 shadow-sm">
                                     <tr>
-                                        <th className="p-4 font-semibold w-1/3">التحليل (Test)</th>
-                                        <th className="p-4 font-semibold">النتيجة (Result)</th>
-                                        <th className="p-4 font-semibold">المعدل الطبيعي (Reference)</th>
+                                        <th className="p-4 font-semibold w-1/3">{_t('التحليل (اختبار)', 'التحليل (Test)')}</th>
+                                        <th className="p-4 font-semibold">{_t('النتيجة (نتيجة)', 'النتيجة (Result)')}</th>
+                                        <th className="p-4 font-semibold">{_t('المعدل الطبيعي (المرجع)', 'المعدل الطبيعي (Reference)')}</th>
                                         <th className="p-4 font-semibold text-center w-24">{_t('غير طبيعي', 'Abnormal')}</th>
                                         <th className="p-4 font-semibold"></th>
                                     </tr>

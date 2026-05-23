@@ -97,8 +97,7 @@ export default function AbcAnalysisPage() {
                         disabled={loading || items.length === 0}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold disabled:opacity-50"
                     >
-                        تطبيق على جدولة الجرد (Update Class)
-                    </button>
+                        {_t('تطبيق على جدولة الجرد (تحديث فئة)', 'تطبيق على جدولة الجرد (Update Class)')}</button>
                 </div>
             </div>
 
@@ -208,7 +207,7 @@ export default function AbcAnalysisPage() {
                                                     item.recommendedClass === 'B' ? 'bg-yellow-100 text-yellow-800' :
                                                     'bg-green-100 text-green-800'
                                                 }`}>
-                                                    Class {item.recommendedClass}
+                                                    {_t('فئة', 'Class')}{item.recommendedClass}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">

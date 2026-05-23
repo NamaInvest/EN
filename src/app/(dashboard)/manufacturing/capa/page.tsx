@@ -27,6 +27,8 @@ type NcrFormValues = z.infer<typeof ncrSchema>;
 type CapaFormValues = z.infer<typeof capaSchema>;
 
 export default function CAPAPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { success, error: toastError } = useToast();
  const [ncrs, setNcrs] = useState<any[]>([]);
  const [inspections, setInspections] = useState<any[]>([]);
@@ -180,7 +182,7 @@ export default function CAPAPage() {
  </div>
  <form onSubmit={handleSubmitNcr(submitNcr)} className="p-6 space-y-4">
  <div>
- <label className="block text-sm text-slate-400 mb-1">رقم الفحص (Inspection ID)</label>
+ <label className="block text-sm text-slate-400 mb-1">{_t('رقم الفحص (فحص المعرف)', 'رقم الفحص (Inspection ID)')}</label>
  <input type="number" className={`w-full bg-slate-950 border ${ncrErrors.inspectionId ? 'border-red-500' : 'border-slate-700'} rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500`} {...registerNcr('inspectionId')} />
  {ncrErrors.inspectionId?.message && <span className="text-red-500 text-xs mt-1 block">{String(ncrErrors.inspectionId.message)}</span>}
  </div>
@@ -194,9 +196,9 @@ export default function CAPAPage() {
  <label className="block text-sm text-slate-400 mb-1">الخطورة</label>
  <select className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500" {...registerNcr('severity')}>
  <option value="CRITICAL">حرج (Critical)</option>
- <option value="HIGH">عالي (High)</option>
- <option value="MEDIUM">متوسط (Medium)</option>
- <option value="LOW">منخفض (Low)</option>
+ <option value="HIGH">{_t('عالي (مرتفع)', 'عالي (High)')}</option>
+ <option value="MEDIUM">{_t('متوسط (متوسطة)', 'متوسط (Medium)')}</option>
+ <option value="LOW">{_t('منخفض (منخفض)', 'منخفض (Low)')}</option>
  </select>
  </div>
  <div>
@@ -210,7 +212,7 @@ export default function CAPAPage() {
  </div>
  </div>
  <div>
- <label className="block text-sm text-slate-400 mb-1">الأثر المالي المتوقع (Cost Impact)</label>
+ <label className="block text-sm text-slate-400 mb-1">{_t('الأثر المالي المتوقع (التكلفة أثر)', 'الأثر المالي المتوقع (Cost Impact)')}</label>
  <input type="number" step="any" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500" {...registerNcr('costImpact')} />
  </div>
  <div className="flex justify-end pt-4 space-x-3 space-x-reverse">

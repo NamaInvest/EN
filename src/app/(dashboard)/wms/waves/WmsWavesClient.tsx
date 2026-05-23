@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Box, GitMerge, AlertCircle, CheckCircle2, TrendingUp, Search, Calendar, FileText, BarChart3, Database, Plus } from 'lucide-react';
 import { useToast } from '@/components/Toast';
+import { useTranslation } from "@/lib/i18n";
 
 type Wave = {
   id: number;
@@ -30,6 +31,8 @@ type PickTaskPreview = {
 };
 
 export default function WmsWavesClient() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { error: toastError, success: toastSuccess } = useToast();
   
   // States
@@ -189,7 +192,7 @@ export default function WmsWavesClient() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Priority (1 = High)</label>
+                  <label className="text-sm font-medium">{_t('الأولوية (1 = مرتفع)', 'Priority (1 = High)')}</label>
                   <Select 
                     value={createForm.priority.toString()} 
                     onValueChange={val => setCreateForm(prev => ({ ...prev, priority: parseInt(val) }))}
@@ -199,8 +202,8 @@ export default function WmsWavesClient() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1">Priority 1 (Urgent)</SelectItem>
-                      <SelectItem value="2">Priority 2 (Normal)</SelectItem>
-                      <SelectItem value="3">Priority 3 (Low)</SelectItem>
+                      <SelectItem value="2">{_t('الأولوية 2 (طبيعي)', 'Priority 2 (Normal)')}</SelectItem>
+                      <SelectItem value="3">{_t('الأولوية 3 (منخفض)', 'Priority 3 (Low)')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -262,7 +265,7 @@ export default function WmsWavesClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                <p className="text-sm font-medium text-muted-foreground">{_t('مكتمل', 'Completed')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-green-500">{loading ? '-' : completedWaves}</h3>
               </div>
               <CheckCircle2 className="w-8 h-8 text-green-500 opacity-80" />
@@ -273,7 +276,7 @@ export default function WmsWavesClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                <p className="text-sm font-medium text-muted-foreground">{_t('الإجمالي مهام', 'Total Tasks')}</p>
                 <h3 className="text-2xl font-bold mt-1">{loading ? '-' : totalTasks}</h3>
               </div>
               <BarChart3 className="w-8 h-8 text-gray-500 opacity-80" />
@@ -293,14 +296,14 @@ export default function WmsWavesClient() {
             <div className="flex space-x-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={_t('الحالة', 'Status')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Statuses</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="DRAFT">{_t('مسودة', 'Draft')}</SelectItem>
                   <SelectItem value="ALLOCATED">Allocated</SelectItem>
                   <SelectItem value="PICKING">Picking</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="COMPLETED">{_t('مكتمل', 'Completed')}</SelectItem>
                 </SelectContent>
               </Select>
               <Input 
@@ -326,10 +329,10 @@ export default function WmsWavesClient() {
                   <thead className="bg-muted text-muted-foreground uppercase text-xs">
                     <tr>
                       <th className="px-4 py-3">Wave No</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Priority</th>
-                      <th className="px-4 py-3">Tasks</th>
-                      <th className="px-4 py-3">Created</th>
+                      <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                      <th className="px-4 py-3">{_t('الأولوية', 'Priority')}</th>
+                      <th className="px-4 py-3">{_t('مهام', 'Tasks')}</th>
+                      <th className="px-4 py-3">{_t('تم الإنشاء', 'Created')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -385,7 +388,7 @@ export default function WmsWavesClient() {
                     <div key={idx} className="flex justify-between items-center p-2 hover:bg-muted rounded-md transition-colors">
                       <div>
                         <p className="font-medium">{t.productName}</p>
-                        <p className="text-xs text-muted-foreground">Order: #{t.orderId} | Qty: {t.quantity}</p>
+                        <p className="text-xs text-muted-foreground">{_t('نظام: #', 'Order: #')}{t.orderId} | Qty: {t.quantity}</p>
                       </div>
                       <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{t.binLocation}</Badge>
                     </div>

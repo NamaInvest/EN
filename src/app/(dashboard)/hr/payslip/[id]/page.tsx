@@ -109,7 +109,7 @@ export default function PayslipViewer() {
  <table className="w-full text-right">
  <thead>
  <tr className="bg-slate-800 text-white">
- <th className="py-4 px-6 font-semibold w-1/2">البيان (Description)</th>
+ <th className="py-4 px-6 font-semibold w-1/2">{_t('البيان (الوصف)', 'البيان (Description)')}</th>
  <th className="py-4 px-6 font-semibold text-center border-r border-slate-700">الاستحقاقات (Earnings)</th>
  <th className="py-4 px-6 font-semibold text-center border-r border-slate-700">الخصومات (Deductions)</th>
  </tr>
@@ -131,7 +131,7 @@ export default function PayslipViewer() {
  ))}
  {/* Totals Row */}
  <tr className="bg-slate-100 font-black border-t-2 border-slate-300">
- <td className="py-4 px-6 text-slate-800 text-left border-l border-slate-200">الإجمالي (Total)</td>
+ <td className="py-4 px-6 text-slate-800 text-left border-l border-slate-200">{_t('الإجمالي (الإجمالي)', 'الإجمالي (Total)')}</td>
  <td className="py-4 px-6 text-center text-slate-800 font-mono border-r border-slate-300">{totalAddition.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
  <td className="py-4 px-6 text-center text-rose-600 font-mono border-r border-slate-300">{totalDeduction.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
  </tr>

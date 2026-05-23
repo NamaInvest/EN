@@ -124,9 +124,9 @@ export default function BulkRunPage() {
                                 onChange={(e) => setSegment(e.target.value)}
                                 className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             >
-                                <option value="all">كل العملاء النشطين (All Active)</option>
+                                <option value="all">{_t('كل العملاء النشطين (All نشط)', 'كل العملاء النشطين (All Active)')}</option>
                                 <option value="vip">كبار العملاء (VIP)</option>
-                                <option value="overdue">متأخرين في السداد (Overdue Balance)</option>
+                                <option value="overdue">{_t('متأخرين في السداد (متأخر الرصيد)', 'متأخرين في السداد (Overdue Balance)')}</option>
                             </select>
                         </div>
                         

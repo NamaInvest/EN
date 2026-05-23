@@ -1,7 +1,10 @@
 import React from 'react';
 import { Activity, DollarSign, Database, AlertCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function RagCostDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   // Mock data for the dashboard
   const stats = {
     dailyCost: 12.45,
@@ -17,8 +20,7 @@ export default function RagCostDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">RAG Analytics & Cost Monitoring</h1>
         <button className="bg-(--primary) text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
-          Download Report
-        </button>
+          {_t('تنزيل تقرير', 'Download Report')}</button>
       </div>
 
       {stats.dailyCost > costLimit && (

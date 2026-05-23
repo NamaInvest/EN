@@ -31,7 +31,7 @@ export default function BudgetVarianceDashboard() {
 
     const renderStatusBadge = (variancePct: number) => {
         if (variancePct < 0) return <Badge className="bg-red-100 text-red-800">{_t('أكثر من الميزانية', 'OVER BUDGET')}</Badge>;
-        if (variancePct < 20) return <Badge className="bg-yellow-100 text-yellow-800">WARNING (0-20%)</Badge>;
+        if (variancePct < 20) return <Badge className="bg-yellow-100 text-yellow-800">{_t('تحذير (0-20%)', 'WARNING (0-20%)')}</Badge>;
         return <Badge className="bg-green-100 text-green-800">{_t('تحت الميزانية', 'UNDER BUDGET')}</Badge>;
     };
 

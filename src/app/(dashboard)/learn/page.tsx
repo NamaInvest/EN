@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function LearningDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -55,8 +58,7 @@ export default function LearningDashboardPage() {
                         <p className="text-sm text-gray-500 mb-4">Learn how to checkout customers, apply discounts, and issue ZATCA receipts.</p>
                         <div className="flex justify-between items-center mt-auto">
                             <span className="text-green-600 text-sm font-semibold flex items-center">
-                                ✓ Completed
-                            </span>
+                                {_t('✓ مكتمل', '✓ Completed')}</span>
                             <a href="#" className="text-teal-700 text-sm font-medium hover:underline">View Certificate</a>
                         </div>
                     </div>

@@ -113,7 +113,7 @@ export default function CustomerStatementGeneratorPage() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <Badge variant="outline">Level {c.dunningLevel}</Badge>
+                                                <Badge variant="outline">{_t('مستوى', 'Level')}{c.dunningLevel}</Badge>
                                             </td>
                                             <td className="px-4 py-3 text-right">
                                                 <Button size="sm" variant="outline">{_t('معاينة', 'Preview')}</Button>

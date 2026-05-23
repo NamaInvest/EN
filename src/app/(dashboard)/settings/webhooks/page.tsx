@@ -373,7 +373,7 @@ export default function WebhooksPage() {
             <form onSubmit={handleCreate}>
               <div className="modal-body">
                 <div className="input-group">
-                  <label className="input-label" htmlFor="wh-url">URL *</label>
+                  <label className="input-label" htmlFor="wh-url">{_t('الرابط *', 'URL *')}</label>
                   <input
                     id="wh-url"
                     type="url"

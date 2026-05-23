@@ -8,9 +8,12 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
+import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function PurchaseOrdersPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const orders = await prisma.purchaseOrder.findMany({
         include: {
             supplier: true,
@@ -45,7 +48,7 @@ export default async function PurchaseOrdersPage() {
                 <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-100">
                     <CardContent className="p-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-blue-600">Pending Approvals / Receipt</p>
+                            <p className="text-sm font-medium text-blue-600">{_t('قيد الانتظار موافقات / سند', 'Pending Approvals / Receipt')}</p>
                             <Clock className="w-4 h-4 text-blue-400" />
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mt-2">{pendingCount}</h3>
@@ -89,7 +92,7 @@ export default async function PurchaseOrdersPage() {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 text-gray-600 border-b">
                             <tr>
-                                <th className="px-4 py-3 font-medium">Order #</th>
+                                <th className="px-4 py-3 font-medium">{_t('نظام #', 'Order #')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('بائع', 'Vendor')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('التاريخ', 'Date')}</th>
                                 <th className="px-4 py-3 font-medium">{_t('الإجمالي', 'Total')}</th>

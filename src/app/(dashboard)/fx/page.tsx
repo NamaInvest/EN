@@ -4,6 +4,8 @@ import { ArrowLeftRight, ServerCrash, Loader2, Search, AlertTriangle, TrendingUp
 import { useTranslation } from "@/lib/i18n";
 
 export default function FXDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t } = useTranslation();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,8 +75,7 @@ export default function FXDashboardPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <ArrowLeftRight size={28} color="#8b5cf6" />
-          أسعار صرف العملات (FX Rates)
-        </h1>
+          {_t('أسعار صرف العملات (FX معدلات)', 'أسعار صرف العملات (FX Rates)')}</h1>
         <button disabled className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.5, cursor: 'not-allowed' }} title="التحديث التلقائي يحتاج تكوين API الخارجي (SAMA/Fixer)">
           <RefreshCw size={18} /> تحديث الأسعار
         </button>

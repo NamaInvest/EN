@@ -32,17 +32,15 @@ export default function RestaurantFBDashboard() {
                     <p className="text-sm font-medium text-slate-500">{_t('ريفباش', 'RevPASH')}</p>
                     <h3 className="text-2xl font-bold mt-2 text-slate-800">{_t('450,200 ريال سعودي', 'SAR 450,200')}</h3>
                     <div className="mt-2 flex items-center text-xs text-emerald-600 font-medium">
-                        <TrendingUp className="w-3 h-3 mr-1" /> +4.2% from last month
-                    </div>
+                        <TrendingUp className="w-3 h-3 mr-1" /> {_t('+4.2% من أخير شهر', '+4.2% from last month')}</div>
                 </Card>
                 <Card className="p-5 border-l-4 border-l-emerald-500 hover:shadow-md transition-shadow">
-                    <p className="text-sm font-medium text-slate-500">Food Cost %</p>
+                    <p className="text-sm font-medium text-slate-500">{_t('طعام التكلفة %', 'Food Cost %')}</p>
                     <h3 className="text-2xl font-bold mt-2 text-slate-800">
                         84.5%
                     </h3>
                     <div className="mt-2 flex items-center text-xs text-emerald-600 font-medium">
-                        <TrendingUp className="w-3 h-3 mr-1" /> +4.2% from last month
-                    </div>
+                        <TrendingUp className="w-3 h-3 mr-1" /> {_t('+4.2% من أخير شهر', '+4.2% from last month')}</div>
                 </Card>
                 <Card className="p-5 border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow">
                     <p className="text-sm font-medium text-slate-500">{_t('معدل دوران الجدول', 'Table Turnover Rate')}</p>
@@ -50,8 +48,7 @@ export default function RestaurantFBDashboard() {
                         1,204
                     </h3>
                     <div className="mt-2 flex items-center text-xs text-emerald-600 font-medium">
-                        <TrendingUp className="w-3 h-3 mr-1" /> +4.2% from last month
-                    </div>
+                        <TrendingUp className="w-3 h-3 mr-1" /> {_t('+4.2% من أخير شهر', '+4.2% from last month')}</div>
                 </Card>
                 <Card className="p-5 border-l-4 border-l-emerald-500 hover:shadow-md transition-shadow">
                     <p className="text-sm font-medium text-slate-500">Jahez/HungerStation Orders</p>
@@ -59,8 +56,7 @@ export default function RestaurantFBDashboard() {
                         15%
                     </h3>
                     <div className="mt-2 flex items-center text-xs text-emerald-600 font-medium">
-                        <TrendingUp className="w-3 h-3 mr-1" /> +4.2% from last month
-                    </div>
+                        <TrendingUp className="w-3 h-3 mr-1" /> {_t('+4.2% من أخير شهر', '+4.2% from last month')}</div>
                 </Card>
             </div>
 
@@ -79,7 +75,7 @@ export default function RestaurantFBDashboard() {
                             <div key={n} className="flex gap-3 text-sm border-b pb-3 last:border-0">
                                 <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500"></div>
                                 <div>
-                                    <p className="font-medium text-slate-700">System Event #{Math.floor(Math.random()*1000)}</p>
+                                    <p className="font-medium text-slate-700">{_t('نظام حدث #', 'System Event #')}{Math.floor(Math.random()*1000)}</p>
                                     <p className="text-slate-500 text-xs mt-0.5">{_t('تمت المعالجة منذ دقيقتين عبر محرك V3', 'Processed 2 mins ago via V3 Engine')}</p>
                                 </div>
                             </div>

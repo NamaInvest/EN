@@ -112,7 +112,7 @@ export default function ApprovalInboxPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <Card className="w-[400px]">
                         <CardHeader>
-                            <CardTitle className="capitalize">{actionType} Request #{selectedRequest.id}</CardTitle>
+                            <CardTitle className="capitalize">{actionType} {_t('طلب #', 'Request #')}{selectedRequest.id}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {actionType === 'reject' && (
@@ -147,7 +147,7 @@ export default function ApprovalInboxPage() {
                                     className={actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
                                     onClick={handleAction}
                                 >
-                                    Confirm {actionType}
+                                    {_t('تأكيد', 'Confirm')}{actionType}
                                 </Button>
                             </div>
                         </CardContent>

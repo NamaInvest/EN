@@ -1,6 +1,10 @@
+import { useTranslation } from "@/lib/i18n";
+
 'use client';
 
 export default function SprintProgressPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="mb-8">
@@ -14,7 +18,7 @@ export default function SprintProgressPage() {
                     <p className="text-3xl font-bold mt-2">34</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                    <h3 className="text-gray-500 text-sm font-medium">Completed</h3>
+                    <h3 className="text-gray-500 text-sm font-medium">{_t('مكتمل', 'Completed')}</h3>
                     <p className="text-3xl font-bold mt-2 text-green-600">21</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200">

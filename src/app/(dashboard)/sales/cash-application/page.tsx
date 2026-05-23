@@ -162,7 +162,7 @@ export default function CashApplicationPage() {
  <div className="flex justify-between items-start mb-3">
  <div>
  <div className="font-medium text-sm text-slate-900 ">{_t('INV-2026-092', 'INV-2026-092')}</div>
- <div className="text-xs text-slate-500">Original: 30,000 SAR</div>
+ <div className="text-xs text-slate-500">{_t('أصلي: 30,000 SAR', 'Original: 30,000 SAR')}</div>
  </div>
  <button className="text-xs text-red-500 hover:text-red-700">{_t('يزيل', 'Remove')}</button>
  </div>
@@ -187,7 +187,7 @@ export default function CashApplicationPage() {
  <div className="flex justify-between items-start mb-3">
  <div>
  <div className="font-medium text-sm text-slate-900 ">{_t('INV-2026-104', 'INV-2026-104')}</div>
- <div className="text-xs text-slate-500">Original: 20,000 SAR</div>
+ <div className="text-xs text-slate-500">{_t('أصلي: 20,000 SAR', 'Original: 20,000 SAR')}</div>
  </div>
  <button className="text-xs text-red-500 hover:text-red-700">{_t('يزيل', 'Remove')}</button>
  </div>

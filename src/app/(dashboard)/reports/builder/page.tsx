@@ -143,7 +143,7 @@ export default function CustomReportBuilder() {
  { id: 112, sum: '115,000.00' },
  ].map((row, i) => (
  <tr key={i} className="hover:bg-slate-50 dark:hover:bg-gray-700/50">
- <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-900 ">Customer #{row.id}</td>
+ <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-slate-900 ">{_t('عميل #', 'Customer #')}{row.id}</td>
  <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-900 text-right font-mono">{row.sum} SAR</td>
  </tr>
  ))}

@@ -193,7 +193,7 @@ export default function ScrapTrackingPage() {
                         <h2 className="text-xl font-bold mb-4 dark:text-white">تسجيل هالك / توالف</h2>
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم أمر التصنيع (MO ID)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{_t('رقم أمر التصنيع (MO المعرف)', 'رقم أمر التصنيع (MO ID)')}</label>
                                 <input 
                                     type="number" 
                                     className={`w-full border ${errors.moId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}
@@ -202,7 +202,7 @@ export default function ScrapTrackingPage() {
                                 {errors.moId && <span className="text-red-500 text-xs mt-1 block">{errors.moId.message}</span>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم المنتج الخام (Raw Product ID)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{_t('رقم المنتج الخام (Raw منتج المعرف)', 'رقم المنتج الخام (Raw Product ID)')}</label>
                                 <input 
                                     type="number" 
                                     className={`w-full border ${errors.rawProductId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white`}

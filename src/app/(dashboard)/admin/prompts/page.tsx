@@ -53,11 +53,11 @@ export default function PromptsAdminPage() {
                     <CardContent>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
-                                <label className="block text-sm mb-1">المعرف (Key)</label>
+                                <label className="block text-sm mb-1">{_t('المعرف (مفتاح)', 'المعرف (Key)')}</label>
                                 <Input placeholder="مثال: cfo.daily_summary" value={form.key} onChange={(e: any) => setForm({...form, key: e.target.value})} required />
                             </div>
                             <div>
-                                <label className="block text-sm mb-1">النموذج (Model)</label>
+                                <label className="block text-sm mb-1">{_t('النموذج (نموذج)', 'النموذج (Model)')}</label>
                                 <Input placeholder="gemini-2.5-flash" value={form.modelHint} onChange={(e: any) => setForm({...form, modelHint: e.target.value})} required />
                             </div>
                             <div>
@@ -88,7 +88,7 @@ export default function PromptsAdminPage() {
                                         </div>
                                         <p className="text-xs text-gray-500 mb-2">النموذج: {p.modelHint}</p>
                                         <div className="text-sm bg-white p-2 border rounded whitespace-pre-wrap mt-2 line-clamp-3">
-                                            <span className="font-bold text-gray-500 block mb-1">System:</span>
+                                            <span className="font-bold text-gray-500 block mb-1">{_t('نظام:', 'System:')}</span>
                                             {p.systemPrompt}
                                         </div>
                                     </div>

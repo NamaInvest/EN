@@ -211,8 +211,8 @@ export default function LandedCostPage() {
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white"
                   {...register('allocationMethod')}
                 >
-                  <option value="value">توزيع حسب القيمة الإجمالية للصنف (By Value)</option>
-                  <option value="quantity">توزيع حسب كمية الصنف (By Quantity)</option>
+                  <option value="value">{_t('توزيع حسب القيمة الإجمالية للصنف (بواسطة قيمة)', 'توزيع حسب القيمة الإجمالية للصنف (By Value)')}</option>
+                  <option value="quantity">{_t('توزيع حسب كمية الصنف (بواسطة الكمية)', 'توزيع حسب كمية الصنف (By Quantity)')}</option>
                 </select>
                 {errors.allocationMethod && <p className="text-red-500 text-xs mt-1">{errors.allocationMethod.message}</p>}
               </div>

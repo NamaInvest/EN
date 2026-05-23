@@ -1,10 +1,13 @@
 import React from 'react';
 import { PrismaClient } from '@prisma/client';
 import { Settings, Check, X, AlertCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 const prisma = new PrismaClient();
 
 export default async function FeatureFlagsDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const flags = await prisma.featureFlag.findMany({
     orderBy: { createdAt: 'desc' }
   });
@@ -27,9 +30,9 @@ export default async function FeatureFlagsDashboard() {
         <table className="w-full text-left" dir="ltr">
           <thead className="bg-(--bg-secondary) border-b border-(--border)">
             <tr>
-              <th className="p-4 text-sm font-semibold">Key</th>
-              <th className="p-4 text-sm font-semibold">Description</th>
-              <th className="p-4 text-sm font-semibold">Status</th>
+              <th className="p-4 text-sm font-semibold">{_t('مفتاح', 'Key')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('الوصف', 'Description')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('الحالة', 'Status')}</th>
               <th className="p-4 text-sm font-semibold">Rollout %</th>
               <th className="p-4 text-sm font-semibold">Target Tenants</th>
               <th className="p-4 text-sm font-semibold">Target Users</th>

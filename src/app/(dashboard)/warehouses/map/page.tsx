@@ -1,8 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Package, Thermometer, AlertTriangle, Layers, Map as MapIcon, Maximize2, Search, Zap, Activity, Plus, Printer, Download, X, RefreshCcw } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function WarehouseMapPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [mounted, setMounted] = useState(false);
   const [activeZone, setActiveZone] = useState<string | null>(null);
   const [showAddZone, setShowAddZone] = useState(false);
@@ -218,8 +221,8 @@ export default function WarehouseMapPage() {
                <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">نوع المنطقة</label>
                   <select className="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
-                     <option>تخزين عادي (Storage)</option>
-                     <option>تخزين مبرد (Cold)</option>
+                     <option>{_t('تخزين عادي (تخزين)', 'تخزين عادي (Storage)')}</option>
+                     <option>{_t('تخزين مبرد (بارد)', 'تخزين مبرد (Cold)')}</option>
                      <option>تجهيز وتحضير (Picking)</option>
                      <option>استلام (Receiving)</option>
                   </select>

@@ -45,7 +45,7 @@ export default function BiDashboard() {
   return (
     <div style={{ padding: '24px', animation: 'fadeIn 0.5s ease' }}>
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}><BarChart3 size={28} color="var(--primary)" /> ذكاء الأعمال - BI Dashboard</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px' }}><BarChart3 size={28} color="var(--primary)" /> {_t('ذكاء الأعمال - BI لوحة القيادة', 'ذكاء الأعمال - BI Dashboard')}</h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '14px' }}>تحليلات شاملة في الوقت الفعلي</p>
       </div>
 

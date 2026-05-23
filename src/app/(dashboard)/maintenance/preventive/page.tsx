@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Wrench, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function PreventiveMaintenancePage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +30,7 @@ export default function PreventiveMaintenancePage() {
       ) : !data || data.error ? (
         <div className="card p-8 text-center text-red-500 border border-red-200 bg-red-50 rounded-xl shadow-sm">
           <AlertTriangle className="mx-auto mb-4" size={48} />
-          <p>Failed to load maintenance data. {data?.error}</p>
+          <p>{_t('فشل إلى تحميل صيانة بيانات.', 'Failed to load maintenance data.')}{data?.error}</p>
         </div>
       ) : data.length === 0 ? (
         <div className="card p-8 text-center border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
@@ -39,8 +42,8 @@ export default function PreventiveMaintenancePage() {
           <table className="w-full text-left border-collapse" dir="ltr">
             <thead className="bg-(--bg-secondary) border-b border-(--border)">
               <tr>
-                <th className="p-4 font-semibold text-sm">Asset ID</th>
-                <th className="p-4 font-semibold text-sm">Status</th>
+                <th className="p-4 font-semibold text-sm">{_t('أصل المعرف', 'Asset ID')}</th>
+                <th className="p-4 font-semibold text-sm">{_t('الحالة', 'Status')}</th>
               </tr>
             </thead>
             <tbody>

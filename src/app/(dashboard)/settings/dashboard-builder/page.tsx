@@ -5,6 +5,8 @@ import { useTranslation } from '@/lib/i18n';
 type Widget = { id: string; type: string; title: string; titleAr: string; x: number; y: number; w: number; h: number; dataSource: string; measure: string; color?: string };
 
 export default function DashboardBuilderPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { lang: language } = useTranslation();
   const isAr = language === 'ar';
   const [widgets, setWidgets] = useState<Widget[]>([]);
@@ -67,7 +69,7 @@ export default function DashboardBuilderPage() {
           <button onClick={() => removeWidget(w.id)} style={{ position: 'absolute', top: 8, left: isAr ? 8 : 'auto', right: isAr ? 'auto' : 8, background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>×</button>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{isAr ? w.titleAr : w.title}</div>
           <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
-            <thead><tr style={{ background: '#f9f9f9' }}><th style={{ padding: 6, textAlign: isAr ? 'right' : 'left' }}>#</th><th style={{ padding: 6 }}>ID</th><th style={{ padding: 6 }}>{isAr ? 'القيمة' : 'Value'}</th></tr></thead>
+            <thead><tr style={{ background: '#f9f9f9' }}><th style={{ padding: 6, textAlign: isAr ? 'right' : 'left' }}>#</th><th style={{ padding: 6 }}>{_t('المعرف', 'ID')}</th><th style={{ padding: 6 }}>{isAr ? 'القيمة' : 'Value'}</th></tr></thead>
             <tbody>{rows.slice(0, 8).map((r: any, i: number) => (
               <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}><td style={{ padding: 6 }}>{i + 1}</td><td style={{ padding: 6 }}>{r.id}</td><td style={{ padding: 6 }}>{r[w.measure]?.toLocaleString?.() || '—'}</td></tr>
             ))}</tbody>

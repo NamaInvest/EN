@@ -96,7 +96,7 @@ export default function FieldPermissionsPage() {
         <div className="p-8 max-w-7xl mx-auto">
             <div className="mb-6 flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">صلاحيات الحقول (Field-Level Permissions)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('صلاحيات الحقول (حقل-مستوى صلاحيات)', 'صلاحيات الحقول (Field-Level Permissions)')}</h1>
                     <p className="text-gray-500 mt-1">التحكم في رؤية وتعديل الحقول الحساسة بناءً على الدور</p>
                 </div>
                 {saving && <span className="text-sm text-blue-600 animate-pulse">جاري الحفظ...</span>}
@@ -110,8 +110,7 @@ export default function FieldPermissionsPage() {
                                 الكيان (Entity)
                             </th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                الحقل (Field)
-                            </th>
+                                {_t('الحقل (حقل)', 'الحقل (Field)')}</th>
                             {CONFIG.roles.map(role => (
                                 <th key={role} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     {role}

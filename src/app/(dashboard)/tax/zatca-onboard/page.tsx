@@ -37,7 +37,7 @@ export default function ZatcaOnboardingPage() {
                                 <input type="text" className="w-full p-2 border rounded-md" defaultValue="310122393500003" disabled />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Branch / Environment</label>
+                                <label className="text-sm font-medium text-gray-700">{_t('الفرع / بيئة', 'Branch / Environment')}</label>
                                 <select className="w-full p-2 border rounded-md">
                                     <option>{_t('الفرع الرئيسي - الإنتاج', 'Main Branch - Production')}</option>
                                     <option>Main Branch - Sandbox / Simulation</option>

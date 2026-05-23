@@ -73,8 +73,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     <p className="text-gray-500 mt-1">رقم العميل: {customer.customerNo || customer.id}</p>
                     {isHold && (
                         <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                            موقوف عن التعامل (ON HOLD)
-                        </span>
+                            {_t('موقوف عن التعامل (معلق)', 'موقوف عن التعامل (ON HOLD)')}</span>
                     )}
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
@@ -117,7 +116,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-t-4 border-purple-500">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">تقييم الائتمان (Score)</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{_t('تقييم الائتمان (درجة)', 'تقييم الائتمان (Score)')}</p>
                         <div className="mt-2 flex items-center">
                             <div className="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700">
                                 <div className="h-4 rounded-full" style={{ width: `${Math.min(100, Math.max(0, score))}%`, backgroundColor: score > 50 ? '#10B981' : score > 20 ? '#F59E0B' : '#EF4444' }}></div>

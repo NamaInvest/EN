@@ -190,7 +190,7 @@ export default function ImpairmentPage() {
                   <tr key={idx} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s', background: row.isImpaired ? 'rgba(239, 68, 68, 0.05)' : 'transparent' }}>
                     <td style={{ padding: '16px 20px', fontWeight: '600', color: 'var(--text)' }}>
                       {row.assetName}
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'monospace' }}>ID: {row.assetId}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'monospace' }}>{_t('المعرف:', 'ID:')}{row.assetId}</div>
                     </td>
                     <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: '500' }}>
                       {formatCurrency(row.carryingAmount)}

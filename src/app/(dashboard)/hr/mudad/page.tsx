@@ -538,8 +538,8 @@ export default function MudadPage() {
               </p>
               <div style={{ padding: '8px', background: '#F9FAFB', borderRadius: '4px', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '12px', fontFamily: 'monospace' }}>
                 {_t('مثال:', 'Example:')}<br />
-                123,ACTIVE<br />
-                124,PENDING<br />
+                {_t('123,نشط', '123,ACTIVE')}<br />
+                {_t('124,قيد الانتظار', '124,PENDING')}<br />
                 125,SUSPENDED<br />
                 126,EXEMPTED
               </div>

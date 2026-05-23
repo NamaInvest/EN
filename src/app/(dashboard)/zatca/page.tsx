@@ -5,6 +5,8 @@ import { useTranslation } from "@/lib/i18n";
 import Link from 'next/link';
 
 export default function ZatcaDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -156,8 +158,7 @@ export default function ZatcaDashboardPage() {
               <Download size={18} style={{ marginLeft: '0.5rem' }} /> تحميل مفاتيح التشفير CSR
             </button>
             <button disabled className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start', padding: '1rem', opacity: 0.6 }}>
-              <FileDigit size={18} style={{ marginLeft: '0.5rem' }} /> فحص توافق QR Code
-            </button>
+              <FileDigit size={18} style={{ marginLeft: '0.5rem' }} /> {_t('فحص توافق QR الرمز', 'فحص توافق QR Code')}</button>
             
             <div style={{ marginTop: '1rem', padding: '1rem', background: '#f59e0b20', borderRadius: '8px', fontSize: '0.85rem', color: '#b45309' }}>
               ملاحظة: الإجراءات اليدوية معطّلة لحين توفر صلاحيات الواجهة الخلفية الكاملة لإصدار وتوقيع الـ Cryptographic Stamp.

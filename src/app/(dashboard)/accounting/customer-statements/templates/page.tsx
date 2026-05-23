@@ -258,7 +258,7 @@ export default function CustomerStatementTemplates() {
                                 <div className="space-y-4 border-t border-gray-100 pt-4">
                                     <h3 className="text-sm font-bold text-gray-900">محتوى الكشف</h3>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">الترويسة (Header Message)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{_t('الترويسة (ترويسة رسالة)', 'الترويسة (Header Message)')}</label>
                                         <textarea 
                                             className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                             rows={2}

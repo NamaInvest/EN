@@ -55,7 +55,7 @@ export default function SchoolSIS() {
               <thead>
                 <tr className="border-b-2 border-slate-100 text-sm text-slate-500">
                   <th className="pb-3 pl-2">{_t('اسم الطالب', 'Student Name')}</th>
-                  <th className="pb-3">ID</th>
+                  <th className="pb-3">{_t('المعرف', 'ID')}</th>
                   <th className="pb-3">{_t('حضور', 'Attendance')}</th>
                   <th className="pb-3">{_t('الرياضيات', 'Math')}</th>
                   <th className="pb-3">{_t('علوم', 'Science')}</th>

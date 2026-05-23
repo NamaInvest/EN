@@ -222,7 +222,7 @@ export default function NitaqatSimulatorPage() {
 
           {/* Activity Code */}
           <div className="input-group">
-            <label className="input-label" htmlFor="sim-activity">Activity Code</label>
+            <label className="input-label" htmlFor="sim-activity">{_t('النشاط الرمز', 'Activity Code')}</label>
             <select
               id="sim-activity"
               className="input"
@@ -230,7 +230,7 @@ export default function NitaqatSimulatorPage() {
               onChange={(e) => setActivityCode(e.target.value)}
             >
               <option value="DEFAULT">DEFAULT</option>
-              <option value="CONSTRUCTION">CONSTRUCTION</option>
+              <option value="CONSTRUCTION">{_t('بناء', 'CONSTRUCTION')}</option>
               <option value="RETAIL">RETAIL</option>
               <option value="MANUFACTURING">MANUFACTURING</option>
               <option value="HOSPITALITY">HOSPITALITY</option>

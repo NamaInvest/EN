@@ -101,7 +101,7 @@ export default function PerformanceReviewPage() {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow flex justify-between items-center border-b-4 border-indigo-600">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تقييم الأداء الشامل (360° Performance Review)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('تقييم الأداء الشامل (360° أداء مراجعة)', 'تقييم الأداء الشامل (360° Performance Review)')}</h1>
                     <p className="text-gray-500 mt-1">إدارة تقييمات الموظفين، تحديد الأهداف، ومراجعة النقاط الإيجابية والسلبية.</p>
                 </div>
                 <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-md">

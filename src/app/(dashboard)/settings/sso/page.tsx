@@ -339,11 +339,11 @@ export default function SsoSettingsPage() {
                     <input id="sso-name" className="input" required maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={form.ssoType === 'AZURE_AD' ? 'Acme Microsoft 365' : 'Acme SSO'} />
                   </div>
                   <div className="input-group">
-                    <label className="input-label" htmlFor="sso-cid">Client ID *</label>
+                    <label className="input-label" htmlFor="sso-cid">{_t('عميل المعرف *', 'Client ID *')}</label>
                     <input id="sso-cid" className="input" required maxLength={200} value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} />
                   </div>
                   <div className="input-group">
-                    <label className="input-label" htmlFor="sso-secret">Client Secret</label>
+                    <label className="input-label" htmlFor="sso-secret">{_t('عميل سري', 'Client Secret')}</label>
                     <div style={{ display: 'flex', gap: '4px' }}>
                       <input
                         id="sso-secret"
@@ -371,7 +371,7 @@ export default function SsoSettingsPage() {
                   {(form.ssoType === 'OIDC' || form.ssoType === 'OKTA' || form.ssoType === 'GOOGLE') && (
                     <>
                       <div className="input-group">
-                        <label className="input-label" htmlFor="sso-auth">Authorization URL</label>
+                        <label className="input-label" htmlFor="sso-auth">{_t('تفويض الرابط', 'Authorization URL')}</label>
                         <input id="sso-auth" type="url" className="input" value={form.authUrl} onChange={(e) => setForm({ ...form, authUrl: e.target.value })} placeholder="https://provider.com/oauth/authorize" />
                       </div>
                       <div className="input-group">

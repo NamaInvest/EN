@@ -70,7 +70,7 @@ export default function ClinicERxPage() {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right space-x-2">
-                                                <Button size="sm" variant="outline">Print / PDF</Button>
+                                                <Button size="sm" variant="outline">{_t('طباعة / PDF', 'Print / PDF')}</Button>
                                                 {rx.status === 'ACTIVE' && (
                                                     <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">{_t('أرسل إلى الصيدلية', 'Send to Pharmacy')}</Button>
                                                 )}

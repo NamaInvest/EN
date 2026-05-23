@@ -115,7 +115,7 @@ export default function BulkVendorStatementsPage() {
                                 <span className="font-bold text-gray-900">45</span>
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                                <span className="text-sm text-gray-600">Total Balance:</span>
+                                <span className="text-sm text-gray-600">{_t('الإجمالي الرصيد:', 'Total Balance:')}</span>
                                 <span className="font-bold text-gray-900">1.2M SAR</span>
                             </div>
                             <div className="flex justify-between items-center py-2">

@@ -140,7 +140,7 @@ export default function POSTerminal() {
  <div className="grid grid-cols-2 gap-3 mb-4">
  <button className="flex flex-col items-center justify-center p-4 bg-white dark:bg-[#0F172A] border border-emerald-500 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors group">
  <Banknote className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
- <span className="font-bold text-sm">نقدي (Cash)</span>
+ <span className="font-bold text-sm">{_t('نقدي (نقد)', 'نقدي (Cash)')}</span>
  </button>
  <button className="flex flex-col items-center justify-center p-4 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors shadow-lg shadow-slate-800/20 group">
  <CreditCard className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />

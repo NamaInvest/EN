@@ -198,7 +198,7 @@ export default function DeferredTaxPage() {
                   <tr key={idx} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                     <td style={{ padding: '16px 20px', fontWeight: '600', color: 'var(--text)' }}>
                       {row.itemName}
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'monospace' }}>ID: {row.id}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'monospace' }}>{_t('المعرف:', 'ID:')}{row.id}</div>
                     </td>
                     <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontWeight: '500' }}>
                       {formatCurrency(row.carryingAmount)}

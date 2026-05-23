@@ -91,7 +91,7 @@ export default function PeriodCloseChecklistPage() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">Step #</th>
+                                        <th className="px-4 py-3">{_t('خطوة #', 'Step #')}</th>
                                         <th className="px-4 py-3">{_t('المهمة (Task)', 'Task')}</th>
                                         <th className="px-4 py-3">{_t('مالك', 'Owner')}</th>
                                         <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>

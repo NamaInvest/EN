@@ -97,7 +97,7 @@ export default function ThreeWayMatchPage() {
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المطابقة الثلاثية (Three-Way Matching)</h1>
-                    <p className="text-gray-500 mt-1">مطابقة فواتير الموردين مع أوامر الشراء وسندات الاستلام (PO, GRN, Invoice)</p>
+                    <p className="text-gray-500 mt-1">{_t('مطابقة فواتير الموردين مع أوامر الشراء وسندات الاستلام (PO, GRN, فاتورة)', 'مطابقة فواتير الموردين مع أوامر الشراء وسندات الاستلام (PO, GRN, Invoice)')}</p>
                 </div>
                 <button 
                     onClick={handleAutoMatch}
@@ -205,7 +205,7 @@ export default function ThreeWayMatchPage() {
                                 <p className="text-sm dark:text-gray-300">الكمية: {selectedMatch.poTotalQuantity}</p>
                             </div>
                             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <h3 className="font-bold mb-2 dark:text-white">إجماليات الفاتورة (Invoice)</h3>
+                                <h3 className="font-bold mb-2 dark:text-white">{_t('إجماليات الفاتورة (فاتورة)', 'إجماليات الفاتورة (Invoice)')}</h3>
                                 <p className="text-sm dark:text-gray-300">المبلغ: {selectedMatch.invoiceTotalAmount}</p>
                                 <p className="text-sm dark:text-gray-300">الكمية: {selectedMatch.invoiceTotalQuantity}</p>
                             </div>

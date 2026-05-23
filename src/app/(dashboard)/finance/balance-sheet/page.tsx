@@ -54,7 +54,7 @@ export default function BalanceSheetPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Assets (Right Side) */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-6">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">الأصول (Assets)</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">{_t('الأصول (أصول)', 'الأصول (Assets)')}</h2>
                     
                     <div>
                         <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">الأصول المتداولة</h3>
@@ -89,7 +89,7 @@ export default function BalanceSheetPage() {
                 {/* Liabilities & Equity (Left Side) */}
                 <div className="space-y-8">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">الخصوم (Liabilities)</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">{_t('الخصوم (التزامات)', 'الخصوم (Liabilities)')}</h2>
                         
                         <div>
                             <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">الخصوم المتداولة</h3>
@@ -122,7 +122,7 @@ export default function BalanceSheetPage() {
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-6">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">حقوق الملكية (Equity)</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white border-b pb-2">{_t('حقوق الملكية (حقوق ملكية)', 'حقوق الملكية (Equity)')}</h2>
                         
                         <div className="space-y-1">
                             {equity.items.map((a: any) => (

@@ -94,7 +94,7 @@ export default function BankReconciliationPage() {
                                         <td className="px-4 py-3 text-sm">SAR {(5000 * i).toLocaleString()}</td>
                                         <td className="px-4 py-3 text-sm">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-xs">Invoice #{4000+i} (85% Match)</span>
+                                                <span className="text-xs">{_t('فاتورة #', 'Invoice #')}{4000+i} (85% Match)</span>
                                                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                                                     <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '85%' }}></div>
                                                 </div>

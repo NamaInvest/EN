@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Clock3, RefreshCw, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from "@/lib/i18n";
 
 type OldestPendingEvent = {
   id: number;
@@ -50,6 +51,8 @@ function formatDate(value: string | null | undefined) {
 }
 
 export default function AdminOutboxDiagnosticsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<DiagnosticsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,8 +126,7 @@ export default function AdminOutboxDiagnosticsPage() {
           </span>
           <Button type="button" variant="outline" onClick={() => void loadDiagnostics()} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+            {_t('تحديث', 'Refresh')}</Button>
         </div>
       </section>
 
@@ -166,9 +168,9 @@ export default function AdminOutboxDiagnosticsPage() {
                 <table className="w-full min-w-[560px] text-left text-sm">
                   <thead className="border-b bg-gray-50 text-gray-600">
                     <tr>
-                      <th className="px-4 py-3 font-medium">ID</th>
-                      <th className="px-4 py-3 font-medium">Event Type</th>
-                      <th className="px-4 py-3 font-medium">Created At</th>
+                      <th className="px-4 py-3 font-medium">{_t('المعرف', 'ID')}</th>
+                      <th className="px-4 py-3 font-medium">{_t('حدث النوع', 'Event Type')}</th>
+                      <th className="px-4 py-3 font-medium">{_t('تم الإنشاء في', 'Created At')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -182,8 +184,7 @@ export default function AdminOutboxDiagnosticsPage() {
               </div>
             ) : (
               <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-6 text-center text-sm font-medium text-emerald-800">
-                No pending events
-              </div>
+                {_t('لا قيد الانتظار أحداث', 'No pending events')}</div>
             )}
           </CardContent>
         </Card>
@@ -200,7 +201,7 @@ export default function AdminOutboxDiagnosticsPage() {
               </p>
             </div>
             <div className="border-t pt-5">
-              <p className="text-sm text-gray-600">Total events in scope</p>
+              <p className="text-sm text-gray-600">{_t('الإجمالي أحداث in نطاق', 'Total events in scope')}</p>
               <p className="mt-2 text-3xl font-semibold tabular-nums text-gray-950">
                 {totalEvents.toLocaleString()}
               </p>

@@ -94,7 +94,7 @@ export default function CFODashboardPage() {
  <Activity size={24} />
  </div>
  <div>
- <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13px' }}>Current Ratio (نسبة التداول)</p>
+ <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13px' }}>{_t('حالي نسبة (نسبة التداول)', 'Current Ratio (نسبة التداول)')}</p>
  <h3 style={{ margin: '5px 0 0 0', fontSize: '24px', color: parseFloat(kpis.currentRatio) < 1 ? '#ef4444' : '#10b981' }}>{kpis.currentRatio}</h3>
  </div>
  </div>
@@ -170,7 +170,7 @@ export default function CFODashboardPage() {
  </div>
 
  <div className="card">
- <h3 style={{ marginBottom: '20px', fontSize: '16px', color: 'var(--text-muted)' }}>مقارنة الموازنة بالأداء الفعلي (Budget vs Actual)</h3>
+ <h3 style={{ marginBottom: '20px', fontSize: '16px', color: 'var(--text-muted)' }}>{_t('مقارنة الموازنة بالأداء الفعلي (الميزانية vs الفعلي)', 'مقارنة الموازنة بالأداء الفعلي (Budget vs Actual)')}</h3>
  <div style={{ height: '300px', width: '100%' }}>
  <ResponsiveContainer>
  <BarChart data={budgetVsActual} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>

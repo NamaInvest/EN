@@ -5,6 +5,8 @@ import { CheckCircle, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-rea
 import { useToast } from '@/components/Toast';
 
 export default function CostVariancePage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { t } = useTranslation();
  const { success, error } = useToast();
  const [variances, setVariances] = useState<any[]>([]);
@@ -90,7 +92,7 @@ export default function CostVariancePage() {
  <tr>
  <th>التاريخ</th>
  <th>نوع الانحراف</th>
- <th>رقم المرجع (Order/Inv)</th>
+ <th>{_t('رقم المرجع (نظام/Inv)', 'رقم المرجع (Order/Inv)')}</th>
  <th>التكلفة المعيارية</th>
  <th>التكلفة الفعلية</th>
  <th>مبلغ الانحراف</th>

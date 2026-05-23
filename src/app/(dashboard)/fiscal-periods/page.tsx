@@ -4,6 +4,8 @@ import { CalendarDays, ServerCrash, Loader2, Lock, Unlock, AlertTriangle, Shield
 import { useTranslation } from "@/lib/i18n";
 
 export default function FiscalPeriodsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const { t } = useTranslation();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,10 +84,10 @@ export default function FiscalPeriodsPage() {
       return <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', background: '#22c55e20', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'max-content' }}><Unlock size={14} /> مفتوحة</span>;
     }
     if (s === 'SOFT_LOCKED') {
-      return <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', background: '#f59e0b20', color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'max-content' }}><Lock size={14} /> إغلاق مبدئي (Soft)</span>;
+      return <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', background: '#f59e0b20', color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'max-content' }}><Lock size={14} /> {_t('إغلاق مبدئي (ناعم)', 'إغلاق مبدئي (Soft)')}</span>;
     }
     if (s === 'CLOSED' || s === 'HARD_LOCKED') {
-      return <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', background: '#ef444420', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'max-content' }}><ShieldCheck size={14} /> مغلقة نهائياً (Hard)</span>;
+      return <span style={{ padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', background: '#ef444420', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'max-content' }}><ShieldCheck size={14} /> {_t('مغلقة نهائياً (صعب)', 'مغلقة نهائياً (Hard)')}</span>;
     }
     return <span>{status}</span>;
   };
@@ -124,7 +126,7 @@ export default function FiscalPeriodsPage() {
               <th style={{ padding: '1rem' }}>الشهر</th>
               <th style={{ padding: '1rem' }}>تاريخ البداية</th>
               <th style={{ padding: '1rem' }}>تاريخ النهاية</th>
-              <th style={{ padding: '1rem' }}>الحالة (Governance Status)</th>
+              <th style={{ padding: '1rem' }}>{_t('الحالة (حوكمة الحالة)', 'الحالة (Governance Status)')}</th>
               <th style={{ padding: '1rem', textAlign: 'left' }}>الإجراءات</th>
             </tr>
           </thead>

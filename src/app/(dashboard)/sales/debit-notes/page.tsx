@@ -185,7 +185,7 @@ export default function DebitNotesPage() {
     return (
         <>
             <div className="page-header">
-                <h1 className="page-title">الإشعارات المدينة (Debit Notes)</h1>
+                <h1 className="page-title">{_t('الإشعارات المدينة (مدين ملاحظات)', 'الإشعارات المدينة (Debit Notes)')}</h1>
             </div>
             <div className="page-content animate-fade-in">
                 <div className="toolbar">

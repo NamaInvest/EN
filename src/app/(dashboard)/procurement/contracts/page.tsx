@@ -131,7 +131,7 @@ export default function SupplierContractsPage() {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة عقود الموردين (Supplier Contracts)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('إدارة عقود الموردين (مورد عقود)', 'إدارة عقود الموردين (Supplier Contracts)')}</h1>
                     <p className="text-gray-500 mt-1">تتبع دورة حياة العقود، التجديد التلقائي، وامتثال ZATCA</p>
                 </div>
                 <div className="space-x-2 rtl:space-x-reverse">
@@ -252,7 +252,7 @@ export default function SupplierContractsPage() {
                                     {errors.value && <span className="text-red-500 text-xs mt-1 block">{errors.value.message}</span>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">شروط الدفع (Payment Terms)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{_t('شروط الدفع (دفعة الشروط)', 'شروط الدفع (Payment Terms)')}</label>
                                     <input 
                                         type="text" 
                                         className={`mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 dark:bg-gray-700 dark:text-white ${errors.paymentTerms ? 'border-red-500' : ''}`}

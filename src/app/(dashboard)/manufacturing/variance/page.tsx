@@ -5,6 +5,8 @@ import { BarChart3, TrendingDown, TrendingUp, AlertCircle, FileSpreadsheet } fro
 import { useTranslation } from '@/lib/i18n';
 
 export default function VarianceReportsPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const [variances, setVariances] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
 
@@ -60,7 +62,7 @@ export default function VarianceReportsPage() {
  <BarChart3 className="w-8 h-8 text-indigo-400" />
  </div>
  <div>
- <h1 className="text-3xl font-bold text-white tracking-tight">تقارير الانحرافات (Variance Reports)</h1>
+ <h1 className="text-3xl font-bold text-white tracking-tight">{_t('تقارير الانحرافات (الفرق تقارير)', 'تقارير الانحرافات (Variance Reports)')}</h1>
  <p className="text-slate-400 mt-1">مقارنة التكاليف المعيارية بالتكاليف الفعلية لتحديد مواطن الهدر</p>
  </div>
  </div>

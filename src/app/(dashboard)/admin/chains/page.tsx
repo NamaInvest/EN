@@ -1,10 +1,13 @@
 import React from 'react';
 import { PrismaClient } from '@prisma/client';
 import { PlayCircle, PauseCircle, CheckCircle, XCircle } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 const prisma = new PrismaClient();
 
 export default async function ChainsDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const states = await prisma.chainState.findMany({
     orderBy: { updatedAt: 'desc' },
     take: 50
@@ -17,12 +20,12 @@ export default async function ChainsDashboard() {
         <table className="w-full text-left" dir="ltr">
           <thead className="bg-(--bg-secondary) border-b border-(--border)">
             <tr>
-              <th className="p-4 text-sm font-semibold">ID</th>
+              <th className="p-4 text-sm font-semibold">{_t('المعرف', 'ID')}</th>
               <th className="p-4 text-sm font-semibold">Chain Name</th>
               <th className="p-4 text-sm font-semibold">Tenant</th>
               <th className="p-4 text-sm font-semibold">Actor</th>
-              <th className="p-4 text-sm font-semibold">Status</th>
-              <th className="p-4 text-sm font-semibold">Last Updated</th>
+              <th className="p-4 text-sm font-semibold">{_t('الحالة', 'Status')}</th>
+              <th className="p-4 text-sm font-semibold">{_t('أخير تم التحديث', 'Last Updated')}</th>
             </tr>
           </thead>
           <tbody>

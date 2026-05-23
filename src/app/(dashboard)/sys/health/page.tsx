@@ -6,6 +6,8 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from '@/components/Toast';
 
 export default function SystemHealthDashboard() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
 
  const { t } = useTranslation();
  const [data, setData] = useState<any>(null);
@@ -62,7 +64,7 @@ export default function SystemHealthDashboard() {
  <div>
  <div style={{ fontSize: '13px', color: '#6b7280' }}>{t('sys.str_2687')}{data.system?.cpus})</div>
  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>
- Load Avg: {data.system?.loadAvg}
+ {_t('تحميل Avg:', 'Load Avg:')}{data.system?.loadAvg}
  </div>
  </div>
  </div>

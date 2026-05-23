@@ -182,11 +182,11 @@ export default function BankReconciliation() {
  <h4 className="text-lg font-medium text-slate-900 mb-4">{_t('المطابقة المقترحة', 'Suggested Match')}</h4>
  <div className="p-4 border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-left mb-6">
  <div className="flex justify-between items-center mb-2">
- <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Receipt #REC-2026-089</span>
+ <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{_t('سند #REC-2026-089', 'Receipt #REC-2026-089')}</span>
  <span className="text-sm font-bold text-green-600 font-mono">20,000.00</span>
  </div>
  <p className="text-sm text-slate-800 font-medium">{_t('شركة الشرق ذ.م.م', 'Al Sharq Company LLC')}</p>
- <p className="text-xs text-slate-500 mt-1">Date: 01 May 2026</p>
+ <p className="text-xs text-slate-500 mt-1">{_t('التاريخ: 01 May 2026', 'Date: 01 May 2026')}</p>
  <div className="mt-3 text-xs flex items-center text-indigo-600">
  <CheckCircle className="w-3 h-3 mr-1" />{_t('في انتظار الاختيار...', 'Waiting for selection...')}</div>
  </div>

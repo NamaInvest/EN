@@ -1,6 +1,9 @@
 import React from 'react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function MigrationDashboardPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-5xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">Data Migration Cockpit</h1>
@@ -14,13 +17,13 @@ export default function MigrationDashboardPage() {
                             <option value="wafeq">Wafeq</option>
                             <option value="quickbooks">QuickBooks Online</option>
                             <option value="daftra">Daftra</option>
-                            <option value="sap-b1">SAP Business One</option>
+                            <option value="sap-b1">{_t('SAP أعمال One', 'SAP Business One')}</option>
                             <option value="excel">Generic Excel/CSV</option>
                         </select>
                     </div>
                     
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Upload Data Export (CSV/ZIP)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{_t('رفع بيانات تصدير (CSV/ZIP)', 'Upload Data Export (CSV/ZIP)')}</label>
                         <input type="file" className="w-full border border-gray-300 rounded-md p-2" />
                     </div>
                     
@@ -42,11 +45,11 @@ export default function MigrationDashboardPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-white">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('المعرف', 'ID')}</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('الحالة', 'Status')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('النوع', 'Type')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{_t('إجراء', 'Action')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -54,7 +57,7 @@ export default function MigrationDashboardPage() {
                             <td className="px-6 py-4 text-sm font-medium text-gray-900">#102</td>
                             <td className="px-6 py-4 text-sm text-gray-500">Wafeq</td>
                             <td className="px-6 py-4 text-sm text-yellow-600 font-medium">COMPLETED_DRY_RUN</td>
-                            <td className="px-6 py-4 text-sm text-gray-500">Dry Run</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{_t('جاف Run', 'Dry Run')}</td>
                             <td className="px-6 py-4 text-sm text-blue-600 hover:text-blue-800 cursor-pointer">Execute Actual</td>
                         </tr>
                     </tbody>

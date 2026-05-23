@@ -1,8 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { ArrowRightLeft, Loader2, AlertTriangle, Building2 } from 'lucide-react';
+import { useTranslation } from "@/lib/i18n";
 
 export default function InterCompanyPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,7 @@ export default function InterCompanyPage() {
               <div className="text-3xl font-bold text-red-600" dir="ltr">{data.summary?.totalPayable || 0}</div>
             </div>
             <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
-              <div className="text-sm text-(--text-muted) mb-1">Net Balance</div>
+              <div className="text-sm text-(--text-muted) mb-1">{_t('Net الرصيد', 'Net Balance')}</div>
               <div className="text-3xl font-bold text-blue-600" dir="ltr">{data.summary?.netBalance || 0}</div>
             </div>
           </div>

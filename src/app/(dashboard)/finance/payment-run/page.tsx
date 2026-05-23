@@ -97,7 +97,7 @@ export default function PaymentRunPage() {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة دورات الدفع (Payment Run)</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{_t('إدارة دورات الدفع (دفعة Run)', 'إدارة دورات الدفع (Payment Run)')}</h1>
                     <p className="text-gray-500 mt-1">تجميع الفواتير المستحقة، اعتمادها مجمعة، وإصدار ملفات تحويل البنك (SARIE/SAMA)</p>
                 </div>
                 <button 

@@ -5,6 +5,8 @@ import { Search, Printer, FileText } from 'lucide-react';
 import { useToast } from '@/components/Toast';
 
 export default function CustomerStatementPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { t } = useTranslation();
  const { error } = useToast();
  const [customers, setCustomers] = useState<any[]>([]);
@@ -59,7 +61,7 @@ export default function CustomerStatementPage() {
  return (
  <>
  <div className="page-header print-hide">
- <h1 className="page-title">كشف حساب عميل (Customer Statement)</h1>
+ <h1 className="page-title">{_t('كشف حساب عميل (عميل بيان)', 'كشف حساب عميل (Customer Statement)')}</h1>
  </div>
 
  <div className="page-content animate-fade-in">

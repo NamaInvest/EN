@@ -5,6 +5,8 @@ import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
 export default function CommissionRulesPage() {
+    const { lang } = useTranslation();
+        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
  const { success, info } = useToast();
 
  const [rules, setRules] = useState<any[]>([]);
@@ -24,8 +26,7 @@ export default function CommissionRulesPage() {
  <div className="flex justify-between items-center mb-6">
  <h1 className="text-2xl font-bold">🎯 Sales Commissions - Rules & Tiers</h1>
  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
- + Add New Target Rule
- </button>
+ {_t('+ Add جديد هدف قاعدة', '+ Add New Target Rule')}</button>
  </div>
 
  <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

@@ -101,25 +101,25 @@ export default function OEEDashboardPage() {
                         {aggregate.oee.toFixed(1)}%
                     </div>
                     {aggregate.oee < 60 && <span className="text-xs text-red-500 font-bold mt-2 block">يتطلب تدخل إداري (تحت 60%)</span>}
-                    {aggregate.oee >= 85 && <span className="text-xs text-green-500 font-bold mt-2 block">مستوى عالمي (World-Class)</span>}
+                    {aggregate.oee >= 85 && <span className="text-xs text-green-500 font-bold mt-2 block">{_t('مستوى عالمي (عالم-فئة)', 'مستوى عالمي (World-Class)')}</span>}
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow text-center border-b-4 border-blue-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">الإتاحة (Availability)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('الإتاحة (توفر)', 'الإتاحة (Availability)')}</h3>
                     <div className="text-3xl font-black text-gray-800 dark:text-white">
                         {aggregate.availability.toFixed(1)}%
                     </div>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow text-center border-b-4 border-yellow-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">الأداء (Performance)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('الأداء (أداء)', 'الأداء (Performance)')}</h3>
                     <div className="text-3xl font-black text-gray-800 dark:text-white">
                         {aggregate.performance.toFixed(1)}%
                     </div>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow text-center border-b-4 border-green-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">الجودة (Quality)</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 font-bold mb-2">{_t('الجودة (جودة)', 'الجودة (Quality)')}</h3>
                     <div className="text-3xl font-black text-gray-800 dark:text-white">
                         {aggregate.quality.toFixed(1)}%
                     </div>

@@ -92,7 +92,7 @@ export default function IntercompanyEliminationPage() {
                                 <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">رصيد القبض (AR)</th>
                                 <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-right text-xs font-medium text-gray-500 uppercase">الشركة / الفرع (AP)</th>
                                 <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">رصيد الدفع (AP)</th>
-                                <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">الفرق (Variance)</th>
+                                <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">{_t('الفرق (الفرق)', 'الفرق (Variance)')}</th>
                                 <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-center text-xs font-medium text-gray-500 uppercase">حالة المطابقة</th>
                                 <th className="px-6 py-3 bg-gray-50 dark:bg-gray-900 text-right text-xs font-medium text-gray-500 uppercase">سبب الفرق</th>
                             </tr>

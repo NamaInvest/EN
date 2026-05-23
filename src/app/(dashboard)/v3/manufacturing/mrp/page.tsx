@@ -27,7 +27,7 @@ export default function ManufacturingMRP() {
           <Card className="p-6 border-slate-200 shadow-sm">
             <h2 className="text-xl font-bold flex items-center gap-2 mb-4 border-b pb-4"><Workflow className="text-indigo-600"/> Exploded BOM Tree: Electric Motor V2</h2>
             <div className="space-y-2 font-mono text-sm">
-              <div className="flex items-center gap-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100 font-bold"><span>[-/+]</span> <span>1x</span> <span>{_t('محرك كهربائي V2 (FG)', 'Electric Motor V2 (FG)')}</span> <span className="ml-auto text-indigo-600">Cost: $124.50</span></div>
+              <div className="flex items-center gap-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100 font-bold"><span>[-/+]</span> <span>1x</span> <span>{_t('محرك كهربائي V2 (FG)', 'Electric Motor V2 (FG)')}</span> <span className="ml-auto text-indigo-600">{_t('التكلفة: $124.50', 'Cost: $124.50')}</span></div>
               <div className="flex items-center gap-4 p-2 pl-12 border-b border-dashed"><span>├─</span> <span>1x</span> <span>{_t('تجميع الدوار (WIP)', 'Rotor Assembly (WIP)')}</span> <span className="ml-auto text-slate-500">$45.00</span></div>
               <div className="flex items-center gap-4 p-2 pl-24 border-b border-dashed text-slate-600"><span>├─</span> <span>2kg</span> <span>{_t('الأسلاك النحاسية (RM)', 'Copper Wire (RM)')}</span> <span className="ml-auto text-slate-400">$12.00</span></div>
               <div className="flex items-center gap-4 p-2 pl-24 border-b border-dashed text-slate-600"><span>└─</span> <span>1x</span> <span>{_t('رمح الصلب (RM)', 'Steel Shaft (RM)')}</span> <span className="ml-auto text-slate-400">$8.00</span></div>
