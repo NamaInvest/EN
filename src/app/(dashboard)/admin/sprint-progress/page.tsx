@@ -1,13 +1,9 @@
-import { useTranslation } from "@/lib/i18n";
-
 'use client';
+
+import { useTranslation } from "@/lib/i18n";
 
 export default function SprintProgressPage() {
     const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-    return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">Sprint 12 Progress</h1>
                 <p className="text-gray-500">Track current sprint velocity and burndown.</p>
             </div>

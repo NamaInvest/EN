@@ -21,6 +21,7 @@ interface BSItem { code: string; name: string; level: number; balance: number }
 interface CostCenter { id: number; code: string; name: string; isActive: boolean; }
 interface FiscalPeriod { id: number; year: number; month: number; status: string; periodCloseChecklists: { id: number; taskName: string; status: string }[] }
 
+
 const TYPE_LABELS: Record<string, string> = { asset: 'أصول', liability: 'خصوم', equity: 'ملكية', revenue: 'إيرادات', expense: 'مصروفات' };
 const TYPE_COLORS: Record<string, string> = { 
   asset: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/30', 
@@ -33,14 +34,6 @@ const TYPE_COLORS: Record<string, string> = {
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function AccountingPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-  const { t, lang } = useTranslation();
-  const { error: toastError, success: toastSuccess } = useToast();
-  
-  const [tab, setTab] = useState<Tab>('tree');
-  const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
   const [journals, setJournals] = useState<JournalEntry[]>([]);
   const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [newCostCenter, setNewCostCenter] = useState({ code: '', name: '', isActive: true });
