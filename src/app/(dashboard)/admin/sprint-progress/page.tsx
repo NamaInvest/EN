@@ -8,27 +8,27 @@ export default function SprintProgressPage() {
     return (
         <div className="p-6">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">{_t('ÊŞÏã ÇáÓÈÑíäÊ 12', 'Sprint 12 Progress')}</h1>
-                <p className="text-gray-500">{_t('ÊÊÈÚ ÓÑÚÉ ÇáÓÈÑíäÊ æãÎØØ ÇáÇÍÊÑÇŞ.', 'Track current sprint velocity and burndown.')}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{_t('ØªÙ‚Ø¯Ù… Ø§Ù„Ø³Ø¨Ø±ÙŠÙ†Øª 12', 'Sprint 12 Progress')}</h1>
+                <p className="text-gray-500">{_t('ØªØªØ¨Ø¹ Ø³Ø±Ø¹Ø© Ø§Ù„Ø³Ø¨Ø±ÙŠÙ†Øª ÙˆÙ…Ø®Ø·Ø· Ø§Ù„Ø§Ø­ØªØ±Ø§Ù‚.', 'Track current sprint velocity and burndown.')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                    <h3 className="text-gray-500 text-sm font-medium">{_t('ÅÌãÇáí ÇáäŞÇØ', 'Total Points')}</h3>
+                    <h3 className="text-gray-500 text-sm font-medium">{_t('Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù†Ù‚Ø§Ø·', 'Total Points')}</h3>
                     <p className="text-3xl font-bold mt-2">34</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                    <h3 className="text-gray-500 text-sm font-medium">{_t('ãßÊãá', 'Completed')}</h3>
+                    <h3 className="text-gray-500 text-sm font-medium">{_t('Ù…ÙƒØªÙ…Ù„', 'Completed')}</h3>
                     <p className="text-3xl font-bold mt-2 text-green-600">21</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                    <h3 className="text-gray-500 text-sm font-medium">{_t('ãÊÈŞí', 'Remaining')}</h3>
+                    <h3 className="text-gray-500 text-sm font-medium">{_t('Ù…ØªØ¨Ù‚ÙŠ', 'Remaining')}</h3>
                     <p className="text-3xl font-bold mt-2 text-blue-600">13</p>
                 </div>
             </div>
 
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-                <h2 className="text-lg font-bold mb-4">{_t('ãÎØØ ÇáÇÍÊÑÇŞ', 'Burndown Chart Placeholder')}</h2>
+                <h2 className="text-lg font-bold mb-4">{_t('Ù…Ø®Ø·Ø· Ø§Ù„Ø§Ø­ØªØ±Ø§Ù‚', 'Burndown Chart Placeholder')}</h2>
                 <div className="h-64 bg-gray-50 border border-dashed border-gray-300 flex items-center justify-center text-gray-400">
                     [ Chart Visualization via Recharts ]
                 </div>
