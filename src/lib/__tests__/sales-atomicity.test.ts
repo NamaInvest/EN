@@ -29,7 +29,11 @@ jest.mock('@/lib/prisma', () => {
         },
         account: {
             findFirst: jest.fn(),
+            findUnique: jest.fn(),
             update: jest.fn(),
+        },
+        financialPeriod: {
+            findUnique: jest.fn(),
         },
         journalEntry: {
             create: jest.fn(),
@@ -40,6 +44,8 @@ jest.mock('@/lib/prisma', () => {
         treasury: {
             create: jest.fn(),
         },
+        $queryRawUnsafe: jest.fn(),
+        $executeRawUnsafe: jest.fn(),
         $executeRaw: jest.fn(),
     };
     return {
@@ -84,7 +90,13 @@ describe('Sales Invoice Financial Atomicity', () => {
             { key: 'zatca_enabled', value: '1' }
         ]);
         mockPrisma.fiscalPeriod.findUnique.mockResolvedValue({ status: 'open' });
+        mockPrisma.financialPeriod.findUnique.mockResolvedValue(null);
         mockPrisma.account.findFirst.mockResolvedValue({ id: 10 }); // Account exists
+        mockPrisma.account.findUnique.mockResolvedValue({ id: 10, type: 'asset' });
+        mockPrisma.$queryRawUnsafe.mockResolvedValue([
+            { id: 1, current: 1, prefix: 'JE-', suffix: '', pad_length: 6, last_reset: null, reset_frequency: null }
+        ]);
+        mockPrisma.$executeRawUnsafe.mockResolvedValue(1);
     });
 
     it('rolls back complete transaction if journal entry fails (Account missing)', async () => {
@@ -101,7 +113,9 @@ describe('Sales Invoice Financial Atomicity', () => {
             txClient: mockPrisma
         };
 
-        await expect(postSalesInvoice(invoiceData)).rejects.toThrow('حساب غير موجود');
+        const result = await postSalesInvoice(invoiceData);
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('حساب غير موجود');
 
         // Since it throws, Prisma $transaction will rollback!
         expect(mockPrisma.journalEntry.create).not.toHaveBeenCalled();
@@ -120,7 +134,9 @@ describe('Sales Invoice Financial Atomicity', () => {
             date: '2026-05-14'
         };
 
-        await expect(postSalesInvoice(invoiceData)).rejects.toThrow('الفترة المالية (5/2026) مغلقة أو مقفلة');
+        const result = await postSalesInvoice(invoiceData);
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('الفترة المالية');
         expect(mockPrisma.journalEntry.create).not.toHaveBeenCalled();
     });
 

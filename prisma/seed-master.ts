@@ -1,164 +1,172 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 /**
- * Master Enterprise Seeder (Dummy Data for All Modules)
- * This script strictly uses a test tenant to avoid polluting real production data.
+ * Master Enterprise Seeder (dummy data for all modules).
+ * This script uses a fixed demo tenant to avoid touching production tenant data.
  */
 async function main() {
     const TEST_TENANT = 'demo_tenant_01';
-    console.log(`🌱 Starting Master Enterprise Seeder for Tenant: ${TEST_TENANT}`);
+    console.log(`Starting Master Enterprise Seeder for Tenant: ${TEST_TENANT}`);
 
-    // 1. Core Setup: Clear existing demo data (safely scoped)
-    console.log('🧹 Cleaning up old demo data...');
+    // 1. Core setup: clear existing demo data in dependency order.
+    console.log('Cleaning up old demo data...');
     try {
-        await prisma.invoice.deleteMany({ where: { tenantId: TEST_TENANT } });
+        await prisma.salesInvoice.deleteMany({ where: { tenantId: TEST_TENANT } });
         await prisma.journalEntry.deleteMany({ where: { tenantId: TEST_TENANT } });
         await prisma.employee.deleteMany({ where: { tenantId: TEST_TENANT } });
-        await prisma.item.deleteMany({ where: { tenantId: TEST_TENANT } });
+        await prisma.productStock.deleteMany({ where: { tenantId: TEST_TENANT } });
+        await prisma.product.deleteMany({ where: { tenantId: TEST_TENANT } });
         await prisma.customer.deleteMany({ where: { tenantId: TEST_TENANT } });
         await prisma.account.deleteMany({ where: { tenantId: TEST_TENANT } });
-    } catch (e) {
+        await prisma.category.deleteMany({ where: { tenantId: TEST_TENANT } });
+        await prisma.unit.deleteMany({ where: { tenantId: TEST_TENANT } });
+        await prisma.stock.deleteMany({ where: { tenantId: TEST_TENANT } });
+    } catch {
         console.log('Info: Cleanup skipped or partially failed (expected on first run).');
     }
 
-    // 2. Accounting Module (Chart of Accounts)
-    console.log('💰 Seeding Accounting Module...');
-    const cashAccount = await prisma.account.create({
+    // 2. Accounting module (chart of accounts).
+    console.log('Seeding Accounting Module...');
+    await prisma.account.create({
         data: {
             tenantId: TEST_TENANT,
             code: '1001',
-            nameAr: 'صندوق النقد الرئيسي',
+            name: 'Main Cash Box',
             nameEn: 'Main Cash Box',
-            type: 'ASSET',
-            category: 'CASH',
+            type: 'asset',
             isActive: true,
             balance: 500000.00
         }
     });
 
-    const salesRevenueAccount = await prisma.account.create({
+    await prisma.account.create({
         data: {
             tenantId: TEST_TENANT,
             code: '4001',
-            nameAr: 'إيرادات المبيعات',
+            name: 'Sales Revenue',
             nameEn: 'Sales Revenue',
-            type: 'REVENUE',
-            category: 'SALES',
+            type: 'revenue',
             isActive: true,
             balance: 0.00
         }
     });
 
-    // 3. Inventory & Items (POS / Sales)
-    console.log('📦 Seeding Inventory & POS Items...');
-    const cat1 = await prisma.category.create({
+    // 3. Inventory and POS products.
+    console.log('Seeding Inventory and POS Products...');
+    const category = await prisma.category.create({
         data: {
             tenantId: TEST_TENANT,
-            nameAr: 'إلكترونيات',
-            nameEn: 'Electronics',
-            type: 'PRODUCT'
+            name: 'Electronics'
         }
     });
 
-    const item1 = await prisma.item.create({
+    const unit = await prisma.unit.create({
         data: {
             tenantId: TEST_TENANT,
-            code: 'ITM-001',
-            nameAr: 'لابتوب ديل برو',
+            name: 'Piece'
+        }
+    });
+
+    const stock = await prisma.stock.create({
+        data: {
+            tenantId: TEST_TENANT,
+            name: 'Main Warehouse',
+            active: true
+        }
+    });
+
+    const product = await prisma.product.create({
+        data: {
+            tenantId: TEST_TENANT,
+            barcode: 'ITM-001',
+            name: 'Dell Pro Laptop',
             nameEn: 'Dell Pro Laptop',
-            type: 'PRODUCT',
-            price: 3500.00,
-            cost: 2800.00,
-            categoryId: cat1.id,
-            isActive: true,
-            hasVat: true,
-            vatRate: 15.0
+            buyPrice: 2800.00,
+            sellPrice: 3500.00,
+            taxRate: 15.0,
+            categoryId: category.id,
+            unitId: unit.id,
+            active: true,
+            currentStock: 10
         }
     });
 
-    // 4. Sales & Customers
-    console.log('🛒 Seeding Sales & Customers...');
+    await prisma.productStock.create({
+        data: {
+            tenantId: TEST_TENANT,
+            productId: product.id,
+            stockId: stock.id,
+            quantity: 10
+        }
+    });
+
+    // 4. Sales and customers.
+    console.log('Seeding Sales and Customers...');
     const customer = await prisma.customer.create({
         data: {
             tenantId: TEST_TENANT,
-            code: 'CUST-101',
-            nameAr: 'شركة التقنية الحديثة',
-            nameEn: 'Modern Tech Corp',
+            customerNo: 'CUST-101',
+            name: 'Modern Tech Corp',
             email: 'info@moderntech.sa',
             phone: '+966500000001',
-            vatNumber: '310000000000003'
+            taxNumber: '310000000000003'
         }
     });
 
-    await prisma.invoice.create({
+    await prisma.salesInvoice.create({
         data: {
             tenantId: TEST_TENANT,
-            invoiceNo: 'INV-2026-001',
+            invoiceNo: 2026001,
             customerId: customer.id,
-            type: 'SALES',
-            status: 'PAID',
+            stockId: stock.id,
+            status: 'completed',
             date: new Date(),
-            dueDate: new Date(),
-            subTotal: 3500.00,
-            vatAmount: 525.00,
-            totalAmount: 4025.00,
-            items: {
+            subtotal: 3500.00,
+            taxValue: 525.00,
+            total: 4025.00,
+            paid: 4025.00,
+            remaining: 0.00,
+            details: {
                 create: [
                     {
-                        itemId: item1.id,
+                        tenantId: TEST_TENANT,
+                        productId: product.id,
+                        productName: product.name,
                         quantity: 1,
-                        unitPrice: 3500.00,
-                        totalPrice: 4025.00,
-                        vatAmount: 525.00,
-                        vatRate: 15.0
+                        price: 3500.00,
+                        taxRate: 15.0,
+                        taxValue: 525.00,
+                        total: 4025.00
                     }
                 ]
             }
         }
     });
 
-    // 5. HR & Payroll
-    console.log('👥 Seeding HR & Payroll Module...');
+    // 5. HR and payroll.
+    console.log('Seeding HR and Payroll Module...');
     await prisma.employee.create({
         data: {
             tenantId: TEST_TENANT,
-            code: 'EMP-001',
-            nameAr: 'أحمد عبدالله',
-            nameEn: 'Ahmed Abdullah',
-            email: 'ahmed@demo.com',
-            nationalId: '1000000001',
+            employeeNo: 'EMP-001',
+            name: 'Ahmed Abdullah',
+            idNumber: '1000000001',
             position: 'Sales Manager',
-            basicSalary: 8000.00,
+            salary: 8000.00,
             housingAllowance: 2000.00,
-            joinDate: new Date('2024-01-01'),
-            isActive: true
+            startDate: '2024-01-01',
+            active: true
         }
     });
 
-    // 6. Medical/Clinics Module (Optional)
-    console.log('🏥 Seeding Medical Clinics Module...');
-    try {
-        await prisma.clinic.create({
-            data: {
-                tenantId: TEST_TENANT,
-                nameAr: 'عيادة الأسنان',
-                nameEn: 'Dental Clinic',
-                isActive: true
-            }
-        });
-    } catch(e) {
-         console.log('Info: Medical schema not active, skipping clinic seed.');
-    }
-
-    console.log('✅ Master Seed Completed Successfully for all Departments!');
+    console.log('Master Seed Completed Successfully for all Departments.');
 }
 
 main()
-    .catch((e) => {
-        console.error('❌ Seeding Failed:', e);
+    .catch((error) => {
+        console.error('Seeding Failed:', error);
         process.exit(1);
     })
     .finally(async () => {

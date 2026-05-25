@@ -3,7 +3,8 @@
 import { useTranslation } from "@/lib/i18n";
 
 export default function SprintProgressPage() {
-    const { lang, _t } = useTranslation();
+    const { lang, t } = useTranslation();
+    const _t = t as any;
 
     return (
         <div className="p-6">

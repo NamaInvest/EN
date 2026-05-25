@@ -7,11 +7,11 @@ const chainsMap: Record<string, any> = {
 
 export async function POST(
   request: Request,
-  { params }: { params: { chain: string } }
+  { params }: { params: Promise<{ chain: string }> }
 ) {
   try {
     const body = await request.json();
-    const chainName = params.chain;
+    const { chain: chainName } = await params;
     
     const chain = chainsMap[chainName];
     if (!chain) {

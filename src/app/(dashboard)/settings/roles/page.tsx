@@ -457,7 +457,18 @@ export default function RolesAndPermissionsPage() {
 
  const fetchUsers = async () => {
  try {
- const res = await fetch('/api/settings/roles');
+ const token = localStorage.getItem('token') || '';
+ const res = await fetch('/api/settings/roles', {
+ headers: {
+ 'Authorization': `Bearer ${token}`
+ }
+ });
+ 
+ if (res.status === 401) {
+ window.location.href = '/login';
+ return;
+ }
+
  if (res.ok) {
  const data = await res.json();
  setUsers(data);
@@ -505,11 +516,20 @@ export default function RolesAndPermissionsPage() {
  if (!selectedUserId) return;
  setSaving(true);
  try {
+ const token = localStorage.getItem('token') || '';
  const res = await fetch('/api/settings/roles', {
  method: 'POST',
- headers: { 'Content-Type': 'application/json' },
+ headers: { 
+ 'Content-Type': 'application/json',
+ 'Authorization': `Bearer ${token}`
+ },
  body: JSON.stringify({ targetUserId: selectedUserId, modules: selectedModules })
  });
+
+ if (res.status === 401) {
+ window.location.href = '/login';
+ return;
+ }
 
  if (res.ok) {
  toast.success(_t('تم الحفظ بنجاح', 'Saved successfully'));

@@ -32,7 +32,11 @@ jest.mock('@/lib/prisma', () => {
         },
         account: {
             findFirst: jest.fn(),
+            findUnique: jest.fn(),
             update: jest.fn(),
+        },
+        financialPeriod: {
+            findUnique: jest.fn(),
         },
         journalEntry: {
             create: jest.fn(),
@@ -43,6 +47,8 @@ jest.mock('@/lib/prisma', () => {
         treasury: {
             create: jest.fn(),
         },
+        $queryRawUnsafe: jest.fn(),
+        $executeRawUnsafe: jest.fn(),
         $executeRaw: jest.fn(),
     };
     return {
@@ -65,7 +71,13 @@ describe('Purchase Invoice Financial Atomicity', () => {
         mockPrisma.product.findUnique.mockResolvedValue({ currentStock: 10, buyPrice: 5 });
         mockPrisma.purchaseInvoice.create.mockResolvedValue({ id: 1, date: new Date(), stockId: 1, status: 'completed', receiptStatus: 'received' });
         mockPrisma.fiscalPeriod.findUnique.mockResolvedValue({ status: 'open' });
+        mockPrisma.financialPeriod.findUnique.mockResolvedValue(null);
         mockPrisma.account.findFirst.mockResolvedValue({ id: 20 }); // Account exists
+        mockPrisma.account.findUnique.mockResolvedValue({ id: 20, type: 'asset' });
+        mockPrisma.$queryRawUnsafe.mockResolvedValue([
+            { id: 1, current: 1, prefix: 'JE-', suffix: '', pad_length: 6, last_reset: null, reset_frequency: null }
+        ]);
+        mockPrisma.$executeRawUnsafe.mockResolvedValue(1);
     });
 
     it('rolls back complete transaction if journal entry fails (Account missing)', async () => {
@@ -82,7 +94,9 @@ describe('Purchase Invoice Financial Atomicity', () => {
             hasGRN: false
         };
 
-        await expect(postPurchaseInvoice(invoiceData)).rejects.toThrow('حساب غير موجود');
+        const result = await postPurchaseInvoice(invoiceData);
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('حساب غير موجود');
 
         // Since it throws, Prisma $transaction will rollback in the route!
         expect(mockPrisma.journalEntry.create).not.toHaveBeenCalled();
@@ -101,7 +115,9 @@ describe('Purchase Invoice Financial Atomicity', () => {
             date: '2026-05-14'
         };
 
-        await expect(postPurchaseInvoice(invoiceData)).rejects.toThrow('الفترة المالية');
+        const result = await postPurchaseInvoice(invoiceData);
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('الفترة المالية');
         expect(mockPrisma.journalEntry.create).not.toHaveBeenCalled();
     });
 

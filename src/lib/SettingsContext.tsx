@@ -30,6 +30,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch('/api/settings', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            if (res.status === 401) {
+                window.location.href = '/login';
+                return;
+            }
+
             if (res.ok) {
                 const data = await res.json();
                 setSettings(data);

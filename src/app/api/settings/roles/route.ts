@@ -11,7 +11,7 @@ const log = logger.child({ service: 'settings.roles' });
 async function _GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -30,7 +30,7 @@ async function _GET(request: NextRequest) {
 async function _POST(request: NextRequest) {
     try {
         const user = getUserFromRequest(request as any);
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

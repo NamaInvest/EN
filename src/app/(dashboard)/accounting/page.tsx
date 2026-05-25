@@ -34,6 +34,12 @@ const TYPE_COLORS: Record<string, string> = {
 const fontImport = `@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');`;
 
 export default function AccountingPage() {
+  const { t, lang } = useTranslation();
+  const _t = t as any;
+  const { toastError, toastSuccess } = useToast() as any;
+  const [tab, setTab] = useState<Tab>('tree');
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [periods, setPeriods] = useState<FiscalPeriod[]>([]);
   const [journals, setJournals] = useState<JournalEntry[]>([]);
   const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [newCostCenter, setNewCostCenter] = useState({ code: '', name: '', isActive: true });

@@ -42,13 +42,16 @@ const config: Config = {
     {
       displayName:    'unit',
       testEnvironment: 'node',
+      roots:           ['<rootDir>/src'],
       testMatch:      ['<rootDir>/src/**/*.test.ts', '!<rootDir>/src/__tests__/api/**'],
+      testPathIgnorePatterns: ['<rootDir>/src/__tests__/api/', '<rootDir>/src/lib/gaps/__tests__/'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
       transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json', diagnostics: false }] },
     },
     {
       displayName:    'react',
       testEnvironment: 'jsdom',
+      roots:           ['<rootDir>/src'],
       testMatch:      ['<rootDir>/src/**/*.test.tsx'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
       setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -57,6 +60,7 @@ const config: Config = {
       // Domain tests: /tests/*.test.ts (budget, cash-flow, GOSI, etc.)
       displayName:    'domain',
       testEnvironment: 'node',
+      roots:           ['<rootDir>/tests'],
       testMatch: [
         '<rootDir>/tests/*.test.ts',
         '<rootDir>/tests/unit/**/*.test.ts',
@@ -69,6 +73,7 @@ const config: Config = {
       // Integration tests: /tests/integration/*.test.ts
       displayName:    'integration',
       testEnvironment: 'node',
+      roots:           ['<rootDir>/tests/integration'],
       testMatch:      ['<rootDir>/tests/integration/**/*.test.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
       transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },

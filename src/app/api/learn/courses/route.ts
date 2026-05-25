@@ -8,7 +8,7 @@ export async function GET(req: Request) {
     const role = searchParams.get('role') || 'all';
 
     try {
-        const query = role === 'all' ? {} : { where: { role } };
+        const query: any = role === 'all' ? {} : { where: { role } };
         const courses = await prisma.trainingVideo.findMany(query);
 
         return NextResponse.json(courses);

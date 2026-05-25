@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useTranslation } from "@/lib/i18n";
 
 export function CashForecastClient() {
+  const { t } = useTranslation();
+  const _t = t as any;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [forecasts, setForecasts] = useState<any[]>([]);

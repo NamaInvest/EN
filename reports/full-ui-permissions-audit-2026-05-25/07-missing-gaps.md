@@ -1,0 +1,214 @@
+# Missing / Gaps Inventory
+
+## Menu Links Without Matching Dashboard Page
+| group | labelKey | href | cleanHref | module |
+| --- | --- | --- | --- | --- |
+
+
+
+## Dashboard Pages Not Reachable From Sidebar
+| route | file |
+| --- | --- |
+| /_ice_archive | src/app\(dashboard)\_ice_archive\page.tsx |
+| /accounting/allocations/rules | src/app\(dashboard)\accounting\allocations\rules\page.tsx |
+| /accounting/bank-reconciliation | src/app\(dashboard)\accounting\bank-reconciliation\page.tsx |
+| /accounting/banks/:id | src/app\(dashboard)\accounting\banks\[id]\page.tsx |
+| /accounting/customer-statements/bulk | src/app\(dashboard)\accounting\customer-statements\bulk\page.tsx |
+| /accounting/customer-statements/templates | src/app\(dashboard)\accounting\customer-statements\templates\page.tsx |
+| /accounting/dunning/letters | src/app\(dashboard)\accounting\dunning\letters\page.tsx |
+| /accounting/dunning/promises | src/app\(dashboard)\accounting\dunning\promises\page.tsx |
+| /accounting/financial-close | src/app\(dashboard)\accounting\financial-close\page.tsx |
+| /accounting/journal | src/app\(dashboard)\accounting\journal\page.tsx |
+| /accounting/journal/new | src/app\(dashboard)\accounting\journal\new\page.tsx |
+| /accounting/lc | src/app\(dashboard)\accounting\lc\page.tsx |
+| /accounting/payment-runs/create | src/app\(dashboard)\accounting\payment-runs\create\page.tsx |
+| /accounting/trial-balance | src/app\(dashboard)\accounting\trial-balance\page.tsx |
+| /accounting/vendor-statements/bulk | src/app\(dashboard)\accounting\vendor-statements\bulk\page.tsx |
+| /admin/chains | src/app\(dashboard)\admin\chains\page.tsx |
+| /admin/compliance-dashboard | src/app\(dashboard)\admin\compliance-dashboard\page.tsx |
+| /admin/feature-flags | src/app\(dashboard)\admin\feature-flags\page.tsx |
+| /admin/grc/audit-log | src/app\(dashboard)\admin\grc\audit-log\page.tsx |
+| /admin/grc/policies | src/app\(dashboard)\admin\grc\policies\page.tsx |
+| /admin/grc/risks | src/app\(dashboard)\admin\grc\risks\page.tsx |
+| /admin/knowledge | src/app\(dashboard)\admin\knowledge\page.tsx |
+| /admin/llm-costs | src/app\(dashboard)\admin\llm-costs\page.tsx |
+| /admin/migration | src/app\(dashboard)\admin\migration\page.tsx |
+| /admin/prompts | src/app\(dashboard)\admin\prompts\page.tsx |
+| /admin/prompts/cost | src/app\(dashboard)\admin\prompts\cost\page.tsx |
+| /admin/rag-cost | src/app\(dashboard)\admin\rag-cost\page.tsx |
+| /admin/sprint-progress | src/app\(dashboard)\admin\sprint-progress\page.tsx |
+| /admin/stories | src/app\(dashboard)\admin\stories\page.tsx |
+| /admin/test-coverage | src/app\(dashboard)\admin\test-coverage\page.tsx |
+| /admin/training-compliance | src/app\(dashboard)\admin\training-compliance\page.tsx |
+| /ai-auditor | src/app\(dashboard)\ai-auditor\page.tsx |
+| /ai/bank-fraud | src/app\(dashboard)\ai\bank-fraud\page.tsx |
+| /approvals | src/app\(dashboard)\approvals\page.tsx |
+| /approvals/inbox | src/app\(dashboard)\approvals\inbox\page.tsx |
+| /assets | src/app\(dashboard)\assets\page.tsx |
+| /banks | src/app\(dashboard)\banks\page.tsx |
+| /clinic/appointments | src/app\(dashboard)\clinic\appointments\page.tsx |
+| /clinic/erx | src/app\(dashboard)\clinic\erx\page.tsx |
+| /clinic/lab | src/app\(dashboard)\clinic\lab\page.tsx |
+| /com/rules | src/app\(dashboard)\com\rules\page.tsx |
+| /copa | src/app\(dashboard)\copa\page.tsx |
+| /cpq | src/app\(dashboard)\cpq\page.tsx |
+| /credit-check | src/app\(dashboard)\credit-check\page.tsx |
+| /crm/opportunities | src/app\(dashboard)\crm\opportunities\page.tsx |
+| /customers/:id | src/app\(dashboard)\customers\[id]\page.tsx |
+| /docs/:slug | src/app\(dashboard)\docs\[slug]\page.tsx |
+| /documents | src/app\(dashboard)\documents\page.tsx |
+| /employees | src/app\(dashboard)\employees\page.tsx |
+| /enterprise/fleet | src/app\(dashboard)\enterprise\fleet\page.tsx |
+| /enterprise/mrp | src/app\(dashboard)\enterprise\mrp\page.tsx |
+| /enterprise/mrp/recipes | src/app\(dashboard)\enterprise\mrp\recipes\page.tsx |
+| /enterprise/projects/:id | src/app\(dashboard)\enterprise\projects\[id]\page.tsx |
+| /enterprise/projects/:id/gantt | src/app\(dashboard)\enterprise\projects\[id]\gantt\page.tsx |
+| /enterprise/property | src/app\(dashboard)\enterprise\property\page.tsx |
+| /enterprise/quality | src/app\(dashboard)\enterprise\quality\page.tsx |
+| /enterprise/quality-management | src/app\(dashboard)\enterprise\quality-management\page.tsx |
+| /enterprise/wms | src/app\(dashboard)\enterprise\wms\page.tsx |
+| /finance/assets | src/app\(dashboard)\finance\assets\page.tsx |
+| /finance/balance-sheet | src/app\(dashboard)\finance\balance-sheet\page.tsx |
+| /finance/bank-recon/rules | src/app\(dashboard)\finance\bank-recon\rules\page.tsx |
+| /finance/budget-control/variance | src/app\(dashboard)\finance\budget-control\variance\page.tsx |
+| /finance/budget-planning | src/app\(dashboard)\finance\budget-planning\page.tsx |
+| /finance/cash-flow/forecast | src/app\(dashboard)\finance\cash-flow\forecast\page.tsx |
+| /finance/cfo | src/app\(dashboard)\finance\cfo\page.tsx |
+| /finance/consolidation/elimination | src/app\(dashboard)\finance\consolidation\elimination\page.tsx |
+| /finance/period-close | src/app\(dashboard)\finance\period-close\page.tsx |
+| /finance/variance | src/app\(dashboard)\finance\variance\page.tsx |
+| /finance/wht | src/app\(dashboard)\finance\wht\page.tsx |
+| /fiscal-periods | src/app\(dashboard)\fiscal-periods\page.tsx |
+| /fixed-assets | src/app\(dashboard)\fixed-assets\page.tsx |
+| /fleet/maintenance | src/app\(dashboard)\fleet\maintenance\page.tsx |
+| /fng/petty-cash-funds | src/app\(dashboard)\fng\petty-cash-funds\page.tsx |
+| /fx | src/app\(dashboard)\fx\page.tsx |
+| /hr/attendance | src/app\(dashboard)\hr\attendance\page.tsx |
+| /hr/jobs | src/app\(dashboard)\hr\jobs\page.tsx |
+| /hr/payroll/config | src/app\(dashboard)\hr\payroll\config\page.tsx |
+| /hr/payroll/run | src/app\(dashboard)\hr\payroll\run\page.tsx |
+| /hr/payslip/:id | src/app\(dashboard)\hr\payslip\[id]\page.tsx |
+| /hr/performance | src/app\(dashboard)\hr\performance\page.tsx |
+| /inventory/abc-analysis | src/app\(dashboard)\inventory\abc-analysis\page.tsx |
+| /inventory/ai-vision | src/app\(dashboard)\inventory\ai-vision\page.tsx |
+| /inventory/movements | src/app\(dashboard)\inventory\movements\page.tsx |
+| /inventory/picking/:id | src/app\(dashboard)\inventory\picking\[id]\page.tsx |
+| /inventory/quality-control | src/app\(dashboard)\inventory\quality-control\page.tsx |
+| /inventory/stocktake/cycle | src/app\(dashboard)\inventory\stocktake\cycle\page.tsx |
+| /inventory/traceability | src/app\(dashboard)\inventory\traceability\page.tsx |
+| /inventory/wms/putaway | src/app\(dashboard)\inventory\wms\putaway\page.tsx |
+| /inventory/zones | src/app\(dashboard)\inventory\zones\page.tsx |
+| /learn | src/app\(dashboard)\learn\page.tsx |
+| /manufacturing/blockchain-trace | src/app\(dashboard)\manufacturing\blockchain-trace\page.tsx |
+| /manufacturing/bom | src/app\(dashboard)\manufacturing\bom\page.tsx |
+| /manufacturing/boms/:id/versions | src/app\(dashboard)\manufacturing\boms\[id]\versions\page.tsx |
+| /manufacturing/capa | src/app\(dashboard)\manufacturing\capa\page.tsx |
+| /manufacturing/capacity | src/app\(dashboard)\manufacturing\capacity\page.tsx |
+| /manufacturing/digital-twin | src/app\(dashboard)\manufacturing\digital-twin\page.tsx |
+| /manufacturing/lean-kanban | src/app\(dashboard)\manufacturing\lean-kanban\page.tsx |
+| /manufacturing/qc | src/app\(dashboard)\manufacturing\qc\page.tsx |
+| /manufacturing/routing | src/app\(dashboard)\manufacturing\routing\page.tsx |
+| /manufacturing/scrap | src/app\(dashboard)\manufacturing\scrap\page.tsx |
+| /manufacturing/standard-cost | src/app\(dashboard)\manufacturing\standard-cost\page.tsx |
+| /manufacturing/subcontracting | src/app\(dashboard)\manufacturing\subcontracting\page.tsx |
+| /manufacturing/variance | src/app\(dashboard)\manufacturing\variance\page.tsx |
+| /manufacturing/work-orders | src/app\(dashboard)\manufacturing\work-orders\page.tsx |
+| /payments | src/app\(dashboard)\payments\page.tsx |
+| /payroll/wps | src/app\(dashboard)\payroll\wps\page.tsx |
+| /pdpl | src/app\(dashboard)\pdpl\page.tsx |
+| /pos-dashboard | src/app\(dashboard)\pos-dashboard\page.tsx |
+| /pos-demo | src/app\(dashboard)\pos-demo\page.tsx |
+| /procurement/contracts | src/app\(dashboard)\procurement\contracts\page.tsx |
+| /procurement/rfq/:id | src/app\(dashboard)\procurement\rfq\[id]\page.tsx |
+| /procurement/vendors/scorecard | src/app\(dashboard)\procurement\vendors\scorecard\page.tsx |
+| /profile/security | src/app\(dashboard)\profile\security\page.tsx |
+| /purchase-orders/:id/landed-costs | src/app\(dashboard)\purchase-orders\[id]\landed-costs\page.tsx |
+| /purchases/landed-cost/:poId | src/app\(dashboard)\purchases\landed-cost\[poId]\page.tsx |
+| /purchases/matching | src/app\(dashboard)\purchases\matching\page.tsx |
+| /purchases/orders | src/app\(dashboard)\purchases\orders\page.tsx |
+| /rebates | src/app\(dashboard)\rebates\page.tsx |
+| /rem | src/app\(dashboard)\rem\page.tsx |
+| /reports/73-modules | src/app\(dashboard)\reports\73-modules\page.tsx |
+| /reports/allocations | src/app\(dashboard)\reports\allocations\page.tsx |
+| /reports/builder | src/app\(dashboard)\reports\builder\page.tsx |
+| /reports/cashflow | src/app\(dashboard)\reports\cashflow\page.tsx |
+| /reports/consolidation | src/app\(dashboard)\reports\consolidation\page.tsx |
+| /reports/customer-statement | src/app\(dashboard)\reports\customer-statement\page.tsx |
+| /reports/expiry | src/app\(dashboard)\reports\expiry\page.tsx |
+| /reports/footnotes | src/app\(dashboard)\reports\footnotes\page.tsx |
+| /reports/kpi-builder | src/app\(dashboard)\reports\kpi-builder\page.tsx |
+| /reports/returns | src/app\(dashboard)\reports\returns\page.tsx |
+| /reports/segments | src/app\(dashboard)\reports\segments\page.tsx |
+| /reports/zatca-vat | src/app\(dashboard)\reports\zatca-vat\page.tsx |
+| /restaurant-tables | src/app\(dashboard)\restaurant-tables\page.tsx |
+| /salaries | src/app\(dashboard)\salaries\page.tsx |
+| /sales/atp-simulator | src/app\(dashboard)\sales\atp-simulator\page.tsx |
+| /sales/cash-application | src/app\(dashboard)\sales\cash-application\page.tsx |
+| /sales/orders/create | src/app\(dashboard)\sales\orders\create\page.tsx |
+| /sales/pricing | src/app\(dashboard)\sales\pricing\page.tsx |
+| /sales/returns/rma | src/app\(dashboard)\sales\returns\rma\page.tsx |
+| /sales/statements | src/app\(dashboard)\sales\statements\page.tsx |
+| /school/attendance | src/app\(dashboard)\school\attendance\page.tsx |
+| /school/dashboard | src/app\(dashboard)\school\dashboard\page.tsx |
+| /school/exams | src/app\(dashboard)\school\exams\page.tsx |
+| /school/schedule | src/app\(dashboard)\school\schedule\page.tsx |
+| /school/stages | src/app\(dashboard)\school\stages\page.tsx |
+| /school/transport | src/app\(dashboard)\school\transport\page.tsx |
+| /scm | src/app\(dashboard)\scm\page.tsx |
+| /settings/numbering | src/app\(dashboard)\settings\numbering\page.tsx |
+| /settings/permissions/fields | src/app\(dashboard)\settings\permissions\fields\page.tsx |
+| /settings/whatsapp | src/app\(dashboard)\settings\whatsapp\page.tsx |
+| /shl/students | src/app\(dashboard)\shl\students\page.tsx |
+| /shopfloor | src/app\(dashboard)\shopfloor\page.tsx |
+| /tax/vat-returns | src/app\(dashboard)\tax\vat-returns\page.tsx |
+| /tax/wht | src/app\(dashboard)\tax\wht\page.tsx |
+| /tax/zakat | src/app\(dashboard)\tax\zakat\page.tsx |
+| /tax/zatca-onboard | src/app\(dashboard)\tax\zatca-onboard\page.tsx |
+| /treasury/bank-recon | src/app\(dashboard)\treasury\bank-recon\page.tsx |
+| /treasury/cash-flow | src/app\(dashboard)\treasury\cash-flow\page.tsx |
+| /treasury/cash-position | src/app\(dashboard)\treasury\cash-position\page.tsx |
+| /treasury/liquidity | src/app\(dashboard)\treasury\liquidity\page.tsx |
+| /v3/clinic/appointments | src/app\(dashboard)\v3\clinic\appointments\page.tsx |
+| /v3/clinic/emr | src/app\(dashboard)\v3\clinic\emr\page.tsx |
+| /v3/clinic/erx | src/app\(dashboard)\v3\clinic\erx\page.tsx |
+| /v3/clinic/lab | src/app\(dashboard)\v3\clinic\lab\page.tsx |
+| /v3/construction/boq | src/app\(dashboard)\v3\construction\boq\page.tsx |
+| /v3/construction/progress-billing | src/app\(dashboard)\v3\construction\progress-billing\page.tsx |
+| /v3/construction/variations | src/app\(dashboard)\v3\construction\variations\page.tsx |
+| /v3/distribution/picking/wave | src/app\(dashboard)\v3\distribution\picking\wave\page.tsx |
+| /v3/distribution/routes | src/app\(dashboard)\v3\distribution\routes\page.tsx |
+| /v3/distribution/wms | src/app\(dashboard)\v3\distribution\wms\page.tsx |
+| /v3/manufacturing/mrp | src/app\(dashboard)\v3\manufacturing\mrp\page.tsx |
+| /v3/manufacturing/shopfloor | src/app\(dashboard)\v3\manufacturing\shopfloor\page.tsx |
+| /v3/master | src/app\(dashboard)\v3\master\page.tsx |
+| /v3/realestate/cam | src/app\(dashboard)\v3\realestate\cam\page.tsx |
+| /v3/realestate/leases | src/app\(dashboard)\v3\realestate\leases\page.tsx |
+| /v3/restaurant/kds | src/app\(dashboard)\v3\restaurant\kds\page.tsx |
+| /v3/restaurant/tables | src/app\(dashboard)\v3\restaurant\tables\page.tsx |
+| /v3/retail/loyalty | src/app\(dashboard)\v3\retail\loyalty\page.tsx |
+| /v3/retail/pos | src/app\(dashboard)\v3\retail\pos\page.tsx |
+| /v3/school/gradebook | src/app\(dashboard)\v3\school\gradebook\page.tsx |
+| /v3/school/sis | src/app\(dashboard)\v3\school\sis\page.tsx |
+| /v3/school/transcripts | src/app\(dashboard)\v3\school\transcripts\page.tsx |
+| /v3/services/sla | src/app\(dashboard)\v3\services\sla\page.tsx |
+| /v3/services/timesheet | src/app\(dashboard)\v3\services\timesheet\page.tsx |
+| /v3/services/workorders | src/app\(dashboard)\v3\services\workorders\page.tsx |
+| /vat | src/app\(dashboard)\vat\page.tsx |
+| /vendor-ratings | src/app\(dashboard)\vendor-ratings\page.tsx |
+| /warehouses/alerts | src/app\(dashboard)\warehouses\alerts\page.tsx |
+| /warranty | src/app\(dashboard)\warranty\page.tsx |
+| /wht | src/app\(dashboard)\wht\page.tsx |
+| /zatca | src/app\(dashboard)\zatca\page.tsx |
+
+
+## Report Links Missing Matching Dashboard Page
+| group | labelKey | href | cleanHref | module |
+| --- | --- | --- | --- | --- |
+
+
+
+## Security/Tenant Gaps Summary
+- APIs missing withRoute: 72
+- APIs with default tenant fallback: 94
+- APIs with direct PrismaClient: 26
+- APIs with raw unsafe SQL: 6
