@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 import React, { useState, useEffect } from 'react';
 import { Search, ServerCrash, Loader2, DatabaseBackup } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
+import FeatureDisabledPanel from '@/components/ui/FeatureDisabledPanel';
 
 export default function GenericModulePage() {
  const { t } = useTranslation();
@@ -57,11 +58,14 @@ export default function GenericModulePage() {
          جاري التحميل...
        </div>
      ) : error ? (
-       <div className="card" style={{ textAlign: 'center', padding: '3rem', color: '#ef4444' }}>
-         <ServerCrash size={48} opacity={0.5} style={{ marginBottom: '1rem' }} />
-         <p>حدث خطأ أثناء الاتصال بالخادم</p>
-         <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>{error}</p>
-       </div>
+       <FeatureDisabledPanel 
+         moduleName="عروض الأسعار CPQ" 
+         apiExists={false} 
+         apiPath="/api/cpq" 
+         missingFeatures="نظام التسعير المتقدم وتهيئة عروض الأسعار الديناميكية المعقدة (Configure Price Quote - CPQ) بالاعتماد على الفروع وفئات العملاء وعروض التخفيض النشطة."
+         reportLink="/tmp/global-erp-completion-scan.md"
+       />
+
      ) : filteredData.length === 0 ? (
        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
          <DatabaseBackup size={48} opacity={0.2} style={{ marginBottom: '1rem' }} />
