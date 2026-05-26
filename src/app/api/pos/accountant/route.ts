@@ -18,7 +18,7 @@ async function _GET(req: NextRequest) {
     const sessions = await p.posSession?.findMany({
       where: { tenantId },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, fullName: true } },
       },
       orderBy: { openedAt: 'desc' },
       take: 100,
