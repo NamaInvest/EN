@@ -16,8 +16,12 @@ type LabTest = {
     result?: string;
 };
 
+/**
+ * ClinicLabPage - Healthcare & Clinic Lab Orders and Diagnostics Panel
+ * fully localized with bilingual helper _t supporting both Arabic and English interfaces.
+ */
 export default function ClinicLabPage() {
-  const { lang } = useTranslation();
+  const { lang, dir } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [tests, setTests] = useState<LabTest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,35 +42,41 @@ export default function ClinicLabPage() {
     }, []);
 
     return (
-        <div className="p-6 space-y-6" dir="rtl">
+        <div className="p-6 space-y-6" dir={dir}>
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">طلبات وفحوصات المختبر</h1>
-                <Button>طلب فحص جديد</Button>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {_t('طلبات وفحوصات المختبر', 'Lab Orders & Diagnostic Tests')}
+                </h1>
+                <Button>{_t('طلب فحص جديد', '+ Create Lab Request')}</Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>طلبات المختبر الحديثة</CardTitle>
+                    <CardTitle>{_t('طلبات المختبر الحديثة', 'Recent Lab Requests')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>جاري التحميل...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-right">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">رقم الطلب</th>
-                                        <th className="px-4 py-3">التاريخ</th>
-                                        <th className="px-4 py-3">المريض</th>
-                                        <th className="px-4 py-3">اسم الفحص</th>
-                                        <th className="px-4 py-3">الطبيب الطالب</th>
-                                        <th className="px-4 py-3">الحالة</th>
-                                        <th className="px-4 py-3">ملخص النتيجة</th>
-                                        <th className="px-4 py-3 text-left">الإجراءات</th>
+                                        <th className="px-4 py-3">{_t('رقم الطلب', 'Order ID')}</th>
+                                        <th className="px-4 py-3">{_t('التاريخ', 'Date')}</th>
+                                        <th className="px-4 py-3">{_t('المريض', 'Patient')}</th>
+                                        <th className="px-4 py-3">{_t('اسم الفحص', 'Test Name')}</th>
+                                        <th className="px-4 py-3">{_t('الطبيب الطالب', 'Ordering Doctor')}</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3">{_t('ملخص النتيجة', 'Result Summary')}</th>
+                                        <th className="px-4 py-3 text-left">{_t('الإجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {tests.length === 0 && !loading && (
-                                        <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">لا توجد طلبات حالياً</td></tr>
+                                        <tr>
+                                            <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                                                {_t('لا توجد طلبات حالياً', 'No lab orders registered currently')}
+                                            </td>
+                                        </tr>
                                     )}
                                     {tests.map((t, idx) => (
                                         <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -77,17 +87,21 @@ export default function ClinicLabPage() {
                                             <td className="px-4 py-3 text-blue-600">{t.doctor}</td>
                                             <td className="px-4 py-3">
                                                 {t.status === 'COMPLETED' ? (
-                                                    <Badge className="bg-green-100 text-green-800">مكتمل</Badge>
+                                                    <Badge className="bg-green-100 text-green-800">{_t('مكتمل', 'Completed')}</Badge>
                                                 ) : (
-                                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800">بانتظار العينة</Badge>
+                                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800">
+                                                        {_t('بانتظار العينة', 'Awaiting Sample')}
+                                                    </Badge>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 font-medium text-green-600">{t.result || '—'}</td>
                                             <td className="px-4 py-3 text-left space-x-2">
                                                 {t.status === 'COMPLETED' ? (
-                                                    <Button size="sm" variant="outline">عرض النتيجة PDF</Button>
+                                                    <Button size="sm" variant="outline">{_t('عرض النتيجة PDF', 'View PDF Result')}</Button>
                                                 ) : (
-                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">جمع العينة</Button>
+                                                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-500">
+                                                        {_t('جمع العينة', 'Collect Sample')}
+                                                    </Button>
                                                 )}
                                             </td>
                                         </tr>
@@ -101,3 +115,4 @@ export default function ClinicLabPage() {
         </div>
     );
 }
+

@@ -14,15 +14,26 @@ type Appointment = {
     status: string;
 };
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL_AR: Record<string, string> = {
     WAITING: 'بانتظار الدور',
     IN_PROGRESS: 'قيد الفحص',
     SCHEDULED: 'مجدول',
     COMPLETED: 'مكتمل',
 };
 
+const STATUS_LABEL_EN: Record<string, string> = {
+    WAITING: 'Awaiting Turn',
+    IN_PROGRESS: 'In Progress',
+    SCHEDULED: 'Scheduled',
+    COMPLETED: 'Completed',
+};
+
+/**
+ * ClinicAppointmentsPage - Clinic Appointments & Queue Flow Dashboard
+ * fully localized with bilingual helper _t supporting both Arabic and English interfaces.
+ */
 export default function ClinicAppointmentsPage() {
-  const { lang } = useTranslation();
+  const { lang, dir } = useTranslation();
   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -53,33 +64,39 @@ export default function ClinicAppointmentsPage() {
     };
 
     return (
-        <div className="p-6 space-y-6" dir="rtl">
+        <div className="p-6 space-y-6" dir={dir}>
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">مواعيد العيادة وقائمة الانتظار</h1>
-                <Button>+ موعد جديد</Button>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {_t('مواعيد العيادة وقائمة الانتظار', 'Clinic Appointments & Waiting Queue')}
+                </h1>
+                <Button>{_t('+ موعد جديد', '+ Create Appointment')}</Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>جدول اليوم</CardTitle>
+                    <CardTitle>{_t('جدول اليوم', 'Today\'s Schedule')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {loading ? <p>جاري التحميل...</p> : (
+                    {loading ? <p>{_t('جاري التحميل...', 'Loading...')}</p> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-right">
                                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
-                                        <th className="px-4 py-3">الوقت</th>
-                                        <th className="px-4 py-3">اسم المريض</th>
-                                        <th className="px-4 py-3">الطبيب</th>
-                                        <th className="px-4 py-3">النوع</th>
-                                        <th className="px-4 py-3">الحالة</th>
-                                        <th className="px-4 py-3 text-left">الإجراءات</th>
+                                        <th className="px-4 py-3">{_t('الوقت', 'Time')}</th>
+                                        <th className="px-4 py-3">{_t('اسم المريض', 'Patient Name')}</th>
+                                        <th className="px-4 py-3">{_t('الطبيب', 'Doctor')}</th>
+                                        <th className="px-4 py-3">{_t('النوع', 'Type')}</th>
+                                        <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
+                                        <th className="px-4 py-3 text-left">{_t('الإجراءات', 'Actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {appointments.length === 0 && !loading && (
-                                        <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">لا توجد مواعيد لهذا اليوم</td></tr>
+                                        <tr>
+                                            <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                                {_t('لا توجد مواعيد لهذا اليوم', 'No appointments registered for today')}
+                                            </td>
+                                        </tr>
                                     )}
                                     {appointments.map((apt, idx) => (
                                         <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -88,11 +105,15 @@ export default function ClinicAppointmentsPage() {
                                             <td className="px-4 py-3 text-blue-600">{apt.doctor}</td>
                                             <td className="px-4 py-3">{apt.type}</td>
                                             <td className="px-4 py-3">
-                                                <Badge className={getStatusColor(apt.status)}>{STATUS_LABEL[apt.status] || apt.status}</Badge>
+                                                <Badge className={getStatusColor(apt.status)}>
+                                                    {_t(STATUS_LABEL_AR[apt.status], STATUS_LABEL_EN[apt.status]) || apt.status}
+                                                </Badge>
                                             </td>
                                             <td className="px-4 py-3 text-left space-x-2">
-                                                <Button size="sm" variant="outline">تسجيل الحضور</Button>
-                                                <Button size="sm" variant="outline" className="text-blue-600">دخول الغرفة</Button>
+                                                <Button size="sm" variant="outline">{_t('تسجيل الحضور', 'Mark Check-in')}</Button>
+                                                <Button size="sm" variant="outline" className="text-blue-600">
+                                                    {_t('دخول الغرفة', 'Enter Room')}
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))}
@@ -105,3 +126,4 @@ export default function ClinicAppointmentsPage() {
         </div>
     );
 }
+

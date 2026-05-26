@@ -42,21 +42,37 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // This runs ONLY in the browser after hydration is complete
-        const saved = localStorage.getItem('app_lang') as Language;
-        // FIX: validate against languages array, NOT translations object (which may not have per-lang keys)
-        const validCodes = languages.map(l => l.code);
-        const actualLang: Language = (saved && validCodes.includes(saved as Language)) ? (saved as Language) : 'ar';
-        setLangState(actualLang);
-        
-        // Synced cookie set
-        if (typeof document !== 'undefined') {
-            document.cookie = `app_lang=${actualLang}; path=/; max-age=31536000; SameSite=Lax`;
-        }
+        const syncLang = () => {
+            const saved = localStorage.getItem('app_lang') as Language;
+            // FIX: validate against languages array, NOT translations object (which may not have per-lang keys)
+            const validCodes = languages.map(l => l.code);
+            const actualLang: Language = (saved && validCodes.includes(saved as Language)) ? (saved as Language) : 'ar';
+            setLangState(actualLang);
+            
+            // Synced cookie set
+            if (typeof document !== 'undefined') {
+                document.cookie = `app_lang=${actualLang}; path=/; max-age=31536000; SameSite=Lax`;
+            }
 
-        const info = languages.find(l => l.code === actualLang)!;
-        document.documentElement.dir = info.dir;
-        document.documentElement.lang = actualLang;
+            const info = languages.find(l => l.code === actualLang)!;
+            document.documentElement.dir = info.dir;
+            document.documentElement.lang = actualLang;
+        };
+
+        syncLang();
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('langchange', syncLang);
+            window.addEventListener('storage', syncLang);
+        }
         setMounted(true);
+
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('langchange', syncLang);
+                window.removeEventListener('storage', syncLang);
+            }
+        };
     }, []);
 
 
