@@ -5,16 +5,15 @@ import { Shield, Plus, ToggleLeft, ToggleRight, Trash2, Edit } from 'lucide-reac
 import { format } from 'date-fns';
 
 import prisma from '@/lib/prisma';
-import { _t } from '@/lib/server-t';
+import { getServerLang } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
-import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function MfaPolicyPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const policies = await prisma.mfaPolicy.findMany({
-            take: 100,
+        take: 100,
         orderBy: { createdAt: 'desc' }
     });
 
