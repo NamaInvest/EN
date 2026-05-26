@@ -10,7 +10,6 @@ import StockNotificationBell from '@/components/StockNotificationBell';
 import AICopilotButton from '@/components/AICopilotButton';
 import GlobalErrorBoundary from '@/components/GlobalErrorBoundary';
 import PrintButton from '@/components/PrintButton';
-import { I18nProvider } from '@/lib/i18n';
 import { SettingsProvider } from '@/lib/SettingsContext';
 import { ToastProvider } from '@/components/Toast';
 import { _t } from '@/lib/server-t';
@@ -27,7 +26,6 @@ export default async function DashboardLayout({
  const mobileTitle = await _t('نما إنفست', 'Nama Invest');
 
  return (
- <I18nProvider>
  <SettingsProvider>
  <ToastProvider>
  <GlobalErrorBoundary>
@@ -73,7 +71,5 @@ export default async function DashboardLayout({
   </GlobalErrorBoundary>
  </ToastProvider>
  </SettingsProvider>
- </I18nProvider>
  );
 }
-

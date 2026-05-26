@@ -47,6 +47,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         const validCodes = languages.map(l => l.code);
         const actualLang: Language = (saved && validCodes.includes(saved as Language)) ? (saved as Language) : 'ar';
         setLangState(actualLang);
+        
+        // Synced cookie set
+        if (typeof document !== 'undefined') {
+            document.cookie = `app_lang=${actualLang}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+
         const info = languages.find(l => l.code === actualLang)!;
         document.documentElement.dir = info.dir;
         document.documentElement.lang = actualLang;
@@ -57,6 +63,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const setLang = (newLang: Language) => {
         setLangState(newLang);
         localStorage.setItem('app_lang', newLang);
+        
+        // Sync cookie so server side cookie parsing works instantly on page transition / reloads
+        if (typeof document !== 'undefined') {
+            document.cookie = `app_lang=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+
         // Dispatch event so Sidebar (which reads localStorage directly) updates immediately
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new Event('langchange'));
