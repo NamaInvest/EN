@@ -2,16 +2,15 @@ import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
-
-// GET - شجرة الحسابات
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'accounting/accounts' });
+
 async function _GET(request: NextRequest) {
     const prisma = getPrisma(request);
-    const tenantId = requireTenantId(request as any);
+    const tenantId = requireTenantId(request);
     try {
         const accounts = await prisma.account.findMany({ 
             take: 100,
@@ -19,13 +18,11 @@ async function _GET(request: NextRequest) {
             orderBy: { code: 'asc' },
         });
         return NextResponse.json(accounts);
-    } catch (error: any) {
+    } catch (error) {
         log.error('Accounts GET error:', error);
         return NextResponse.json({ error: 'فشل في جلب الحسابات' }, { status: 500 });
     }
 }
-
-// POST - إضافة حساب جديد
 
 const _POSTSchema = z.object({
   code: z.any().optional(),
@@ -36,19 +33,14 @@ const _POSTSchema = z.object({
   level: z.any().optional(),
 }).passthrough();
 
-async function _POST(request: Request) {
+async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
 
-        const _parsed = _PUTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-
         const _parsed2 = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
+        if (!_parsed2.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed2.error.flatten().fieldErrors }, { status: 400 });
         }
         const { code, name, nameEn, type, parentId, level } = body;
 
@@ -56,7 +48,7 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: 'الكود والاسم والنوع مطلوبة' }, { status: 400 });
         }
 
-        const tenantId = requireTenantId(request as any);
+        const tenantId = requireTenantId(request);
         // Check duplicate code
         const existing = await prisma.account.findFirst({ where: { tenantId, code } });
         if (existing) {
@@ -78,13 +70,11 @@ async function _POST(request: Request) {
         });
 
         return NextResponse.json(account, { status: 201 });
-    } catch (error: any) {
+    } catch (error) {
         log.error('Account create error:', error);
         return NextResponse.json({ error: 'فشل في إنشاء الحساب' }, { status: 500 });
     }
 }
-
-// PUT - تعديل حساب
 
 const _PUTSchema = z.object({
   id: z.union([z.string(), z.number()]).optional(),
@@ -93,17 +83,23 @@ const _PUTSchema = z.object({
   isActive: z.boolean().optional(),
 }).passthrough();
 
-async function _PUT(request: Request) {
+async function _PUT(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const body = await request.json();
+
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
         const { id, name, nameEn, isActive } = body;
 
-        const tenantId = requireTenantId(request as any);
+        const tenantId = requireTenantId(request);
         if (!id) return NextResponse.json({ error: 'معرف الحساب مطلوب' }, { status: 400 });
 
         const account = await prisma.account.update({
-            where: { id, tenantId },
+            where: { id: Number(id), tenantId },
             data: {
                 ...(name && { name }),
                 ...(nameEn !== undefined && { nameEn }),
@@ -112,17 +108,14 @@ async function _PUT(request: Request) {
         });
 
         return NextResponse.json(account);
-    } catch (error: any) {
+    } catch (error) {
         log.error('Account update error:', error);
         return NextResponse.json({ error: 'فشل في تحديث الحساب' }, { status: 500 });
     }
 }
 
-// DELETE - حذف حساب (فقط إذا لم يكن له حركات)
-async function _DELETE(request: Request) {
-    // Auth guard
-    const { getUserFromRequest } = require('@/lib/auth');
-    const _auth = getUserFromRequest(request as any);
+async function _DELETE(request: NextRequest) {
+    const _auth = getUserFromRequest(request);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
@@ -132,7 +125,7 @@ async function _DELETE(request: Request) {
 
         if (!id) return NextResponse.json({ error: 'معرف الحساب مطلوب' }, { status: 400 });
 
-        const tenantId = requireTenantId(request as any);
+        const tenantId = requireTenantId(request);
         // Check if account has journal lines
         const lines = await prisma.journalLine.count({ where: { accountId: id, tenantId } });
         if (lines > 0) {
@@ -141,16 +134,16 @@ async function _DELETE(request: Request) {
 
         await prisma.account.delete({ where: { id, tenantId } });
         return NextResponse.json({ success: true });
-    } catch (error: any) {
+    } catch (error) {
         log.error('Account delete error:', error);
         return NextResponse.json({ error: 'فشل في حذف الحساب' }, { status: 500 });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req), { rateLimit: 'DEFAULT' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => _POST(req), { rateLimit: 'FINANCIAL' });
 
-export const PUT = withRoute(async ({ req }) => _PUT(req as any), { rateLimit: 'FINANCIAL' });
+export const PUT = withRoute(async ({ req }) => _PUT(req), { rateLimit: 'FINANCIAL' });
 
-export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'FINANCIAL' });
+export const DELETE = withRoute(async ({ req }) => _DELETE(req), { rateLimit: 'FINANCIAL' });

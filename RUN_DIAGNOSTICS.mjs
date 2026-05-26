@@ -4,7 +4,7 @@ import { Client } from 'ssh2';
 import path from 'path';
 
 // Output path will be the conversation's scratch directory
-const logFile = 'C:\\Users\\1\\.gemini\\antigravity\\brain\\92fd3d73-9f2a-4eb7-84b9-8bcc3ebb32e7\\scratch\\DIAGNOSTIC_RESULTS.txt';
+const logFile = 'd:\\namasoft9-3-main\\tmp\\DIAGNOSTIC_RESULTS.txt';
 // Ensure dir exists
 if (!fs.existsSync(path.dirname(logFile))) fs.mkdirSync(path.dirname(logFile), { recursive: true });
 

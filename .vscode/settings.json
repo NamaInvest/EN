@@ -1,5 +1,18 @@
 {
     "workbench.editor.limit.enabled": true,
     "geminicodeassist.outlines.automaticOutlineGeneration": true,
-    "opencodegraph.enable": true
+    "opencodegraph.enable": true,
+    "cSpell.ignoreRegExpList": [
+        "/[\\u0600-\\u06FF]+/g"
+    ],
+    "cSpell.words": [
+        "ZATCA",
+        "GAAP",
+        "IFRS",
+        "WMS",
+        "PDPL",
+        "MFA",
+        "Stryker",
+        "Clerk"
+    ]
 }

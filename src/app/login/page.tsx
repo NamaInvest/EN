@@ -1,15 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Camera, X } from "lucide-react";
-import { SignIn, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Camera, X } from "lucide-react";
 
 import { Suspense } from "react";
 import { useTranslation } from "@/lib/i18n";
 
+type DesktopWindow = Window & {
+  namaDesktop?: unknown;
+};
+
+type SettingRecord = {
+  key: string;
+  value?: string | null;
+};
+
+const LOGIN_TIMEOUT_MS = 60_000;
+
 function LoginForm() {
-  const { user, isLoaded } = useUser();
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,32 +27,38 @@ function LoginForm() {
   const [companyName, setCompanyName] = useState("نما انفست");
   const [isSubdomain, setIsSubdomain] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [showLocalForm, setShowLocalForm] = useState(false);
+  const [showLocalForm, setShowLocalForm] = useState(true);
   const [showFaceLogin, setShowFaceLogin] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
   const [mfaToken, setMfaToken] = useState("");
   const [tempUserId, setTempUserId] = useState<number | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/auth/routing";
 
   useEffect(() => {
     // Detect if we're on a tenant subdomain or desktop (Electron)
     const host = window.location.hostname || '';
-    const isDesktopApp = !!(window as any).namaDesktop;
+    const isDesktopApp = !!(window as DesktopWindow).namaDesktop;
+    const isLocalhost =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.endsWith(".localhost");
     
     // Determine the environment
-    if (isDesktopApp) {
-      setIsDesktop(true);
-      setIsSubdomain(true); // Desktop uses local JWT auth
-      setShowLocalForm(true);
+    if (isDesktopApp || isLocalhost) {
+      queueMicrotask(() => {
+        setIsDesktop(true);
+        setIsSubdomain(true); // Desktop uses local JWT auth
+        setShowLocalForm(true);
+      });
     } else if (host !== 'namainvist.com' && host !== 'www.namainvist.com' && host.endsWith('.namainvist.com')) {
-      setIsSubdomain(true); // We are on a tenant subdomain -> Default to Username/Password
-      setShowLocalForm(true);
+      queueMicrotask(() => {
+        setIsSubdomain(true); // We are on a tenant subdomain -> Default to Username/Password
+        setShowLocalForm(true);
+      });
     } else {
-      setIsSubdomain(false); // We are on Main Domain -> Default to Clerk SignIn
-      setShowLocalForm(false);
+      queueMicrotask(() => {
+        setIsSubdomain(false); // We are on Main Domain -> Default to Clerk SignIn
+        setShowLocalForm(false);
+      });
     }
 
     // ملاحظة مهمة: لا نقوم بتحويل تلقائي لـ sso-redirect هنا!
@@ -51,7 +66,12 @@ function LoginForm() {
     // Clerk يحوله لـ afterSignInUrl (وهي /api/auth/sso-redirect)
     // التحويل التلقائي كان يسبب حلقة لا نهائية (Loop)
 
-    fetch("/api/settings")
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("/api/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
         const name = data.find?.(
@@ -60,8 +80,7 @@ function LoginForm() {
         if (name?.value) setCompanyName(name.value);
       })
       .catch(() => {});
-
-  }, [user, isLoaded]);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,20 +113,26 @@ function LoginForm() {
 
       console.log("[LOGIN] Sending fetch...");
 
-      // Add timeout to prevent infinite hang
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => {
+        controller.abort(
+          new DOMException("Login request timed out", "TimeoutError"),
+        );
+      }, LOGIN_TIMEOUT_MS);
 
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, deviceToken, deviceName }),
-        signal: controller.signal,
-      });
+      let res: Response;
+      try {
+        res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, deviceToken, deviceName }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
-      clearTimeout(timeoutId);
       console.log("[LOGIN] Response status:", res.status);
-
       let data;
       try {
         data = await res.json();
@@ -148,8 +173,8 @@ function LoginForm() {
           });
           if (settingsRes.ok) {
             const settings = await settingsRes.json();
-            const compName = Array.isArray(settings) 
-              ? settings.find((s: any) => s.key === 'company_name')?.value
+            const compName = Array.isArray(settings)
+              ? settings.find((s: SettingRecord) => s.key === 'company_name')?.value
               : settings?.company_name;
             const needsSetup = !compName || compName === 'نما إنفست' || compName === 'Nama Invest' || compName === 'شركتي' || compName === 'نماء سوفت' || compName === 'الشركة الرئيسية' || compName === 'Nama Invest ERP';
             if (needsSetup) {
@@ -168,10 +193,13 @@ function LoginForm() {
         window.location.href = "/pos";
       }
     } catch (err) {
-      console.error("[LOGIN] Error:", err);
-      if (err instanceof DOMException && err.name === "AbortError") {
+      if (
+        err instanceof DOMException &&
+        (err.name === "AbortError" || err.name === "TimeoutError")
+      ) {
         setError(t("sys.str_4022"));
       } else {
+        console.error("[LOGIN] Error:", err);
         setError(
           t("sys.str_4023") +
             (err instanceof Error ? err.message : t("sys.str_4024")),
@@ -215,7 +243,7 @@ function LoginForm() {
       } else {
         window.location.href = "/pos";
       }
-    } catch (err) {
+    } catch {
       setError(t("sys.str_4028") || "حدث خطأ في الاتصال");
       setLoading(false);
     }
@@ -279,33 +307,19 @@ function LoginForm() {
               borderRadius: '12px',
               overflow: 'hidden',
             }}>
-              <SignIn 
-                appearance={{
-                  elements: {
-                    rootBox: { width: '100%' },
-                    card: { 
-                      boxShadow: 'none', 
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      width: '100%',
-                    },
-                    headerTitle: { display: 'none' },
-                    headerSubtitle: { display: 'none' },
-                    socialButtonsBlockButton: { 
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                    },
-                    formButtonPrimary: {
-                      background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-                      borderRadius: '8px',
-                    },
-                    footer: { display: 'none' },
-                    footerAction: { display: 'none' },
-                  },
+              <Link
+                href="/sign-in"
+                className="btn btn-primary"
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  fontSize: "16px",
+                  textAlign: "center",
+                  textDecoration: "none",
                 }}
-                routing="hash"
-                fallbackRedirectUrl="/sso-callback"
-              />
+              >
+                تسجيل الدخول بحساب المالك
+              </Link>
             </div>
             
             <div style={{ display: "flex", alignItems: "center", margin: "10px 0", width: "100%", color: "#64748b" }}>
@@ -477,7 +491,9 @@ function LoginForm() {
           {isSubdomain && !isDesktop && (
             <button 
               type="button"
-              onClick={() => setShowLocalForm(false)}
+              onClick={() => {
+                window.location.href = "https://namainvist.com/sign-in";
+              }}
               className="btn btn-secondary"
               style={{
                 width: "100%", padding: "12px", fontSize: "14px", marginTop: "16px",
@@ -579,4 +595,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-
+

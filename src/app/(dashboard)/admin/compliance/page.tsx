@@ -1,8 +1,22 @@
+/* cspell:disable-file */
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { ShieldCheck, AlertTriangle, ShieldAlert } from 'lucide-react';
+
+const concernTranslations: Record<string, { ar: string, en: string }> = {
+    "Data Privacy & Masking": { ar: "خصوصية البيانات وتعميتها", en: "Data Privacy & Masking" },
+    "Role-based Access Control (RBAC)": { ar: "التحكم في الوصول القائم على الأدوار (RBAC)", en: "Role-based Access Control (RBAC)" },
+    "ZATCA E-Invoicing Phase 2": { ar: "المرحلة الثانية للربط والدمج مع هيئة الزكاة والضريبة والجمارك (ZATCA)", en: "ZATCA E-Invoicing Phase 2" },
+    "Multi-GAAP & IFRS Accounting": { ar: "المحاسبة متعددة المبادئ (Multi-GAAP) والمعايير الدولية (IFRS)", en: "Multi-GAAP & IFRS Accounting" },
+    "Audit Trail & Immutability": { ar: "سجل التدقيق وثبات البيانات", en: "Audit Trail & Immutability" },
+    "Localization & i18n": { ar: "التعريب ودعم اللغات المتعددة (i18n)", en: "Localization & i18n" },
+    "Multi-Tenant & Data Isolation": { ar: "تعدد المستأجرين وعزل البيانات (Multi-Tenant)", en: "Multi-Tenant & Data Isolation" },
+    "Disaster Recovery & Backups": { ar: "التعافي من الكوارث والنسخ الاحتياطي", en: "Disaster Recovery & Backups" },
+    "API Rate Limiting & Security": { ar: "تحديد معدل وحماية واجهات البرمجية (API)", en: "API Rate Limiting & Security" },
+    "Performance & SLA Tracking": { ar: "متابعة الأداء واتفاقية مستوى الخدمة (SLA)", en: "Performance & SLA Tracking" }
+};
 
 export default function ComplianceMatrixDashboard() {
   const { lang } = useTranslation();
@@ -28,8 +42,8 @@ export default function ComplianceMatrixDashboard() {
                     <Card key={idx} className="p-4 flex items-start gap-3 border-l-4 border-l-green-500">
                         <ShieldCheck className="text-green-500 mt-1" />
                         <div>
-                            <h3 className="font-semibold text-sm">{concern}</h3>
-                            <p className="text-xs text-gray-500 mt-1">Status: Enforced System-wide</p>
+                            <h3 className="font-semibold text-sm">{concernTranslations[concern] ? _t(concernTranslations[concern].ar, concernTranslations[concern].en) : concern}</h3>
+                            <p className="text-xs text-gray-500 mt-1">{_t('الحالة: مطبق على كامل النظام', 'Status: Enforced System-wide')}</p>
                         </div>
                     </Card>
                 ))}
@@ -49,7 +63,7 @@ export default function ComplianceMatrixDashboard() {
                             </div>
                             <div className="text-right">
                                 <span className={`text-xs px-2 py-1 rounded font-bold ${log.isResolved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {log.isResolved ? 'RESOLVED' : 'OPEN'}
+                                    {log.isResolved ? _t('محلولة', 'RESOLVED') : _t('مفتوحة', 'OPEN')}
                                 </span>
                                 <p className="text-xs text-gray-500 mt-2">{new Date(log.createdAt).toLocaleString()}</p>
                             </div>
@@ -58,7 +72,7 @@ export default function ComplianceMatrixDashboard() {
                     {data.logs.length === 0 && (
                         <div className="text-center text-gray-500 py-6">
                             <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                            <p>No compliance violations logged. Enterprise is 100% compliant.</p>
+                            <p>{_t('لم يتم تسجيل أي انتهاكات للامتثال. المؤسسة ممتثلة بنسبة 100%.', 'No compliance violations logged. Enterprise is 100% compliant.')}</p>
                         </div>
                     )}
                 </div>

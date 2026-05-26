@@ -4,15 +4,13 @@ import Link from 'next/link';
 
 import prisma from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { useTranslation } from "@/lib/i18n";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 // Revalidate every 60 seconds or make it dynamic
 export const dynamic = 'force-dynamic';
 
 export default async function CustomerStatementsOverview() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const _t = (ar: string, _en: string) => ar;
     let thisMonthSent = 0;
     let deliveryIssues = 0;
     let activeSchedules = 0;

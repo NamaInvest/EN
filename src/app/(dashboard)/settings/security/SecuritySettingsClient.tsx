@@ -9,8 +9,8 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function SecuritySettingsClient({ initialData }: { initialData: any }) {
     const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
-  const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
     const [data, setData] = useState(initialData);
     const [isEnrolling, setIsEnrolling] = useState(false);
     const [enrollData, setEnrollData] = useState<any>(null);
@@ -34,10 +34,10 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                 setEnrollData(result.data);
                 setIsEnrolling(true);
             } else {
-                setError(result.message || 'Failed to start enrollment');
+                setError(result.message || _t('فشل بدء الإعداد', 'Failed to start enrollment'));
             }
         } catch (e) {
-            setError('An error occurred');
+            setError(_t('حدث خطأ غير متوقع', 'An error occurred'));
         }
         setIsSubmitting(false);
     };
@@ -56,10 +56,10 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                 setBackupCodes(result.backupCodes);
                 setData({ ...data, mfaEnabled: true, mfaMethod: 'TOTP' });
             } else {
-                setError(result.message || 'Invalid verification code');
+                setError(result.message || _t('رمز التحقق غير صالح', 'Invalid verification code'));
             }
         } catch (e) {
-            setError('An error occurred');
+            setError(_t('حدث خطأ غير متوقع', 'An error occurred'));
         }
         setIsSubmitting(false);
     };
@@ -73,9 +73,9 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
     };
 
     const disableMfa = async () => {
-        const code = prompt('Please enter your current 6-digit MFA code to disable Two-Factor Authentication:');
+        const code = prompt(_t('يرجى إدخال رمز المصادقة الثنائية الحالي المكون من 6 أرقام لتعطيل المصادقة الثنائية:', 'Please enter your current 6-digit MFA code to disable Two-Factor Authentication:'));
         if (!code || code.length !== 6) {
-            toastWarning('Invalid code. MFA was not disabled.');
+            toastWarning(_t('رمز غير صالح. لم يتم تعطيل المصادقة الثنائية.', 'Invalid code. MFA was not disabled.'));
             return;
         }
 
@@ -89,13 +89,13 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
             const result = await res.json();
             if (result.success) {
                 setData({ ...data, mfaEnabled: false, mfaMethod: null, backupCodesCount: 0 });
-                toastSuccess('MFA disabled successfully.');
+                toastSuccess(_t('تم تعطيل المصادقة الثنائية بنجاح.', 'MFA disabled successfully.'));
             } else {
-                toastError(result.error || 'Failed to disable MFA. Incorrect code.');
+                toastError(result.error || _t('فشل تعطيل المصادقة الثنائية. الرمز غير صحيح.', 'Failed to disable MFA. Incorrect code.'));
             }
         } catch (e) {
             console.error(e);
-            toastError('An error occurred.');
+            toastError(_t('حدث خطأ غير متوقع.', 'An error occurred.'));
         }
         setIsSubmitting(false);
     };
@@ -103,8 +103,8 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
     return (
         <div className="max-w-5xl mx-auto space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('أمان الإعدادات', 'Security Settings')}</h1>
-                <p className="text-gray-500 mt-2">Manage your account security, multi-factor authentication, and trusted devices.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">{_t('إعدادات الأمان وحماية الحساب', 'Security Settings')}</h1>
+                <p className="text-gray-500 mt-2">{_t('إدارة أمان حسابك، المصادقة متعددة العوامل، والأجهزة الموثوقة لتأمين بياناتك.', 'Manage your account security, multi-factor authentication, and trusted devices.')}</p>
             </div>
 
             {/* Multi-Factor Authentication */}
@@ -115,11 +115,11 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                             {data.mfaEnabled ? <Shield className="w-6 h-6" /> : <ShieldAlert className="w-6 h-6" />}
                         </div>
                         <div>
-                            <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
+                            <CardTitle>{_t('المصادقة الثنائية (2FA)', 'Two-Factor Authentication (2FA)')}</CardTitle>
                             <CardDescription>
                                 {data.mfaEnabled 
-                                    ? 'Your account is highly secure. Two-factor authentication is active.' 
-                                    : 'Add an extra layer of security to your account by enabling 2FA.'}
+                                    ? _t('حسابك آمن للغاية. المصادقة الثنائية نشطة الآن.', 'Your account is highly secure. Two-factor authentication is active.') 
+                                    : _t('أضف طبقة أمان إضافية لحسابك عن طريق تفعيل المصادقة الثنائية (2FA).', 'Add an extra layer of security to your account by enabling 2FA.')}
                             </CardDescription>
                         </div>
                     </div>
@@ -131,28 +131,28 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                 <div className="flex items-center gap-3">
                                     <Smartphone className="w-5 h-5 text-gray-500" />
                                     <div>
-                                        <p className="font-medium text-sm text-gray-900">Authenticator App (TOTP)</p>
-                                        <p className="text-xs text-gray-500">Configured on {data.mfaEnrolledAt ? new Date(data.mfaEnrolledAt).toLocaleDateString() : 'recently'}</p>
+                                        <p className="font-medium text-sm text-gray-900">{_t('تطبيق المصادقة (TOTP)', 'Authenticator App (TOTP)')}</p>
+                                        <p className="text-xs text-gray-500">{_t('تمت التهيئة في', 'Configured on')} {data.mfaEnrolledAt ? new Date(data.mfaEnrolledAt).toLocaleDateString() : _t('مؤخراً', 'recently')}</p>
                                     </div>
                                 </div>
-                                <Button variant="destructive" size="sm" onClick={disableMfa} disabled={isSubmitting}>{_t('تعطيل', 'Disable')}</Button>
+                                <Button variant="destructive" size="sm" onClick={disableMfa} disabled={isSubmitting}>{_t('تعطيل المصادقة', 'Disable')}</Button>
                             </div>
 
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
                                 <div className="flex items-center gap-3">
                                     <Key className="w-5 h-5 text-gray-500" />
                                     <div>
-                                        <p className="font-medium text-sm text-gray-900">Recovery Codes</p>
-                                        <p className="text-xs text-gray-500">{data.backupCodesCount} codes remaining. Generated on {data.backupCodesGeneratedAt ? new Date(data.backupCodesGeneratedAt).toLocaleDateString() : 'recently'}</p>
+                                        <p className="font-medium text-sm text-gray-900">{_t('رموز الاسترداد الاحتياطية', 'Recovery Codes')}</p>
+                                        <p className="text-xs text-gray-500">{data.backupCodesCount} {_t('رموز متبقية. تم توليدها في', 'codes remaining. Generated on')} {data.backupCodesGeneratedAt ? new Date(data.backupCodesGeneratedAt).toLocaleDateString() : _t('مؤخراً', 'recently')}</p>
                                     </div>
                                 </div>
-                                <Button variant="outline" size="sm" disabled={isSubmitting}>Regenerate</Button>
+                                <Button variant="outline" size="sm" disabled={isSubmitting}>{_t('إعادة توليد الرموز', 'Regenerate')}</Button>
                             </div>
                         </div>
                     ) : (
                         <div className="flex justify-end">
                             <Button onClick={startEnrollment} disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white">
-                                {isSubmitting ? 'Starting...' : 'Enable 2FA (Authenticator)'}
+                                {isSubmitting ? _t('جاري البدء...', 'Starting...') : _t('تفعيل المصادقة الثنائية (Authenticator)', 'Enable 2FA (Authenticator)')}
                             </Button>
                         </div>
                     )}
@@ -163,12 +163,12 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
             {data.mfaEnabled && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Trusted Devices</CardTitle>
-                        <CardDescription>Devices that skip the 2FA prompt for 30 days.</CardDescription>
+                        <CardTitle>{_t('الأجهزة الموثوقة', 'Trusted Devices')}</CardTitle>
+                        <CardDescription>{_t('الأجهزة التي تتخطى مطالبة المصادقة الثنائية (2FA) لمدة 30 يوماً.', 'Devices that skip the 2FA prompt for 30 days.')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {data.trustedDevices.length === 0 ? (
-                            <p className="text-sm text-gray-500 text-center py-4">No trusted devices active.</p>
+                            <p className="text-sm text-gray-500 text-center py-4">{_t('لا توجد أجهزة موثوقة نشطة حالياً.', 'No trusted devices active.')}</p>
                         ) : (
                             <div className="divide-y divide-gray-100">
                                 {data.trustedDevices.filter((d: any) => !d.revokedAt).map((device: any) => (
@@ -178,13 +178,13 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                             <div>
                                                 <p className="font-medium text-sm text-gray-900">{device.deviceName}</p>
                                                 <p className="text-xs text-gray-500">
-                                                    {device.ipAddress} • {device.city ? `${device.city}, ${device.countryCode}` : 'Unknown Location'}
+                                                    {device.ipAddress} • {device.city ? `${device.city}, ${device.countryCode}` : _t('موقع غير معروف', 'Unknown Location')}
                                                 </p>
-                                                <p className="text-xs text-green-600 mt-1">Trusted until {new Date(device.trustedUntil).toLocaleDateString()}</p>
+                                                <p className="text-xs text-green-600 mt-1">{_t('موثوق به حتى', 'Trusted until')} {new Date(device.trustedUntil).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                                            <Trash2 className="w-4 h-4 mr-2" /> Revoke
+                                            <Trash2 className="w-4 h-4 mr-2" /> {_t('إلغاء الموثوقية', 'Revoke')}
                                         </Button>
                                     </div>
                                 ))}
@@ -199,8 +199,8 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <Card className="w-full max-w-md shadow-xl">
                         <CardHeader>
-                            <CardTitle>Set up Two-Factor Authentication</CardTitle>
-                            <CardDescription>Scan the QR code with Google Authenticator, Microsoft Authenticator, or Authy.</CardDescription>
+                            <CardTitle>{_t('إعداد المصادقة الثنائية (2FA)', 'Set up Two-Factor Authentication')}</CardTitle>
+                            <CardDescription>{_t('امسح رمز الاستجابة السريعة (QR Code) باستخدام تطبيق Google Authenticator أو Microsoft Authenticator أو Authy.', 'Scan the QR code with Google Authenticator, Microsoft Authenticator, or Authy.')}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">{error}</div>}
@@ -210,8 +210,8 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex gap-3">
                                         <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                                         <div>
-                                            <p className="text-sm font-medium text-green-800">2FA Enabled Successfully!</p>
-                                            <p className="text-xs text-green-600 mt-1">Please save your recovery codes. They are the ONLY way to access your account if you lose your phone.</p>
+                                            <p className="text-sm font-medium text-green-800">{_t('تم تفعيل المصادقة الثنائية بنجاح!', '2FA Enabled Successfully!')}</p>
+                                            <p className="text-xs text-green-600 mt-1">{_t('يرجى حفظ رموز الاسترداد الخاصة بك بأمان. إنها الطريقة الوحيدة للوصول إلى حسابك إذا فقدت هاتفك.', 'Please save your recovery codes. They are the ONLY way to access your account if you lose your phone.')}</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200 font-mono text-sm text-center">
@@ -228,7 +228,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                             onChange={(e) => setBackupConfirmed(e.target.checked)}
                                         />
                                         <label htmlFor="saved-codes" className="text-sm text-gray-700 cursor-pointer">
-                                            I have safely stored these recovery codes
+                                            {_t('لقد قمت بحفظ رموز الاسترداد هذه بأمان في مكان موثوق', 'I have safely stored these recovery codes')}
                                         </label>
                                     </div>
                                 </div>
@@ -240,13 +240,13 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                         </div>
                                     )}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700">Can't scan? Use this setup key:</label>
+                                        <label className="text-sm font-medium text-gray-700">{_t('لا تستطيع المسح الضوئي؟ استخدم مفتاح الإعداد هذا:', "Can't scan? Use this setup key:")}</label>
                                         <code className="block p-3 text-sm text-center bg-gray-50 border rounded-lg break-all text-gray-900">
                                             {enrollData?.secret}
                                         </code>
                                     </div>
                                     <div className="space-y-2 pt-4 border-t">
-                                        <label className="text-sm font-medium text-gray-700">Enter the 6-digit code from your app:</label>
+                                        <label className="text-sm font-medium text-gray-700">{_t('أدخل الرمز المكون من 6 أرقام من تطبيقك لتفعيل الحماية:', 'Enter the 6-digit code from your app:')}</label>
                                         <input
                                             type="text"
                                             maxLength={6}
@@ -262,7 +262,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                         <CardFooter className="flex justify-end gap-2 border-t pt-4">
                             {backupCodes.length > 0 ? (
                                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={!backupConfirmed} onClick={finishEnrollment}>
-                                    Finish Setup
+                                    {_t('إنهاء الإعداد الموثق', 'Finish Setup')}
                                 </Button>
                             ) : (
                                 <>
@@ -273,7 +273,7 @@ export default function SecuritySettingsClient({ initialData }: { initialData: a
                                         disabled={verificationCode.length !== 6 || isSubmitting}
                                     >
                                         {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-                                        Verify & Enable
+                                        {_t('التحقق والتفعيل', 'Verify & Enable')}
                                     </Button>
                                 </>
                             )}

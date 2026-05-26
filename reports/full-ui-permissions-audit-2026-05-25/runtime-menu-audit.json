@@ -4758,5 +4758,22 @@
     "pageErrors": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/sys/health\", waiting until \"domcontentloaded\"\u001b[22m\n",
     "consoleErrors": "",
     "bodyText": ""
+  },
+  {
+    "index": 281,
+    "route": "/settings/custom-fields",
+    "group": "s.settings",
+    "module": "settings",
+    "status": "ERROR",
+    "finalUrl": "about:blank",
+    "title": "",
+    "ms": 15042,
+    "buttons": 0,
+    "links": 0,
+    "forms": 0,
+    "flags": "page_error",
+    "pageErrors": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/settings/custom-fields\", waiting until \"domcontentloaded\"\u001b[22m\n",
+    "consoleErrors": "",
+    "bodyText": ""
   }
 ]

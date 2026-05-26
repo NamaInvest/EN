@@ -64,19 +64,25 @@ export default function SmartTransfersPage() {
       const pData = await pRes.json();
       const sData = await sRes.json();
       
-      // Map properly handles both raw arrays or {products: []} structures seamlessly.
-      setProducts(pData.products || pData || []);
-      setStocks(sData.stocks || sData || []);
-    } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
+      const pList = Array.isArray(pData) ? pData : (pData.products && Array.isArray(pData.products) ? pData.products : []);
+      const sList = Array.isArray(sData) ? sData : (sData.stocks && Array.isArray(sData.stocks) ? sData.stocks : []);
+      
+      setProducts(pList);
+      setStocks(sList);
+    } catch (e: any) { 
+      toastError(e?.message || 'حدث خطأ في تحميل الموارد'); 
+    }
   };
 
   const fetchTransits = async () => {
     try {
       const res = await fetch('/api/smart-transfers');
       const data = await res.json();
-      setActiveTransits(data.activeTransits || []);
-      setCompletedTransits(data.completedTransits || []);
-    } catch (e: any) { toastError(e?.message || 'حدث خطأ'); }
+      setActiveTransits(Array.isArray(data.activeTransits) ? data.activeTransits : []);
+      setCompletedTransits(Array.isArray(data.completedTransits) ? data.completedTransits : []);
+    } catch (e: any) { 
+      toastError(e?.message || 'حدث خطأ في تحميل التحويلات'); 
+    }
   };
 
   const handleDispatch = async (data: FormValues) => {

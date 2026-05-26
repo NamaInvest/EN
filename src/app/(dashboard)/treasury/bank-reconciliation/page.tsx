@@ -51,7 +51,18 @@ export default function BankReconciliationPage() {
   useEffect(() => {
     fetch('/api/accounting/accounts')
       .then(res => res.json())
-      .then((data: any[]) => setAccounts(data.filter(a => a.code.startsWith('112') && a.level > 1)));
+      .then((data: any) => {
+        if (Array.isArray(data)) {
+          setAccounts(data.filter(a => a.code.startsWith('112') && a.level > 1));
+        } else {
+          console.error("Failed to load accounts:", data);
+          toastError(data?.error || 'حدث خطأ في جلب الحسابات');
+        }
+      })
+      .catch(e => {
+        console.error("Error fetching accounts:", e);
+        toastError('خطأ في الاتصال بالخادم');
+      });
   }, []);
 
   const startReconciliation = async (data: FormValues) => {

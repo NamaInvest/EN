@@ -1,41 +1,41 @@
 import React from 'react';
 import { PrismaClient } from '@prisma/client';
 import { PlayCircle, PauseCircle, CheckCircle, XCircle } from 'lucide-react';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
 const prisma = new PrismaClient();
 
 export default async function ChainsDashboard() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const lang = await getServerLang();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const states = await prisma.chainState.findMany({
     orderBy: { updatedAt: 'desc' },
     take: 50
   });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Workflow Chains Orchestration</h1>
+    <div className="p-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <h1 className="text-2xl font-bold mb-6 text-start">{_t('تنسيق سلاسل تدفق العمليات (Workflows)', 'Workflow Chains Orchestration')}</h1>
       <div className="bg-(--bg-primary) border border-(--border) rounded-xl overflow-hidden">
-        <table className="w-full text-left" dir="ltr">
+        <table className="w-full text-left" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
           <thead className="bg-(--bg-secondary) border-b border-(--border)">
             <tr>
-              <th className="p-4 text-sm font-semibold">{_t('المعرف', 'ID')}</th>
-              <th className="p-4 text-sm font-semibold">Chain Name</th>
-              <th className="p-4 text-sm font-semibold">Tenant</th>
-              <th className="p-4 text-sm font-semibold">Actor</th>
-              <th className="p-4 text-sm font-semibold">{_t('الحالة', 'Status')}</th>
-              <th className="p-4 text-sm font-semibold">{_t('أخير تم التحديث', 'Last Updated')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('المعرف', 'ID')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('اسم السلسلة', 'Chain Name')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('المستأجر', 'Tenant')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('الفاعل / الممثل', 'Actor')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('الحالة', 'Status')}</th>
+              <th className="p-4 text-sm font-semibold text-start">{_t('آخر تحديث', 'Last Updated')}</th>
             </tr>
           </thead>
           <tbody>
             {states.map(state => (
               <tr key={state.id} className="border-b border-(--border) hover:bg-(--bg-secondary)">
-                <td className="p-4 text-sm">#{state.id}</td>
-                <td className="p-4 text-sm font-medium">{state.chainName}</td>
-                <td className="p-4 text-sm text-(--text-muted)">{state.tenantId}</td>
-                <td className="p-4 text-sm text-(--text-muted)">{state.actor || '-'}</td>
-                <td className="p-4 text-sm">
+                <td className="p-4 text-sm text-start">#{state.id}</td>
+                <td className="p-4 text-sm font-medium text-start">{state.chainName}</td>
+                <td className="p-4 text-sm text-(--text-muted) text-start">{state.tenantId}</td>
+                <td className="p-4 text-sm text-(--text-muted) text-start">{state.actor || '-'}</td>
+                <td className="p-4 text-sm text-start">
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium
                     ${state.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
                       state.status === 'PAUSED' ? 'bg-yellow-100 text-yellow-800' :
@@ -49,7 +49,7 @@ export default async function ChainsDashboard() {
                     {state.status}
                   </span>
                 </td>
-                <td className="p-4 text-sm text-(--text-muted)">
+                <td className="p-4 text-sm text-(--text-muted) text-start">
                   {new Date(state.updatedAt).toLocaleString()}
                 </td>
               </tr>
@@ -57,7 +57,7 @@ export default async function ChainsDashboard() {
             {states.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-8 text-center text-(--text-muted)">
-                  No chain states recorded yet.
+                  {_t('لم يتم تسجيل أي حالات سلاسل بعد.', 'No chain states recorded yet.')}
                 </td>
               </tr>
             )}

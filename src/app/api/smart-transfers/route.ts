@@ -3,21 +3,22 @@ import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
 import { postStockTransfer } from '@/lib/auto-journal';
 import { n } from '@/lib/decimal-utils';
-
 import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
+import { runInventoryTx } from '@/lib/db/transaction';
 
 const log = logger.child({ service: 'smart-transfers' });
+
 async function _GET(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req as any);
+        const user = getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         // Retrieve specifically 'transit_out' movements meaning items sent out but maybe not received
-        const transits = await prisma.stockMovement.findMany({ take: 100,
+        const transits = await prisma.stockMovement.findMany({ 
+            take: 100,
             where: { type: 'transit_out' },
             include: { 
                 product: { select: { name: true } }, 
@@ -33,10 +34,17 @@ async function _GET(req: NextRequest) {
         // Parsing notes safely
         for (const tr of transits) {
             let meta = { status: 'unknown', receiverStockId: 0, transferRef: '' };
-            try { if (tr.notes) meta = JSON.parse(tr.notes); } catch (e: any) {}
+            try { 
+                if (tr.notes) meta = JSON.parse(tr.notes); 
+            } catch {
+                // ignore json parse error
+            }
             
             // To get receiver name without N+1 problem, ideally fetch all stocks once, but let's query gracefully
-            const receiverStock = await prisma.stock.findUnique({ where: { id: meta.receiverStockId || 0 }, select: { name: true, branch: { select: { name: true } } } });
+            const receiverStock = await prisma.stock.findUnique({ 
+                where: { id: meta.receiverStockId || 0 }, 
+                select: { name: true, branch: { select: { name: true } } } 
+            });
 
             const formatted = {
                 id: tr.id,
@@ -60,11 +68,11 @@ async function _GET(req: NextRequest) {
 
         return NextResponse.json({ activeTransits, completedTransits });
 
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e) {
+        const err = e as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
-
 
 const _POSTSchema = z.object({
   productId: z.union([z.string(), z.number()]).optional(),
@@ -76,19 +84,14 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req as any);
+        const user = getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
 
-        const _parsed = _PUTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-
         const _parsed2 = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: (_parsed as any).error.flatten().fieldErrors }, { status: 400 });
+        if (!_parsed2.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed2.error.flatten().fieldErrors }, { status: 400 });
         }
         const { productId, senderStockId, receiverStockId, quantity } = body;
 
@@ -111,6 +114,7 @@ async function _POST(req: NextRequest) {
         const transferRef = `TRX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
         // Phase 1: Dispatch (Transit Out) using Prisma Transaction
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         const dispatchAction = await runInventoryTx(prisma, async (tx: any) => {
             const updateAction = await tx.productStock.update({
                 where: { id: currentStock.id },
@@ -123,7 +127,7 @@ async function _POST(req: NextRequest) {
                     type: 'transit_out',
                     quantity: -Math.abs(Number(quantity)),
                     date: new Date(),
-                    userId: (user as any).id || 1,
+                    userId: ((user as any).userId || (user as any).id || 1) as number,
                     notes: JSON.stringify({
                         status: 'pending',
                         receiverStockId: Number(receiverStockId),
@@ -142,7 +146,7 @@ async function _POST(req: NextRequest) {
                 type: 'transit_out',
                 totalCost: (n(product.buyPrice) || 0) * Number(quantity),
                 productName: product.name,
-                userId: (user as any).id || 1,
+                userId: ((user as any).userId || (user as any).id || 1) as number,
             });
         } catch (je: unknown) {
             log.error('Auto Journal Transit Out Error', je);
@@ -150,11 +154,11 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم إرسال الإرسالية بنجاح، البضاعة الآن في الطريق.', dispatchCheck: movementId });
 
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e) {
+        const err = e as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
-
 
 const _PUTSchema = z.object({
   movementId: z.union([z.string(), z.number()]).optional(),
@@ -163,12 +167,17 @@ const _PUTSchema = z.object({
 async function _PUT(req: NextRequest) {
     const prisma = getPrisma(req);
     try {
-        const user = getUserFromRequest(req as any);
+        const user = getUserFromRequest(req);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const { movementId } = body;
 
+        const _parsed = _PUTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+
+        const { movementId } = body;
         if (!movementId) return NextResponse.json({ error: 'No ID provided' }, { status: 400 });
 
         const tr = await prisma.stockMovement.findUnique({ 
@@ -177,7 +186,7 @@ async function _PUT(req: NextRequest) {
         });
         if (!tr || tr.type !== 'transit_out') return NextResponse.json({ error: 'Invalid Movement' }, { status: 400 });
 
-        let meta = JSON.parse(tr.notes || '{}');
+        const meta = JSON.parse(tr.notes || '{}');
         if (meta.status === 'completed') {
             return NextResponse.json({ error: 'تم الاستلام مسبقاً' }, { status: 400 });
         }
@@ -187,6 +196,7 @@ async function _PUT(req: NextRequest) {
         const qty = Math.abs(n(tr.quantity));
 
         // Receive the goods natively via Prisma Transaction
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         await runInventoryTx(prisma, async (tx: any) => {
             // 1. Mark sender transit complete
             await tx.stockMovement.update({
@@ -219,7 +229,7 @@ async function _PUT(req: NextRequest) {
                     quantity: qty,
                     referenceId: tr.id,
                     date: new Date(),
-                    userId: (user as any).id || 1,
+                    userId: ((user as any).userId || (user as any).id || 1) as number,
                     notes: `استلام الشحنة #${meta.transferRef || 'N/A'}`
                 }
             });
@@ -232,7 +242,7 @@ async function _PUT(req: NextRequest) {
                 type: 'transit_in',
                 totalCost: (n(tr.product?.buyPrice) || 0) * qty,
                 productName: tr.product?.name || 'Unknown',
-                userId: (user as any).id || 1,
+                userId: ((user as any).userId || (user as any).id || 1) as number,
             });
         } catch (je: unknown) {
             log.error('Auto Journal Transit In Error', je);
@@ -240,12 +250,13 @@ async function _PUT(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'تم ادخال البضاعة بنجاح إلى المستودع الهدف!' });
 
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e) {
+        const err = e as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req), { rateLimit: 'DEFAULT' });
 
 export const POST = withRoute(async ({ req }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
@@ -257,7 +268,7 @@ export const POST = withRoute(async ({ req }) => {
     if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
 
     try {
-        const response = await _POST(req as any);
+        const response = await _POST(req);
         if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'smart_transfer_post', idempotencyKey);
         else await unlockIdempotencyKey(tenantString, 'smart_transfer_post', idempotencyKey);
         return response;
@@ -277,7 +288,7 @@ export const PUT = withRoute(async ({ req }) => {
     if (!isUnique) return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
 
     try {
-        const response = await _PUT(req as any);
+        const response = await _PUT(req);
         if (response.status >= 200 && response.status < 400) await completeIdempotencyKey(tenantString, 'smart_transfer_put', idempotencyKey);
         else await unlockIdempotencyKey(tenantString, 'smart_transfer_put', idempotencyKey);
         return response;

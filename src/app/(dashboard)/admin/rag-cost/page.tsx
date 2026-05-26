@@ -1,10 +1,12 @@
+'use client';
+
 import React from 'react';
 import { Activity, DollarSign, Database, AlertCircle } from 'lucide-react';
 import { useTranslation } from "@/lib/i18n";
 
 export default function RagCostDashboard() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+  const { lang } = useTranslation();
+  const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   // Mock data for the dashboard
   const stats = {
     dailyCost: 12.45,
@@ -16,9 +18,9 @@ export default function RagCostDashboard() {
   const costLimit = 50.00;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">RAG Analytics & Cost Monitoring</h1>
+        <h1 className="text-2xl font-bold text-start">{_t('تحليل ومراقبة تكاليف الـ RAG', 'RAG Analytics & Cost Monitoring')}</h1>
         <button className="bg-(--primary) text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
           {_t('تنزيل تقرير', 'Download Report')}</button>
       </div>
@@ -26,7 +28,7 @@ export default function RagCostDashboard() {
       {stats.dailyCost > costLimit && (
         <div className="bg-red-50 text-red-800 p-4 rounded-lg flex items-center gap-3 border border-red-200">
           <AlertCircle size={20} className="text-red-600" />
-          <span className="font-medium">Warning: Daily cost limit (${costLimit}) exceeded!</span>
+          <span className="font-medium">{_t('تحذير: تم تجاوز الحد الأقصى للتكلفة اليومية ($' + costLimit + ')!', 'Warning: Daily cost limit ($' + costLimit + ') exceeded!')}</span>
         </div>
       )}
 
@@ -34,7 +36,7 @@ export default function RagCostDashboard() {
         <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <DollarSign className="text-green-600" size={24} />
-            <h3 className="font-semibold text-(--text-muted)">Daily Cost</h3>
+            <h3 className="font-semibold text-(--text-muted)">{_t('التكلفة اليومية', 'Daily Cost')}</h3>
           </div>
           <p className="text-3xl font-bold">${stats.dailyCost.toFixed(2)}</p>
         </div>
@@ -42,7 +44,7 @@ export default function RagCostDashboard() {
         <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="text-blue-600" size={24} />
-            <h3 className="font-semibold text-(--text-muted)">Tokens Embedded</h3>
+            <h3 className="font-semibold text-(--text-muted)">{_t('الرموز المدمجة (Tokens)', 'Tokens Embedded')}</h3>
           </div>
           <p className="text-3xl font-bold">{stats.tokensUsed.toLocaleString()}</p>
         </div>
@@ -50,7 +52,7 @@ export default function RagCostDashboard() {
         <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Database className="text-purple-600" size={24} />
-            <h3 className="font-semibold text-(--text-muted)">Total Chunks</h3>
+            <h3 className="font-semibold text-(--text-muted)">{_t('إجمالي الأجزاء (Chunks)', 'Total Chunks')}</h3>
           </div>
           <p className="text-3xl font-bold">{stats.totalChunks.toLocaleString()}</p>
         </div>
@@ -58,7 +60,7 @@ export default function RagCostDashboard() {
         <div className="bg-(--bg-secondary) border border-(--border) p-6 rounded-xl">
           <div className="flex items-center gap-3 mb-2">
             <Activity className="text-orange-600" size={24} />
-            <h3 className="font-semibold text-(--text-muted)">Active Tenants</h3>
+            <h3 className="font-semibold text-(--text-muted)">{_t('المستأجرين النشطين', 'Active Tenants')}</h3>
           </div>
           <p className="text-3xl font-bold">{stats.activeTenants}</p>
         </div>

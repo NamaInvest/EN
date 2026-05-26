@@ -1,3 +1,4 @@
+/* cspell:disable-file */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -153,38 +154,38 @@ export default function WmsWavesClient() {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[400px] text-destructive">
         <AlertCircle className="w-16 h-16 mb-4" />
-        <h2 className="text-2xl font-bold">Permission Denied</h2>
-        <p className="text-muted-foreground mt-2">You do not have the required access to view WMS Waves.</p>
+        <h2 className="text-2xl font-bold">{_t('تم رفض الإذن', 'Permission Denied')}</h2>
+        <p className="text-muted-foreground mt-2">{_t('ليس لديك الصلاحيات اللازمة لعرض موجات مستودع WMS.', 'You do not have the required access to view WMS Waves.')}</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">WMS Waves Control (Read-Only)</h1>
-          <p className="text-muted-foreground mt-1">Monitor picking waves, slotting, and task assignments securely.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{_t('لوحة موجات مستودع WMS (قراءة فقط)', 'WMS Waves Control (Read-Only)')}</h1>
+          <p className="text-muted-foreground mt-1">{_t('مراقبة موجات الالتقاط وتوزيع الأرفف وتكليفات المهام بأمان.', 'Monitor picking waves, slotting, and task assignments securely.')}</p>
         </div>
         <div className="flex items-center space-x-3">
           <Badge variant="outline" className="px-3 py-1 bg-primary/5 text-primary hidden sm:inline-flex">
             <Database className="w-4 h-4 mr-2" />
-            Enterprise WMS
+            {_t('نظام WMS للمؤسسات', 'Enterprise WMS')}
           </Badge>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Wave Draft
+                {_t('إنشاء مسودة موجة', 'Create Wave Draft')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Wave Draft</DialogTitle>
+                <DialogTitle>{_t('إنشاء مسودة موجة', 'Create Wave Draft')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Warehouse ID</label>
+                  <label className="text-sm font-medium">{_t('معرف المستودع', 'Warehouse ID')}</label>
                   <Input 
                     type="number" 
                     value={createForm.warehouseId} 
@@ -201,24 +202,24 @@ export default function WmsWavesClient() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">Priority 1 (Urgent)</SelectItem>
+                      <SelectItem value="1">{_t('أولوية 1 (عاجل)', 'Priority 1 (Urgent)')}</SelectItem>
                       <SelectItem value="2">{_t('الأولوية 2 (طبيعي)', 'Priority 2 (Normal)')}</SelectItem>
                       <SelectItem value="3">{_t('الأولوية 3 (منخفض)', 'Priority 3 (Low)')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Source Order IDs (comma separated)</label>
+                  <label className="text-sm font-medium">{_t('معرفات طلبات المصدر (مفصولة بفاصلة)', 'Source Order IDs (comma separated)')}</label>
                   <Input 
                     placeholder="e.g. 1, 2, 3" 
                     value={createForm.orderIdsText} 
                     onChange={e => setCreateForm(prev => ({ ...prev, orderIdsText: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">Only CONFIRMED orders will be processed.</p>
+                  <p className="text-xs text-muted-foreground">{_t('سيتم معالجة الطلبات المؤكدة فقط.', 'Only CONFIRMED orders will be processed.')}</p>
                 </div>
                 <Button onClick={handleCreateWave} disabled={createLoading} className="w-full">
                   {createLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                  Create Wave
+                  {_t('إنشاء موجة', 'Create Wave')}
                 </Button>
               </div>
             </DialogContent>
@@ -232,7 +233,7 @@ export default function WmsWavesClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Waves</p>
+                <p className="text-sm font-medium text-muted-foreground">{_t('إجمالي الموجات', 'Total Waves')}</p>
                 <h3 className="text-2xl font-bold mt-1">{loading ? '-' : totalWaves}</h3>
               </div>
               <Box className="w-8 h-8 text-blue-500 opacity-80" />
@@ -243,7 +244,7 @@ export default function WmsWavesClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Planning (Draft)</p>
+                <p className="text-sm font-medium text-muted-foreground">{_t('التخطيط (مسودة)', 'Planning (Draft)')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-orange-500">{loading ? '-' : draftWaves}</h3>
               </div>
               <FileText className="w-8 h-8 text-orange-500 opacity-80" />
@@ -254,7 +255,7 @@ export default function WmsWavesClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Ready to Pick</p>
+                <p className="text-sm font-medium text-muted-foreground">{_t('جاهز للالتقاط', 'Ready to Pick')}</p>
                 <h3 className="text-2xl font-bold mt-1 text-purple-500">{loading ? '-' : readyWaves}</h3>
               </div>
               <GitMerge className="w-8 h-8 text-purple-500 opacity-80" />
@@ -290,8 +291,8 @@ export default function WmsWavesClient() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
-              <CardTitle>Active Waves</CardTitle>
-              <CardDescription>Live monitoring of warehouse waves</CardDescription>
+              <CardTitle>{_t('الموجات النشطة', 'Active Waves')}</CardTitle>
+              <CardDescription>{_t('مراقبة حية لموجات المستودع التفاعلية', 'Live monitoring of warehouse waves')}</CardDescription>
             </div>
             <div className="flex space-x-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -299,15 +300,15 @@ export default function WmsWavesClient() {
                   <SelectValue placeholder={_t('الحالة', 'Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="ALL">{_t('جميع الحالات', 'All Statuses')}</SelectItem>
                   <SelectItem value="DRAFT">{_t('مسودة', 'Draft')}</SelectItem>
-                  <SelectItem value="ALLOCATED">Allocated</SelectItem>
-                  <SelectItem value="PICKING">Picking</SelectItem>
+                  <SelectItem value="ALLOCATED">{_t('مخصصة', 'Allocated')}</SelectItem>
+                  <SelectItem value="PICKING">{_t('قيد الالتقاط', 'Picking')}</SelectItem>
                   <SelectItem value="COMPLETED">{_t('مكتمل', 'Completed')}</SelectItem>
                 </SelectContent>
               </Select>
               <Input 
-                placeholder="Search Wave..." 
+                placeholder={_t('بحث عن موجة...', 'Search Wave...')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-[200px]"
@@ -321,14 +322,14 @@ export default function WmsWavesClient() {
               <div className="p-8 text-center text-destructive bg-destructive/10 rounded-md">{error}</div>
             ) : waves.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground border-2 border-dashed rounded-md">
-                No waves found.
+                {_t('لم يتم العثور على أي موجات.', 'No waves found.')}
               </div>
             ) : (
               <div className="border rounded-md overflow-hidden">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted text-muted-foreground uppercase text-xs">
                     <tr>
-                      <th className="px-4 py-3">Wave No</th>
+                      <th className="px-4 py-3">{_t('رقم الموجة', 'Wave No')}</th>
                       <th className="px-4 py-3">{_t('الحالة', 'Status')}</th>
                       <th className="px-4 py-3">{_t('الأولوية', 'Priority')}</th>
                       <th className="px-4 py-3">{_t('مهام', 'Tasks')}</th>
@@ -341,7 +342,7 @@ export default function WmsWavesClient() {
                         <td className="px-4 py-3 font-medium">{w.waveNumber}</td>
                         <td className="px-4 py-3">
                           <Badge variant={w.status === 'COMPLETED' ? 'default' : w.status === 'DRAFT' ? 'secondary' : 'outline'}>
-                            {w.status}
+                            {w.status === 'DRAFT' ? _t('مسودة', 'DRAFT') : w.status === 'ALLOCATED' ? _t('مخصصة', 'ALLOCATED') : w.status === 'PICKING' ? _t('قيد الالتقاط', 'PICKING') : w.status === 'COMPLETED' ? _t('مكتمل', 'COMPLETED') : w.status}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
@@ -363,9 +364,9 @@ export default function WmsWavesClient() {
           <CardHeader>
             <CardTitle className="text-blue-700 dark:text-blue-400 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2" />
-              Wave Analysis Preview
+              {_t('معاينة تحليل الموجة', 'Wave Analysis Preview')}
             </CardTitle>
-            <CardDescription>Simulate picking paths before creation (Safe Read-Only)</CardDescription>
+            <CardDescription>{_t('محاكاة مسارات الالتقاط قبل الإنشاء (قراءة فقط آمنة)', 'Simulate picking paths before creation (Safe Read-Only)')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
@@ -374,14 +375,14 @@ export default function WmsWavesClient() {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               {previewLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calendar className="w-4 h-4 mr-2" />}
-              Generate AI Preview (Mock Orders)
+              {_t('توليد معاينة بالذكاء الاصطناعي (طلبات وهمية)', 'Generate AI Preview (Mock Orders)')}
             </Button>
             
             {previewData && (
               <div className="bg-background border rounded-md p-4 mt-4 text-sm shadow-sm space-y-3">
                 <div className="flex justify-between items-center border-b pb-2">
                   <span className="font-semibold">{previewData.waveId}</span>
-                  <Badge variant="secondary">{previewData.estimatedMinutes} Mins Est.</Badge>
+                  <Badge variant="secondary">{previewData.estimatedMinutes} {_t('دقيقة تقديرية', 'Mins Est.')}</Badge>
                 </div>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                   {previewData.tasks.map((t, idx) => (
@@ -395,7 +396,7 @@ export default function WmsWavesClient() {
                   ))}
                 </div>
                 <p className="text-xs text-center text-muted-foreground pt-2">
-                  * This is a read-only analysis. No actual tasks were saved.
+                  {_t('* هذه محاكاة قراءة فقط. لم يتم حفظ أي مهام فعلية.', '* This is a read-only analysis. No actual tasks were saved.')}
                 </p>
               </div>
             )}

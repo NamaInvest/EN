@@ -14,20 +14,20 @@ export default function TrainingComplianceDashboard() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Security Awareness Training Compliance</h1>
+      <h1 className="text-2xl font-bold mb-6">{_t('الامتثال لتدريب التوعية الأمنية للموظفين', 'Security Awareness Training Compliance')}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
           <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><BookOpen size={24} /></div>
           <div>
-            <p className="text-sm text-(--text-muted)">Total Employees</p>
+            <p className="text-sm text-(--text-muted)">{_t('إجمالي الموظفين', 'Total Employees')}</p>
             <p className="text-2xl font-bold">142</p>
           </div>
         </div>
         <div className="bg-(--bg-secondary) border border-(--border) p-4 rounded-xl flex items-center gap-4">
           <div className="p-3 bg-green-100 text-green-600 rounded-lg"><UserCheck size={24} /></div>
           <div>
-            <p className="text-sm text-(--text-muted)">Compliant (Last 12 Mo)</p>
+            <p className="text-sm text-(--text-muted)">{_t('ملتزم (آخر 12 شهراً)', 'Compliant (Last 12 Mo)')}</p>
             <p className="text-2xl font-bold">128</p>
           </div>
         </div>
@@ -62,13 +62,15 @@ export default function TrainingComplianceDashboard() {
                       emp.status === 'Overdue' ? 'bg-red-100 text-red-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
-                    {emp.status}
+                    {emp.status === 'Compliant' ? _t('ملتزم', 'Compliant') :
+                     emp.status === 'Overdue' ? _t('متأخر', 'Overdue') :
+                     _t('معلق', 'Pending')}
                   </span>
                 </td>
                 <td className="p-4 text-sm text-(--text-muted)">{emp.lastCompleted}</td>
                 <td className="p-4 text-sm">
                   {emp.status !== 'Compliant' && (
-                    <button className="text-blue-600 hover:underline">Send Reminder</button>
+                    <button className="text-blue-600 hover:underline">{_t('إرسال تذكير', 'Send Reminder')}</button>
                   )}
                 </td>
               </tr>
