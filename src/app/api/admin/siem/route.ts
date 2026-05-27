@@ -143,7 +143,7 @@ function deriveSeverity(
  *   4. OFF_HOURS: تسجيل دخول بين 22:00 و 06:00 (الرياض)
  *   5. PRIVILEGE_ESCALATION: تغيير role/permission على user آخر
  */
-function detectPatterns(events: SiemEvent[]): SiemPattern[] {
+export function detectPatterns(events: SiemEvent[]): SiemPattern[] {
   const patterns: SiemPattern[] = [];
 
   // Pattern 1: BRUTE_FORCE — تجميع MFA_FAIL حسب IP

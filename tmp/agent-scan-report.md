@@ -1,24 +1,29 @@
-# Agent Scan Report — Phase 5 Part 2C — SIEM UI Dashboard Alignment
+# Agent Scan Report — Phase 5 Part 3A — SIEM Detection Verification Tests
 
 ## 1. الملفات التي قرأتها (Files Scanned)
-- [src/app/(dashboard)/admin/siem/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/siem/page.tsx)
 - [src/app/api/admin/siem/route.ts](file:///d:/namasoft9-3-main/src/app/api/admin/siem/route.ts)
+- [src/__tests__/permissions/backend-rbac.test.ts](file:///d:/namasoft9-3-main/src/__tests__/permissions/backend-rbac.test.ts)
 
 ## 2. الملفات المرشحة للتعديل (Files to Modify)
-- [src/app/(dashboard)/admin/siem/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/siem/page.tsx)
+- [src/app/api/admin/siem/route.ts](file:///d:/namasoft9-3-main/src/app/api/admin/siem/route.ts) (لإضافة `export` لدالة الكشف للتحقق منها)
+- [src/__tests__/permissions/siem-detection.test.ts](file:///d:/namasoft9-3-main/src/__tests__/permissions/siem-detection.test.ts) [NEW] (ملف اختبارات مخصص ومنعزل للـ SIEM)
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- واجهة لوحة تحكم مراقبة الأمان (SIEM Dashboard UI)
+- محرك كشف التهديدات الأمني (SIEM Detection Engine)
 
-## 4. المخاطر (Risks)
-- **منخفضة جداً**: التعديل يقتصر على واجهة المستخدم (Frontend) ومحاذاة الأنواع (Typescript types) لتتوافق مع المدخلات الجديدة القادمة من الواجهة البرمجية (API). لا يوجد أي تعديل على قاعدة البيانات (Prisma) أو محرك كشف الأنماط، ولا يمس أي منطق مالي أو محاسبي.
+## 4. المخاطر وكيفية معالجتها (Risks & Mitigations)
+- **منخفضة جداً**: جميع الاختبارات تستخدم بيانات محاكاة مزيفة (Mocks) في الذاكرة دون الوصول الفعلي إلى قواعد البيانات الحية أو خوادم الإنتاج، ودون تشغيل أي حركة مرور شبكية ضارة.
 
 ## 5. خطة التنفيذ (Implementation Plan)
-1. **تحديث أنواع أحداث الأمان `SiemEventType`**: إضافة أنواع الأحداث الجديدة (`AUTH_FAIL` و `RBAC_DENIED` و `ADMIN_BYPASS`) في [page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/siem/page.tsx).
-2. **تحديث أنواع الأنماط المكتشفة `SiemPattern['patternType']`**: إضافة الأنماط الجديدة (`RBAC_CRAWL` و `API_BRUTE_FORCE` و `OFF_HOURS_BYPASS`) في [page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/siem/page.tsx).
-3. **تحديث ثوابت عرض الأنماط `PATTERN_META`**: إضافة تعريفات الأيقونات والترجمة (العربية والإنجليزية) للأنماط الجديدة في [page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/siem/page.tsx).
-4. **فحص الأنواع والتحقق**: تشغيل `npm run typecheck` للتأكد من المحاذاة الكاملة.
+1. **تعديل `route.ts`**: إضافة كلمة `export` قبل تعريف دالة `detectPatterns` لجعلها قابلة للاستيراد والاختبار.
+2. **إنشاء ملف اختبارات جديد `siem-detection.test.ts`**:
+   - اختبارات إيجابية لتنبيهات: `RBAC_CRAWL`, `API_BRUTE_FORCE`, `OFF_HOURS_BYPASS`.
+   - اختبارات سلبية للتأكد من عدم توليد تنبيهات تحت الشروط المحددة (Thresholds).
+   - اختبارات عزل وتجميع البيانات للتأكد من عدم تداخل عناوين الـ IP أو المستخدمين المختلفين.
+3. **التشغيل والتحقق**: تشغيل `npm run typecheck` و `npx prisma validate` واختبارات الـ Jest.
 
 ## 6. خطة الاختبار (Testing Plan)
-- تشغيل `npm run typecheck` للتحقق من عدم وجود أي خطأ TypeScript.
-- تشغيل `npx prisma validate` للتأكد من سلامة مخطط قاعدة البيانات.
+- تشغيل اختبارات الـ SIEM الجديدة:
+  ```bash
+  npx jest src/__tests__/permissions/siem-detection.test.ts --runInBand --forceExit
+  ```
