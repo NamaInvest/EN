@@ -55,6 +55,10 @@ export interface WithRouteOptions {
    * to environment/default tenant. Defaults to authenticated routes only.
    */
   tenantRequired?: boolean;
+  /** Optional granular RBAC checking module (e.g. 'treasury', 'payroll') */
+  module?: string;
+  /** Optional override for granular permission action. Mapped by request method if omitted. */
+  permission?: 'view' | 'add' | 'edit' | 'delete' | 'print';
 }
 
 const RATE_LIMITS: Record<RateLimitTier, { max: number; windowMs: number }> = {
@@ -193,6 +197,55 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
       const response = await currentRequestStore.run(tenant, async () => {
         const prisma = getPrisma(req as any, { requireTenant: tenantRequired });
+
+        // Centrally enforce granular RBAC if 'module' is specified
+        if (requireAuth && options.module) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: auth.userId },
+            select: { id: true, role: true, permissions: true },
+          });
+
+          if (!dbUser) {
+            httpRequestsTotal.inc({ method, status: '401', route: pathname });
+            return NextResponse.json(
+              { error: 'Unauthorized', message: 'المستخدم غير موجود' },
+              { status: 401, headers: { 'X-Request-Id': requestId } }
+            );
+          }
+
+          // Admin and Owner roles bypass module-level permission checks
+          if (dbUser.role !== 'admin' && dbUser.role !== 'owner') {
+            const userPerm = dbUser.permissions.find((p: any) => p.module === options.module);
+            if (!userPerm) {
+              httpRequestsTotal.inc({ method, status: '403', route: pathname });
+              return NextResponse.json(
+                { error: 'Forbidden', message: 'صلاحيات غير كافية للوصول إلى هذا القسم' },
+                { status: 403, headers: { 'X-Request-Id': requestId } }
+              );
+            }
+
+            const action = options.permission || 
+              (method === 'GET' ? 'view' : 
+               method === 'POST' ? 'add' : 
+               method === 'DELETE' ? 'delete' : 'edit');
+
+            let isAllowed = false;
+            if (action === 'view' && userPerm.canView) isAllowed = true;
+            else if (action === 'add' && userPerm.canAdd) isAllowed = true;
+            else if (action === 'edit' && userPerm.canEdit) isAllowed = true;
+            else if (action === 'delete' && userPerm.canDelete) isAllowed = true;
+            else if (action === 'print' && userPerm.canPrint) isAllowed = true;
+
+            if (!isAllowed) {
+              httpRequestsTotal.inc({ method, status: '403', route: pathname });
+              return NextResponse.json(
+                { error: 'Forbidden', message: 'صلاحيات غير كافية لإجراء هذه العملية' },
+                { status: 403, headers: { 'X-Request-Id': requestId } }
+              );
+            }
+          }
+        }
+
         return handler({ req, prisma: prisma as any, auth, tenant, tenantContext, requestId }, context);
       });
 
