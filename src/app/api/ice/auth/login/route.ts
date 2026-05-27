@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         name: 'ice_2fa_pending',
         value: pendingToken,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
         sameSite: 'lax',
         path: '/',
         maxAge: 5 * 60, // 5 minutes
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       name: 'ice_session',
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax',
       path: '/',
       maxAge: 8 * 60 * 60, // 8 hours
