@@ -96,6 +96,6 @@ async function _GET(request: NextRequest) {
   return NextResponse.json({ success: true, type, data: result });
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'accounting', permission: 'view' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', module: 'accounting', permission: 'view' });
