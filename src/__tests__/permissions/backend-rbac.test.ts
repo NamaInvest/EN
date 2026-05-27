@@ -48,6 +48,9 @@ jest.mock('@/lib/prisma', () => {
     user: {
       findUnique: jest.fn(),
     },
+    auditLog: {
+      create: jest.fn().mockResolvedValue({ id: 'mock-audit-id' }),
+    },
   };
   
   return {
@@ -72,6 +75,7 @@ describe('Centralized Backend RBAC (withRoute)', () => {
   let mockHandler: jest.Mock;
   let mockFindUniqueUser: jest.Mock;
   let mockGetUserFromRequest: jest.Mock;
+  let mockAuditLogCreate: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -81,6 +85,7 @@ describe('Centralized Backend RBAC (withRoute)', () => {
     // Retrieve the mocked findUnique method dynamically
     const prisma = require('@/lib/prisma').getPrisma();
     mockFindUniqueUser = prisma.user.findUnique as jest.Mock;
+    mockAuditLogCreate = prisma.auditLog.create as jest.Mock;
 
     // Retrieve the mocked auth getUserFromRequest method dynamically
     const auth = require('@/lib/auth');
@@ -249,5 +254,164 @@ describe('Centralized Backend RBAC (withRoute)', () => {
     });
 
     expect(res.status).toBe(403);
+  });
+
+  // ── Phase 5 Security Event Logging Tests ────────────────────────────────────
+
+  it('should block with 401 if user is unauthenticated and log AUTH_FAIL asynchronously', async () => {
+    mockGetUserFromRequest.mockReturnValue(null); // Unauthenticated
+
+    const req = new NextRequest('http://localhost/api/sensitive-route', {
+      headers: {
+        'user-agent': 'test-agent',
+        'x-real-ip': '1.2.3.4'
+      }
+    });
+    const res = await runWrappedRoute(req, { requireAuth: true });
+    
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body.error).toBe('Unauthorized');
+    expect(mockHandler).not.toHaveBeenCalled();
+
+    // Drain microtasks to allow fire-and-forget audit log to run
+    await new Promise(resolve => setTimeout(resolve, 5));
+
+    expect(mockAuditLogCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'AUTH_FAIL',
+        entityType: 'API_ROUTE',
+        entityId: 'GET:/api/sensitive-route',
+        route: '/api/sensitive-route',
+        ipAddress: '1.2.3.4',
+        userAgent: 'test-agent',
+        newData: expect.objectContaining({
+          method: 'GET',
+          path: '/api/sensitive-route',
+          statusCode: 401,
+          reason: 'يجب تسجيل الدخول أولاً',
+          ip: '1.2.3.4',
+          userAgent: 'test-agent'
+        })
+      })
+    });
+  });
+
+  it('should block with 403 and log RBAC_DENIED if user lacks dynamic module permission', async () => {
+    mockGetUserFromRequest.mockReturnValue({
+      userId: 123,
+      role: 'cashier',
+      tenantId: 'n11',
+    });
+
+    mockFindUniqueUser.mockResolvedValue({
+      id: 123,
+      role: 'cashier',
+      permissions: [], // No module permissions
+    });
+
+    const req = new NextRequest('http://localhost/api/treasury/cash-position', {
+      headers: {
+        'user-agent': 'test-agent',
+        'x-real-ip': '1.2.3.4'
+      }
+    });
+    const res = await runWrappedRoute(req, {
+      requireAuth: true,
+      module: 'treasury',
+    });
+
+    expect(res.status).toBe(403);
+    expect(mockHandler).not.toHaveBeenCalled();
+
+    // Drain microtasks to allow fire-and-forget audit log to run
+    await new Promise(resolve => setTimeout(resolve, 5));
+
+    expect(mockAuditLogCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'RBAC_DENIED',
+        entityType: 'API_ROUTE',
+        entityId: 'GET:/api/treasury/cash-position',
+        route: '/api/treasury/cash-position',
+        userId: 123,
+        ipAddress: '1.2.3.4',
+        userAgent: 'test-agent',
+        newData: expect.objectContaining({
+          method: 'GET',
+          path: '/api/treasury/cash-position',
+          statusCode: 403,
+          module: 'treasury',
+          permission: 'view',
+          reason: 'المستخدم لا يملك أي صلاحيات للموديول المطلوب',
+          ip: '1.2.3.4',
+          userAgent: 'test-agent'
+        })
+      })
+    });
+  });
+
+  it('should bypass module check and log ADMIN_BYPASS if role is admin', async () => {
+    mockGetUserFromRequest.mockReturnValue({
+      userId: 999,
+      role: 'admin',
+      tenantId: 'n11',
+    });
+
+    mockFindUniqueUser.mockResolvedValue({
+      id: 999,
+      role: 'admin',
+      permissions: [], // No explicit module permissions
+    });
+
+    const req = new NextRequest('http://localhost/api/treasury/cash-position', {
+      headers: {
+        'user-agent': 'test-agent',
+        'x-real-ip': '1.2.3.4'
+      }
+    });
+    const res = await runWrappedRoute(req, {
+      requireAuth: true,
+      module: 'treasury',
+    });
+
+    expect(res.status).toBe(200);
+    expect(mockHandler).toHaveBeenCalled();
+
+    // Drain microtasks to allow fire-and-forget audit log to run
+    await new Promise(resolve => setTimeout(resolve, 5));
+
+    expect(mockAuditLogCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: 'ADMIN_BYPASS',
+        entityType: 'API_ROUTE',
+        entityId: 'GET:/api/treasury/cash-position',
+        route: '/api/treasury/cash-position',
+        userId: 999,
+        ipAddress: '1.2.3.4',
+        userAgent: 'test-agent',
+        newData: expect.objectContaining({
+          method: 'GET',
+          path: '/api/treasury/cash-position',
+          role: 'admin',
+          module: 'treasury',
+          permission: 'view',
+          ip: '1.2.3.4',
+          userAgent: 'test-agent'
+        })
+      })
+    });
+  });
+
+  it('should not break the API response if audit logging fails', async () => {
+    mockGetUserFromRequest.mockReturnValue(null); // Unauthenticated
+    mockAuditLogCreate.mockRejectedValue(new Error('Database disconnected'));
+
+    const req = new NextRequest('http://localhost/api/sensitive-route');
+    const res = await runWrappedRoute(req, { requireAuth: true });
+    
+    // Original API response should still be returned completely successfully
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body.error).toBe('Unauthorized');
   });
 });
