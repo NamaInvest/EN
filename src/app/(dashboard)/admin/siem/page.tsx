@@ -63,6 +63,7 @@ type SiemSource = 'audit' | 'mfa' | 'field_audit' | 'compliance' | 'safety';
 
 type SiemEventType =
   | 'AUDIT_CREATE' | 'AUDIT_UPDATE' | 'AUDIT_DELETE' | 'AUDIT_EXECUTE'
+  | 'AUTH_FAIL' | 'RBAC_DENIED' | 'ADMIN_BYPASS'
   | 'MFA_SUCCESS' | 'MFA_FAIL'
   | 'LOGIN_SUCCESS' | 'LOGIN_FAIL'
   | 'FIELD_CHANGE' | 'COMPLIANCE_VIOLATION' | 'SAFETY_INCIDENT';
@@ -85,7 +86,7 @@ interface SiemEvent {
 
 interface SiemPattern {
   id: string;
-  patternType: 'BRUTE_FORCE' | 'PRIVILEGE_ESCALATION' | 'MASS_EXPORT' | 'OFF_HOURS' | 'MFA_BURST';
+  patternType: 'BRUTE_FORCE' | 'PRIVILEGE_ESCALATION' | 'MASS_EXPORT' | 'OFF_HOURS' | 'MFA_BURST' | 'RBAC_CRAWL' | 'API_BRUTE_FORCE' | 'OFF_HOURS_BYPASS';
   severity: SiemSeverity;
   detectedAt: string;
   description: string;
@@ -129,6 +130,9 @@ const PATTERN_META: Record<SiemPattern['patternType'], { ar: string; en: string;
   MASS_EXPORT:          { ar: 'تصدير ضخم',         en: 'Mass Export',          icon: Download },
   OFF_HOURS:            { ar: 'دخول خارج الدوام',  en: 'Off-Hours Login',      icon: Clock },
   PRIVILEGE_ESCALATION: { ar: 'تصعيد صلاحيات',     en: 'Privilege Escalation', icon: Zap },
+  RBAC_CRAWL:           { ar: 'محاولة زحف الصلاحيات', en: 'RBAC Crawl Anomaly', icon: Shield },
+  API_BRUTE_FORCE:      { ar: 'هجوم Brute Force مكثف', en: 'API Brute Force Attack', icon: AlertOctagon },
+  OFF_HOURS_BYPASS:     { ar: 'تجاوز أمني خارج الدوام', en: 'Off-Hours Admin Bypass', icon: Clock },
 };
 
 /** Time window presets (للـ dropdown) */
