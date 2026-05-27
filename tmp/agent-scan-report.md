@@ -1,63 +1,51 @@
-# 🛡️ Agent Scan & Impact Analysis Report
-**Phase 3 Part 1 — Permissions, RBAC & Granular Audit UX**
+# Agent Scan Report — Phase 3 Part 2 (Backend Enforcement Review)
 
 ## 1. الملفات التي تمت قراءتها وفحصها (Files Scanned)
-- `AGENTS.md` — ملف قواعد الحوكمة والتحكم المحاسبي والسيبراني.
-- `tmp/phase-3-part-1-rbac-audit-scan-plan.md` — الخطة المرجعية المعتمدة.
-- `prisma/schema.prisma` — بنية جدول صلاحيات المستخدمين وسجلات التدقيق.
-- `src/app/api/auth/me/route.ts` — الـ endpoint المسؤول عن استخراج `permissionsMap`.
-- `src/hooks/useUserPermissions.ts` — خطاف الصلاحيات الموحد (مكتمل بالكامل في الخطوات السابقة).
-- `src/components/security/PermissionGate.tsx` — مكون التحقق البصري لتشغيل conditional rendering.
-- `src/components/security/SensitiveValue.tsx` — مكون حجب وتعمية البيانات المالية الحساسة.
-- لوحات التحكم السبعة في الدومينات المختلفة:
-  1. الرواتب والأجور: `src/app/(dashboard)/payroll/page.tsx`
-  2. الموارد البشرية: `src/app/(dashboard)/hr/page.tsx`
-  3. المبيعات: `src/app/(dashboard)/sales/page.tsx`
-  4. المشتريات والتوريد: `src/app/(dashboard)/purchases/page.tsx`
-  5. الأصول الثابتة: `src/app/(dashboard)/fixed-assets/page.tsx`
-  6. إدارة علاقات العملاء (CRM): `src/app/(dashboard)/crm/page.tsx`
-  7. المشاريع والـ PMO: `src/app/(dashboard)/projects/page.tsx`
+- `d:\namasoft9-3-main\middleware.ts` — Edge Middleware logic.
+- `d:\namasoft9-3-main\src\lib\api\with-route.ts` — Global route handler decorator.
+- `d:\namasoft9-3-main\src\lib\auth.ts` — Authentication verification & hasPermission helper.
+- `d:\namasoft9-3-main\src\lib\prisma.ts` — Multi-tenant client builder and `smartPrisma` proxy.
+- `d:\namasoft9-3-main\src\app\api\auth\me\route.ts` — Current user info and permissions map payload.
+- `d:\namasoft9-3-main\src\app\api\audit-logs\route.ts` — Audit log query route.
+- `d:\namasoft9-3-main\src\app\api\treasury\cash-position\route.ts` — Treasury snapshot route.
+- `d:\namasoft9-3-main\src\app\api\treasury\dashboard\route.ts` — Treasury sums & recent items route.
+- `d:\namasoft9-3-main\src\app\api\payroll\route.ts` — Payroll run, loans, GOSI compliance route.
+- `d:\namasoft9-3-main\src\app\api\sales\route.ts` — Sales invoices queries, postings, payments, deletes.
+- `d:\namasoft9-3-main\src\app\api\purchase-orders\route.ts` — Purchases registry and saga execution.
+- `d:\namasoft9-3-main\src\app\api\fixed-assets\route.ts` — Fixed assets register.
+- `d:\namasoft9-3-main\src\app\api\projects\evm\route.ts` — PMO EVM analytics.
+- `d:\namasoft9-3-main\src\app\api\crm\opportunities\route.ts` — Deals and CRM pipeline status.
+- `d:\namasoft9-3-main\src\app\api\settings\roles\route.ts` — Role management route.
 
 ## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
-- `src/app/(dashboard)/payroll/page.tsx` (تطبيق حجب رواتب المسير واشتراكات التأمينات وجدول المسير المعاين)
-- `src/app/(dashboard)/hr/page.tsx` (تطبيق حجب تعداد الموظفين وجدول آخر التعيينات)
-- `src/app/(dashboard)/sales/page.tsx` (تطبيق حجب مبيعات اليوم وإجمالي مبيعات الدورة وقيمة الفواتير في الجدول)
-- `src/app/(dashboard)/purchases/page.tsx` (تطبيق حجب إجمالي نفقات الشراء وقيم فواتير الشراء في الجدول)
-- `src/app/(dashboard)/fixed-assets/page.tsx` (تطبيق حجب إجمالي تكلفة الأصول والقيمة الدفترية والإهلاك وجدول الأصول)
-- `src/app/(dashboard)/crm/page.tsx` (تطبيق حجب إجمالي الإيرادات المتوقعة وقيم صفقات العملاء بالجدول)
-- `src/app/(dashboard)/projects/page.tsx` (تطبيق حجب ميزانيات المحفظة والـ EVM المصروف وتفاصيل المشروع والجدول)
+- `src/lib/api/with-route.ts` — To add global `module` declarative checking logic.
+- `src/app/api/audit-logs/route.ts` — To restrict logs access to specific roles (`admin`/`owner`).
+- `src/app/api/treasury/cash-position/route.ts` & `dashboard/route.ts` — To check `treasury` permissions.
+- `src/app/api/payroll/route.ts` — To check `hr`/`payroll` permissions.
+- `src/app/api/sales/route.ts` — To check `sales` permissions on GET/POST/PUT.
+- `src/app/api/purchase-orders/route.ts` — To check `purchases` permissions.
+- `src/app/api/fixed-assets/route.ts` — To check `assets` permissions.
+- `src/app/api/projects/evm/route.ts` — To check `projects` permissions.
+- `src/app/api/crm/opportunities/route.ts` — To check `crm` permissions.
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **دومين الرواتب (Payroll)**
-- **دومين الموارد البشرية (HR)**
-- **دومين المبيعات (Sales)**
-- **دومين المشتريات (Purchases/Procurement)**
-- **دومين الأصول الثابتة (Fixed Assets)**
-- **دومين علاقات العملاء (CRM)**
-- **دومين المشاريع (Projects)**
+- **GRC / Security Infrastructure:** Unified route decorators.
+- **Treasury, Payroll, HR, Sales, Purchases, Fixed Assets, Projects, CRM:** Backend RBAC enforcement.
 
-## 4. المخاطر والاحتياطات (Risks & Mitigations)
-- **الخطر 1: Hydration Mismatch في Next.js**
-  - *الوصف:* اختلاف الحالة في خادم العرض الأولي عن المتصفح بسبب تأخر الصلاحيات.
-  - *الاحتياط:* عرض حالة تحميل هيكلية `...` آمنة أو تعمية افتراضية `••••••` لحين تحميل الصلاحيات.
-- **الخطر 2: كسر المنطق المالي المترابط**
-  - *الوصف:* التأثير على عمليات الاحتساب أو القيود المحاسبية.
-  - *الاحتياط:* تعديلات بصرية صرفة على مستوى العرض (`UI-only masking`) دون المساس بالبيانات المخزنة أو منطق الـ API الخلفي أو الحسابات.
-- **الخطر 3: تعطل المتصفح بسبب عدم تحميل كائن الصلاحيات**
-  - *الوصف:* عدم وجود صلاحية معينة مسبقاً مما يؤدي لـ `NullReferenceException`.
-  - *الاحتياط:* معالجة آمنة بـ `Optional Chaining` في الخطاف والمكونات المانعة، مع الافتراض الصارم بالرفض والتعمية كحالة افتراضية.
+## 4. المخاطر (Security & Operational Risks)
+- **مستوى الخطر: حرج (CRITICAL).**
+- **تسريب البيانات (Data Leakage):** مستخدم بسيط بصلاحيات محدودة في الواجهة يمكنه استدعاء الـ APIs مباشرة وقراءة ملايين السجلات المحاسبية والرواتب.
+- **تعديل بدون صلاحية (Unauthorized Writes):** إمكانية استدعاء الـ POST/PUT لتعديل الفواتير أو تشغيل الرواتب دون إذن.
+- **أمان العزل (Tenant Security):** ممتاز وخالٍ من الثغرات بفضل الـ Multi-tenant auto-scoping في Prisma.
 
-## 5. خطة التنفيذ البصرية الصارمة (Safe Implementation Plan)
-- **المرحلة 1:** تعديل لوحة الرواتب (`payroll/page.tsx`) لحجب إجمالي المسير والجدول.
-- **المرحلة 2:** تعديل لوحة الموارد البشرية (`hr/page.tsx`) لحجب التعداد والجدول عند الحاجة.
-- **المرحلة 3:** تعديل لوحة المبيعات (`sales/page.tsx`) لحجب أرقام الأرباح والإيرادات ومبالغ الجدول الفردية.
-- **المرحلة 4:** تعديل لوحة المشتريات (`purchases/page.tsx`) لحجب إجمالي الشراء ومبالغ الجدول الفردية.
-- **المرحلة 5:** تعديل لوحة الأصول الثابتة (`fixed-assets/page.tsx`) لحجب القيم التكلفية والدفترية والإهلاكية.
-- **المرحلة 6:** تعديل لوحة علاقات العملاء (`crm/page.tsx`) لحجب قيم الفرص المتوقعة.
-- **المرحلة 7:** تعديل لوحة المشاريع (`projects/page.tsx`) لحجب الميزانيات التقديرية والتكاليف الفعلية ومؤشرات EVM.
+## 5. خطة التنفيذ (Implementation Plan - Proposed for Part 2)
+1. تعديل خيارات `withRoute` في `src/lib/api/with-route.ts` لدعم التحقق التلقائي من الصلاحية بمجرد تمرير اسم الموديول.
+2. تفعيل الحماية declarative-style في موديول الخزينة ورواتب الموظفين.
+3. تفعيل الحماية في موديولات المبيعات والمشتريات والأصول والمشاريع والـ CRM.
+4. تفعيل التحقق الحازم من أدوار المسؤولين (`admin`/`owner`) للوصول لـ `/api/audit-logs`.
 
-## 6. خطة الاختبار والتحقق الفني (Testing & Verification Plan)
-- تشغيل `npm run typecheck` لضمان عدم وجود أخطاء في أنواع TypeScript بعد إدراج المكونات المانعة.
-- تشغيل `npx prisma validate` للتأكد التام من سلامة نموذج البيانات وخلوه من التغيرات.
-- تشغيل `npm run build` لضمان صحة البناء النهائي وخلو التطبيق من أي ثغرات أو placeholders.
-- اختبار العرض والتعمية بالمتصفح لكل الأدوار للتأكد من فاعلية التعتيم.
+## 6. خطة الاختبار (Testing Plan)
+- **Typecheck & Prisma:** تشغيل `npm run typecheck` و `npx prisma validate`.
+- **E2E / Integration Tests:** اختبار استجابة الـ APIs بـ HTTP 403 Forbidden لمستخدم لا يمتلك الصلاحية و HTTP 200 للمصرح له.
+
+*ملاحظة: هذا التقرير هو فحص وتخطيط فقط (SCAN + PLAN ONLY) بناءً على توجيهات العميل الصارمة. لم يتم تعديل أي كود أو إنشاء commits.*
