@@ -42,4 +42,4 @@ async function handler(ctx: any) {
   }
 }
 
-export const GET = withRoute(handler, { rateLimit: 'DEFAULT' });
+export const GET = withRoute(handler, { rateLimit: 'DEFAULT', module: 'treasury' });
