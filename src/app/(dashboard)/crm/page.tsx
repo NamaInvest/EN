@@ -4,6 +4,9 @@ import { useTranslation } from "@/lib/i18n";
 import { Users, Search, Landmark, TrendingUp, HelpCircle, ArrowRight, Activity, DollarSign, Percent, AlertTriangle, Ban, ShieldCheck, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface Lead {
   id: number;
   companyName: string;
@@ -164,7 +167,13 @@ export default function CrmDashboardPage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{c.l}</span>
               <c.ic size={20} color={c.c} />
             </div>
-            <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.v}</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {i === 1 ? (
+                <SensitiveValue value={`${fmt(expectedRevenueTotal)}`} currency={_t('ر.س', 'SAR')} module="crm" />
+              ) : (
+                c.v
+              )}
+            </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.s}</div>
           </div>
         ))}
@@ -197,7 +206,9 @@ export default function CrmDashboardPage() {
                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{l.companyName}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{l.contactPerson}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#047857', textAlign: 'left', fontWeight: '800', fontFamily: 'monospace' }} dir="ltr">{fmt(l.expectedRevenue)}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#047857', textAlign: 'left', fontWeight: '800', fontFamily: 'monospace' }} dir="ltr">
+                        <SensitiveValue value={fmt(l.expectedRevenue)} module="crm" />
+                      </td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '20px', background: l.score > 50 ? '#ECFDF5' : '#FFFBEB', color: l.score > 50 ? '#047857' : '#B45309', fontWeight: 'bold' }}>
                           {l.score} {_t('نقطة', 'pts')}

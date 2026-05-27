@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { Form, FormField, FormSelect } from '@/components/forms';
 import { Building, Landmark, Percent, Ban, AlertTriangle, Plus, RefreshCw, Trash2, History, MapPin, Calendar, DollarSign, Activity } from 'lucide-react';
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface DepreciationRecord { id: number; depreciationDate: string; amount: number; }
 interface FixedAssetItem { id: number; assetName: string; assetType: string; purchaseDate: string; purchaseCost: number; salvageValue: number; usefulLifeYears: number; currentValue: number; location: string | null; status: string; depreciations: DepreciationRecord[]; }
 
@@ -128,9 +131,9 @@ export default function FixedAssetsPage() {
   const totalDepreciation = totalCost - totalBookValue;
 
   const kpis = [
-    { l: t('sys.str_4206'), v: `${fmt(totalCost)} ${t('sys.str_4105')}`, s: t('sys.str_4209'), sv: assets.length, c: '#4F46E5', ic: Landmark },
-    { l: t('sys.str_4207'), v: `${fmt(totalBookValue)} ${t('sys.str_4105')}`, s: _t('صافي القيمة الحالية للأصول', 'Current net book value'), c: '#10B981', ic: Building },
-    { l: t('sys.str_4208'), v: `${fmt(totalDepreciation)} ${t('sys.str_4105')}`, s: _t('استقطاعات الإهلاك المتراكمة', 'Accumulated depreciation deductions'), c: '#F59E0B', ic: Percent },
+    { l: t('sys.str_4206'), v: totalCost, s: t('sys.str_4209'), sv: assets.length, c: '#4F46E5', ic: Landmark },
+    { l: t('sys.str_4207'), v: totalBookValue, s: _t('صافي القيمة الحالية للأصول', 'Current net book value'), c: '#10B981', ic: Building },
+    { l: t('sys.str_4208'), v: totalDepreciation, s: _t('استقطاعات الإهلاك المتراكمة', 'Accumulated depreciation deductions'), c: '#F59E0B', ic: Percent },
   ];
 
   return (
@@ -157,7 +160,9 @@ export default function FixedAssetsPage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{k.l}</span>
               <k.ic size={20} color={k.c} />
             </div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0' }}>{k.v}</div>
+            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0' }}>
+              <SensitiveValue value={fmt(Number(k.v))} currency={t('sys.str_4105')} module="assets" />
+            </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Activity size={12} color={k.c} /> {k.s} {k.sv !== undefined && <strong>({k.sv})</strong>}
             </div>
@@ -202,8 +207,12 @@ export default function FixedAssetsPage() {
                     <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{a.assetName}</td>
                     <td style={{ padding: '12px 16px' }}><span className="badge badge-outline" style={{ fontSize: '12px' }}>{typeLabel(a.assetType)}</span></td>
                     <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>{new Date(a.purchaseDate).toLocaleDateString('en-GB')}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'monospace', fontSize: '13px' }} dir="ltr">{fmt(a.purchaseCost)}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '700', color: a.currentValue <= a.salvageValue ? '#F59E0B' : '#10B981', fontFamily: 'monospace', fontSize: '14px' }} dir="ltr">{fmt(a.currentValue)}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'left', fontFamily: 'monospace', fontSize: '13px' }} dir="ltr">
+                      <SensitiveValue value={fmt(a.purchaseCost)} module="assets" />
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '700', color: a.currentValue <= a.salvageValue ? '#F59E0B' : '#10B981', fontFamily: 'monospace', fontSize: '14px' }} dir="ltr">
+                      <SensitiveValue value={fmt(a.currentValue)} module="assets" />
+                    </td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{a.usefulLifeYears} {t('sys.str_4217')}</td>
                     <td style={{ padding: '12px 16px' }}><span className={`badge ${statusLabels[a.status]?.cls || ''}`} style={{ background: statusLabels[a.status]?.color, color: '#fff', fontSize: '11px', padding: '3px 8px', borderRadius: '4px' }}>{statusLabels[a.status]?.label || a.status}</span></td>
                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>

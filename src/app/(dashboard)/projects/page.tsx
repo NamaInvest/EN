@@ -4,6 +4,9 @@ import { useTranslation } from "@/lib/i18n";
 import { FolderGit2, Landmark, CheckSquare, ShieldAlert, Users, Calendar, ArrowRight, DollarSign, Clock, AlertTriangle, Ban, Info, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface ProjectListItem {
   id: number;
   name: string;
@@ -192,8 +195,24 @@ export default function ProjectsDashboardPage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{c.l}</span>
               <c.ic size={20} color={c.c} />
             </div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.v}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.s}</div>
+            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {i === 1 ? (
+                <SensitiveValue value={`${fmt(combinedBudget)}`} currency={_t('ر.س', 'SAR')} module="projects" />
+              ) : i === 2 ? (
+                <SensitiveValue value={`${fmt(combinedConsumed)}`} currency={_t('ر.س', 'SAR')} module="projects" />
+              ) : (
+                c.v
+              )}
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              {i === 2 ? (
+                <>
+                  {_t('المتبقي:', 'Remaining:')} <SensitiveValue value={fmt(combinedRemaining)} module="projects" />
+                </>
+              ) : (
+                c.s
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -229,7 +248,7 @@ export default function ProjectsDashboardPage() {
                     <div style={{ width: `${Math.min(Number(projectDetail.analytics?.budgetUtilization ?? 0), 100)}%`, height: '100%', background: projectDetail.budgetHealth === 'healthy' ? '#10B981' : projectDetail.budgetHealth === 'warning' ? '#F59E0B' : '#EF4444', borderRadius: '4px' }}></div>
                   </div>
                   <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                    {_t('المصروف:', 'Spent:')} {fmt(projectDetail.consumedBudget)} / {fmt(projectDetail.budget)}
+                    {_t('المصروف:', 'Spent:')} <SensitiveValue value={fmt(projectDetail.consumedBudget)} module="projects" /> / <SensitiveValue value={fmt(projectDetail.budget)} module="projects" />
                   </div>
                 </div>
 
@@ -294,8 +313,12 @@ export default function ProjectsDashboardPage() {
                         {p.name} {selectedProjectId === p.id && <ChevronRight size={14} />}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{p.customer?.name || _t('عميل عام', 'General Customer')}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">{fmt(p.budget)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">{fmt(p.consumedBudget)}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">
+                        <SensitiveValue value={fmt(p.budget)} module="projects" />
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">
+                        <SensitiveValue value={fmt(p.consumedBudget)} module="projects" />
+                      </td>
                       <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                         <span style={{ fontSize: '12px', fontWeight: 'bold', fontFamily: 'monospace' }}>{p.taskProgress}%</span>
                       </td>

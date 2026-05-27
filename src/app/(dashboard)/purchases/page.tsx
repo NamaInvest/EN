@@ -11,6 +11,9 @@ import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
 import { useToast } from '@/components/Toast';
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface PurchaseInvoice {
   id: number;
   invoiceNo: number;
@@ -265,7 +268,7 @@ export default function ProcurementDashboard() {
                 </div>
               </div>
               <h3 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: '0 0 0.5rem', fontFamily: 'monospace', color: 'var(--text)' }}>
-                {fmt(kpis.totalPurchasesAmount)} <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>{_t('ر.س', 'SAR')}</span>
+                <SensitiveValue value={fmt(kpis.totalPurchasesAmount)} currency={_t('ر.س', 'SAR')} module="purchases" />
               </h3>
               <span style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <ShieldCheck size={12} /> {_t('تقييم التكلفة بناءً على المورد المعتمد', 'Weighted Costing')}
@@ -432,7 +435,7 @@ export default function ProcurementDashboard() {
                           {getStatusBadge(inv)}
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'left', fontWeight: 'bold', fontSize: '1rem' }}>
-                          {fmt(inv.total)} SAR
+                          <SensitiveValue value={fmt(inv.total)} currency="SAR" module="purchases" />
                         </td>
                       </tr>
                     ))}
