@@ -47,6 +47,8 @@ const PUBLIC_ROUTES = [
   '/api/tenant/check-status',      // read-only — checks if user has provisioned tenant
   '/api/tenant/status',            // legacy read-only tenant status lookup used by auth routing
   '/api/translate',                // Public translation endpoint for onboarding
+  '/api/ice/auth/login',           // ICE admin login
+  '/api/ice/auth/2fa/verify',      // ICE admin 2FA verification
 ];
 
 // ── Permanently Disabled Routes (HTTP 410 Gone) ───────────────────────────────
