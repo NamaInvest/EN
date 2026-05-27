@@ -109,6 +109,6 @@ async function _POST(req: Request) {
     }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'crm', permission: 'view' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', module: 'crm', permission: 'add' });
