@@ -704,7 +704,7 @@ async function _DELETE(request: NextRequest) {
 }
 
 // ── Route Security ────────────────────────────────────────────────────────
-export const GET    = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET    = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'sales', permission: 'view' });
 
 export const POST = withRoute(async ({ req }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
@@ -722,7 +722,7 @@ export const POST = withRoute(async ({ req }) => {
         await unlockIdempotencyKey(tenantString, 'sales_post', idempotencyKey);
         throw e;
     }
-}, { rateLimit: 'FINANCIAL' });
+}, { rateLimit: 'FINANCIAL', module: 'sales', permission: 'add' });
 
 export const PUT = withRoute(async ({ req }) => {
     const { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } = await import('@/lib/idempotency');
@@ -740,6 +740,6 @@ export const PUT = withRoute(async ({ req }) => {
         await unlockIdempotencyKey(tenantString, 'sales_put', idempotencyKey);
         throw e;
     }
-}, { rateLimit: 'FINANCIAL' });
+}, { rateLimit: 'FINANCIAL', module: 'sales', permission: 'edit' });
 
-export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT' });
+export const DELETE = withRoute(async ({ req }) => _DELETE(req as any), { rateLimit: 'DEFAULT', module: 'sales', permission: 'delete' });
