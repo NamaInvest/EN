@@ -1,51 +1,66 @@
-# Agent Scan Report — Phase 3 Part 2 (Backend Enforcement Review)
+# Agent Scan Report (تقرير فحص الوكيل)
 
-## 1. الملفات التي تمت قراءتها وفحصها (Files Scanned)
-- `d:\namasoft9-3-main\middleware.ts` — Edge Middleware logic.
-- `d:\namasoft9-3-main\src\lib\api\with-route.ts` — Global route handler decorator.
-- `d:\namasoft9-3-main\src\lib\auth.ts` — Authentication verification & hasPermission helper.
-- `d:\namasoft9-3-main\src\lib\prisma.ts` — Multi-tenant client builder and `smartPrisma` proxy.
-- `d:\namasoft9-3-main\src\app\api\auth\me\route.ts` — Current user info and permissions map payload.
-- `d:\namasoft9-3-main\src\app\api\audit-logs\route.ts` — Audit log query route.
-- `d:\namasoft9-3-main\src\app\api\treasury\cash-position\route.ts` — Treasury snapshot route.
-- `d:\namasoft9-3-main\src\app\api\treasury\dashboard\route.ts` — Treasury sums & recent items route.
-- `d:\namasoft9-3-main\src\app\api\payroll\route.ts` — Payroll run, loans, GOSI compliance route.
-- `d:\namasoft9-3-main\src\app\api\sales\route.ts` — Sales invoices queries, postings, payments, deletes.
-- `d:\namasoft9-3-main\src\app\api\purchase-orders\route.ts` — Purchases registry and saga execution.
-- `d:\namasoft9-3-main\src\app\api\fixed-assets\route.ts` — Fixed assets register.
-- `d:\namasoft9-3-main\src\app\api\projects\evm\route.ts` — PMO EVM analytics.
-- `d:\namasoft9-3-main\src\app\api\crm\opportunities\route.ts` — Deals and CRM pipeline status.
-- `d:\namasoft9-3-main\src\app\api\settings\roles\route.ts` — Role management route.
+---
+
+## 1. الملفات التي قرأتها (Files Scanned)
+- [with-route.ts](file:///d:/namasoft9-3-main/src/lib/api/with-route.ts)
+- [audit-trail.ts](file:///d:/namasoft9-3-main/src/lib/audit-trail.ts)
+- [schema.prisma](file:///d:/namasoft9-3-main/prisma/schema.prisma)
+- [backend-rbac.test.ts](file:///d:/namasoft9-3-main/src/__tests__/permissions/backend-rbac.test.ts)
+- [phase-5-rbac-operational-monitoring-plan.md](file:///d:/namasoft9-3-main/tmp/phase-5-rbac-operational-monitoring-plan.md)
+
+---
 
 ## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
-- `src/lib/api/with-route.ts` — To add global `module` declarative checking logic.
-- `src/app/api/audit-logs/route.ts` — To restrict logs access to specific roles (`admin`/`owner`).
-- `src/app/api/treasury/cash-position/route.ts` & `dashboard/route.ts` — To check `treasury` permissions.
-- `src/app/api/payroll/route.ts` — To check `hr`/`payroll` permissions.
-- `src/app/api/sales/route.ts` — To check `sales` permissions on GET/POST/PUT.
-- `src/app/api/purchase-orders/route.ts` — To check `purchases` permissions.
-- `src/app/api/fixed-assets/route.ts` — To check `assets` permissions.
-- `src/app/api/projects/evm/route.ts` — To check `projects` permissions.
-- `src/app/api/crm/opportunities/route.ts` — To check `crm` permissions.
+- [with-route.ts](file:///d:/namasoft9-3-main/src/lib/api/with-route.ts)
+  - تحسين وتدقيق دالة `recordSecurityEvent` لالتقاط الـ IP والـ UserAgent بشكل تلقائي وجميل وحفظهم مباشرة في حقول `ipAddress` و `userAgent` في قاعدة البيانات.
+  - تمرير معلومات الـ IP والـ UserAgent المناسبة في جميع نقاط الاستدعاء للأحداث الثلاثة: `AUTH_FAIL`, `RBAC_DENIED`, `ADMIN_BYPASS`.
+- [backend-rbac.test.ts](file:///d:/namasoft9-3-main/src/__tests__/permissions/backend-rbac.test.ts)
+  - إضافة mock لـ `prisma.auditLog.create` والتحقق من أنه يتم استدعاء التسجيل للأحداث الثلاثة بالأرقام والحقول الصحيحة.
+  - اختبار أن فشل التسجيل لا يؤثر على رد خادم الـ API للمستخدم.
+
+---
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **GRC / Security Infrastructure:** Unified route decorators.
-- **Treasury, Payroll, HR, Sales, Purchases, Fixed Assets, Projects, CRM:** Backend RBAC enforcement.
+- **Backend Routing Security & RBAC Boundary:** معالج `withRoute` المركزي.
+- **Audit Logs / SIEM:** تسجيل البيانات الرقابية لـ GRC Dashboard والـ SIEM دون التأثير على بيئة التشغيل أو التسبب في بطء استجابة الـ API.
 
-## 4. المخاطر (Security & Operational Risks)
-- **مستوى الخطر: حرج (CRITICAL).**
-- **تسريب البيانات (Data Leakage):** مستخدم بسيط بصلاحيات محدودة في الواجهة يمكنه استدعاء الـ APIs مباشرة وقراءة ملايين السجلات المحاسبية والرواتب.
-- **تعديل بدون صلاحية (Unauthorized Writes):** إمكانية استدعاء الـ POST/PUT لتعديل الفواتير أو تشغيل الرواتب دون إذن.
-- **أمان العزل (Tenant Security):** ممتاز وخالٍ من الثغرات بفضل الـ Multi-tenant auto-scoping في Prisma.
+---
 
-## 5. خطة التنفيذ (Implementation Plan - Proposed for Part 2)
-1. تعديل خيارات `withRoute` في `src/lib/api/with-route.ts` لدعم التحقق التلقائي من الصلاحية بمجرد تمرير اسم الموديول.
-2. تفعيل الحماية declarative-style في موديول الخزينة ورواتب الموظفين.
-3. تفعيل الحماية في موديولات المبيعات والمشتريات والأصول والمشاريع والـ CRM.
-4. تفعيل التحقق الحازم من أدوار المسؤولين (`admin`/`owner`) للوصول لـ `/api/audit-logs`.
+## 4. المخاطر وكيفية معالجتها (Risks & Mitigations)
+- **أثر الأداء واستجابة الطلب (Performance Impact):** عمليات الكتابة في قاعدة البيانات قد تضيف تأخيراً (Latency).
+  - *الحل:* استدعاء دالة `recordSecurityEvent` بشكل غير متزامن بالكامل (Fire-and-forget) باستخدام `.catch(...)` وعدم انتظار الـ Promise (`await`) قبل إرجاع رد الـ API للعميل.
+- **فشل الاتصال بقاعدة البيانات (DB Write Failure):** إذا فشلت قاعدة البيانات أو جدول الـ AuditLog، فقد يتسبب ذلك في انهيار الـ API.
+  - *الحل:* إحاطة عملية الإدراج بـ `try/catch` داخلي آمن يقوم بتسجيل الخطأ في الـ Pino logger كاحتياط دون التسبب في تعطيل أو تغيير سلوك الـ API الأساسي للمستخدم.
+- **تسريب البيانات الحساسة (Sensitive Data Leakage):** خطر تسجيل كلمات المرور أو الـ Tokens أو معلومات سرية في حقل الـ metadata.
+  - *الحل:* حظر تسجيل أي معلومات حساسة، وتقتصر البيانات في الـ JSON على: `method`, `path`, `reason`, `statusCode`, `requiredRoles`, `userRole`, `module`, `permission` فقط.
+
+---
+
+## 5. خطة التنفيذ (Implementation Plan)
+1. **تحديث دالة `recordSecurityEvent` في `with-route.ts`:**
+   - تعديل الدالة لاستقبال واستخلاص الـ `ipAddress` والـ `userAgent` بشكل ديناميكي من الطلب `NextRequest` أو تمريرهم صراحة وحفظهم في حقول الـ AuditLog الخاصة (`ipAddress`, `userAgent`).
+   - التأكد من إطلاق الحدث آسنكرون بدون تعطيل الطلب.
+2. **تغذية الأحداث الأمنية في `with-route.ts`:**
+   - **AUTH_FAIL:** عند الفشل في التحقق من التوكن أو عدم وجود المستخدم.
+   - **RBAC_DENIED:** عند فقدان الصلاحية الحركية أو الدور المطلوب.
+   - **ADMIN_BYPASS:** عند تمرير المسؤول (admin/owner) وتخطيه للـ RBAC بنجاح.
+3. **تحديث اختبارات Backend RBAC:**
+   - تعديل ملف الاختبارات `backend-rbac.test.ts` لمحاكاة `prisma.auditLog.create` وإثبات تسجيل الأحداث بالأرقام والحقول الصحيحة.
+   - اختبار سيناريو فشل الـ DB للتأكيد على عدم انقطاع الخدمة.
+
+---
 
 ## 6. خطة الاختبار (Testing Plan)
-- **Typecheck & Prisma:** تشغيل `npm run typecheck` و `npx prisma validate`.
-- **E2E / Integration Tests:** اختبار استجابة الـ APIs بـ HTTP 403 Forbidden لمستخدم لا يمتلك الصلاحية و HTTP 200 للمصرح له.
-
-*ملاحظة: هذا التقرير هو فحص وتخطيط فقط (SCAN + PLAN ONLY) بناءً على توجيهات العميل الصارمة. لم يتم تعديل أي كود أو إنشاء commits.*
+- تشغيل فحص الأنواع للتأكد من خلو الكود من أي مشاكل:
+  ```bash
+  npm run typecheck
+  ```
+- التحقق من مطابقة قاعدة البيانات Prisma:
+  ```bash
+  npx prisma validate
+  ```
+- تشغيل اختبارات backend-rbac للتأكد من نجاح الـ 8 اختبارات الحالية بالإضافة للاختبارات الجديدة:
+  ```bash
+  npx jest src/__tests__/permissions/backend-rbac.test.ts --runInBand --forceExit
+  ```
