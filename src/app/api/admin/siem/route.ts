@@ -46,6 +46,9 @@ type SiemEventType =
   | 'AUDIT_UPDATE'
   | 'AUDIT_DELETE'
   | 'AUDIT_EXECUTE'
+  | 'AUTH_FAIL'
+  | 'RBAC_DENIED'
+  | 'ADMIN_BYPASS'
   | 'MFA_SUCCESS'
   | 'MFA_FAIL'
   | 'LOGIN_SUCCESS'
@@ -115,6 +118,9 @@ function deriveSeverity(
   if (type === 'COMPLIANCE_VIOLATION') return 'HIGH';
   if (type === 'MFA_FAIL') return 'MEDIUM';
   if (type === 'LOGIN_FAIL') return 'MEDIUM';
+  if (type === 'AUTH_FAIL') return 'MEDIUM';
+  if (type === 'RBAC_DENIED') return 'HIGH';
+  if (type === 'ADMIN_BYPASS') return 'MEDIUM';
   if (type === 'AUDIT_DELETE') {
     if (entityType && /journal|invoice|payment|payroll/i.test(entityType)) return 'HIGH';
     return 'MEDIUM';
@@ -324,7 +330,10 @@ async function handleGet(ctx: RouteContext): Promise<NextResponse> {
     for (const a of auditLogs) {
       const actionUpper = String(a.action || '').toUpperCase();
       let type: SiemEventType = 'AUDIT_EXECUTE';
-      if (actionUpper.includes('CREATE')) type = 'AUDIT_CREATE';
+      if (a.action === 'AUTH_FAIL') type = 'AUTH_FAIL';
+      else if (a.action === 'RBAC_DENIED') type = 'RBAC_DENIED';
+      else if (a.action === 'ADMIN_BYPASS') type = 'ADMIN_BYPASS';
+      else if (actionUpper.includes('CREATE')) type = 'AUDIT_CREATE';
       else if (actionUpper.includes('UPDATE')) type = 'AUDIT_UPDATE';
       else if (actionUpper.includes('DELETE')) type = 'AUDIT_DELETE';
 
@@ -342,7 +351,7 @@ async function handleGet(ctx: RouteContext): Promise<NextResponse> {
         source: 'audit',
         actorId: a.userId,
         actorUsername: a.user?.username ?? null,
-        ipAddress: null,
+        ipAddress: a.ipAddress || null,
         action: a.action,
         entityType: a.entityType,
         entityId: a.entityId,
