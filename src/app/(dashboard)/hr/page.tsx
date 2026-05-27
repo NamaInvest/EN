@@ -4,6 +4,9 @@ import { Users, UserPlus, FileText, GraduationCap, TrendingUp, CalendarDays, Sea
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface Employee {
   id: number;
   name: string;
@@ -155,7 +158,13 @@ export default function HrCoreDashboard() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{c.l}</span>
               <c.ic size={20} color={c.c} />
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0' }}>{c.v}</div>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0' }}>
+              {i === 0 ? (
+                <SensitiveValue value={c.v} module="hr" />
+              ) : (
+                c.v
+              )}
+            </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.s}</div>
           </div>
         ))}
@@ -165,41 +174,56 @@ export default function HrCoreDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px' }}>
         
         {/* Recent Hires Table */}
-        <div className="card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <UserPlus size={18} color="#0EA5E9" /> {_t('آخر التعيينات الجديدة', 'Recent Hires')}
-            </h3>
-            <Link href="/hr/employees"><button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('عرض دليل الموظفين', 'View All')}</button></Link>
-          </div>
-          {recentHires.length > 0 ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.01)' }}>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('الاسم الكامل', 'Employee Name')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('المسمى الوظيفي', 'Job Position')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('تاريخ المباشرة', 'Start Date')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentHires.map(h => (
-                    <tr key={h.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{h.name}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{h.position || _t('غير محدد', 'Not Specified')}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{h.startDate ? new Date(h.startDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB') : _t('غير مسجل', 'Not Recorded')}</td>
+        <PermissionGate
+          module="hr"
+          fallback={
+            <div className="card" style={{ borderRadius: '12px', padding: '32px', textAlign: 'center', background: 'var(--bg-secondary, #f8fafc)', border: '1px solid var(--border)' }}>
+              <Users size={32} style={{ margin: '0 auto 12px auto', opacity: 0.5, color: '#ef4444' }} />
+              <h3 style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '6px' }}>
+                {_t('غير مصرح لك باستعراض التعيينات الجديدة', 'Unauthorized to view recent hires')}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '12.5px' }}>
+                {_t('تتطلب هذه القائمة صلاحيات إدارة الموارد البشرية لعرضها.', 'This directory requires HR management privileges to view.')}
+              </p>
+            </div>
+          }
+        >
+          <div className="card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <UserPlus size={18} color="#0EA5E9" /> {_t('آخر التعيينات الجديدة', 'Recent Hires')}
+              </h3>
+              <Link href="/hr/employees"><button className="btn btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }}>{_t('عرض دليل الموظفين', 'View All')}</button></Link>
+            </div>
+            {recentHires.length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.01)' }}>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('الاسم الكامل', 'Employee Name')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('المسمى الوظيفي', 'Job Position')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('تاريخ المباشرة', 'Start Date')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <Users size={32} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
-              <p>{_t('لا يوجد موظفون مسجلون في قاعدة البيانات حالياً.', 'No employees registered in the database yet.')}</p>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody>
+                    {recentHires.map(h => (
+                      <tr key={h.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{h.name}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{h.position || _t('غير محدد', 'Not Specified')}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)' }}>{h.startDate ? new Date(h.startDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-GB') : _t('غير مسجل', 'Not Recorded')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Users size={32} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
+                <p>{_t('لا يوجد موظفون مسجلون في قاعدة البيانات حالياً.', 'No employees registered in the database yet.')}</p>
+              </div>
+            )}
+          </div>
+        </PermissionGate>
 
         {/* HR Operations */}
         <div className="card" style={{ borderRadius: '12px', padding: '24px' }}>

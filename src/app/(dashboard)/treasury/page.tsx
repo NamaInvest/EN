@@ -8,6 +8,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from "@/lib/i18n";
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+import { ShieldAlert } from 'lucide-react';
+
 
 interface Transaction {
   id: number;
@@ -127,7 +131,7 @@ export default function TreasuryDashboardPage() {
                 </div>
               </div>
               <h2 style={{ fontSize: '2.2rem', fontWeight: 'bold', margin: '0 0 0.5rem', fontFamily: 'monospace', color: data.netBalance >= 0 ? '#10b981' : '#ef4444' }} dir="ltr">
-                {fmt(data.netBalance)} <span style={{ fontSize: '1rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>SAR</span>
+                <SensitiveValue value={fmt(data.netBalance)} module="treasury" currency="SAR" />
               </h2>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <CheckCircle2 size={14} color="#10b981" /> {_t('وضع الملاءة المالية سليم ونشط', 'Financial liquidity status is healthy & active')}
@@ -143,7 +147,7 @@ export default function TreasuryDashboardPage() {
                 </div>
               </div>
               <h2 style={{ fontSize: '2.2rem', fontWeight: 'bold', margin: '0 0 0.5rem', fontFamily: 'monospace', color: 'var(--text)' }} dir="ltr">
-                {fmt(data.totalIn)} <span style={{ fontSize: '1rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>SAR</span>
+                <SensitiveValue value={fmt(data.totalIn)} module="treasury" currency="SAR" />
               </h2>
               <div style={{ fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <ArrowUpRight size={14} /> {_t('التدفقات النقدية الواردة نشطة', 'Incoming cash flows are active')}
@@ -159,7 +163,7 @@ export default function TreasuryDashboardPage() {
                 </div>
               </div>
               <h2 style={{ fontSize: '2.2rem', fontWeight: 'bold', margin: '0 0 0.5rem', fontFamily: 'monospace', color: 'var(--text)' }} dir="ltr">
-                {fmt(data.totalOut)} <span style={{ fontSize: '1rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>SAR</span>
+                <SensitiveValue value={fmt(data.totalOut)} module="treasury" currency="SAR" />
               </h2>
               <div style={{ fontSize: '0.85rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <ArrowDownLeft size={14} /> {_t('مدفوعات تشغيلية واستثمارية', 'Operational and investment outflows')}
@@ -227,85 +231,93 @@ export default function TreasuryDashboardPage() {
           </div>
 
           {/* Transactions Table & Filters */}
-          <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border)', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-                <History size={20} color="var(--primary)" /> {_t('أحدث الحركات المالية المسجلة (Recent Transactions)', 'Recent Financial Transactions')}
-              </h3>
-              
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                {/* Search box */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-primary)', border: '1px solid var(--border)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
-                  <Search size={16} color="var(--text-muted)" />
-                  <input 
-                    type="text" 
-                    placeholder={_t('بحث...', 'Search...')} 
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text)', fontSize: '0.85rem' }}
-                  />
-                </div>
-                {/* Filters */}
-                <select 
-                  value={filterType} 
-                  onChange={e => setFilterType(e.target.value as any)}
-                  style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', padding: '0.4rem 0.8rem', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  <option value="all">{_t('كل الحركات', 'All Transactions')}</option>
-                  <option value="in">{_t('المقبوضات فقط', 'Receipts (Inflows) Only')}</option>
-                  <option value="out">{_t('المدفوعات فقط', 'Payments (Outflows) Only')}</option>
-                </select>
-              </div>
+          <PermissionGate module="treasury" action="canView" fallback={
+            <div className="card" style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+              <ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{_t('غير مصرح بعرض سجل الحركات', 'Unauthorized to View Transaction History')}</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>{_t('لا تمتلك الصلاحية الكافية لعرض قائمة الحركات والعمليات المالية المفصلة للخزينة.', 'You do not have sufficient permissions to view the detailed treasury transaction ledger.')}</p>
             </div>
+          }>
+            <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border)', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                  <History size={20} color="var(--primary)" /> {_t('أحدث الحركات المالية المسجلة (Recent Transactions)', 'Recent Financial Transactions')}
+                </h3>
+                
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Search box */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-primary)', border: '1px solid var(--border)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                    <Search size={16} color="var(--text-muted)" />
+                    <input 
+                      type="text" 
+                      placeholder={_t('بحث...', 'Search...')} 
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text)', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  {/* Filters */}
+                  <select 
+                    value={filterType} 
+                    onChange={e => setFilterType(e.target.value as any)}
+                    style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', padding: '0.4rem 0.8rem', borderRadius: '6px', color: 'var(--text)', fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <option value="all">{_t('كل الحركات', 'All Transactions')}</option>
+                    <option value="in">{_t('المقبوضات فقط', 'Receipts (Inflows) Only')}</option>
+                    <option value="out">{_t('المدفوعات فقط', 'Payments (Outflows) Only')}</option>
+                  </select>
+                </div>
+              </div>
 
-            {filteredTransactions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
-                <FileText size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-                <p style={{ margin: 0, fontWeight: 'bold' }}>{_t('لا توجد حركات مالية مطابقة للمعايير المحددة', 'No financial transactions match the selected criteria')}</p>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left', background: 'var(--bg-primary)' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
-                      <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('تاريخ الحركة', 'Transaction Date')}</th>
-                      <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('النوع', 'Type')}</th>
-                      <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('البيان / الوصف', 'Description / Narration')}</th>
-                      <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: lang === 'ar' ? 'left' : 'right' }}>{_t('المبلغ', 'Amount')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTransactions.map(tx => (
-                      <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
-                        <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontFamily: 'monospace' }} dir="ltr">
-                          {new Date(tx.date).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          <span style={{ 
-                            padding: '0.25rem 0.6rem', 
-                            borderRadius: '4px', 
-                            fontSize: '0.75rem', 
-                            fontWeight: 'bold',
-                            background: tx.type === 'in' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                            color: tx.type === 'in' ? '#10b981' : '#ef4444',
-                            border: tx.type === 'in' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)'
-                          }}>
-                            {tx.type === 'in' ? _t('مقبوضات', 'Inflow') : _t('مدفوعات', 'Outflow')}
-                          </span>
-                        </td>
-                        <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text)' }}>
-                          {tx.description}
-                        </td>
-                        <td style={{ padding: '1rem', fontSize: '0.95rem', fontWeight: 'bold', textAlign: lang === 'ar' ? 'left' : 'right', fontFamily: 'monospace', color: tx.type === 'in' ? '#10b981' : '#ef4444' }} dir="ltr">
-                          {tx.type === 'in' ? '+' : '-'}{fmt(tx.amount)} SAR
-                        </td>
+              {filteredTransactions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
+                  <FileText size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                  <p style={{ margin: 0, fontWeight: 'bold' }}>{_t('لا توجد حركات مالية مطابقة للمعايير المحددة', 'No financial transactions match the selected criteria')}</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left', background: 'var(--bg-primary)' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--border)', background: 'var(--bg-secondary)' }}>
+                        <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('تاريخ الحركة', 'Transaction Date')}</th>
+                        <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('النوع', 'Type')}</th>
+                        <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{_t('البيان / الوصف', 'Description / Narration')}</th>
+                        <th style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: lang === 'ar' ? 'left' : 'right' }}>{_t('المبلغ', 'Amount')}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                    </thead>
+                    <tbody>
+                      {filteredTransactions.map(tx => (
+                        <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
+                          <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontFamily: 'monospace' }} dir="ltr">
+                            {new Date(tx.date).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+                          </td>
+                          <td style={{ padding: '1rem' }}>
+                            <span style={{ 
+                              padding: '0.25rem 0.6rem', 
+                              borderRadius: '4px', 
+                              fontSize: '0.75rem', 
+                              fontWeight: 'bold',
+                              background: tx.type === 'in' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                              color: tx.type === 'in' ? '#10b981' : '#ef4444',
+                              border: tx.type === 'in' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)'
+                            }}>
+                              {tx.type === 'in' ? _t('مقبوضات', 'Inflow') : _t('مدفوعات', 'Outflow')}
+                            </span>
+                          </td>
+                          <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text)' }}>
+                            {tx.description}
+                          </td>
+                          <td style={{ padding: '1rem', fontSize: '0.95rem', fontWeight: 'bold', textAlign: lang === 'ar' ? 'left' : 'right', fontFamily: 'monospace', color: tx.type === 'in' ? '#10b981' : '#ef4444' }} dir="ltr">
+                            {tx.type === 'in' ? '+' : '-'}{fmt(tx.amount)} SAR
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </PermissionGate>
 
         </div>
       )}

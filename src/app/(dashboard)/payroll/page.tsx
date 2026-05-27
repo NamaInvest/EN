@@ -4,6 +4,9 @@ import { Calculator, FileText, CheckCircle2, UserCheck, AlertTriangle, Landmark,
 import Link from 'next/link';
 import { useTranslation } from "@/lib/i18n";
 
+import SensitiveValue from '@/components/security/SensitiveValue';
+import PermissionGate from '@/components/security/PermissionGate';
+
 interface PayrollPreview {
   employeeId: number;
   name: string;
@@ -221,7 +224,15 @@ export default function PayrollDashboardPage() {
               <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{c.l}</span>
               <c.ic size={20} color={c.c} />
             </div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.v}</div>
+            <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', margin: '4px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {i === 0 ? (
+                <SensitiveValue value={`${fmt(totalNetSalary)}`} currency={_t('ر.س', 'SAR')} module="payroll" />
+              ) : i === 2 ? (
+                <SensitiveValue value={`${fmt(gosiTotals.totalGosi)}`} currency={_t('ر.س', 'SAR')} module="payroll" />
+              ) : (
+                c.v
+              )}
+            </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{c.s}</div>
           </div>
         ))}
@@ -231,47 +242,62 @@ export default function PayrollDashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', marginBottom: '24px' }}>
         
         {/* Preview of Payroll Run */}
-        <div className="card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={18} color="#4F46E5" /> {_t('كشف معاينة مسير الرواتب المفتوح', 'Draft Payroll Preview List')}
-            </h3>
-            <span style={{ fontSize: '12px', padding: '4px 8px', borderRadius: '4px', background: payrollData?.configReady ? '#ECFDF5' : '#FEF2F2', color: payrollData?.configReady ? '#065F46' : '#991B1B', fontWeight: 'bold' }}>
-              {payrollData?.configReady ? _t('الحسابات المحاسبية مهيأة', 'GL Configured') : _t('الحسابات غير مهيأة', 'GL Not Configured')}
-            </span>
-          </div>
-          {previewList.length > 0 ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.01)' }}>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('اسم الموظف', 'Employee Name')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('الأساسي', 'Basic')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('البدلات', 'Additions')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('خصم التأمينات (GOSI)', 'GOSI')}</th>
-                    <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left', background: 'rgba(16,185,129,0.05)' }}>{_t('صافي الراتب المستحق', 'Net Salary')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewList.map(h => (
-                    <tr key={h.employeeId} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{h.name}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">{fmt(h.basic)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#10B981', textAlign: 'left', fontWeight: 'bold', fontFamily: 'monospace' }} dir="ltr">+{fmt(h.additions)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#EF4444', textAlign: 'left', fontWeight: 'bold', fontFamily: 'monospace' }} dir="ltr">-{fmt(h.gosiDeduction)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#047857', textAlign: 'left', fontWeight: '800', background: 'rgba(16,185,129,0.02)', fontFamily: 'monospace' }} dir="ltr">{fmt(h.netSalary)}</td>
+        <PermissionGate
+          module="payroll"
+          fallback={
+            <div className="card" style={{ borderRadius: '12px', padding: '40px', textAlign: 'center', background: 'var(--bg-secondary, #f8fafc)', border: '1px solid var(--border)' }}>
+              <Ban size={40} color="#EF4444" style={{ margin: '0 auto 12px auto' }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '8px' }}>
+                {_t('غير مصرح لك بمعاينة تفاصيل مسير الرواتب', 'Unauthorized to view payroll details')}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                {_t('يرجى التواصل مع مسؤول النظام لتحديث صلاحيات الوصول الخاصة بك.', 'Please contact your system administrator to request access permissions.')}
+              </p>
+            </div>
+          }
+        >
+          <div className="card" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary, #f8fafc)' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FileText size={18} color="#4F46E5" /> {_t('كشف معاينة مسير الرواتب المفتوح', 'Draft Payroll Preview List')}
+              </h3>
+              <span style={{ fontSize: '12px', padding: '4px 8px', borderRadius: '4px', background: payrollData?.configReady ? '#ECFDF5' : '#FEF2F2', color: payrollData?.configReady ? '#065F46' : '#991B1B', fontWeight: 'bold' }}>
+                {payrollData?.configReady ? _t('الحسابات المحاسبية مهيأة', 'GL Configured') : _t('الحسابات غير مهيأة', 'GL Not Configured')}
+              </span>
+            </div>
+            {previewList.length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: lang === 'ar' ? 'right' : 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(0,0,0,0.01)' }}>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{_t('اسم الموظف', 'Employee Name')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('الأساسي', 'Basic')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('البدلات', 'Additions')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left' }}>{_t('خصم التأمينات (GOSI)', 'GOSI')}</th>
+                      <th style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'left', background: 'rgba(16,185,129,0.05)' }}>{_t('صافي الراتب المستحق', 'Net Salary')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              <Ban size={32} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
-              <p>{_t(`لا توجد رواتب مسجلة أو مستحقة لشهر ${selectedMonth}/${selectedYear} في قاعدة البيانات.`, `No draft salary allocations found for month ${selectedMonth}/${selectedYear}.`)}</p>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody>
+                    {previewList.map(h => (
+                      <tr key={h.employeeId} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>{h.name}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-muted)', textAlign: 'left', fontFamily: 'monospace' }} dir="ltr">{fmt(h.basic)}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#10B981', textAlign: 'left', fontWeight: 'bold', fontFamily: 'monospace' }} dir="ltr">+{fmt(h.additions)}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#EF4444', textAlign: 'left', fontWeight: 'bold', fontFamily: 'monospace' }} dir="ltr">-{fmt(h.gosiDeduction)}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '14px', color: '#047857', textAlign: 'left', fontWeight: '800', background: 'rgba(16,185,129,0.02)', fontFamily: 'monospace' }} dir="ltr">{fmt(h.netSalary)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Ban size={32} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
+                <p>{_t(`لا توجد رواتب مسجلة أو مستحقة لشهر ${selectedMonth}/${selectedYear} في قاعدة البيانات.`, `No draft salary allocations found for month ${selectedMonth}/${selectedYear}.`)}</p>
+              </div>
+            )}
+          </div>
+        </PermissionGate>
 
         {/* Quick Actions Panel */}
         <div className="card" style={{ borderRadius: '12px', padding: '24px' }}>
