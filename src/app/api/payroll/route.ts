@@ -181,6 +181,6 @@ async function _POST(req: NextRequest) {
   }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'payroll', permission: 'view' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL', module: 'payroll', permission: 'add' });
