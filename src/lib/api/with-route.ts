@@ -16,6 +16,61 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'with-route' });
 
+async function recordSecurityEvent(
+  prisma: any,
+  tenantId: string,
+  userId: number | null,
+  action: 'AUTH_FAIL' | 'RBAC_DENIED' | 'ADMIN_BYPASS',
+  route: string,
+  method: string,
+  req: NextRequest,
+  metadata: Record<string, any>
+): Promise<void> {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null;
+  const userAgent = req.headers.get('user-agent') || null;
+
+  log.warn(`[SecurityEvent] ${action} on ${method}:${route}`, {
+    tenantId,
+    userId,
+    action,
+    route,
+    method,
+    ip,
+    userAgent,
+    metadata,
+  });
+
+  try {
+    const entityIdStr = `${method}:${route}`;
+    await prisma.auditLog.create({
+      data: {
+        tenantId: tenantId || 'default',
+        userId: userId || null,
+        action,
+        entityType: 'API_ROUTE',
+        entityId: entityIdStr,
+        route,
+        newData: {
+          method,
+          path: route,
+          ip,
+          userAgent,
+          ...metadata,
+        },
+        ipAddress: ip,
+        userAgent: userAgent,
+      },
+    });
+  } catch (error: any) {
+    log.error('Failed to write to AuditLog', {
+      error: error.message,
+      action,
+      route,
+      userId,
+    });
+  }
+}
+
 export interface RouteAuth {
   userId: number;
   role: string;
@@ -164,6 +219,14 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
         const user = getUserFromRequest(req as any);
         if (!user) {
           httpRequestsTotal.inc({ method, status: '401', route: pathname });
+
+          // Log AUTH_FAIL asynchronously
+          const fallbackPrisma = getPrisma(req as any, { requireTenant: tenantRequired });
+          recordSecurityEvent(fallbackPrisma, tenant, null, 'AUTH_FAIL', pathname, method, req, {
+            reason: 'يجب تسجيل الدخول أولاً',
+            statusCode: 401,
+          }).catch(() => {});
+
           return NextResponse.json(
             { error: 'Unauthorized', message: 'يجب تسجيل الدخول أولاً' },
             { status: 401, headers: { 'X-Request-Id': requestId } }
@@ -178,6 +241,16 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
         if (roles && roles.length > 0 && !roles.includes((user as any).role)) {
           httpRequestsTotal.inc({ method, status: '403', route: pathname });
+
+          // Log RBAC_DENIED asynchronously
+          const fallbackPrisma = getPrisma(req as any, { requireTenant: tenantRequired });
+          recordSecurityEvent(fallbackPrisma, tenant, (user as any).userId || (user as any).id, 'RBAC_DENIED', pathname, method, req, {
+            reason: 'حظر بناء على الأدوار المسموحة للمسار',
+            requiredRoles: roles,
+            userRole: (user as any).role,
+            statusCode: 403
+          }).catch(() => {});
+
           return NextResponse.json(
             { error: 'Forbidden', message: 'صلاحيات غير كافية' },
             { status: 403, headers: { 'X-Request-Id': requestId } }
@@ -207,6 +280,13 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
           if (!dbUser) {
             httpRequestsTotal.inc({ method, status: '401', route: pathname });
+
+            // Log AUTH_FAIL asynchronously
+            recordSecurityEvent(prisma, tenant, auth.userId, 'AUTH_FAIL', pathname, method, req, {
+              reason: 'المستخدم المصادق غير موجود بقاعدة البيانات',
+              statusCode: 401,
+            }).catch(() => {});
+
             return NextResponse.json(
               { error: 'Unauthorized', message: 'المستخدم غير موجود' },
               { status: 401, headers: { 'X-Request-Id': requestId } }
@@ -214,10 +294,26 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
           }
 
           // Admin and Owner roles bypass module-level permission checks
-          if (dbUser.role !== 'admin' && dbUser.role !== 'owner') {
+          if (dbUser.role === 'admin' || dbUser.role === 'owner') {
+            // Log ADMIN_BYPASS asynchronously
+            recordSecurityEvent(prisma, tenant, auth.userId, 'ADMIN_BYPASS', pathname, method, req, {
+              role: dbUser.role,
+              module: options.module,
+              permission: options.permission || (method === 'GET' ? 'view' : method === 'POST' ? 'add' : method === 'DELETE' ? 'delete' : 'edit')
+            }).catch(() => {});
+          } else {
             const userPerm = dbUser.permissions.find((p: any) => p.module === options.module);
             if (!userPerm) {
               httpRequestsTotal.inc({ method, status: '403', route: pathname });
+
+              // Log RBAC_DENIED asynchronously
+              recordSecurityEvent(prisma, tenant, auth.userId, 'RBAC_DENIED', pathname, method, req, {
+                module: options.module,
+                permission: options.permission || (method === 'GET' ? 'view' : method === 'POST' ? 'add' : method === 'DELETE' ? 'delete' : 'edit'),
+                reason: 'المستخدم لا يملك أي صلاحيات للموديول المطلوب',
+                statusCode: 403
+              }).catch(() => {});
+
               return NextResponse.json(
                 { error: 'Forbidden', message: 'صلاحيات غير كافية للوصول إلى هذا القسم' },
                 { status: 403, headers: { 'X-Request-Id': requestId } }
@@ -238,6 +334,15 @@ export function withRoute(handler: RouteHandler, options: WithRouteOptions = {})
 
             if (!isAllowed) {
               httpRequestsTotal.inc({ method, status: '403', route: pathname });
+
+              // Log RBAC_DENIED asynchronously
+              recordSecurityEvent(prisma, tenant, auth.userId, 'RBAC_DENIED', pathname, method, req, {
+                module: options.module,
+                permission: action,
+                reason: 'المستخدم يملك الموديول ولكن لا يملك صلاحية العملية المحددة',
+                statusCode: 403
+              }).catch(() => {});
+
               return NextResponse.json(
                 { error: 'Forbidden', message: 'صلاحيات غير كافية لإجراء هذه العملية' },
                 { status: 403, headers: { 'X-Request-Id': requestId } }
