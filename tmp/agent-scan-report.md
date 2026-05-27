@@ -1,53 +1,50 @@
-# Agent Scan Report (تقرير فحص الوكيل) - Phase 5 Part 2A
+# Agent Scan Report (تقرير فحص الوكيل) - Phase 5 Part 2B
 
 ---
 
 ## 1. الملفات التي قرأتها (Files Scanned)
 - [siem/route.ts](file:///d:/namasoft9-3-main/src/app/api/admin/siem/route.ts)
-- [with-route.ts](file:///d:/namasoft9-3-main/src/lib/api/with-route.ts)
-- [schema.prisma](file:///d:/namasoft9-3-main/prisma/schema.prisma)
 
 ---
 
 ## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
 - [siem/route.ts](file:///d:/namasoft9-3-main/src/app/api/admin/siem/route.ts)
-  - تصحيح رسم وتعيين حقل الـ `ipAddress` لسجلات `AuditLog` بدلاً من فرضها كـ `null`.
-  - تحديث وتوسيع تصنيفات الأنواع الأمنية الموحدة `SiemEventType` بإدراج `AUTH_FAIL`, `RBAC_DENIED`, `ADMIN_BYPASS`.
-  - تحديث معالج التحويل لـ `AuditLog` لتعيين الأنواع الجديدة وتمرير البيانات المناسبة.
-  - تحديث الدالة المساعدة `deriveSeverity` لدعم تصنيفات الشدة للأحداث الثلاثة الحساسة.
+  - تحديث وتوسيع واجهة `SiemPattern` لدعم أنواع الأنماط الجديدة: `RBAC_CRAWL` و `API_BRUTE_FORCE` و `OFF_HOURS_BYPASS`.
+  - تحديث دالة التحليل `detectPatterns` لإضافة القواعد الثلاث الجديدة بالثوابت والشروط المحددة.
 
 ---
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **SIEM Telemetry Pipeline & GRC Monitoring API**
+- **SIEM Detection Rules Engine**
 
 ---
 
 ## 4. المخاطر وكيفية معالجتها (Risks & Mitigations)
-- **خطر التعديل غير المقصود على الـ Schema:** التعديل معزول تماماً ومستقر، ولن يتم إجراء أي تعديل للـ Schema.
-- **خطر استقرار الـ UI:** لن نلمس واجهات الـ UI حالياً في هذه المرحلة لحين استقرار الـ Types والبيانات بالكامل في الـ API.
+- **مخاطر الأداء (Performance Risks):** عمليات التكرار والبحث قد تكون مكثفة.
+  - *الحل:* استخدام تصفية زمنية باستخدام نافذة فلترة سريعة ومجموعات Records مجمعة بالـ Hashmaps (مصفوفات التجميع الفورية).
 
 ---
 
-## 5. خطة التنفيذ (Implementation Plan - Phase 5 Part 2A)
-1. **تحديث الأنواع `SiemEventType` في `siem/route.ts`:**
-   * إضافة الأنواع `'AUTH_FAIL' | 'RBAC_DENIED' | 'ADMIN_BYPASS'` للـ union type.
-2. **تحديث معالجة وتحويل سجلات `AuditLog`:**
-   * قراءة حقل الـ `a.ipAddress` الفعلي بدلاً من القيمة `null` (السطر 345).
-   * التحقق من `a.action` ومطابقته للـ actions الجديدة وتعيين الـ `type` الصحيح.
-3. **تحديث دالة `deriveSeverity`:**
-   * مطابقة `AUTH_FAIL` بـ `MEDIUM`.
-   * مطابقة `RBAC_DENIED` بـ `HIGH`.
-   * مطابقة `ADMIN_BYPASS` بـ `MEDIUM`.
+## 5. خطة التنفيذ (Implementation Plan - Phase 5 Part 2B)
+1. **تحديث واجهة `SiemPattern` في `siem/route.ts`:**
+   * إضافة `'RBAC_CRAWL' | 'API_BRUTE_FORCE' | 'OFF_HOURS_BYPASS'` للـ union type لـ `patternType`.
+2. **إضافة القواعد الثلاث في `detectPatterns`:**
+   * **RBAC_CRAWL**: تجميع `RBAC_DENIED` حسب الـ `actorId` وفلترة الـ 5 دقائق للأعداد $\ge 3$ بشدة `HIGH`.
+   * **API_BRUTE_FORCE**: تجميع `AUTH_FAIL` حسب الـ `ipAddress` وفلترة الـ 10 دقائق للأعداد $\ge 5$ بشدة `HIGH`.
+   * **OFF_HOURS_BYPASS**: الكشف عن أحداث `ADMIN_BYPASS` التي تتم خارج ساعات العمل الرسمية (22:00 - 06:00 بتوقيت الرياض).
 
 ---
 
 ## 6. خطة الاختبار (Testing Plan)
-- تشغيل فحص الأنواع للتأكد من خلو التعديل من المشاكل النوعية:
+- تشغيل فحص الأنواع البرمجية:
   ```bash
   npm run typecheck
   ```
 - التحقق من مطابقة قاعدة البيانات Prisma:
   ```bash
   npx prisma validate
+  ```
+- تشغيل اختبارات backend-rbac:
+  ```bash
+  npx jest src/__tests__/permissions/backend-rbac.test.ts --runInBand --forceExit
   ```

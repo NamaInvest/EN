@@ -80,7 +80,7 @@ interface SiemEvent {
 /** نمط مكتشَف (pattern) */
 interface SiemPattern {
   id: string;
-  patternType: 'BRUTE_FORCE' | 'PRIVILEGE_ESCALATION' | 'MASS_EXPORT' | 'OFF_HOURS' | 'MFA_BURST';
+  patternType: 'BRUTE_FORCE' | 'PRIVILEGE_ESCALATION' | 'MASS_EXPORT' | 'OFF_HOURS' | 'MFA_BURST' | 'RBAC_CRAWL' | 'API_BRUTE_FORCE' | 'OFF_HOURS_BYPASS';
   severity: SiemSeverity;
   detectedAt: string;
   description: string;
@@ -240,6 +240,77 @@ function detectPatterns(events: SiemEvent[]): SiemPattern[] {
           severity: 'HIGH',
           detectedAt: e.ts,
           description: `تعديل ${field} على المستخدم ${e.entityId} بواسطة actor #${e.actorId}`,
+          relatedEventIds: [e.id],
+          count: 1,
+        });
+      }
+    }
+  }
+
+  // ─── Phase 5 Part 2B Detection Rules ────────────────────────────────────────
+
+  // Threshold constants
+  const RBAC_CRAWL_THRESHOLD = 3;
+  const RBAC_CRAWL_WINDOW_MS = 5 * 60 * 1000;
+
+  const API_BRUTE_FORCE_THRESHOLD = 5;
+  const API_BRUTE_FORCE_WINDOW_MS = 10 * 60 * 1000;
+
+  // Pattern 6: RBAC_CRAWL — تكرار محاولات الدخول الممنوع لنفس المستخدم
+  const rbacDeniedByUser: Record<number, SiemEvent[]> = {};
+  for (const e of events) {
+    if (e.type === 'RBAC_DENIED' && e.actorId !== null) {
+      (rbacDeniedByUser[e.actorId] ||= []).push(e);
+    }
+  }
+  for (const [uid, evs] of Object.entries(rbacDeniedByUser)) {
+    const recent = evs.filter((e) => Date.now() - new Date(e.ts).getTime() < RBAC_CRAWL_WINDOW_MS);
+    if (recent.length >= RBAC_CRAWL_THRESHOLD) {
+      patterns.push({
+        id: `rbaccrawl_${uid}_${Date.now()}`,
+        patternType: 'RBAC_CRAWL',
+        severity: 'HIGH',
+        detectedAt: new Date().toISOString(),
+        description: `${recent.length} محاولات دخول مرفوضة للـ RBAC للمستخدم #${uid} خلال 5 دقائق`,
+        relatedEventIds: recent.map((e) => e.id),
+        count: recent.length,
+      });
+    }
+  }
+
+  // Pattern 7: API_BRUTE_FORCE — محاولات ولوج غير مصادقة مكثفة من نفس الـ IP
+  const authFailsByIp: Record<string, SiemEvent[]> = {};
+  for (const e of events) {
+    if (e.type === 'AUTH_FAIL' && e.ipAddress) {
+      (authFailsByIp[e.ipAddress] ||= []).push(e);
+    }
+  }
+  for (const [ip, evs] of Object.entries(authFailsByIp)) {
+    const recent = evs.filter((e) => Date.now() - new Date(e.ts).getTime() < API_BRUTE_FORCE_WINDOW_MS);
+    if (recent.length >= API_BRUTE_FORCE_THRESHOLD) {
+      patterns.push({
+        id: `apibrute_${ip}_${Date.now()}`,
+        patternType: 'API_BRUTE_FORCE',
+        severity: 'HIGH',
+        detectedAt: new Date().toISOString(),
+        description: `${recent.length} محاولات دخول غير مصرحة (AUTH_FAIL) من عنوان IP ${ip} خلال 10 دقائق`,
+        relatedEventIds: recent.map((e) => e.id),
+        count: recent.length,
+      });
+    }
+  }
+
+  // Pattern 8: OFF_HOURS_BYPASS — استخدام صلاحية تخطي المسؤولين خارج أوقات العمل
+  for (const e of events) {
+    if (e.type === 'ADMIN_BYPASS') {
+      const hourRiyadh = (new Date(e.ts).getUTCHours() + 3) % 24; // UTC+3 Riyadh
+      if (hourRiyadh >= 22 || hourRiyadh < 6) {
+        patterns.push({
+          id: `bypass_offhours_${e.id}`,
+          patternType: 'OFF_HOURS_BYPASS',
+          severity: 'MEDIUM',
+          detectedAt: e.ts,
+          description: `تخطي أمني للمسؤول (ADMIN_BYPASS) الساعة ${hourRiyadh}:00 (خارج ساعات العمل الرسمية)`,
           relatedEventIds: [e.id],
           count: 1,
         });
