@@ -1,25 +1,25 @@
-# Agent Scan Report — Phase 5 Part 3D — SIEM Smoke Test Result Template
+# Agent Scan Report — Security Hotfix — Sanitize Settings Roles API Response
 
 ## 1. الملفات التي قرأتها (Files Scanned)
-- [docs/security/siem_smoke_test.md](file:///d:/namasoft9-3-main/docs/security/siem_smoke_test.md)
+- [src/app/api/settings/roles/route.ts](file:///d:/namasoft9-3-main/src/app/api/settings/roles/route.ts)
 
 ## 2. الملفات المرشحة للتعديل (Files to Modify)
-- [docs/security/siem_smoke_test_result.md](file:///d:/namasoft9-3-main/docs/security/siem_smoke_test_result.md) [NEW] (ملف نتائج اختبار الدخان الميداني)
+- [src/app/api/settings/roles/route.ts](file:///d:/namasoft9-3-main/src/app/api/settings/roles/route.ts)
+- [src/__tests__/permissions/security-sanitization.test.ts](file:///d:/namasoft9-3-main/src/__tests__/permissions/security-sanitization.test.ts) [NEW]
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- وثائق نتائج الاختبار الميداني (Security Verification Results)
+- الحماية والأمن السيبراني (Security & Cybersecurity)
+- حوكمة الوصول والصلاحيات (RBAC & Settings Roles)
 
 ## 4. المخاطر وكيفية معالجتها (Risks & Mitigations)
-- **معدومة**: إدراج قالب مستند لتوثيق نتائج الاختبارات فقط (Template Documentation) دون المساس بالمنطق البرمجي للمشروع أو أي كود تنفيذي.
+- **المخاطر**: تعطل واجهة إعدادات الأدوار في لوحة التحكم (Settings/Roles UI) إذا غابت بعض الحقول الأساسية المتوقعة من الفرونت إند.
+- **المعالجة**: الاحتفاظ بكامل الحقول البنيوية الآمنة التي تعتمد عليها الواجهة (`id`, `username`, `fullName`, `role`, `active`, `branchId`, `defaultPage`) مع استعلام الصلاحيات المقترنة (`permissions`) بالحقول غير الحساسة فقط، مع العزل المطبق للـ Tenant.
 
 ## 5. خطة التنفيذ (Implementation Plan)
-1. **إنشاء ملف التوثيق الميداني `docs/security/siem_smoke_test_result.md`**:
-   - إعداد القالب الجاهز بالكامل مع إرشادات وخانات التعبئة للمشغلين بناءً على دليل الـ Smoke Test.
-2. **التحقق التقني**: تشغيل `npm run typecheck` و `npx prisma validate`.
+1. تعديل استعلام Prisma في ملف `src/app/api/settings/roles/route.ts` لاستخدام `select` صريح يتجنب جلب أو إعادة الحقول الحساسة (`passwordHash` وما جاورها).
+2. كتابة اختبار وحدة محدد `security-sanitization.test.ts` يتحقق بشكل صارم من خلو رد الـ API من أي هاشات أو توكنات.
+3. تشغيل الفحوصات الفنية والتثبت من نجاح البناء (Typecheck) وتمرير الاختبارات.
 
 ## 6. خطة الاختبار (Testing Plan)
-- التحقق التقني للتأكد من عدم وجود أي خطأ بالبناء:
-  ```bash
-  npm run typecheck
-  npx prisma validate
-  ```
+- تشغيل `npm run typecheck` للتحقق من سلامة البناء البرمجي.
+- تشغيل `npx jest src/__tests__/permissions/security-sanitization.test.ts` للتأكد من نجاح العزل الأمني.
