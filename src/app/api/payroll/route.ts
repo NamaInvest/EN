@@ -16,6 +16,7 @@ import { saudiCompliance }      from '@/lib/saudi-compliance';
 import { validateRequest }      from '@/lib/api/validate-request';
 import { BusinessContext }       from '@/services/shared/event-bus.service';
 import { logger } from '@/lib/logger';
+import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 
 const log = logger.child({ service: 'payroll' });
 
@@ -43,6 +44,17 @@ const WpsSchema = z.object({
 const GosiSchema = z.object({
   year:  z.number().int().min(2020).max(2099),
   month: z.number().int().min(1).max(12),
+});
+
+const CreatePayslipSchema = z.object({
+  employeeId: z.number().int().positive('employeeId required'),
+  period: z.string().regex(/^\d{4}-\d{2}$/, 'period must be YYYY-MM format'),
+  details: z.array(z.object({
+    description: z.string().min(1, 'description required'),
+    amount: z.union([z.string(), z.number()]).transform(v => Number(v)),
+    type: z.enum(['addition', 'deduction']),
+    loanId: z.number().int().positive().optional(),
+  })).min(1, 'details required'),
 });
 
 // ─── Context builder ──────────────────────────────────────────────────────────
@@ -110,10 +122,146 @@ async function _POST(req: NextRequest) {
   const action = searchParams.get('action') ?? '';
   const tenantId = req.headers.get('x-tenant-id') ?? 'default';
 
+  let isCreatePayslip = action === 'create-payslip';
+  if (action === '') {
+    try {
+      const clonedReq = req.clone();
+      const json = await clonedReq.json();
+      if (json && 'employeeId' in json && 'details' in json) {
+        isCreatePayslip = true;
+      }
+    } catch (err) {
+      // ignore
+    }
+  }
+
   try {
     const prisma  = getPrisma(req);
     const ctx     = buildCtx(req, auth);
     const service = new PayrollService(prisma as any, ctx);
+
+    // ── action: create-payslip or empty default ───────────────────────────
+    if (isCreatePayslip) {
+      const { data, error } = await validateRequest(req, CreatePayslipSchema);
+      if (error) return error;
+
+      const [periodYear, periodMonth] = data.period.split('-').map(Number);
+      const payrollDate = new Date(periodYear, periodMonth, 0);
+
+      // Validate Employee
+      const employee = await prisma.employee.findFirst({
+        where: { id: data.employeeId, tenantId },
+      });
+      if (!employee) {
+        return NextResponse.json({ error: 'الموظف غير موجود' }, { status: 404 });
+      }
+
+      // Calculate Net Salary & Summarize Deductions
+      let totalAddition = 0;
+      let totalDeduction = 0;
+      let loanDeductionsAmount = 0;
+      let absenceDeductionsAmount = 0;
+
+      for (const item of data.details) {
+        if (item.type === 'addition') {
+          totalAddition += item.amount;
+        } else if (item.type === 'deduction') {
+          totalDeduction += item.amount;
+          if (item.loanId) {
+            loanDeductionsAmount += item.amount;
+          } else if (item.description.includes('غياب')) {
+            absenceDeductionsAmount += item.amount;
+          }
+        }
+      }
+      const netTotal = Math.max(0, totalAddition - totalDeduction);
+
+      // Atomic Payroll Processing
+      const result = await prisma.$transaction(async (tx: any) => {
+        // Enforce Financial Period lock
+        const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
+        await periodService.requireOpenPeriod(payrollDate);
+
+        // Application-level duplicate guard until a DB unique constraint is approved later
+        const existingInvoice = await tx.payrollInvoice.findFirst({
+          where: {
+            tenantId,
+            employeeId: data.employeeId,
+            period: data.period,
+          },
+        });
+        if (existingInvoice) {
+          throw new Error('DUPLICATE_PAYSLIP');
+        }
+
+        // A. Create the Payroll Invoice Header
+        const invoice = await tx.payrollInvoice.create({
+          data: {
+            tenantId,
+            invoiceNo: `PR-${Math.floor(100000 + Math.random() * 900000)}`,
+            period: data.period,
+            total: netTotal,
+            employeeId: data.employeeId,
+          },
+        });
+
+        // B. Persist Line Items & Update Loans
+        const lineItems = await Promise.all(data.details.map(async (item: any) => {
+          // If it's a loan deduction, update the EmployeeLoan remaining balance
+          if (item.type === 'deduction' && item.loanId) {
+            const loan = await tx.employeeLoan.findUnique({
+              where: { id: item.loanId, tenantId },
+            });
+            if (loan) {
+              const newBalance = Math.max(0, Number(loan.remainingAmount) - item.amount);
+              await tx.employeeLoan.update({
+                where: { id: item.loanId, tenantId },
+                data: {
+                  remainingAmount: newBalance,
+                  status: newBalance <= 0 ? 'paid' : 'active',
+                },
+              });
+            }
+          }
+
+          return tx.payrollInvoiceDetail.create({
+            data: {
+              tenantId,
+              invoiceId: invoice.id,
+              description: item.description,
+              amount: item.amount,
+              type: item.type,
+            },
+          });
+        }));
+
+        // C. Register ZATCA Compliance Record
+        const zatcaRecord = await tx.zATCARecord.create({
+          data: {
+            tenantId,
+            invoiceId: invoice.id,
+            invoiceType: 'PAYROLL',
+            status: 'pending',
+          },
+        });
+
+        return { invoice, lineItems, zatcaRecord };
+      });
+
+      let msg = `تم صرف الراتب بنجاح! الصافي المستحق: ${netTotal.toFixed(2)} ريال.`;
+      if (loanDeductionsAmount > 0 || absenceDeductionsAmount > 0) {
+        msg += ' (تم خصم:';
+        if (loanDeductionsAmount > 0) msg += ` ${loanDeductionsAmount.toFixed(2)} سداد سلفة`;
+        if (absenceDeductionsAmount > 0) msg += `${loanDeductionsAmount > 0 ? ' و' : ''} ${absenceDeductionsAmount.toFixed(2)} غياب`;
+        msg += ')';
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: msg,
+        data: result,
+      }, { status: 201 });
+    }
 
     // ── action: run ────────────────────────────────────────────────────────
     if (action === 'run') {
@@ -177,6 +325,9 @@ async function _POST(req: NextRequest) {
       { status: 400 }
     );
   } catch (e: any) {
+    if (e.message === 'DUPLICATE_PAYSLIP') {
+      return NextResponse.json({ error: 'تم إصدار مسير رواتب بالفعل لهذا الموظف في هذه الفترة المالية' }, { status: 400 });
+    }
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

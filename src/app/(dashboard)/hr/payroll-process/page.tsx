@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Minus, Calculator, Save, UserCircle, Receipt, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -101,7 +101,7 @@ export default function PayrollProcessPage() {
  }
 
  try {
- const res = await fetch('/api/payroll', {
+ const res = await fetch('/api/payroll?action=create-payslip', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({
