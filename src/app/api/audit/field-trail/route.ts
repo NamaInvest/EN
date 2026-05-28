@@ -43,12 +43,12 @@ async function _GET(request: NextRequest) {
 
     const where: any = {};
     if (tableName) where.tableName = tableName;
-    if (recordId) where.recordId = parseInt(recordId);
+    if (recordId) where.recordId = recordId.toString(); // recordId is stored as String in DB
     if (changedBy) where.userId = parseInt(changedBy);
     if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) where.date.gte = new Date(dateFrom);
-      if (dateTo) where.date.lte = new Date(dateTo + 'T23:59:59');
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+      if (dateTo) where.createdAt.lte = new Date(dateTo + 'T23:59:59');
     }
 
     const db = prisma as any;
@@ -73,9 +73,9 @@ async function _GET(request: NextRequest) {
         }),
         db.auditLog.findMany({
           where,
-          orderBy: { date: 'desc' },
+          orderBy: { createdAt: 'desc' },
           take: 5,
-          select: { tableName: true, recordId: true, date: true, userId: true },
+          select: { tableName: true, recordId: true, createdAt: true, userId: true },
         }),
       ]);
 
@@ -90,7 +90,10 @@ async function _GET(request: NextRequest) {
         total,
         byTable: byTable.map((r: any) => ({ table: r.tableName, count: r._count })),
         byUser: byUser.map((r: any) => ({ userId: r.userId, name: userMap.get(r.userId) || `User #${r.userId}`, count: r._count })),
-        recentActivity,
+        recentActivity: recentActivity.map((r: any) => ({
+          ...r,
+          changedAt: r.createdAt,
+        })),
       });
     }
 
@@ -98,7 +101,7 @@ async function _GET(request: NextRequest) {
     const [logs, total] = await Promise.all([
       db.auditLog.findMany({
         where,
-        orderBy: { date: 'desc' },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
@@ -116,7 +119,7 @@ async function _GET(request: NextRequest) {
       const base = {
         ...l,
         changedBy: l.userId,
-        changedAt: l.date,
+        changedAt: l.createdAt,
         userName: userMap.get(l.userId) || `User #${l.userId}`,
       };
 
@@ -147,7 +150,7 @@ async function _GET(request: NextRequest) {
     if (exportFormat === 'csv') {
       const header = 'ID,Table,RecordID,Action,ChangedBy,UserName,ChangedAt,IP\n';
       const rows = enriched.map((l: any) =>
-        `${l.id},"${l.tableName}",${l.recordId},"${l.action}",${l.userId},"${l.userName}",${l.date},"${l.ipAddress || ''}"`
+        `${l.id},"${l.tableName}",${l.recordId},"${l.action}",${l.userId},"${l.userName}",${l.createdAt},"${l.ipAddress || ''}"`
       ).join('\n');
 
       return new NextResponse(header + rows, {
