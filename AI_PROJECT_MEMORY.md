@@ -66,3 +66,14 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Prisma Schema**: Unchanged.
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, protected admin APIs returned 401, roles endpoint sanitized with no sensitive field leakage. SHA256 checksums verified perfectly against local files.
+
+### Phase: Production Stock Adjustment Tolerances Enforcement (2026-05-28)
+* **Status**: `PRODUCTION_STOCK_ADJUSTMENT_TOLERANCE_DEPLOYED_AND_VERIFIED`
+* **Commit**: `5c51e56d634476d7912acd788a9ed1c403e780ec` (`5c51e56d`)
+* **Scope**: Enforce automatic absolute stock variance cost limit validations (5,000 SAR) across inventory adjustments and stocktake adjustments, restricting bypass only to admins/owners.
+* **Tests**: `src/__tests__/stock-adjustment-tolerances.test.ts` (8/8 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed runtime files, test files excluded).
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, protected admin APIs returned 401, roles endpoint sanitized with no sensitive field leakage. SHA256 checksums matched perfectly character-for-character between local and production.
