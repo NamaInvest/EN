@@ -97,3 +97,24 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **ZATCA/accounting calculation changed**: NO
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
+
+### Phase: Production Document State Machine Enforcement (2026-05-28)
+* **Status**: `PRODUCTION_DOCUMENT_STATE_MACHINE_DEPLOYED_AND_VERIFIED`
+* **Commit**: `1dd88889eda08a71d8b96b1a7dcdfa7432eef200` (`1dd88889`)
+* **Scope**:
+  - `src/app/api/sales/route.ts`
+  - `src/app/api/purchases/route.ts`
+  - `src/app/api/purchase-orders/[id]/route.ts`
+* **Tests**: `src/__tests__/document-state-machine-enforcement.test.ts` (13/13 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed runtime files, test files excluded).
+* **Test files uploaded to production**: NO
+* **SHA256**:
+  - `sales route`: `ed11c8379a8ea1b2167265181f072b6cd7e85a0079602cc48db90c65e867f732`
+  - `purchases route`: `bb18509cabe936dec19a0af436dc008f08ee0f656f42d9c4e3353a91ca056f38`
+  - `purchase-orders [id] route`: `6c1bdeccb3855b789a91d8757dd57a3b6ea1fc9cf009fc73232635d6b4987130`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
+
