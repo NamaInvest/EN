@@ -14,6 +14,7 @@ import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { reverseJournalByReference } from '@/lib/auto-journal';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { assertEditable } from '@/lib/document-state-machine';
+import { getNextNumber } from '@/lib/numbering';
 const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
@@ -77,8 +78,7 @@ async function _POST(request: Request) {
             userBranchFallback
         );
 
-        const last = await prisma.purchaseInvoice.findFirst({ where: { tenantId }, orderBy: { invoiceNo: 'desc' } });
-        const invoiceNo = (last?.invoiceNo || 0) + 1;
+        // invoiceNo is generated inside the financial transaction to prevent concurrency conflicts
         const items = body.items || [];
         const isManual = body.isManual === true;
         let subtotal = isManual ? (Number(body.manualSubtotal) || 0) : 0;
@@ -124,10 +124,18 @@ async function _POST(request: Request) {
         const receiptStatus = body.receiptStatus || 'received';
 
         const invoice = await runFinancialTx(prisma, async (tx: any) => {
+            let finalInvoiceNo: number;
+            if (isManual && body.supplierInvoiceNo) {
+                finalInvoiceNo = Number(body.supplierInvoiceNo) || 1;
+            } else {
+                const seqResult = await getNextNumber(tx, 'PI', branchId);
+                finalInvoiceNo = seqResult.current;
+            }
+
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
                     tenantId,
-                    invoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
+                    invoiceNo: finalInvoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
                     stockId: resolvedStockId,
                     subtotal, taxValue, total, paid, remaining,
                     supplierInvoiceNo: body.supplierInvoiceNo || null,
@@ -181,7 +189,7 @@ async function _POST(request: Request) {
                             referenceType: 'purchase_invoice',
                             referenceId: createdInvoice.id,
                             userId: userId,
-                            notes: `فاتورة مشتريات #${invoiceNo}`
+                            notes: `فاتورة مشتريات #${finalInvoiceNo}`
                         }
                     });
                 }
@@ -189,7 +197,7 @@ async function _POST(request: Request) {
 
             if (paid > 0) {
                 const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
-                await TreasuryPostingService.createTreasuryEntry(tx, { type: 'out', amount: paid, description: `فاتورة مشتريات #${invoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id }, userId, branchId);
+                await TreasuryPostingService.createTreasuryEntry(tx, { type: 'out', amount: paid, description: `فاتورة مشتريات #${finalInvoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id }, userId, branchId);
             }
 
             if (purchaseOrderId) {
@@ -245,7 +253,7 @@ async function _POST(request: Request) {
 
             const { postPurchaseInvoice, postGRN } = await import('@/lib/auto-journal');
             const journalResult = await postPurchaseInvoice({
-                invoiceNo,
+                invoiceNo: finalInvoiceNo,
                 subtotal,
                 taxValue,
                 total,
@@ -268,7 +276,7 @@ async function _POST(request: Request) {
                 const totalCost = Number(subtotal) - Number(calculatedPpv || 0);
                 if (totalCost > 0.01) {
                     await postGRN({
-                        grnNo: invoiceNo,
+                        grnNo: finalInvoiceNo,
                         totalCost,
                         supplierName: `مورد ${body.supplierId || 'غير محدد'}`,
                         userId: userId || undefined,

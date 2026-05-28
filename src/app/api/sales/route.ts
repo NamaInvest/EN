@@ -17,6 +17,7 @@ import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { assertEditable, isTerminal } from '@/lib/document-state-machine';
+import { getNextNumber } from '@/lib/numbering';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -126,12 +127,7 @@ export async function _POST(request: Request) {
         }
         // ------------------------------------------
 
-        // Get next invoice number
-        const lastInvoice = await prisma.salesInvoice.findFirst({
-            where: { tenantId },
-            orderBy: { invoiceNo: 'desc' },
-        });
-        const invoiceNo = body.manualInvoiceNo ? Number(body.manualInvoiceNo) : ((lastInvoice?.invoiceNo || 0) + 1);
+        // invoiceNo is generated inside the financial transaction to prevent concurrency conflicts
         const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
 
         // ── Credit Limit Enforcement ────────────────────────────────────────
@@ -239,12 +235,23 @@ export async function _POST(request: Request) {
             // [ZATCA ICV RACE CONDITION FIX] Lock the zatca counter rows exclusively in this transaction
             await tx.$executeRaw`SELECT id FROM "settings" WHERE "key" IN ('zatca_invoice_counter', 'zatca_last_pih') FOR UPDATE`;
 
+            let finalInvoiceNo: number;
+            let formattedNo = '';
+            if (body.manualInvoiceNo) {
+                finalInvoiceNo = Number(body.manualInvoiceNo);
+                formattedNo = String(body.manualInvoiceNo);
+            } else {
+                const seqResult = await getNextNumber(tx, 'INV', branchId);
+                finalInvoiceNo = seqResult.current;
+                formattedNo = seqResult.formatted;
+            }
+
             const createdInvoice = await tx.salesInvoice.create({
                 data: {
                     tenantId,
                     date: invoiceDate,
                     branchId,
-                    invoiceNo,
+                    invoiceNo: finalInvoiceNo,
                     customerId: body.customerId ? Number(body.customerId) : null,
                     stockId: resolvedStockId,
                     subtotal,
@@ -357,7 +364,7 @@ export async function _POST(request: Request) {
                         referenceType: 'sales_invoice',
                         referenceId: createdInvoice.id,
                         userId: userId,
-                        notes: `فاتورة مبيعات #${invoiceNo}`
+                        notes: `فاتورة مبيعات #${finalInvoiceNo}`
                     }
                 });
 
@@ -406,18 +413,18 @@ export async function _POST(request: Request) {
                     const sCard = Number(body.splitCard) || 0;
                     if (sCash > 0) {
                         const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
-                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
+                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCash, description: `تحصيل نقدي - فاتورة مبيعات #${finalInvoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
                     }
                     if (sCard > 0) {
                         const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
-                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة مبيعات #${invoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
+                        await TreasuryPostingService.createTreasuryEntry(tx, { type: 'in', amount: sCard, description: `مسدد بالشبكة - فاتورة مبيعات #${finalInvoiceNo}`, referenceType: 'sale', referenceId: createdInvoice.id }, userId, branchId);
                     }
                 } else {
                     const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
                     await TreasuryPostingService.createTreasuryEntry(tx, {
                             type: 'in',
                             amount: paid,
-                            description: `فاتورة مبيعات #${invoiceNo}`,
+                            description: `فاتورة مبيعات #${finalInvoiceNo}`,
                             referenceType: 'sale',
                             referenceId: createdInvoice.id,
                         }, userId, branchId);
@@ -473,7 +480,7 @@ export async function _POST(request: Request) {
             // Auto-journal entry INSIDE the transaction
             const { postSalesInvoice } = await import('@/lib/auto-journal');
             const journalResult = await postSalesInvoice({
-                invoiceNo,
+                invoiceNo: finalInvoiceNo,
                 subtotal: afterDiscount,
                 taxValue,
                 total,
