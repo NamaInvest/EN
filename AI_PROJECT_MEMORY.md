@@ -51,3 +51,18 @@ All detailed documentation resides in `docs/ai-brain/`. Read these files when to
 **This is the most critical instruction for your operation:**
 After ANY implementation task, you must automatically update THIS FILE (`/AI_PROJECT_MEMORY.md`) and any relevant files inside `/docs/ai-brain/` to reflect the changes you made. 
 **The Project Brain must NEVER become outdated.**
+
+---
+
+## 🚀 Completed Modernization Phases
+
+### Phase: Production Credit Control Enforcement (2026-05-28)
+* **Status**: `PRODUCTION_CREDIT_LIMIT_BLOCK_DEPLOYED_AND_VERIFIED`
+* **Commit**: `513b3d59e9a4f4efb79435b6fa72e0d7c71dcf87` (`513b3d59`)
+* **Scope**: Enforce automatic customer inactive and credit hold checks, plus credit limit validations across Sales API and POS checkout route.
+* **Tests**: `src/__tests__/credit-limit-block.test.ts` (9/9 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com`.
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, protected admin APIs returned 401, roles endpoint sanitized with no sensitive field leakage. SHA256 checksums verified perfectly against local files.
