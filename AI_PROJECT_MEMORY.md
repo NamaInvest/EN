@@ -154,4 +154,21 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage, `/api/audit/field-trail` returned 401 (properly secured, no 500 crashes).
 
+### Phase: Production Period Lock Transaction Guards - F-04A (2026-05-28)
+* **Status**: `PRODUCTION_PERIOD_LOCK_ENFORCEMENT_DEPLOYED_AND_VERIFIED`
+* **Commit**: `8673259e7966a2590d893f1a3ba24e0f520c5ebf` (`8673259e`)
+* **Scope**: Implement absolute and soft period lock transaction safeguards for sales, purchases, manual journal entries, and POS checkout, ensuring full validation of real document posting date (`manualDate` / `invoiceDate`).
+* **Tests**: `src/__tests__/period-lock-enforcement.test.ts` (7/7 passed), dynamic number sequences (6/6 passed), document state machine (13/13 passed). Total 26/26 passed.
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed validations.ts and purchases/route.ts, test files excluded).
+* **Test files uploaded to production**: NO
+* **SHA256**:
+  - `validations`: `a3deb81338276a92ddf7710c12ba0a3a047114638fdd9e88fde7c025a2773ce4`
+  - `purchases route`: `c735f3c753239f689f8cda98ac3c73c07a00995f6f0842683a609dfa0b143b44`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **finance/period-close untouched**: YES (`src/app/api/finance/period-close/route.ts` remains completely untouched at `981ea5a1...`)
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
+
 
