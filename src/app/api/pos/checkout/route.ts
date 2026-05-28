@@ -53,6 +53,43 @@ async function _POST(req: NextRequest) {
 
         const finalTotal = round2(vTotal + vTax - vDiscount);
 
+        // Validate customer credit and active status if customerId is passed
+        if (customerId) {
+            const customer = await prisma.customer.findFirst({
+                where: { id: parseInt(customerId), tenantId },
+                select: { creditLimit: true, balance: true, name: true, creditHold: true, creditHoldReason: true, active: true },
+            });
+            if (customer) {
+                if (!customer.active) {
+                    return NextResponse.json({ success: false, error: `العميل "${customer.name}" غير نشط. لا يمكن إتمام المعاملة.` }, { status: 400 });
+                }
+
+                const paymentMethodLower = String(paymentMethod).toLowerCase();
+                const isCreditPayment = paymentMethodLower === 'credit' || paymentMethodLower === 'bnpl' || paymentMethodLower === 'on_account';
+                
+                if (isCreditPayment) {
+                    if (customer.creditHold) {
+                        return NextResponse.json({
+                            success: false,
+                            error: `العميل "${customer.name}" موقوف ائتمانياً. السبب: ${customer.creditHoldReason || 'غير محدد'}`,
+                            code: 'CREDIT_HOLD_ACTIVE'
+                        }, { status: 400 });
+                    }
+
+                    if (n(customer.creditLimit) > 0) {
+                        const currentBalance = n(customer.balance);
+                        if ((currentBalance + finalTotal) > n(customer.creditLimit)) {
+                            return NextResponse.json({
+                                success: false,
+                                error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${n(customer.creditLimit).toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${finalTotal.toFixed(2)} ر.س`,
+                                code: 'CREDIT_LIMIT_EXCEEDED'
+                            }, { status: 400 });
+                        }
+                    }
+                }
+            }
+        }
+
         // 2. Transaction to ensure atomicity: Create Invoice + Deduct Stock
         const invoice = await runFinancialTx(prisma, async (tx: any) => {
             

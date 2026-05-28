@@ -137,9 +137,16 @@ export async function _POST(request: Request) {
         if (body.customerId) {
             const customer = await prisma.customer.findFirst({
                 where: { id: Number(body.customerId), tenantId },
-                select: { creditLimit: true, balance: true, name: true },
+                select: { creditLimit: true, balance: true, name: true, creditHold: true, creditHoldReason: true, active: true },
             });
-            if (customer && n(customer.creditLimit) > 0) {
+            if (customer) {
+                if (!customer.active) {
+                    return NextResponse.json({
+                        error: `العميل "${customer.name}" غير نشط. لا يمكن إتمام المعاملة.`,
+                        code: 'CUSTOMER_INACTIVE'
+                    }, { status: 422 });
+                }
+
                 // Calculate invoice total estimate for check
                 let estTotal = 0;
                 for (const item of body.items) {
@@ -147,18 +154,30 @@ export async function _POST(request: Request) {
                     const q = Number(item.quantity) || 1;
                     estTotal += p * q;
                 }
-                const paymentType = body.paymentType || 'cash';
                 const paid = body.paid !== undefined ? Number(body.paid) : estTotal;
                 const willBeOwed = estTotal - paid; // ما سيبقى ديناً على العميل
-                const currentBalance = n(customer.balance); // رصيد حالي (ديون قائمة)
-                if (paymentType !== 'cash' && (currentBalance + willBeOwed) > n(customer.creditLimit)) {
+
+                const paymentTypeLower = String(body.paymentType || 'cash').toLowerCase();
+                const isCredit = paymentTypeLower === 'credit' || paymentTypeLower === 'bnpl' || paymentTypeLower === 'on_account' || willBeOwed > 0;
+
+                if (isCredit && customer.creditHold) {
                     return NextResponse.json({
-                        error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${n(customer.creditLimit).toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${willBeOwed.toFixed(2)} ر.س`,
-                        code: 'CREDIT_LIMIT_EXCEEDED',
-                        currentBalance,
-                        creditLimit: customer.creditLimit,
-                        required: willBeOwed,
+                        error: `العميل "${customer.name}" موقوف ائتمانياً. السبب: ${customer.creditHoldReason || 'غير محدد'}`,
+                        code: 'CREDIT_HOLD_ACTIVE'
                     }, { status: 422 });
+                }
+
+                if (n(customer.creditLimit) > 0) {
+                    const currentBalance = n(customer.balance); // رصيد حالي (ديون قائمة)
+                    if (isCredit && (currentBalance + willBeOwed) > n(customer.creditLimit)) {
+                        return NextResponse.json({
+                            error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه رصيد مديون ${currentBalance.toFixed(2)} ر.س والحد المسموح ${n(customer.creditLimit).toFixed(2)} ر.س. المبلغ الإضافي المطلوب: ${willBeOwed.toFixed(2)} ر.س`,
+                            code: 'CREDIT_LIMIT_EXCEEDED',
+                            currentBalance,
+                            creditLimit: customer.creditLimit,
+                            required: willBeOwed,
+                        }, { status: 422 });
+                    }
                 }
             }
         }
