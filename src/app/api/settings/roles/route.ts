@@ -67,8 +67,12 @@ async function _POST(request: NextRequest) {
         await prisma.$transaction(async (tx) => {
             // Remove old permissions
             await tx.userPermission.deleteMany({
-                where: { userId: targetUserId }
+                where: {
+                    userId: targetUserId,
+                    tenantId: user.tenantId
+                }
             });
+
 
             // Insert new permissions
             if (modules.length > 0) {
