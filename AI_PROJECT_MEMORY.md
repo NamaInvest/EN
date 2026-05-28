@@ -189,5 +189,14 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage, `/api/accounting/period-close` and `/api/finance/period-close` returned 401 (secured, no DB/Prisma crashes, passing `tenantId` correctly).
 
-
-
+### Phase: Sales Returns Transaction Guards - F-04C (2026-05-28)
+* **Status**: `SALES_RETURNS_TRANSACTION_GUARDS_COMMITTED_AND_PUSHED`
+* **Commit**: `9c950bd075c200dae8369c5833b9a5586ef81c13` (`9c950bd0`)
+* **Scope**: Modernize Sales Returns API route to enforce robust multi-tenant data isolation and posting period locks. Completely removed reliance on client-provided headers (`x-tenant-id`) and extracted secure authenticated tenant context. Applied strict `tenantId` filtering on all `findFirst`, `findMany`, `count`, `create`, and `upsert` queries inside the route across `SalesInvoice`, `SalesReturn`, `Product`, `ProductStock`, and `StockMovement` models. Integrated `assertPeriodWritable` transaction guard using the invoice date to block illegal or backdated postings in closed fiscal months.
+* **Tests**: `src/__tests__/sales-returns-governance.test.ts` (5/5 passed integration tests covering tenant isolation, bypass rejection, and period locking). Resolved all Jest mock TS compiler type errors (`never` return type issues) using explicit type-safe resolver mock definitions.
+* **Deployment**: **STANDBY (Pending deployment phase approval)**
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: Unchanged (Pending deployment).
+* **Runtime Verification**: Run local typecheck (`npm run typecheck` - PASS), prisma validation (`npx prisma validate` - PASS), and Jest tests (`npx jest` - PASS) successfully with zero errors. Committed to main repository branch cleanly.
