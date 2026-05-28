@@ -16,7 +16,7 @@ import { withIdempotency } from '@/lib/idempotency';
 
 const log = logger.child({ service: 'sales-returns' });
 
-// â”€â”€ Schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Schema ───────────────────────────────────────────────────────────────────
 
 const ReturnDetailSchema = z.object({
   productId:   z.number().int().positive(),
@@ -38,9 +38,9 @@ const CreateSalesReturnSchema = z.object({
   notes:             z.string().optional(),
 });
 
-// â”€â”€ GET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── GET ──────────────────────────────────────────────────────────────────────
 
-async function _GET(req: NextRequest) {
+async function _GET(req: NextRequest, tenantId: string) {
   const prisma = getPrisma(req);
   const q      = req.nextUrl.searchParams;
   const take   = Math.min(parseInt(q.get('take') || '50'), 200);
@@ -48,7 +48,7 @@ async function _GET(req: NextRequest) {
   const from   = q.get('from');
   const to     = q.get('to');
 
-  const where: any = {};
+  const where: any = { tenantId };
   if (from || to) {
     where.date = {};
     if (from) where.date.gte = new Date(from);
@@ -75,7 +75,7 @@ async function _GET(req: NextRequest) {
   }
 }
 
-// â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── POST ─────────────────────────────────────────────────────────────────────
 
 async function _POST(req: NextRequest, auth: any, tenantId: string) {
   const prisma = getPrisma(req);
@@ -104,10 +104,41 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
   // ────────────────────────────────────────────────────────────────────
 
   const today = body.date || new Date().toISOString().split('T')[0];
+  const returnDate = new Date(today);
+
+  // ── Period Lock Enforcement ────────────────────────────────────────
+  const { assertPeriodWritable, PeriodLockViolation } = await import('@/lib/governance/period-lock');
+  const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+
+  const overrideContext = buildOverrideContextFromRequest(req as any, {
+      tenantId,
+      actorId: String(auth?.userId || '0'),
+      actorRole: auth?.role || 'USER'
+  });
+
+  try {
+      await assertPeriodWritable({
+          tenantId,
+          postingDate: returnDate,
+          operationType: 'CREATE_SALES_RETURN',
+          module: 'sales',
+          actor: String(auth?.userId || 'SYSTEM'),
+          overrideContext
+      });
+  } catch (err) {
+      if (err instanceof PeriodLockViolation) {
+          return NextResponse.json({
+              error: err.message,
+              code: err.code
+          }, { status: err.code === 'LOCKED' ? 409 : 422 });
+      }
+      throw err;
+  }
+  // ────────────────────────────────────────────────────────────────────
 
   // Verify original invoice exists for this tenant
-  const originalInvoice = await prisma.salesInvoice.findUnique({
-    where: { id: body.originalInvoiceId }
+  const originalInvoice = await prisma.salesInvoice.findFirst({
+    where: { id: body.originalInvoiceId, tenantId }
   });
   if (!originalInvoice) {
     return NextResponse.json({ error: 'الفاتورة الأصلية غير موجودة' }, { status: 404 });
@@ -119,13 +150,17 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
   const total    = subtotal + taxValue;
 
   // Get next return number
-  const lastReturn = await prisma.salesReturn.findFirst({ orderBy: { id: 'desc' } }).catch(() => null);
+  const lastReturn = await prisma.salesReturn.findFirst({
+    where: { tenantId },
+    orderBy: { id: 'desc' }
+  }).catch(() => null);
   const returnNo   = (lastReturn?.returnNo || 0) + 1;
 
   // Transaction: create return + restore stock + financial entry
   const salesReturn = await runFinancialTx(prisma, async (tx: any) => {
     const ret = await tx.salesReturn.create({
       data: {
+        tenantId,
         returnNo,
         originalInvoiceId: body.originalInvoiceId,
         customerId:        body.customerId || null,
@@ -151,6 +186,13 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
 
     // Restore inventory for each returned item
     for (const item of body.details) {
+      const productExists = await tx.product.findFirst({
+        where: { id: item.productId, tenantId }
+      });
+      if (!productExists) {
+        throw new Error('Product not found inside tenant boundary');
+      }
+
       await tx.product.update({
         where: { id: item.productId },
         data:  { currentStock: { increment: item.quantity } },
@@ -158,14 +200,16 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
 
       const stockTarget = item.stockId || body.destinationStockId;
       if (stockTarget) {
+        // Upsert ProductStock inside tenant
         await (tx as any).productStock.upsert({
           where:  { productId_stockId: { productId: item.productId, stockId: stockTarget } },
-          create: { productId: item.productId, stockId: stockTarget, quantity: item.quantity },
+          create: { tenantId, productId: item.productId, stockId: stockTarget, quantity: item.quantity },
           update: { quantity: { increment: item.quantity } },
         });
 
         await tx.stockMovement.create({
           data: {
+            tenantId,
             productId: item.productId,
             stockId: stockTarget,
             type: 'in',
@@ -219,15 +263,14 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
   }, { status: 201 });
 }
 
-// â”€â”€ Exports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Exports ──────────────────────────────────────────────────────────────────
 
 export const GET = withRoute(
-  async ({ req }) => _GET(req as any),
+  async ({ req, tenant }) => _GET(req as any, tenant),
   { rateLimit: 'DEFAULT' }
 );
 
-export const POST = withRoute(async ({ req, auth }) => {
+export const POST = withRoute(async ({ req, auth, tenant }) => {
   const { withIdempotency } = await import('@/lib/idempotency');
-  const tenantId = req.headers.get('x-tenant-id') || 'public';
-  return withIdempotency(req as NextRequest, 'POST /api/sales-returns', async () => _POST(req as any, auth, tenantId as string));
-}, { rateLimit: 'FINANCIAL' });
+  return withIdempotency(req as NextRequest, 'POST /api/sales-returns', async () => _POST(req as any, auth, tenant));
+}, { rateLimit: 'FINANCIAL', module: 'sales', permission: 'add' });
