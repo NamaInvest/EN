@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
+import { DEFAULT_STOCK_ADJUSTMENT_TOLERANCE } from '@/app/api/adjustments/route';
 
 const log = logger.child({ service: 'stock.adjustments' });
 
@@ -91,6 +92,17 @@ async function _POST(req: Request) {
 
             if (diff === 0) throw new Error('لا يوجد فارق لتسويته! الرصيد الفعلي يطابق الدفتري.');
 
+            const diffCost = diff * (n(product.buyPrice) || 0);
+
+            // Check Stock Adjustment Tolerance Guardrail
+            const absVariance = Math.abs(diffCost);
+            if (absVariance > DEFAULT_STOCK_ADJUSTMENT_TOLERANCE) {
+                const isAuthorized = _auth?.role === 'admin' || _auth?.role === 'owner';
+                if (!isAuthorized) {
+                    throw new Error(`STOCK_ADJUSTMENT_TOLERANCE_EXCEEDED: تجاوز حد تسوية الجرد المسموح به — قيمة التسوية الحالية ${absVariance.toFixed(2)} ر.س تتجاوز الحد المعتمد ${DEFAULT_STOCK_ADJUSTMENT_TOLERANCE.toFixed(2)} ر.س للمستودعات. تتطلب موافقة المدير المالي أو المالك.`);
+                }
+            }
+
             const targetStockId = stockId ? parseInt(stockId) : 1;
 
             await tx.product.updateMany({
@@ -120,7 +132,6 @@ async function _POST(req: Request) {
             });
 
             // Post to Auto Journal
-            const diffCost = diff * (n(product.buyPrice) || 0);
             if (diffCost !== 0) {
                 await postInventoryAdjustment({
                     productId: product.id,
@@ -137,6 +148,14 @@ async function _POST(req: Request) {
         return NextResponse.json(adjustment);
     } catch (e: any) {
         log.error(e);
+        if (e.message && e.message.startsWith('STOCK_ADJUSTMENT_TOLERANCE_EXCEEDED')) {
+            const parts = e.message.split(': ');
+            return NextResponse.json({
+                success: false,
+                error: parts[1] || e.message,
+                code: 'STOCK_ADJUSTMENT_TOLERANCE_EXCEEDED'
+            }, { status: 400 });
+        }
         return NextResponse.json({ error: e.message || 'Server Error' }, { status: 400 });
     }
 }

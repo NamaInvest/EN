@@ -21,6 +21,24 @@ import { EnterpriseLogger } from '@/lib/observability/logger';
 
 const log = logger.child({ service: 'adjustments' });
 
+// ── Stock Adjustment Tolerances Guardrail ──────────────────────────────
+export const DEFAULT_STOCK_ADJUSTMENT_TOLERANCE = 5000;
+
+export function checkAdjustmentTolerance(totalVarianceCost: number, auth: any): { allowed: boolean; error?: string; code?: string } {
+    const absVariance = Math.abs(totalVarianceCost);
+    if (absVariance > DEFAULT_STOCK_ADJUSTMENT_TOLERANCE) {
+        const isAuthorized = auth?.role === 'admin' || auth?.role === 'owner';
+        if (!isAuthorized) {
+            return {
+                allowed: false,
+                error: `تجاوز حد تسوية الجرد المسموح به — قيمة التسوية الحالية ${absVariance.toFixed(2)} ر.س تتجاوز الحد المعتمد ${DEFAULT_STOCK_ADJUSTMENT_TOLERANCE.toFixed(2)} ر.س للمستودعات. تتطلب موافقة المدير المالي أو المالك.`,
+                code: 'STOCK_ADJUSTMENT_TOLERANCE_EXCEEDED'
+            };
+        }
+    }
+    return { allowed: true };
+}
+
 // ── Schemas ───────────────────────────────────────────────────────────────────
 
 const AdjLineSchema = z.object({
@@ -128,6 +146,23 @@ async function _POST(req: NextRequest, auth: any) {
     }
 
     const { items, reason, branchId, date } = parsed.data;
+    
+    let totalVarianceCost = 0;
+    for (const item of items) {
+      const diff     = item.actualQty - item.systemQty;
+      if (Math.abs(diff) < 0.001) continue; 
+      const diffCost = diff * (item.unitCost || 0);
+      totalVarianceCost += diffCost;
+    }
+
+    const toleranceCheck = checkAdjustmentTolerance(totalVarianceCost, auth);
+    if (!toleranceCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: toleranceCheck.error, code: toleranceCheck.code },
+        { status: 400 }
+      );
+    }
+
     const results: any[] = [];
 
     await runInventoryTx(prisma, async (tx: any) => {
@@ -184,7 +219,21 @@ async function _POST(req: NextRequest, auth: any) {
   }
 
   const { items, reason, branchId, date, notes, stocktakeId } = parsed.data;
+  
   let totalVarianceCost = 0;
+  for (const item of items) {
+    const diff     = item.actualQty - item.systemQty;
+    const diffCost = diff * (item.unitCost || 0);
+    totalVarianceCost += diffCost;
+  }
+
+  const toleranceCheck = checkAdjustmentTolerance(totalVarianceCost, auth);
+  if (!toleranceCheck.allowed) {
+    return NextResponse.json(
+      { success: false, error: toleranceCheck.error, code: toleranceCheck.code },
+      { status: 400 }
+    );
+  }
 
   await runInventoryTx(prisma, async (tx: any) => {
     for (const item of items) {
