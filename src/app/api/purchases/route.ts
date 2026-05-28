@@ -15,6 +15,7 @@ import { reverseJournalByReference } from '@/lib/auto-journal';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { assertEditable } from '@/lib/document-state-machine';
 import { getNextNumber } from '@/lib/numbering';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
@@ -69,9 +70,30 @@ async function _POST(request: Request) {
             actorRole: auth?.role || 'USER'
         });
 
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'CREATE_PURCHASE_INVOICE',
+                module: 'purchases',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // ── Auto-resolve stockId + branchId from warehouse ─────────────────
         const userBranchFallback = body.branchId ? Number(body.branchId) : (
-            userId ? (await prisma.user.findFirst({ where: { id: userId, tenantId }, select: { branchId: true } }))?.branchId ?? null : null
+            userId ? (await prisma.user.findFirst({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
         );
         const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
             body.stockId,

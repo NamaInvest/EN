@@ -12,6 +12,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'pos.checkout' });
 
@@ -33,6 +34,35 @@ async function _POST(req: NextRequest) {
         const auth = getUserFromRequest(req as any);
         if (!auth) return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
         const tenantId = requireTenantId(req as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'POS_CHECKOUT',
+                module: 'pos',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    success: false,
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         const body = await req.json();
 

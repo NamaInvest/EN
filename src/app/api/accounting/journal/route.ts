@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { MfaEngine } from '@/lib/mfa-engine';
 import { buildOverrideContextFromRequest } from '@/lib/governance/override-context';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'accounting.journal' });
 
@@ -70,6 +71,35 @@ async function _POST(request: Request) {
         }
         const { description, reference, date, lines, userId } = body;
 
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        const targetDate = date ? new Date(date) : new Date();
+        const tenantId = auth.tenantId || 'default';
+        const overrideContext = buildOverrideContextFromRequest(request, {
+            tenantId,
+            actorId: String(auth.userId),
+            actorRole: auth.role || 'USER'
+        });
+
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: targetDate,
+                operationType: 'CREATE_JOURNAL_ENTRY',
+                module: 'accounting',
+                actor: String(auth.userId),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         if (!description || !lines || lines.length < 2) {
             return NextResponse.json({ error: 'الوصف وسطرين على الأقل مطلوبين' }, { status: 400 });
         }
@@ -115,12 +145,6 @@ async function _POST(request: Request) {
             }
         }
         // ------------------------------------------
-
-        const overrideContext = buildOverrideContextFromRequest(request, {
-            tenantId: auth.tenantId || 'default',
-            actorId: String(auth.userId),
-            actorRole: auth.role || 'USER'
-        });
 
         const result = await createJournalEntry({
             description,

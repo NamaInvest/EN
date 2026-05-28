@@ -18,6 +18,7 @@ import { n } from '@/lib/decimal-utils';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { assertEditable, isTerminal } from '@/lib/document-state-machine';
 import { getNextNumber } from '@/lib/numbering';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -129,6 +130,27 @@ export async function _POST(request: Request) {
 
         // invoiceNo is generated inside the financial transaction to prevent concurrency conflicts
         const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: invoiceDate,
+                operationType: 'CREATE_SALES_INVOICE',
+                module: 'sales',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         // ── Credit Limit Enforcement ────────────────────────────────────────
         if (body.customerId) {
