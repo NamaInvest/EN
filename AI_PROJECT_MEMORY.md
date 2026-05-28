@@ -118,3 +118,22 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
 
+### Phase: Production Document Sequences Enforcement (2026-05-28)
+* **Status**: `PRODUCTION_DOCUMENT_SEQUENCE_DEPLOYED_AND_VERIFIED`
+* **Commit**: `6371c947351d3332a88feca0d6f6a92b2b914045` (`6371c947`)
+* **Scope**:
+  - `src/app/api/sales/route.ts`
+  - `src/app/api/purchases/route.ts`
+* **Tests**: `src/__tests__/dynamic-number-sequences.test.ts` (6/6 passed), full suite (1041/1041 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed runtime files, test files excluded).
+* **Test files uploaded to production**: NO
+* **SHA256**:
+  - `sales route`: `1a4b61fb8310fc76213d8b326552d3185953f5d214b47a1648c94ff259fcf17d`
+  - `purchases route`: `472eeea7b870521ccd8ba031e4e9463c927d974b8e7933ec645b3959ed5d63b0`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage (MFA secrets, passwordHash, and session/device tokens perfectly secure).
+
+
