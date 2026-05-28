@@ -70,11 +70,13 @@ async function _POST(request: Request) {
             actorRole: auth?.role || 'USER'
         });
 
+        const invoiceDate = body.manualDate ? new Date(body.manualDate) : new Date();
+
         // ── Period Lock Enforcement ────────────────────────────────────────
         try {
             await assertPeriodWritable({
                 tenantId,
-                postingDate: new Date(),
+                postingDate: invoiceDate,
                 operationType: 'CREATE_PURCHASE_INVOICE',
                 module: 'purchases',
                 actor: String(auth?.userId || 'SYSTEM'),
@@ -157,6 +159,7 @@ async function _POST(request: Request) {
             const createdInvoice = await tx.purchaseInvoice.create({
                 data: {
                     tenantId,
+                    date: invoiceDate,
                     invoiceNo: finalInvoiceNo, isManual, supplierId: body.supplierId ? Number(body.supplierId) : null,
                     stockId: resolvedStockId,
                     subtotal, taxValue, total, paid, remaining,
@@ -282,7 +285,7 @@ async function _POST(request: Request) {
                 paymentType,
                 userId: userId || undefined,
                 branchId: branchId || undefined,
-                date: new Date().toISOString().split('T')[0],
+                date: invoiceDate.toISOString().split('T')[0],
                 ppvAmount: calculatedPpv,
                 hasGRN: receiptStatus === 'received', // [EG-02] GRN already posted → clear GRNI
                 txClient: tx,
@@ -303,7 +306,7 @@ async function _POST(request: Request) {
                         supplierName: `مورد ${body.supplierId || 'غير محدد'}`,
                         userId: userId || undefined,
                         branchId: branchId || undefined,
-                        date: new Date().toISOString().split('T')[0],
+                        date: invoiceDate.toISOString().split('T')[0],
                         txClient: tx,
                         overrideContext
                     });

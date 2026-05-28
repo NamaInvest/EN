@@ -109,6 +109,7 @@ export const purchaseCreateSchema = z.object({
   branchId: optionalId,
   purchaseOrderId: optionalId,
   ppvAmount: z.number().or(z.string().transform(Number)).optional().nullable(),
+  manualDate: z.string().optional().nullable(),
 }).strip();
 
 export const purchasePaymentSchema = z.object({
