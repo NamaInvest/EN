@@ -213,7 +213,7 @@ export async function _POST(request: Request) {
         // ── Auto-resolve stockId + branchId from warehouse ─────────────────
         // branchId is always derived from Stock.branchId to prevent accounting mix-ups
         const userBranchFallback = body.branchId ? Number(body.branchId) : (
-            userId ? (await prisma.user.findFirst({ where: { id: userId, tenantId }, select: { branchId: true } }))?.branchId ?? null : null
+            userId ? (await prisma.user.findFirst({ where: { id: userId }, select: { branchId: true } }))?.branchId ?? null : null
         );
         const { stockId: resolvedStockId, branchId } = await resolveStockAndBranch(
             body.stockId,
