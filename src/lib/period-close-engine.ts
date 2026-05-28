@@ -38,30 +38,42 @@ export type StepCode = typeof SOCPA_CLOSE_STEPS[number]['code'];
  */
 export async function initPeriodCloseTasks(
   prisma: PrismaClient,
-  periodId: number
+  periodId: number,
+  tenantId: string
 ): Promise<number> {
   // Check if tasks already exist
   const existing = await (prisma as any).periodCloseChecklist.count({
-    where: { fiscalPeriodId: periodId },
+    where: { fiscalPeriodId: periodId, tenantId },
   });
   if (existing > 0) return existing;
 
-  // Ensure template records exist (upsert so it's idempotent)
-  await Promise.all(
-    SOCPA_CLOSE_STEPS.map((step) =>
-      (prisma as any).periodCloseTaskTemplate.upsert({
-        where: { code: step.code } as any,
-        update: { name: step.nameAr, sequence: step.sequence },
-        create: { code: step.code, name: step.nameAr, sequence: step.sequence },
-      }).catch(() => null) // ignore if model doesn't have code field yet
-    )
-  );
+  // Ensure template records exist cleanly (using safe non-unique index find/create)
+  for (const step of SOCPA_CLOSE_STEPS) {
+    try {
+      const templateExists = await (prisma as any).periodCloseTaskTemplate.findFirst({
+        where: { name: step.nameAr, tenantId }
+      });
+      if (!templateExists) {
+        await (prisma as any).periodCloseTaskTemplate.create({
+          data: {
+            tenantId,
+            name: step.nameAr,
+            sequence: step.sequence,
+            applicableModule: 'accounting',
+            isMandatory: true
+          }
+        });
+      }
+    } catch (err) {
+      log.error('Failed to ensure template record', { step: step.code, errorMessage: err instanceof Error ? err.message : String(err) });
+    }
+  }
 
   // Create checklist items
   const checklists = await (prisma as any).periodCloseChecklist.createMany({
     data: SOCPA_CLOSE_STEPS.map((step) => ({
+      tenantId,
       fiscalPeriodId: periodId,
-      taskCode:       step.code,
       taskName:       step.nameAr,
       sequence:       step.sequence,
       status:         'PENDING',
@@ -80,11 +92,20 @@ export async function completeTask(
   periodId:  number,
   taskCode:  string,
   userId:    string,
-  notes?:    string
+  notes?:    string,
+  tenantId?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const step = SOCPA_CLOSE_STEPS.find(s => s.code === taskCode);
+    const nameToMatch = step ? step.nameAr : taskCode;
+
+    const whereClause: any = { fiscalPeriodId: periodId, taskName: nameToMatch };
+    if (tenantId) {
+      whereClause.tenantId = tenantId;
+    }
+
     await (prisma as any).periodCloseChecklist.updateMany({
-      where: { fiscalPeriodId: periodId, taskCode },
+      where: whereClause,
       data: {
         status:      'COMPLETED',
         completedAt: new Date(),
@@ -103,7 +124,8 @@ export async function completeTask(
  */
 export async function getPeriodCloseStatus(
   prisma:   PrismaClient,
-  periodId: number
+  periodId: number,
+  tenantId?: string
 ): Promise<{
   period:      any;
   tasks:       any[];
@@ -114,19 +136,32 @@ export async function getPeriodCloseStatus(
     where: { id: periodId },
   });
 
+  const whereClause: any = { fiscalPeriodId: periodId };
+  if (tenantId) {
+    whereClause.tenantId = tenantId;
+  }
+
   const tasks = await (prisma as any).periodCloseChecklist.findMany({
-    where:   { fiscalPeriodId: periodId },
+    where:   whereClause,
     orderBy: { sequence: 'asc' },
   });
 
-  const total     = tasks.length;
-  const completed = tasks.filter((t: any) => t.status === 'COMPLETED').length;
-  const skipped   = tasks.filter((t: any) => t.status === 'SKIPPED').length;
+  const tasksWithCode = tasks.map((task: any) => {
+    const step = SOCPA_CLOSE_STEPS.find((s) => s.nameAr === task.taskName);
+    return {
+      ...task,
+      taskCode: step ? step.code : task.taskName,
+    };
+  });
+
+  const total     = tasksWithCode.length;
+  const completed = tasksWithCode.filter((t: any) => t.status === 'COMPLETED').length;
+  const skipped   = tasksWithCode.filter((t: any) => t.status === 'SKIPPED').length;
   const pending   = total - completed - skipped;
 
   return {
     period,
-    tasks,
+    tasks: tasksWithCode,
     progress: { total, completed, pending, skipped },
     readyToClose: pending === 0 && total > 0,
   };

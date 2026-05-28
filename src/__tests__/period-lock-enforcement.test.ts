@@ -15,6 +15,19 @@ jest.mock('../lib/prisma', () => {
       periodLockLog: {
         create: jest.fn(),
       },
+      periodCloseChecklist: {
+        count: jest.fn(),
+        createMany: jest.fn(),
+        findMany: jest.fn(),
+        updateMany: jest.fn(),
+      },
+      periodCloseTaskTemplate: {
+        findFirst: jest.fn(),
+        create: jest.fn(),
+      },
+      fiscalPeriod: {
+        findUnique: jest.fn(),
+      },
     },
   };
 });
@@ -206,14 +219,64 @@ describe('Period Lock Enforcement & Interlocking (F-04)', () => {
     });
   });
 
-  describe('Period Close Checklist Initialization', () => {
-    it('should return checklist templates and status correctly', () => {
-      const steps = [
-        { code: 'BANK_RECON', nameAr: 'تسوية الحسابات البنكية', sequence: 1 },
-        { code: 'AR_SUBLEDGER', nameAr: 'تسوية دفتر الأستاذ المساعد AR', sequence: 2 },
-      ];
-      expect(steps).toHaveLength(2);
-      expect(steps[0].code).toBe('BANK_RECON');
+  describe('Period Close Checklist Initialization & Facade (F-04B)', () => {
+    const { initPeriodCloseTasks, getPeriodCloseStatus, completeTask } = require('../lib/period-close-engine');
+
+    it('should initialize SOCPA checklist tasks with correct tenantId and without taskCode crashes', async () => {
+      (prisma as any).periodCloseChecklist.count.mockResolvedValue(0);
+      (prisma as any).periodCloseTaskTemplate.findFirst.mockResolvedValue({ id: 1 });
+      (prisma as any).periodCloseChecklist.createMany.mockResolvedValue({ count: 14 });
+
+      const count = await initPeriodCloseTasks(prisma, 12, 'tenant-A');
+
+      expect(count).toBe(14);
+      expect((prisma as any).periodCloseChecklist.count).toHaveBeenCalledWith({
+        where: { fiscalPeriodId: 12, tenantId: 'tenant-A' }
+      });
+
+      const createArgs = (prisma as any).periodCloseChecklist.createMany.mock.calls[0][0];
+      expect(createArgs.data).toHaveLength(14);
+      expect(createArgs.data[0].tenantId).toBe('tenant-A');
+      expect(createArgs.data[0].taskName).toBe('تسوية الحسابات البنكية');
+      expect(createArgs.data[0].taskCode).toBeUndefined(); // Verify no taskCode parameter is sent to DB
+    });
+
+    it('should dynamically map taskName back to taskCode in getPeriodCloseStatus response for the frontend', async () => {
+      (prisma as any).fiscalPeriod.findUnique.mockResolvedValue({ id: 12, year: 2026, month: 5 });
+      (prisma as any).periodCloseChecklist.findMany.mockResolvedValue([
+        { id: 101, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'تسوية الحسابات البنكية', sequence: 1, status: 'COMPLETED' },
+        { id: 102, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'تسوية دفتر الأستاذ المساعد AR', sequence: 2, status: 'PENDING' },
+      ]);
+
+      const status = await getPeriodCloseStatus(prisma, 12, 'tenant-A');
+
+      expect(status.tasks).toHaveLength(2);
+      expect(status.tasks[0].taskCode).toBe('BANK_RECON');
+      expect(status.tasks[1].taskCode).toBe('AR_SUBLEDGER');
+      expect(status.progress.completed).toBe(1);
+      expect(status.progress.pending).toBe(1);
+      expect(status.readyToClose).toBe(false);
+
+      expect((prisma as any).periodCloseChecklist.findMany).toHaveBeenCalledWith({
+        where: { fiscalPeriodId: 12, tenantId: 'tenant-A' },
+        orderBy: { sequence: 'asc' }
+      });
+    });
+
+    it('should complete task by looking up the taskName from the provided taskCode and filtering by tenantId', async () => {
+      (prisma as any).periodCloseChecklist.updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await completeTask(prisma, 12, 'BANK_RECON', 'user-admin', 'Done reconciling', 'tenant-A');
+
+      expect(result.success).toBe(true);
+      expect((prisma as any).periodCloseChecklist.updateMany).toHaveBeenCalledWith({
+        where: { fiscalPeriodId: 12, taskName: 'تسوية الحسابات البنكية', tenantId: 'tenant-A' },
+        data: expect.objectContaining({
+          status: 'COMPLETED',
+          owner: 'user-admin',
+          notes: 'Done reconciling'
+        })
+      });
     });
   });
 });

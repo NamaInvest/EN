@@ -64,12 +64,13 @@ async function _GET(req: NextRequest) {
   try {
     const prisma    = getPrisma(req);
     const periodId  = parseInt(req.nextUrl.searchParams.get('periodId') ?? '', 10);
+    const tenantId  = auth.tenantId || 'default';
 
     if (!periodId || isNaN(periodId)) {
       return NextResponse.json({ error: 'periodId مطلوب (رقم صحيح)' }, { status: 400 });
     }
 
-    const status = await closeApi(prisma as any).period.getStatus(periodId);
+    const status = await closeApi(prisma as any).period.getStatus(periodId, tenantId);
     return NextResponse.json(status);
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
@@ -89,22 +90,23 @@ async function _POST(req: NextRequest) {
     const prisma  = getPrisma(req);
     const api     = closeApi(prisma as any);
     const userId  = String(auth.userId);
+    const tenantId = auth.tenantId || 'default';
 
     switch (data.action) {
       case 'init': {
-        const count = await api.period.initTasks(data.periodId);
+        const count = await api.period.initTasks(data.periodId, tenantId);
         return NextResponse.json({ success: true, tasksCreated: count });
       }
 
       case 'complete-task': {
-        const result = await api.period.completeTask(data.periodId, data.taskCode, userId, data.notes);
+        const result = await api.period.completeTask(data.periodId, data.taskCode, userId, data.notes, tenantId);
         if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });
         return NextResponse.json(result);
       }
 
       case 'soft-close': {
         // Verify all tasks complete before soft-close
-        const status = await api.period.getStatus(data.periodId);
+        const status = await api.period.getStatus(data.periodId, tenantId);
         if (!status.readyToClose) {
           return NextResponse.json({
             error: `إغلاق غير مكتمل: ${status.progress.pending} مهام متبقية`,

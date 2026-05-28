@@ -48,10 +48,10 @@ export function closeApi(prisma: PrismaClient) {
   return {
     /** Month-end / period close operations */
     period: {
-      initTasks:   (periodId: number) => initPeriodCloseTasks(prisma, periodId),
-      completeTask: (periodId: number, taskCode: string, userId: string, notes?: string) =>
-        completeTask(prisma, periodId, taskCode, userId, notes),
-      getStatus:   (periodId: number) => getPeriodCloseStatus(prisma, periodId),
+      initTasks:   (periodId: number, tenantId: string) => initPeriodCloseTasks(prisma, periodId, tenantId),
+      completeTask: (periodId: number, taskCode: string, userId: string, notes?: string, tenantId?: string) =>
+        completeTask(prisma, periodId, taskCode, userId, notes, tenantId),
+      getStatus:   (periodId: number, tenantId?: string) => getPeriodCloseStatus(prisma, periodId, tenantId),
       softClose:   (periodId: number, userId: string) => executeSoftClose(prisma, periodId, userId),
       hardClose:   (periodId: number, userId: string) => executeHardClose(prisma, periodId, userId),
     },

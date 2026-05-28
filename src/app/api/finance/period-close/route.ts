@@ -28,7 +28,7 @@ async function _GET(req: NextRequest, auth: any) {
         }
 
         // Retrieve status from standard SOCPA facade
-        const status = await closeApi(prisma as any).period.getStatus(Number(periodId));
+        const status = await closeApi(prisma as any).period.getStatus(Number(periodId), tenantId);
         return NextResponse.json(status.tasks);
     } catch (error: any) {
         log.error('finance.period-close.GET', { error: error instanceof Error ? error.message : error, tenantId });
@@ -58,7 +58,7 @@ async function _POST(req: NextRequest, auth: any) {
         }
 
         // Use unified closeApi month-end task initialization
-        const count = await closeApi(prisma as any).period.initTasks(Number(fiscalPeriodId));
+        const count = await closeApi(prisma as any).period.initTasks(Number(fiscalPeriodId), tenantId);
 
         await prisma.auditLog.create({
             data: {
