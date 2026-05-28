@@ -7,6 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
+import { assertEditable } from '@/lib/document-state-machine';
 
 const log = logger.child({ service: 'purchase-orders.id' });
 async function _GET(
@@ -51,6 +52,12 @@ async function _PUT(
 
         if (!currentOrder) {
             return NextResponse.json({ error: 'لم يتم العثور على الطلب' }, { status: 404 });
+        }
+
+        try {
+            assertEditable(currentOrder.status, 'PurchaseOrder');
+        } catch (stateErr: any) {
+            return NextResponse.json({ error: stateErr.message }, { status: 422 });
         }
 
         // Only allowing 'completed' if the order was priorly approved

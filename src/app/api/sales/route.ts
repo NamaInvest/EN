@@ -16,6 +16,7 @@ const log = logger.child({ route: 'sales' });
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
+import { assertEditable, isTerminal } from '@/lib/document-state-machine';
 
 const SalesItemSchema = z.object({
     productId: z.union([z.string(), z.number()]),
@@ -527,6 +528,10 @@ async function _PUT(request: Request) {
         const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
+        if (invoice.status === 'cancelled' || invoice.status === 'reversed') {
+            return NextResponse.json({ error: 'لا يمكن تحصيل دفعة لفاتورة ملغاة أو معكوسة' }, { status: 400 });
+        }
+
         if (invoice.status === 'completed') {
             return NextResponse.json({ error: 'الفاتورة محصلة بالكامل' }, { status: 400 });
         }
@@ -609,6 +614,11 @@ async function _DELETE(request: NextRequest) {
             // Reverse stock for ALL items before deleting
             const allSales = await prisma.salesInvoice.findMany({ take: 100, include: { details: true } });
             
+            const hasTerminal = allSales.some(inv => isTerminal(inv.status));
+            if (hasTerminal) {
+                return NextResponse.json({ error: 'لا يمكن حذف الفواتير المحددة لوجود فواتير مرحّلة أو ملغاة أو معكوسة بينها. يرجى تصفية الفواتير أولاً.' }, { status: 400 });
+            }
+            
             const result = await runFinancialTx(prisma, async (tx: any) => {
                 // Reverse stock
                 for (const inv of allSales) {
@@ -667,6 +677,12 @@ async function _DELETE(request: NextRequest) {
         const tenantId = requireTenantId(request as any);
         const invoice = await prisma.salesInvoice.findUnique({ where: { id, tenantId }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        try {
+            assertEditable(invoice.status, 'SalesInvoice');
+        } catch (stateErr: any) {
+            return NextResponse.json({ error: stateErr.message }, { status: 422 });
+        }
 
         await runFinancialTx(prisma, async (tx: any) => {
             // Reverse stock (re-increment what was sold) safely for both global and warehouse stock

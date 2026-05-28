@@ -13,6 +13,7 @@ import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { reverseJournalByReference } from '@/lib/auto-journal';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
+import { assertEditable } from '@/lib/document-state-machine';
 const log = logger.child({ route: 'purchases' });
 
 async function _GET(request: NextRequest) {
@@ -324,6 +325,10 @@ async function _PUT(request: Request) {
         const invoice = await prisma.purchaseInvoice.findFirst({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
+        if (invoice.status === 'cancelled' || invoice.status === 'reversed') {
+            return NextResponse.json({ error: 'لا يمكن تسديد دفعة لفاتورة مشتريات ملغاة أو معكوسة' }, { status: 400 });
+        }
+
         if (invoice.status === 'completed') {
             return NextResponse.json({ error: 'الفاتورة مدفوعة بالكامل' }, { status: 400 });
         }
@@ -415,6 +420,12 @@ async function _DELETE(request: NextRequest) {
 
         const invoice = await prisma.purchaseInvoice.findFirst({ where: { id, tenantId }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        try {
+            assertEditable(invoice.status, 'PurchaseInvoice');
+        } catch (stateErr: any) {
+            return NextResponse.json({ error: stateErr.message }, { status: 422 });
+        }
 
         await runFinancialTx(prisma, async (tx: any) => {
             // 1. Reverse Original Purchase Journal
