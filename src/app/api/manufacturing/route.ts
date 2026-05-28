@@ -19,11 +19,11 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'manufacturing' });
 
-// â”€â”€ Schemas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——— Schemas —————————————————————————————————————————————————————————————————————
 
 const CreateOrderSchema = z.object({
-  recipeId:           z.number().int().positive('recipeId ظ…ط·ظ„ظˆط¨'),
-  quantityToProduce:  z.number().positive('ط§ظ„ظƒظ…ظٹط© ظٹط¬ط¨ ط£ظ† طھظƒظˆظ† ظ…ظˆط¬ط¨ط©'),
+  recipeId:           z.number().int().positive('recipeId مطلوب'),
+  quantityToProduce:  z.number().positive('الكمية يجب أن تكون موجبة'),
   plannedStartDate:   z.string().optional(),
   plannedEndDate:     z.string().optional(),
   priority:           z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
@@ -32,14 +32,14 @@ const CreateOrderSchema = z.object({
 });
 
 const UpdateOrderSchema = z.object({
-  orderId:       z.number().int().positive('orderId ظ…ط·ظ„ظˆط¨'),
+  orderId:       z.number().int().positive('orderId مطلوب'),
   action:        z.enum(['start', 'complete', 'cancel', 'pause', 'issue-materials']),
   actualCost:    z.number().optional(),
   completedQty:  z.number().optional(),
   notes:         z.string().optional(),
 });
 
-// â”€â”€ GET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——— GET —————————————————————————————————————————————————————————————————————————
 
 async function _GET(req: NextRequest) {
   const tenantId = requireTenantId(req as any);
@@ -78,7 +78,7 @@ async function _GET(req: NextRequest) {
   }
 }
 
-// â”€â”€ POST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——— POST ————————————————————————————————————————————————————————————————————————
 
 async function _POST(req: NextRequest, auth: any) {
   const tenantId = requireTenantId(req as any);
@@ -88,7 +88,7 @@ async function _POST(req: NextRequest, auth: any) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©', details: parsed.error.flatten().fieldErrors },
+      { error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
@@ -102,10 +102,10 @@ async function _POST(req: NextRequest, auth: any) {
   }).catch(() => null);
 
   if (!recipe) {
-    return NextResponse.json({ error: 'ط§ظ„ظˆطµظپط© ط؛ظٹط± ظ…ظˆط¬ظˆط¯ط©' }, { status: 404 });
+    return NextResponse.json({ error: 'الوصفة غير موجودة' }, { status: 404 });
   }
 
-  // Compute standard cost = sum(ingredient.quantity أ— product.costPrice أ— qtyToProduce)
+  // Compute standard cost = sum(ingredient.quantity — product.costPrice — qtyToProduce)
   const standardCost = recipe.ingredients.reduce((sum: number, ing: any) => {
     const unitCost = n(ing.rawProduct?.costPrice) || n(ing.rawProduct?.price) || 0;
     return sum + (n(ing.quantity) * unitCost * body.quantityToProduce);
@@ -133,7 +133,7 @@ async function _POST(req: NextRequest, auth: any) {
   return NextResponse.json({ success: true, order, orderNumber }, { status: 201 });
 }
 
-// â”€â”€ PUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——— PUT —————————————————————————————————————————————————————————————————————————
 
 async function _PUT(req: NextRequest, auth: any) {
   const tenantId = requireTenantId(req as any);
@@ -143,7 +143,7 @@ async function _PUT(req: NextRequest, auth: any) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©', details: parsed.error.flatten().fieldErrors },
+      { error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
@@ -156,19 +156,19 @@ async function _PUT(req: NextRequest, auth: any) {
   }).catch(() => null);
 
   if (!order) {
-    return NextResponse.json({ error: 'ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹ ط؛ظٹط± ظ…ظˆط¬ظˆط¯' }, { status: 404 });
+    return NextResponse.json({ error: 'أمر التصنيع غير موجود' }, { status: 404 });
   }
 
-  // â”€â”€ action: start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— action: start —————————————————————————————————————————————————————————————
   if (action === 'start') {
     await prisma.manufacturingOrder.updateMany({
       where: { id: orderId , tenantId },
       data:  { status: 'in_progress', startDate: new Date() },
     });
-    return NextResponse.json({ success: true, message: 'طھظ… ط¨ط¯ط، طھظ†ظپظٹط° ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹' });
+    return NextResponse.json({ success: true, message: 'تم بدء تنفيذ أمر التصنيع' });
   }
 
-  // â”€â”€ action: issue-materials â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ——— action: issue-materials ———————————————————————————————————————————————————
   if (action === 'issue-materials') {
     const materialCost = n((order as any).standardCost) || 0;
     const orderNum = (order as any).orderNumber || `MO-${order.id}`;
@@ -181,7 +181,7 @@ async function _PUT(req: NextRequest, auth: any) {
       date:         new Date().toISOString().split('T')[0],
     }).catch(err => log.error('[mfg-journal] issue-materials:', err.message));
 
-    return NextResponse.json({ success: true, message: `طھظ… ط¥طµط¯ط§ط± ط§ظ„ظ…ظˆط§ط¯ ط§ظ„ط®ط§ظ… ط¨طھظƒظ„ظپط© ${materialCost} ظ„ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹`, materialCost });
+    return NextResponse.json({ success: true, message: `تم إصدار المواد الخام بتكلفة ${materialCost} لأمر التصنيع`, materialCost });
   }
 
   // â”€â”€ action: complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -201,19 +201,19 @@ async function _PUT(req: NextRequest, auth: any) {
       },
     });
 
-    // Auto-journal: ط¥ط؛ظ„ط§ظ‚ ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹ ظˆط¥ط«ط¨ط§طھ ط§ظ„ظ…ظ†طھط¬ ط§ظ„طھط§ظ…
+    // Auto-journal: إغلاق أمر التصنيع وإثبات المنتج التام
     await postManufacturingCompletion({
       orderNumber:  orderNum,
       standardCost: stdCost,
       actualCost:   actCost,
-      productName:  (order.recipe as any)?.name || 'ظ…ظ†طھط¬',
+      productName:  (order.recipe as any)?.name || 'منتج',
       userId:       auth?.userId,
       date:         new Date().toISOString().split('T')[0],
     }).catch(err => log.error('[mfg-journal] complete:', err.message));
 
     return NextResponse.json({
       success: true,
-      message: `طھظ… ط¥ط؛ظ„ط§ظ‚ ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹ ${orderNum} ظˆطھط±ط­ظٹظ„ ظ‚ظٹط¯ ط¥ط«ط¨ط§طھ ط§ظ„ظ…ظ†طھط¬ ط§ظ„طھط§ظ…`,
+      message: `تم إغلاق أمر التصنيع ${orderNum} وترحيل قيد إثبات المنتج التام`,
       variance: Math.round((actCost - stdCost) * 100) / 100,
     });
   }
@@ -224,10 +224,10 @@ async function _PUT(req: NextRequest, auth: any) {
       where: { id: orderId , tenantId },
       data:  { status: action === 'cancel' ? 'cancelled' : 'draft', notes: notes || undefined },
     });
-    return NextResponse.json({ success: true, message: action === 'cancel' ? 'طھظ… ط¥ظ„ط؛ط§ط، ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹' : 'طھظ… ط¥ظٹظ‚ط§ظپ ط£ظ…ط± ط§ظ„طھطµظ†ظٹط¹ ظ…ط¤ظ‚طھط§ظ‹' });
+    return NextResponse.json({ success: true, message: action === 'cancel' ? 'تم إلغاء أمر التصنيع' : 'تم إيقاف أمر التصنيع مؤقتاً' });
   }
 
-  return NextResponse.json({ error: 'action ط؛ظٹط± ظ…ط¹ط±ظˆظپ. ط§ط³طھط®ط¯ظ…: start | issue-materials | complete | cancel | pause' }, { status: 400 });
+  return NextResponse.json({ error: 'action غير معروف. استخدم: start | issue-materials | complete | cancel | pause' }, { status: 400 });
 }
 
 // â”€â”€ Exports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

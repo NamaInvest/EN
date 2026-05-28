@@ -10,7 +10,7 @@ import { buildOverrideContextFromRequest } from '@/lib/governance/override-conte
 
 const log = logger.child({ service: 'accounting.journal' });
 
-// GET - ط§ظ„ظ‚ظٹظˆط¯ ط§ظ„ظٹظˆظ…ظٹط©
+// GET - القيود اليومية
 async function _GET(request: Request) {
     const prisma = getPrisma(request);
     try {
@@ -41,11 +41,11 @@ async function _GET(request: Request) {
         return NextResponse.json(entries);
     } catch (error: any) {
         log.error('Journal GET error:', error);
-        return NextResponse.json({ error: 'ظپط´ظ„ ظپظٹ ط¬ظ„ط¨ ط§ظ„ظ‚ظٹظˆط¯' }, { status: 500 });
+        return NextResponse.json({ error: 'فشل في جلب القيود' }, { status: 500 });
     }
 }
 
-// POST - ط¥ط¶ط§ظپط© ظ‚ظٹط¯ ظٹط¯ظˆظٹ
+// POST - إضافة قيد يدوي
 
 const _POSTSchema = z.object({
   description: z.any().optional(),
@@ -58,7 +58,7 @@ const _POSTSchema = z.object({
 async function _POST(request: Request) {
     // Auth guard
     const auth = getUserFromRequest(request as any);
-    if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 401 });
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     const prisma = getPrisma(request);
     try {
@@ -71,14 +71,14 @@ async function _POST(request: Request) {
         const { description, reference, date, lines, userId } = body;
 
         if (!description || !lines || lines.length < 2) {
-            return NextResponse.json({ error: 'ط§ظ„ظˆطµظپ ظˆط³ط·ط±ظٹظ† ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„ ظ…ط·ظ„ظˆط¨ظٹظ†' }, { status: 400 });
+            return NextResponse.json({ error: 'الوصف وسطرين على الأقل مطلوبين' }, { status: 400 });
         }
 
         // Validate balance
         const totalDebit = lines.reduce((s: number, l: { debit: number }) => s + (l.debit || 0), 0);
         const totalCredit = lines.reduce((s: number, l: { credit: number }) => s + (l.credit || 0), 0);
         if (Math.abs(totalDebit - totalCredit) > 0.01) {
-            return NextResponse.json({ error: `ط§ظ„ظ‚ظٹط¯ ط؛ظٹط± ظ…طھظˆط§ط²ظ†: ظ…ط¯ظٹظ† ${totalDebit} â‰  ط¯ط§ط¦ظ† ${totalCredit}` }, { status: 400 });
+            return NextResponse.json({ error: `القيد غير متوازن: مدين ${totalDebit} ≠ دائن ${totalCredit}` }, { status: 400 });
         }
 
         const CONTROL_ACCOUNTS = [ACCOUNTS.RECEIVABLES, ACCOUNTS.PAYABLES, ACCOUNTS.INVENTORY, ACCOUNTS.WIP, ACCOUNTS.FINISHED_GOODS, ACCOUNTS.VAT_INPUT, ACCOUNTS.VAT_OUTPUT]; 
@@ -95,7 +95,7 @@ async function _POST(request: Request) {
                     }
                 });
             } catch (e: any) { log.error(e); }
-            return NextResponse.json({ error: 'ظ…ظ†ط¹ ط±ظ‚ط§ط¨ظٹ: ظٹظ…ظ†ط¹ ط¥ط¯ط®ط§ظ„ ظ‚ظٹط¯ ظٹط¯ظˆظٹ ظ…ط¨ط§ط´ط± ط¹ظ„ظ‰ ط­ط³ط§ط¨ط§طھ ط§ظ„ظ…ط±ط§ظ‚ط¨ط© (ط¹ظ…ظ„ط§ط،طŒ ظ…ظˆط±ط¯ظٹظ†طŒ ظ…ط®ط²ظˆظ†). ظٹط¬ط¨ ط£ظ† طھظ†ط´ط£ ط¢ظ„ظٹط§ظ‹ ظ…ظ† ط§ظ„ظپظˆط§طھظٹط±.' }, { status: 403 });
+            return NextResponse.json({ error: 'منع رقابي: يمنع إدخال قيد يدوي مباشر على حسابات المراقبة (عملاء، موردين، مخزون). يجب أن تنشأ آلياً من الفواتير.' }, { status: 403 });
         }
 
         // --- MFA Step-Up Auth for large amounts ---

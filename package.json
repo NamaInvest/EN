@@ -28,6 +28,7 @@
         "audit:zod": "node scripts/audit-zod.js",
         "audit:tenant": "node scripts/audit-tenant-isolation.js",
         "typecheck": "npx tsc --noEmit",
+        "check:mojibake": "node scripts/check-mojibake.js",
         "validate": "npx tsc --noEmit && npx eslint src/ --max-warnings 0 && jest --passWithNoTests --forceExit",
         "db:migrate": "npx prisma migrate deploy",
         "clean": "rm -rf .next node_modules/.cache",

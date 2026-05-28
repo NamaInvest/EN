@@ -27,10 +27,10 @@ const ReturnDetailSchema = z.object({
 });
 
 const CreateSalesReturnSchema = z.object({
-  originalInvoiceId: z.number().int().positive('ط±ظ‚ظ… ط§ظ„ظپط§طھظˆط±ط© ط§ظ„ط£طµظ„ظٹط© ظ…ط·ظ„ظˆط¨'),
+  originalInvoiceId: z.number().int().positive('رقم الفاتورة الأصلية مطلوب'),
   customerId:        z.number().int().optional(),
-  details:           z.array(ReturnDetailSchema).min(1, 'ظٹط¬ط¨ طھط­ط¯ظٹط¯ طµظ†ظپ ظˆط§ط­ط¯ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„'),
-  reason:            z.string().min(1, 'ط³ط¨ط¨ ط§ظ„ظ…ط±طھط¬ط¹ ظ…ط·ظ„ظˆط¨'),
+  details:           z.array(ReturnDetailSchema).min(1, 'يجب تحديد صنف واحد على الأقل'),
+  reason:            z.string().min(1, 'سبب المرتجع مطلوب'),
   branchId:          z.number().int().optional(),
   destinationStockId: z.number().int().optional(),
   date:              z.string().optional(),
@@ -84,7 +84,7 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©', details: parsed.error.flatten().fieldErrors },
+      { error: 'بيانات غير صالحة', details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
   }
@@ -202,7 +202,7 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
     subtotal,
     taxValue,
     total:    Math.round(total * 100) / 100,
-    message:  `طھظ… طھط³ط¬ظٹظ„ ظ…ط±طھط¬ط¹ ط§ظ„ظ…ط¨ظٹط¹ط§طھ #${returnNo} ظˆطھط±ط­ظٹظ„ ط§ظ„ظ‚ظٹط¯ ط§ظ„ظ…ط­ط§ط³ط¨ظٹ ط§ظ„ط¹ظƒط³ظٹ`,
+    message:  `تم تسجيل مرتجع المبيعات #${returnNo} وترحيل القيد المحاسبي العكسي`,
   }, { status: 201 });
 }
 
