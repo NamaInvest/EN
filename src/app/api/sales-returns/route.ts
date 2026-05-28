@@ -90,6 +90,19 @@ async function _POST(req: NextRequest, auth: any, tenantId: string) {
   }
 
   const body  = parsed.data;
+
+  // ── Tax Group Validation ────────────────────────────────────────────
+  const { validateTaxRate } = await import('@/lib/tax-validation');
+  const taxValidation = await validateTaxRate(body.taxRate, tenantId, prisma);
+  if (!taxValidation.valid) {
+    return NextResponse.json({
+      error: taxValidation.error,
+      code: 'INVALID_TAX_RATE',
+      allowedRates: taxValidation.allowedRates
+    }, { status: 422 });
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   const today = body.date || new Date().toISOString().split('T')[0];
 
   // Verify original invoice exists for this tenant

@@ -46,6 +46,22 @@ async function _POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'السلة فارغة' }, { status: 400 });
         }
 
+        // ── Tax Group Validation ────────────────────────────────────────────
+        const { validateTaxRate } = await import('@/lib/tax-validation');
+        for (const item of cart) {
+            const itemTaxRate = item.taxRate !== undefined ? Number(item.taxRate) : 15;
+            const taxValidation = await validateTaxRate(itemTaxRate, tenantId, prisma);
+            if (!taxValidation.valid) {
+                return NextResponse.json({
+                    success: false,
+                    error: taxValidation.error,
+                    code: 'INVALID_TAX_RATE',
+                    allowedRates: taxValidation.allowedRates
+                }, { status: 400 });
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // Validate monetary amounts
         const vTotal = validateMoney(total, 'الإجمالي');
         const vTax = validateMoney(tax, 'الضريبة');

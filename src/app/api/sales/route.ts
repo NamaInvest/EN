@@ -185,6 +185,19 @@ export async function _POST(request: Request) {
 
         // Calculate totals — support dynamic tax rate and inclusive/exclusive VAT mode
         const bodyTaxRate = body.taxRate !== undefined ? Number(body.taxRate) : 15; // rate sent from frontend settings
+
+        // ── Tax Group Validation ────────────────────────────────────────────
+        const { validateTaxRate } = await import('@/lib/tax-validation');
+        const taxValidation = await validateTaxRate(bodyTaxRate, tenantId, prisma);
+        if (!taxValidation.valid) {
+            return NextResponse.json({
+                error: taxValidation.error,
+                code: 'INVALID_TAX_RATE',
+                allowedRates: taxValidation.allowedRates
+            }, { status: 422 });
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const bodyTaxInclusive = body.isTaxInclusive === true || String(body.isTaxInclusive) === 'true';
         let subtotal = 0;
         const items = body.items || [];

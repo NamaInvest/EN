@@ -129,6 +129,20 @@ async function _POST(req: NextRequest) {
     const { data, error } = await validateRequest(req, CreatePOSchema);
     if (error) return error;
 
+    // ── Tax Group Validation ────────────────────────────────────────────
+    const { validateTaxRate } = await import('@/lib/tax-validation');
+    for (const item of data.items) {
+      const taxValidation = await validateTaxRate(item.taxRate, tenantId, prisma);
+      if (!taxValidation.valid) {
+        return NextResponse.json({
+          error: taxValidation.error,
+          code: 'INVALID_TAX_RATE',
+          allowedRates: taxValidation.allowedRates
+        }, { status: 422 });
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────
+
     const saga = buildPurchaseOrderSaga(prisma as any);
     const result = await saga.execute({
       tenantId,
