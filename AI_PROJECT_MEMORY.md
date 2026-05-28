@@ -77,3 +77,23 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Prisma Schema**: Unchanged.
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, protected admin APIs returned 401, roles endpoint sanitized with no sensitive field leakage. SHA256 checksums matched perfectly character-for-character between local and production.
+
+### Phase: Production Tax Group Validation Enforcement (2026-05-28)
+* **Status**: `PRODUCTION_TAX_GROUP_VALIDATION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `6d32440d899566c44ceee8d121c1339ee78f1935` (`6d32440d`)
+* **Scope**: Implement dynamic and standard-based tax rate validation to meet ZATCA rules across Sales, POS, Purchase Orders, and Sales Returns APIs, returning HTTP 422 for unauthorized rates.
+* **Tests**: `src/__tests__/tax-group-validation.test.ts` (8/8 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed runtime files, test files excluded).
+* **Test files uploaded to production**: NO
+* **SHA256**:
+  * `tax-validation`: `d7518e35d7a0f9866d79066a6e4dbb07058a78e9535364146eb48b423ee287f4`
+  * `sales route`: `e827d8ea320aaa6ab91e26bbdf5aa24ee9d5d038066a6da489b7fea3a56b15ef`
+  * `POS checkout route`: `1748225b7d54758a45d787af6e7a971faf4e1a2ecb970aa8f1ba626321a191ba`
+  * `purchase-orders route`: `026c3a67edd392d900316bd62e173e1b27b10cd292c32c346ba13ee51c12dc88`
+  * `sales-returns route`: `e628aaade06d3c70fab5918784b053d4f5f5984d9617f780e8eb3a49c3b9edfc`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **ZATCA/accounting calculation changed**: NO
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
