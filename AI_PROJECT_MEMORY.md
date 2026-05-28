@@ -171,4 +171,23 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
 * **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage.
 
+### Phase: Production Period Close Facade Unification - F-04B (2026-05-28)
+* **Status**: `PRODUCTION_PERIOD_CLOSE_FACADE_DEPLOYED_AND_VERIFIED`
+* **Commit**: `011c62640708f293d83b6cc1d8ada99a8affcbd1` (`011c6264`)
+* **Scope**: Unify all month-end checklist initializations under the standard SOCPA 14-step Arabic checklist across `/api/accounting/period-close` and `/api/finance/period-close` routes via a clean `closeApi(prisma)` facade. Resolved Prisma schema unknown parameter crashes (removing non-existent `taskCode`/`code` writes and using `taskName` mapping dynamically) and enforced robust `tenantId` isolation across all checklists to prevent cross-tenant data leaks.
+* **Tests**: `src/__tests__/period-lock-enforcement.test.ts` (9/9 passed), full regression suites (1072/1072 passed).
+* **Deployment**: SFTP Code-Only production deployment to Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` (Only deployed runtime files, test files and local scan reports excluded).
+* **Test files uploaded to production**: NO
+* **SHA256**:
+  - `period-close-engine.ts`: `d9a3b364f30f86844745ea7934ea269ede7300db2bf0542837469194daa8d670`
+  - `close/index.ts`: `0fea7262da2429422b8034cc78d79c198065dcab107cb1b84cdc33def0374bf2`
+  - `accounting/period-close/route.ts`: `8fef1862e85fa3ee920a89eb1303fd70021c1033bda3b4c87915314b9f31b861`
+  - `finance/period-close/route.ts`: `eaa9bf2e2679d5afb847343ab0289f1daa4dcac7fbd0d7f73602a287c97f6ce2`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with `--update-env`.
+* **Runtime Verification**: `namainvist.com` returned 200, `/api/admin/siem` returned 401, `/api/settings/roles` protected/sanitized with no sensitive field leakage, `/api/accounting/period-close` and `/api/finance/period-close` returned 401 (secured, no DB/Prisma crashes, passing `tenantId` correctly).
+
+
 
