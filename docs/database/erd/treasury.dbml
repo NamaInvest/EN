@@ -11,6 +11,7 @@ Table treasury {
   user users
   branch branches
   branchId Int
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
 }
 
@@ -1028,6 +1029,7 @@ Table sales_invoices {
   costCenter cost_centers
   payments payment_transactions [not null]
   subscriptionInvoices subscription_invoices [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
   deletedBy String
   zatcaUuid String
@@ -1058,6 +1060,32 @@ Table customer_subscriptions {
   plan subscription_plans [not null]
   paymentMethod saved_payment_methods
   invoices subscription_invoices [not null]
+}
+
+Table open_item_matchings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  salesInvoiceId Int
+  salesInvoice sales_invoices
+  purchaseReturnId Int
+  purchaseReturn purchase_returns
+  purchaseInvoiceId Int
+  purchaseInvoice purchase_invoices
+  salesReturnId Int
+  salesReturn sales_returns
+  treasuryId Int
+  treasury treasury
+  amount Decimal [not null]
+  allocatedAt DateTime [default: `now()`, not null]
+  allocatedBy String [not null]
+  sourceType String [not null, default: 'MANUAL']
+  status String [not null, default: 'ACTIVE']
+  reversedAt DateTime
+  reversedBy String
+  reversalReason String
+  notes String
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
 }
 
 Ref: treasury.userId > users.id
@@ -1109,6 +1137,8 @@ Ref: saved_payment_methods.customerId > customers.id
 Ref: saved_payment_methods.gatewayId > payment_gateways.id
 
 Ref: customer_subscriptions.paymentMethodId > saved_payment_methods.id
+
+Ref: open_item_matchings.treasuryId > treasury.id [delete: Restrict]
 
 Enum FinancialPeriodStatus {
   OPEN

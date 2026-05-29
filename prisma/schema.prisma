@@ -581,6 +581,7 @@ model SalesInvoice {
   costCenter           CostCenter?           @relation(fields: [costCenterId], references: [id])
   payments             PaymentTransaction[]
   subscriptionInvoices SubscriptionInvoice[]
+  openItemMatchings    OpenItemMatching[]    @relation("SalesInvoiceMatchings")
 
   deletedAt       DateTime? @map("deleted_at")
   deletedBy       String?   @map("deleted_by")
@@ -662,6 +663,7 @@ model SalesReturn {
   branchId           Int?                @map("branch_id")
   shiftId            Int?                @map("shift_id")
   details            SalesReturnDetail[]
+  openItemMatchings  OpenItemMatching[]  @relation("SalesReturnMatchings")
 
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
@@ -787,11 +789,12 @@ model PurchaseInvoice {
   supplier        Customer?               @relation(fields: [supplierId], references: [id])
   stock           Stock?                  @relation(fields: [stockId], references: [id])
   user            User?                   @relation(fields: [userId], references: [id])
-  details         PurchaseInvoiceDetail[]
-  branchId        Int?                    @map("branch_id")
-  branch          Branch?                 @relation(fields: [branchId], references: [id])
-  ThreeWayMatch   ThreeWayMatch?
-  whtTransactions WHTTransaction[]
+  details           PurchaseInvoiceDetail[]
+  branchId          Int?                    @map("branch_id")
+  branch            Branch?                 @relation(fields: [branchId], references: [id])
+  ThreeWayMatch     ThreeWayMatch?
+  whtTransactions   WHTTransaction[]
+  openItemMatchings OpenItemMatching[]      @relation("PurchaseInvoiceMatchings")
 
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
@@ -847,9 +850,10 @@ model PurchaseReturn {
   zatcaStatus       String?  @default("pending") @map("zatca_status")
   zatcaQr           String?  @map("zatca_qr")
 
-  supplier Customer?              @relation(fields: [supplierId], references: [id])
-  branch   Branch?                @relation(fields: [branchId], references: [id])
-  details  PurchaseReturnDetail[]
+  supplier          Customer?              @relation(fields: [supplierId], references: [id])
+  branch            Branch?                @relation(fields: [branchId], references: [id])
+  details           PurchaseReturnDetail[]
+  openItemMatchings OpenItemMatching[]     @relation("PurchaseReturnMatchings")
 
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
@@ -944,10 +948,11 @@ model Treasury {
   referenceId   Int?     @map("reference_id")
   userId        Int?     @map("user_id")
 
-  user      User?     @relation(fields: [userId], references: [id])
-  branch    Branch?   @relation(fields: [branchId], references: [id])
-  branchId  Int?      @map("branch_id")
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  user              User?               @relation(fields: [userId], references: [id])
+  branch            Branch?             @relation(fields: [branchId], references: [id])
+  branchId          Int?                @map("branch_id")
+  openItemMatchings OpenItemMatching[]  @relation("TreasuryMatchings")
+  deletedAt         DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
 
   @@index([date])
   @@index([branchId])
@@ -12157,4 +12162,52 @@ model FeatureFlag {
   targetUsers Json? // List of user IDs
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==================== 154. Open Items Matching (AR/AP Allocations) ====================
+model OpenItemMatching {
+  id                Int             @id @default(autoincrement())
+  tenantId          String          @default("default") @map("tenant_id")
+  
+  // Debit Side Models (Receivables / Outstanding Invoices or Returns)
+  salesInvoiceId    Int?            @map("sales_invoice_id")
+  salesInvoice      SalesInvoice?   @relation("SalesInvoiceMatchings", fields: [salesInvoiceId], references: [id], onDelete: Restrict)
+  
+  purchaseReturnId  Int?            @map("purchase_return_id")
+  purchaseReturn    PurchaseReturn? @relation("PurchaseReturnMatchings", fields: [purchaseReturnId], references: [id], onDelete: Restrict)
+
+  // Credit Side Models (Payables / Payments or Credit Notes)
+  purchaseInvoiceId Int?            @map("purchase_invoice_id")
+  purchaseInvoice   PurchaseInvoice? @relation("PurchaseInvoiceMatchings", fields: [purchaseInvoiceId], references: [id], onDelete: Restrict)
+
+  salesReturnId     Int?            @map("sales_return_id")
+  salesReturn       SalesReturn?    @relation("SalesReturnMatchings", fields: [salesReturnId], references: [id], onDelete: Restrict)
+
+  treasuryId        Int?            @map("treasury_id")
+  treasury          Treasury?       @relation("TreasuryMatchings", fields: [treasuryId], references: [id], onDelete: Restrict)
+
+  // Matching Metrics
+  amount            Decimal         @map("amount") @db.Decimal(20, 4)
+  allocatedAt       DateTime        @default(now()) @map("allocated_at")
+  allocatedBy       String          @map("allocated_by") // e.g. "SYSTEM_FIFO", "MANUAL_USER", "AUTO_POS"
+  sourceType        String          @default("MANUAL") @map("source_type") // "MANUAL", "FIFO", "AUTO_CASH_SALE"
+  status            String          @default("ACTIVE") @map("status") // "ACTIVE", "REVERSED"
+  
+  // Reversal Audit Fields
+  reversedAt        DateTime?       @map("reversed_at")
+  reversedBy        String?         @map("reversed_by")
+  reversalReason    String?         @map("reversal_reason")
+  
+  notes             String?         @db.Text
+
+  // Soft-Delete Compliance
+  deletedAt         DateTime?       @map("deleted_at")
+  deletedBy         String?         @map("deleted_by")
+
+  @@index([tenantId, salesInvoiceId, deletedAt])
+  @@index([tenantId, purchaseInvoiceId, deletedAt])
+  @@index([tenantId, treasuryId, deletedAt])
+  @@index([tenantId, salesReturnId, deletedAt])
+  @@index([tenantId, purchaseReturnId, deletedAt])
+  @@map("open_item_matchings")
 }

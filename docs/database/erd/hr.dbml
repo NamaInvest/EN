@@ -362,6 +362,7 @@ Table sales_invoices {
   costCenter cost_centers
   payments payment_transactions [not null]
   subscriptionInvoices subscription_invoices [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
   deletedBy String
   zatcaUuid String
@@ -399,6 +400,7 @@ Table sales_returns {
   branchId Int
   shiftId Int
   details sales_return_details [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
   deletedBy String
 }

@@ -84,6 +84,7 @@ Table purchase_invoices {
   branch branches
   ThreeWayMatch three_way_matches
   whtTransactions wht_transactions [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
   deletedBy String
   hasException Boolean [not null, default: false]
@@ -127,6 +128,7 @@ Table purchase_returns {
   supplier customers
   branch branches
   details purchase_return_details [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime [note: '[SD]']
   deletedBy String
 }
@@ -825,6 +827,32 @@ Table subcontracting_pos {
   movements subcontract_movements [not null]
 }
 
+Table open_item_matchings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default', note: '🔴 Tenant']
+  salesInvoiceId Int
+  salesInvoice sales_invoices
+  purchaseReturnId Int
+  purchaseReturn purchase_returns
+  purchaseInvoiceId Int
+  purchaseInvoice purchase_invoices
+  salesReturnId Int
+  salesReturn sales_returns
+  treasuryId Int
+  treasury treasury
+  amount Decimal [not null]
+  allocatedAt DateTime [default: `now()`, not null]
+  allocatedBy String [not null]
+  sourceType String [not null, default: 'MANUAL']
+  status String [not null, default: 'ACTIVE']
+  reversedAt DateTime
+  reversedBy String
+  reversalReason String
+  notes String
+  deletedAt DateTime [note: '[SD]']
+  deletedBy String
+}
+
 Ref: purchase_orders.supplierId > customers.id
 
 Ref: purchase_orders.salesOrderId > sales_orders.id
@@ -900,6 +928,10 @@ Ref: subcontract_movements.productId > products.id
 Ref: VendorBid.vendorId > VendorPortalUser.id [delete: Cascade]
 
 Ref: VendorBidDetail.bidId > VendorBid.id [delete: Cascade]
+
+Ref: open_item_matchings.purchaseReturnId > purchase_returns.id [delete: Restrict]
+
+Ref: open_item_matchings.purchaseInvoiceId > purchase_invoices.id [delete: Restrict]
 
 Enum FinancialPeriodStatus {
   OPEN

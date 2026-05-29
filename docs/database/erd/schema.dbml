@@ -485,6 +485,7 @@ Table sales_invoices {
   costCenter cost_centers
   payments payment_transactions [not null]
   subscriptionInvoices subscription_invoices [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime
   deletedBy String
   zatcaUuid String
@@ -544,6 +545,7 @@ Table sales_returns {
   branchId Int
   shiftId Int
   details sales_return_details [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime
   deletedBy String
 }
@@ -653,6 +655,7 @@ Table purchase_invoices {
   branch branches
   ThreeWayMatch three_way_matches
   whtTransactions wht_transactions [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime
   deletedBy String
   hasException Boolean [not null, default: false]
@@ -696,6 +699,7 @@ Table purchase_returns {
   supplier customers
   branch branches
   details purchase_return_details [not null]
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime
   deletedBy String
 }
@@ -767,6 +771,7 @@ Table treasury {
   user users
   branch branches
   branchId Int
+  openItemMatchings open_item_matchings [not null]
   deletedAt DateTime
 }
 
@@ -9693,6 +9698,32 @@ Table FeatureFlag {
   updatedAt DateTime [not null]
 }
 
+Table open_item_matchings {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default']
+  salesInvoiceId Int
+  salesInvoice sales_invoices
+  purchaseReturnId Int
+  purchaseReturn purchase_returns
+  purchaseInvoiceId Int
+  purchaseInvoice purchase_invoices
+  salesReturnId Int
+  salesReturn sales_returns
+  treasuryId Int
+  treasury treasury
+  amount Decimal [not null]
+  allocatedAt DateTime [default: `now()`, not null]
+  allocatedBy String [not null]
+  sourceType String [not null, default: 'MANUAL']
+  status String [not null, default: 'ACTIVE']
+  reversedAt DateTime
+  reversedBy String
+  reversalReason String
+  notes String
+  deletedAt DateTime
+  deletedBy String
+}
+
 Enum FinancialPeriodStatus {
   OPEN
   SOFT_LOCKED
@@ -10576,3 +10607,13 @@ Ref: ice_support_replies.adminId > ice_admins.id
 Ref: sprint_stories.sprintId > sprints.id
 
 Ref: sprint_stories.storyId > stories.id
+
+Ref: open_item_matchings.salesInvoiceId > sales_invoices.id [delete: Restrict]
+
+Ref: open_item_matchings.purchaseReturnId > purchase_returns.id [delete: Restrict]
+
+Ref: open_item_matchings.purchaseInvoiceId > purchase_invoices.id [delete: Restrict]
+
+Ref: open_item_matchings.salesReturnId > sales_returns.id [delete: Restrict]
+
+Ref: open_item_matchings.treasuryId > treasury.id [delete: Restrict]
