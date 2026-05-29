@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const conn = new Client();
 const HOST = '46.4.188.170';
-const PASSWORD = '_ee4SWbxLVfH9b';
+const PASSWORD = 'process.env.SSH_PASSWORD';
 
 conn.on('ready', () => {
   console.log('Connected to fleet server');

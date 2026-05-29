@@ -8,7 +8,7 @@ echo "PID: $!"
         s.on('data', d => process.stdout.write(d.toString()));
         s.on('close', () => this.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 
 let tries = 0;
 const poll = () => {
@@ -28,6 +28,6 @@ else echo "Building... (${tries*15}s)"; tail -2 /tmp/fin_main.log 2>/dev/null; f
                 setTimeout(poll, 15000);
             });
         });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 };
 setTimeout(poll, 20000);

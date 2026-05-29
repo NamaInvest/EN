@@ -7,7 +7,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const HOST  = '46.4.188.170';
-const PASS  = '_ee4SWbxLVfH9b';
+const PASS  = 'process.env.SSH_PASSWORD';
 const LOCAL = 'c:\\Users\\1\\Desktop\\alfa';
 
 const NODES = [

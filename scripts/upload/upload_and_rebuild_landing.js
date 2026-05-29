@@ -1,6 +1,6 @@
 const { Client } = require('ssh2');
 const fs = require('fs');
-const config = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 120000 };
+const config = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 120000 };
 
 const conn = new Client();
 conn.on('ready', () => {

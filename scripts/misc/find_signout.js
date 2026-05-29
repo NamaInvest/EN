@@ -22,4 +22,4 @@ find /www/wwwroot/n11.namainvist.com/src -name "*.tsx" -path "*/login*" 2>/dev/n
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => conn.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });

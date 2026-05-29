@@ -30,4 +30,4 @@ conn.on('ready', () => {
     });
 }).on('error', (err) => {
     console.error('SSH Error:', err.message);
-}).connect({ host: hostIp, port: 22, username: 'root', password: '_ee4SWbxLVfH9b', keepaliveInterval: 10000 });
+}).connect({ host: hostIp, port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', keepaliveInterval: 10000 });

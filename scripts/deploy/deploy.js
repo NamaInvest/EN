@@ -10,7 +10,7 @@ const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const REMOTE_BASE = '/www/wwwroot/n11.namainvist.com';
 
 const args = process.argv.slice(2);

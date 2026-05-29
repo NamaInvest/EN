@@ -55,7 +55,7 @@ echo "Done - yashish is fully deleted"
                 conn.end();
             });
         });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 }).catch(e => {
     console.error('Error:', e.message);
     process.exit(1);

@@ -32,5 +32,5 @@ p.setting.upsert({
     });
 }).connect({
     host: '46.4.188.170', port: 22,
-    username: 'root', password: '_ee4SWbxLVfH9b'
+    username: 'root', password: 'process.env.SSH_PASSWORD'
 });

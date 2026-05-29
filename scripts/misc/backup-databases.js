@@ -20,7 +20,7 @@ const servers = {
     name: 'Fleet Server (SaaS)',
     host: '46.4.188.170',
     username: 'root',
-    password: '_ee4SWbxLVfH9b',
+    password: 'process.env.SSH_PASSWORD',
   },
   server1: {
     name: 'Server 1 (Hetzner)',

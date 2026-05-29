@@ -19,7 +19,7 @@ function ssh(cmd) {
         stream.on('close', () => { c.end(); r(out.trim()); });
       });
     }).on('error', () => r('SSH_ERR'))
-      .connect({ host: SERVER, port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+      .connect({ host: SERVER, port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

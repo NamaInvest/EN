@@ -14,7 +14,7 @@ echo "BUILD_STARTED: $!"
             conn.end();
         });
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 
 // Poll للتحقق من اكتمال البناء
 let attempts = 0;
@@ -48,7 +48,7 @@ fi
                 }
             });
         });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 };
 
 setTimeout(poll, 20000); // ابدأ الـ polling بعد 20 ثانية

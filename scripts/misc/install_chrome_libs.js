@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const hostIp = '46.4.188.170';
 const sshUser = 'root';
-const sshPass = '_ee4SWbxLVfH9b';
+const sshPass = 'process.env.SSH_PASSWORD';
 
 console.log('Installing headless Chromium dependencies on VPS...');
 

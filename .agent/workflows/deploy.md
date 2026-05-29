@@ -6,7 +6,7 @@ description: Deploy changes to the production server (Hetzner VPS)
 
 | Server | IP | SSH Key | App Path | PM2 Config | Port Range | DB |
 |---|---|---|---|---|---|---|
-| Fleet Server (Production) | 46.4.188.170 | **Password:** `_ee4SWbxLVfH9b` | `/www/wwwroot/namainvist.com` | `ecosystem.config.js` | 3000-3600 | postgres@localhost |
+| Fleet Server (Production) | 46.4.188.170 | **Password:** `process.env.SSH_PASSWORD` | `/www/wwwroot/namainvist.com` | `ecosystem.config.js` | 3000-3600 | postgres@localhost |
 
 **App Login**: admin / O_O772040030
 
@@ -43,7 +43,7 @@ description: Deploy changes to the production server (Hetzner VPS)
 **SSH to Fleet Server:**
 ```powershell
 C:\Windows\System32\OpenSSH\ssh.exe -o StrictHostKeyChecking=no root@46.4.188.170
-# Password: _ee4SWbxLVfH9b
+# Password: process.env.SSH_PASSWORD
 ```
 
 ---

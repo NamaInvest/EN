@@ -1,6 +1,6 @@
 const { Client } = require('ssh2');
 
-const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const LOCAL_ROUTE_PATH = 'c:\\Users\\1\\Desktop\\alfa\\src\\app\\(dashboard)\\sales\\orders\\create\\page.tsx';
 
 async function deployFix() {

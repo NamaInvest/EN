@@ -20,4 +20,4 @@ c.on('ready', () => {
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => c.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 30000 });

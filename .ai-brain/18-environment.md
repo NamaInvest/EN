@@ -23,7 +23,7 @@
 ### SSH:
 - **Host:** `46.4.188.170:22`
 - **User:** `root`
-- **Password:** `_ee4SWbxLVfH9b` (في `provision/route.ts` كـ default — يفضّل ENV)
+- **Password:** `process.env.SSH_PASSWORD` (في `provision/route.ts` كـ default — يفضّل ENV)
 - **Path:** `/www/wwwroot/namainvist.com`
 
 ---

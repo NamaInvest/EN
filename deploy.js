@@ -21,7 +21,13 @@ const fs = require('fs');
 const path = require('path');
 
 // ─── Config ──────────────────────────────────────────────────────
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SSH_PASSWORD = process.env.SSH_PASSWORD;
+if (!SSH_PASSWORD) {
+    console.error("❌ Error: SSH_PASSWORD environment variable is not defined!");
+    console.error("💡 Please run: $env:SSH_PASSWORD='your_password' (PowerShell) or export SSH_PASSWORD='your_password' (Bash)");
+    process.exit(1);
+}
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: SSH_PASSWORD };
 
 const SITES = {
     'main-site':  { path: '/www/wwwroot/namainvist.com',      pm2: 'main-site' },

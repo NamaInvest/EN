@@ -6,7 +6,7 @@ const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SERVER   = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 15000 };
+const SERVER   = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 15000 };
 const REMOTE   = '/www/wwwroot/namainvist.com';
 const LOCAL    = path.resolve(__dirname, '..');
 

@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const fs = require('fs');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 
 function uploadFile(conn, localPath, remotePath) {
     return new Promise((resolve, reject) => {

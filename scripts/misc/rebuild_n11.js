@@ -25,4 +25,4 @@ pm2 logs saas-app --lines 5 --nostream 2>/dev/null | grep -v "^$" | tail -8
         s.stderr.on('data', d => process.stderr.write(d.toString()));
         s.on('close', () => conn.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 120000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 120000 });

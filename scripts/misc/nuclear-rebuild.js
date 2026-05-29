@@ -14,7 +14,7 @@ function ssh(cmd) {
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => { c.end(); r(out.trim()); });
       });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 
@@ -31,7 +31,7 @@ function writeFile(remotePath, content) {
         ws.end(buf);
       });
     }).on('error', e => { console.error(e); r(false); })
-     .connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+     .connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

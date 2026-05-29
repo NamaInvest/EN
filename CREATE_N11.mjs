@@ -53,4 +53,4 @@ echo "🎉 CLONE COMPLETE! n11.namainvist.com is now running independently on po
     });
 }).on('error', (err) => {
     console.error('❌ Connection error:', err);
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 30000 });

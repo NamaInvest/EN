@@ -16,7 +16,7 @@ function ssh(cmd, client) {
 
 async function run() {
   const c = new Client();
-  await new Promise(r => c.on('ready', r).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' }));
+  await new Promise(r => c.on('ready', r).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' }));
 
   // 1. Read pos page.tsx
   console.log('=== /pos/page.tsx on n1 ===');

@@ -3,8 +3,8 @@ const fs = require('fs');
 
 const servers = [
     { id: 1, ip: '95.216.59.87', pass: 'Namasoft2024$' },
-    { id: 3, ip: '65.21.203.204', pass: '_ee4SWbxLVfH9b' },
-    { id: 4, ip: '65.21.203.116', pass: '_ee4SWbxLVfH9b' },
+    { id: 3, ip: '65.21.203.204', pass: 'process.env.SSH_PASSWORD' },
+    { id: 4, ip: '65.21.203.116', pass: 'process.env.SSH_PASSWORD' },
     { id: 5, ip: '95.217.202.247', pass: 'Namasoft2024$' },
     { id: 6, ip: '135.181.185.197', pass: 'Namasoft2025$$' },
     { id: 7, ip: '37.27.189.155', pass: 'Namasoft2025$$' },

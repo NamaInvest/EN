@@ -8,7 +8,7 @@ const { Client } = require('ssh2');
         c.on('ready', () => c.exec(cmd, (e, s) => {
           s.on('data', d => out+=d); s.stderr.on('data', d => out+=d);
           s.on('close', () => { c.end(); r(out); });
-        })).connect({ host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b' });
+        })).connect({ host:'46.4.188.170', port:22, username:'root', password:'process.env.SSH_PASSWORD' });
       });
     }
 

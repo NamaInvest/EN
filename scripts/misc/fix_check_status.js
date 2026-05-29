@@ -30,7 +30,7 @@ echo "PID: $!"
             }
         );
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 
 // Poll كل 15 ثانية
 let tries = 0;
@@ -59,6 +59,6 @@ fi
                 if (tries < 40) setTimeout(poll, 15000);
             });
         });
-    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
 };
 setTimeout(poll, 20000);

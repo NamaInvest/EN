@@ -3,7 +3,7 @@
  */
 const { Client } = require('ssh2');
 const HOST = '46.4.188.170';
-const PASSWORD = '_ee4SWbxLVfH9b';
+const PASSWORD = 'process.env.SSH_PASSWORD';
 
 const TESTS = [
     { name: 'Delivery Platforms (GET)', cmd: 'curl -s http://localhost:3001/api/delivery-platforms' },

@@ -3,7 +3,7 @@ const fs = require('fs');
 const archiver = require('archiver');
 const { execSync } = require('child_process');
 
-const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 };
+const SSH_CONFIG = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 30000 };
 const ZIP_PATH = 'fleet_update.zip';
 const REMOTE_ZIP_PATH = '/root/fleet_update.zip';
 

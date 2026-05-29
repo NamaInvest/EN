@@ -19,9 +19,9 @@ function getDbUrl(tenant: string): string {
 }
 
 // === EXPLICIT STRING CASTING FOR SSH PARAMS ===
-const SSH_HOST = String(process.env.PROVISION_SSH_HOST || '46.4.188.170');
-const SSH_USER = String(process.env.PROVISION_SSH_USER || 'root');
-const SSH_PASS = String(process.env.PROVISION_SSH_PASS || '_ee4SWbxLVfH9b');
+const SSH_HOST = String(process.env.PROVISION_SSH_HOST || '');
+const SSH_USER = String(process.env.PROVISION_SSH_USER || '');
+const SSH_PASS = String(process.env.PROVISION_SSH_PASS || '');
 
 if (!SSH_HOST || !SSH_USER || !SSH_PASS) {
     log.warn('[provision] PROVISION_SSH_* env vars missing — provisioning disabled');

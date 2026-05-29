@@ -5,7 +5,7 @@
  */
 const { Client } = require('ssh2');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 
 const NODES = [
     { path: '/www/wwwroot/namainvist.com',     port: 3000, name: 'main-site' },

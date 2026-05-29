@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 
 const files = fs.readFileSync('changed-files-utf8.txt', 'utf8').split('\n').filter(Boolean);
 // also add layout.tsx because we just modified it

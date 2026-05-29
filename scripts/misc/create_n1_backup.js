@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 
 const hostIp = '46.4.188.170';
-const password = '_ee4SWbxLVfH9b';
+const password = 'process.env.SSH_PASSWORD';
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 const tarName = `n1_backup_${timestamp}.tar.gz`;

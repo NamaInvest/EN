@@ -244,7 +244,7 @@ const poolKey = isRead ? `READ_${dbUrl}` : `WRITE_${dbUrl}`;
 ## 🚀 دورة النشر (Deployment)
 
 **السيرفر:** `46.4.188.170` (Hetzner VPS, German DC)
-**SSH:** root / `_ee4SWbxLVfH9b` (في `provision/route.ts` كـ default — يفضّل ENV)
+**SSH:** root / `process.env.SSH_PASSWORD` (في `provision/route.ts` كـ default — يفضّل ENV)
 **Master App Path:** `/www/wwwroot/namainvist.com`
 
 ### خدمات PM2:

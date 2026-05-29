@@ -26,7 +26,7 @@ function sftp_mkdir(sftp, dir) {
 async function run() {
   const c = new Client();
   await new Promise(r => c.on('ready', r).connect({ 
-    host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' 
+    host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' 
   }));
   
   const sftp = await new Promise((res, rej) => c.sftp((e, s) => e ? rej(e) : res(s)));

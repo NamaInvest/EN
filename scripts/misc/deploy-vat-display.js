@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const NODES = ['n11', 'n1-main', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10'];
 const NODE_DIRS = {
     'n11': '/www/wwwroot/n11.namainvist.com',

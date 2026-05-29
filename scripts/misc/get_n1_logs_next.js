@@ -10,7 +10,7 @@ function getLogs() {
             stream.stderr.on('data', data => console.error('STDERR:', data.toString()));
         });
     }).on('error', err => console.error(err)).connect({
-        host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'
+        host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD'
     });
 }
 getLogs();

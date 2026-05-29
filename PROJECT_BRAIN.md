@@ -13,7 +13,7 @@
 |---------|--------|
 | **IP** | `46.4.188.170` |
 | **SSH** | `root@46.4.188.170` |
-| **Password** | `_ee4SWbxLVfH9b` |
+| **Password** | `process.env.SSH_PASSWORD` |
 | **App Path** | `/www/wwwroot/namainvist.com` |
 | **Node** | v24.x |
 | **PM2** | Process Manager |

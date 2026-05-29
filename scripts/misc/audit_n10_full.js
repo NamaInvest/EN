@@ -8,7 +8,7 @@ function ssh(cmd) {
       stream.on('data', d => out += d);
       stream.stderr.on('data', d => out += d);
       stream.on('close', () => { c.end(); r(out.trim()); });
-    })).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    })).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

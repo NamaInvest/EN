@@ -25,4 +25,4 @@ ls -la .next/server/app/ | head -5
             conn.end();
         });
     });
-}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD'});

@@ -16,7 +16,7 @@ function ssh(cmd, timeout = 20000) {
         stream.on('close', () => { clearTimeout(timer); c.end(); res(out.trim()); });
       });
     }).on('error', () => { clearTimeout(timer); res('SSH_ERR'); })
-      .connect({ host: SERVER, port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+      .connect({ host: SERVER, port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const REMOTE_ROOT = '/www/wwwroot/namainvist.com';
 
 const RUNTIME_FILES = [

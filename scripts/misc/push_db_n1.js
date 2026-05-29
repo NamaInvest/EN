@@ -28,7 +28,7 @@ function pushDb() {
         }).on('error', (err) => {
             console.error(`[n1] Connection Error:`, err.message);
             resolve(false);
-        }).connect({ host: hostIp, port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+        }).connect({ host: hostIp, port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
     });
 }
 

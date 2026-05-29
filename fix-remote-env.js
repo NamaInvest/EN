@@ -6,7 +6,7 @@ const REMOTE_ENV_PATH = '/www/wwwroot/namainvist.com/.env';
 const PM2_APP_NAME = 'saas-app'; // Adjust if actual PM2 name differs in ecosystem.config.js
 const SSH_HOST = process.env.DEPLOY_HOST || '46.4.188.170';
 const SSH_USER = process.env.DEPLOY_USER || 'root';
-const SSH_PASS = process.env.DEPLOY_PASS || '_ee4SWbxLVfH9b'; // Warning: Fallback for ease of use, but should ideally come from .env.local
+const SSH_PASS = process.env.DEPLOY_PASS || 'process.env.SSH_PASSWORD'; // Warning: Fallback for ease of use, but should ideally come from .env.local
 
 const conn = new Client();
 

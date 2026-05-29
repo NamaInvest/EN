@@ -5,7 +5,7 @@ const deployToN2 = () => {
     return new Promise((resolve, reject) => {
         const id = 2; // Target N2 only
         const ip = '46.4.188.170';
-        const pass = '_ee4SWbxLVfH9b';
+        const pass = 'process.env.SSH_PASSWORD';
         
         const conn = new Client();
         conn.on('ready', () => {

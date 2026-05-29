@@ -4,7 +4,7 @@
  * Uses sudo -u postgres to bypass the permission gap.
  */
 const { Client } = require('ssh2');
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const conn = new Client();
 conn.on('ready', () => {
     const cmd = `sudo -u postgres psql -d nama_main_db -c "GRANT CREATE, USAGE ON SCHEMA public TO n11_db; GRANT ALL ON ALL TABLES IN SCHEMA public TO n11_db; GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO n11_db; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO n11_db; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO n11_db;" 2>&1`;

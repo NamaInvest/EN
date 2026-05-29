@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const hostIp = '46.4.188.170';
 const username = 'root';
-const password = '_ee4SWbxLVfH9b';
+const password = 'process.env.SSH_PASSWORD';
 
 const payload = "self.addEventListener('install', (e) => { self.skipWaiting(); }); self.addEventListener('activate', (e) => { e.waitUntil(self.registration.unregister().then(() => self.clients.matchAll()).then((clients) => clients.forEach(client => client.navigate(client.url)))); }); self.addEventListener('fetch', (event) => { event.respondWith(fetch(event.request)); });";
 

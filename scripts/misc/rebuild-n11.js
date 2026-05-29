@@ -10,7 +10,7 @@ function ssh(host, cmd) {
         stream.stderr.on('data', d => process.stderr.write(d.toString()));
         stream.on('close', () => { c.end(); r(out.trim()); });
       });
-    }).connect({ host, port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    }).connect({ host, port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

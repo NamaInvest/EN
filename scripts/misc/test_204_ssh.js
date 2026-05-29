@@ -11,4 +11,4 @@ conn.on('ready', () => {
     });
 }).on('error', (err) => {
     console.error('❌ SSH Connection FAILED:', err.message);
-}).connect({ host: '204.168.144.74', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 10000 });
+}).connect({ host: '204.168.144.74', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 10000 });

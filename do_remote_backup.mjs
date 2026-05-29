@@ -1,11 +1,18 @@
 import { Client } from 'ssh2';
 
+const SSH_PASSWORD = process.env.SSH_PASSWORD;
+if (!SSH_PASSWORD) {
+    console.error("❌ Error: SSH_PASSWORD environment variable is not defined!");
+    console.error("💡 Please run: $env:SSH_PASSWORD='your_password' (PowerShell) or export SSH_PASSWORD='your_password' (Bash)");
+    process.exit(1);
+}
+
 const conn = new Client();
 const serverConfig = {
     host: '46.4.188.170',
     port: 22,
     username: 'root',
-    password: '_ee4SWbxLVfH9b',
+    password: SSH_PASSWORD,
     readyTimeout: 30000
 };
 

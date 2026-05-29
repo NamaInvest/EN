@@ -2,6 +2,13 @@ import { Client } from 'ssh2';
 import fs from 'fs';
 import path from 'path';
 
+const SSH_PASSWORD = process.env.SSH_PASSWORD;
+if (!SSH_PASSWORD) {
+    console.error("❌ Error: SSH_PASSWORD environment variable is not defined!");
+    console.error("💡 Please run: $env:SSH_PASSWORD='your_password' (PowerShell) or export SSH_PASSWORD='your_password' (Bash)");
+    process.exit(1);
+}
+
 const conn = new Client();
 const localBackupDir = 'C:\\Backup_Namasoft_Fleet';
 
@@ -67,4 +74,4 @@ echo "Backup generated successfully at /www/wwwroot/Fleet_Full_Backup.tar.gz"
     });
 }).on('error', (err) => {
     console.error('❌ Connection error:', err);
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: SSH_PASSWORD, readyTimeout: 30000 });

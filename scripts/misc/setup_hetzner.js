@@ -57,6 +57,6 @@ conn.on('ready', () => {
     host: hostIp, 
     port: 22, 
     username: 'root', 
-    password: '_ee4SWbxLVfH9b', 
+    password: 'process.env.SSH_PASSWORD', 
     keepaliveInterval: 10000
 });

@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const ARCHIVE_NAME = 'ts_fixes.tar.gz';
 const LOCAL_ARCHIVE = path.join(__dirname, ARCHIVE_NAME);
 const REMOTE_ARCHIVE = `/root/${ARCHIVE_NAME}`;

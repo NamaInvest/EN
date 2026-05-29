@@ -1,6 +1,6 @@
 const { Client } = require('ssh2');
 
-const server = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', name: 'N1' };
+const server = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', name: 'N1' };
 
 async function pushAndRebuild() {
     return new Promise((resolve) => {

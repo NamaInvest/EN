@@ -30,4 +30,4 @@ sudo -u postgres psql -d n7_db -c "\\dt" 2>/dev/null | grep -E "User|Setting|Sto
             conn.end();
         });
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 30000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 30000 });

@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 const LOCAL_ROOT = 'd:\\namasoft9-3-main';
 const ARCHIVE = 'd:\\namasoft9-3-main\\full_src.tar.gz';
 

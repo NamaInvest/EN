@@ -6,7 +6,7 @@ const { Client } = require('ssh2');
 const path = require('path');
 const fs = require('fs');
 
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' };
+const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' };
 
 function execCommand(conn, cmd, printOutput = true) {
     return new Promise((resolve, reject) => {

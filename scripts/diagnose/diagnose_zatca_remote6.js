@@ -61,4 +61,4 @@ test().finally(() => prisma.$disconnect());
               .on('data', data => console.log(data.toString()))
               .stderr.on('data', data => console.error(data.toString()));
     });
-}).connect({host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b'});
+}).connect({host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD'});

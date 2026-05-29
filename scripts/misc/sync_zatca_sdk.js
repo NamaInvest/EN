@@ -19,7 +19,7 @@ cd /usr/local
 tar -czf zatca_pack.tar.gz zatca/ bin/fatoora
 echo "SDK Packaged." >> /tmp/sync_zatca.log
 
-PASSWORD="_ee4SWbxLVfH9b"
+PASSWORD="process.env.SSH_PASSWORD"
 
 for i in {2..10}; do
   TARGET="\${IP_PREFIX}\${IPs[$i]}"
@@ -38,8 +38,8 @@ echo "Global ZATCA SDK Distribution Complete!" >> /tmp/sync_zatca.log
 apt-get update && apt-get install -y sshpass
 cd /usr/local
 tar -czf zatca_pack.tar.gz zatca/ bin/fatoora
-sshpass -p "_ee4SWbxLVfH9b" scp -o StrictHostKeyChecking=no /usr/local/zatca_pack.tar.gz root@46.4.188.170:/usr/local/zatca_pack.tar.gz
-sshpass -p "_ee4SWbxLVfH9b" ssh -o StrictHostKeyChecking=no root@46.4.188.170 "cd /usr/local && tar -xzf zatca_pack.tar.gz && rm zatca_pack.tar.gz && chmod +x /usr/local/bin/fatoora"
+sshpass -p "process.env.SSH_PASSWORD" scp -o StrictHostKeyChecking=no /usr/local/zatca_pack.tar.gz root@46.4.188.170:/usr/local/zatca_pack.tar.gz
+sshpass -p "process.env.SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@46.4.188.170 "cd /usr/local && tar -xzf zatca_pack.tar.gz && rm zatca_pack.tar.gz && chmod +x /usr/local/bin/fatoora"
 echo "N2 SYNCHRONIZED INSTANTLY!"
 `;
 

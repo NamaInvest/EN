@@ -2,7 +2,7 @@ const { Client } = require('ssh2');
 
 const hostIp = '46.4.188.170';
 const username = 'root';
-const password = '_ee4SWbxLVfH9b';
+const password = 'process.env.SSH_PASSWORD';
 
 const script = `
 export PATH=$PATH:/www/server/nvm/versions/node/v24.14.0/bin

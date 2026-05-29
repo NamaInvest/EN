@@ -7,7 +7,7 @@ function ssh(cmd, timeout = 300000) {
       if (e) { clearTimeout(t); r('[ERR]'); return; }
       s.on('data', d => out += d); s.stderr.on('data', d => out += d);
       s.on('close', () => { clearTimeout(t); c.end(); r(out.trim()); });
-    })).connect({ host:'46.4.188.170', port:22, username:'root', password:'_ee4SWbxLVfH9b' });
+    })).connect({ host:'46.4.188.170', port:22, username:'root', password:'process.env.SSH_PASSWORD' });
   });
 }
 const N11 = '/www/wwwroot/n11.namainvist.com';

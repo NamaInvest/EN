@@ -50,4 +50,4 @@ sudo -u postgres psql -d n7_db -c 'SELECT id, username, role FROM "User";' 2>/de
         s.stderr.on('data', d => process.stderr.write(d.toString()));
         s.on('close', () => conn.end());
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 60000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 60000 });

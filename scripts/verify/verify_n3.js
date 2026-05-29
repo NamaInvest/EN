@@ -29,4 +29,4 @@ pm2 logs n3 --nostream --lines 3 --out --no-color 2>&1 | grep -v "^$" | tail -3
         stream.on('data', d => out += d.toString());
         stream.on('close', () => { console.log(out); conn.end(); });
     });
-}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b', readyTimeout: 15000 });
+}).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD', readyTimeout: 15000 });

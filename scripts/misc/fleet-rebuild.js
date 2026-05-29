@@ -20,7 +20,7 @@ const NODES = [
 function connect() {
   return new Promise(r => {
     const c = new Client();
-    c.on('ready', () => r(c)).connect({ host: '46.4.188.170', port: 22, username: 'root', password: '_ee4SWbxLVfH9b' });
+    c.on('ready', () => r(c)).connect({ host: '46.4.188.170', port: 22, username: 'root', password: 'process.env.SSH_PASSWORD' });
   });
 }
 

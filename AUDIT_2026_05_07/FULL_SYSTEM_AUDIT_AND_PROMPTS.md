@@ -159,7 +159,7 @@ PurchaseInvoice → PurchaseInvoiceDetail (Cascade)
 
 **Deploy Anarchy:**
 - **39+ سكربت deploy** في root (`deploy_100.js`, `deploy_clean.js`, `deploy_force.js`, ...)
-- `deploy_100.js` يحوي `host: '46.4.188.170'`، `password: '_ee4SWbxLVfH9b'` **plaintext**
+- `deploy_100.js` يحوي `host: '46.4.188.170'`، `password: 'process.env.SSH_PASSWORD'` **plaintext**
 - لا أحد يعرف أيهما الحالي
 
 **CI/CD (`.github/workflows/ci.yml`):**
@@ -498,7 +498,7 @@ ROLE: You are a DevOps SRE working on a Next.js + Postgres + Electron ERP.
 
 CONTEXT — REAL DISASTERS:
 - .env is committed to the repo with real secrets: CLERK_SECRET_KEY, GEMINI_API_KEY, ZEPTOMAIL_PASS, DATABASE_URL (password: root), Hetzner SSH password.
-- 39+ legacy deploy scripts in root (deploy_100.js, deploy_force.js, deploy_clean.js, ...). deploy_100.js literally has `password: '_ee4SWbxLVfH9b'` plaintext.
+- 39+ legacy deploy scripts in root (deploy_100.js, deploy_force.js, deploy_clean.js, ...). deploy_100.js literally has `password: 'process.env.SSH_PASSWORD'` plaintext.
 - CI baseline allows 95 TypeScript errors. tsc-errors.txt is 634 lines — Next.js 15 async params not migrated.
 - Sentry DSN configured but NO sourcemap upload step → unreadable stack traces in prod.
 - instrumentation.ts is a stub — onRequestError is empty.
