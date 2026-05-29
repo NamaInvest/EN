@@ -217,6 +217,123 @@ export class FXRevaluationEngine {
     return this.run(tenantId, lastDay, true, userId);
   }
 
+  private static async resolveAndValidateAccounts(
+    tx: any,
+    tenantId: string
+  ): Promise<{
+    arCode: string;
+    apCode: string;
+    gainCode: string;
+    lossCode: string;
+  }> {
+    // 1. Resolve AR control account
+    let arCode = '1101';
+    const arSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_REVAL_AR_GL_CODE' } });
+    if (arSetting?.value) {
+      arCode = arSetting.value;
+    } else {
+      try {
+        const defaultArSetting = await tx.setting.findFirst({ where: { tenantId, key: 'GL_DEFAULT_ACCOUNTS_RECEIVABLE' } });
+        if (defaultArSetting?.value) {
+          const acc = await tx.account.findFirst({
+            where: {
+              tenantId,
+              OR: [
+                { id: isNaN(Number(defaultArSetting.value)) ? -1 : Number(defaultArSetting.value) },
+                { code: defaultArSetting.value }
+              ]
+            }
+          });
+          if (acc) arCode = acc.code;
+        }
+      } catch (e) {}
+    }
+
+    // 2. Resolve AP control account
+    let apCode = '2101';
+    const apSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_REVAL_AP_GL_CODE' } });
+    if (apSetting?.value) {
+      apCode = apSetting.value;
+    } else {
+      try {
+        const defaultApSetting = await tx.setting.findFirst({ where: { tenantId, key: 'GL_DEFAULT_ACCOUNTS_PAYABLE' } });
+        if (defaultApSetting?.value) {
+          const acc = await tx.account.findFirst({
+            where: {
+              tenantId,
+              OR: [
+                { id: isNaN(Number(defaultApSetting.value)) ? -1 : Number(defaultApSetting.value) },
+                { code: defaultApSetting.value }
+              ]
+            }
+          });
+          if (acc) apCode = acc.code;
+        }
+      } catch (e) {}
+    }
+
+    // 3. Resolve Gain Account
+    let gainCode = '8101';
+    const gainSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_GAIN_GL_CODE' } });
+    if (gainSetting?.value) {
+      gainCode = gainSetting.value;
+    }
+
+    // 4. Resolve Loss Account
+    let lossCode = '8102';
+    const lossSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_LOSS_GL_CODE' } });
+    if (lossSetting?.value) {
+      lossCode = lossSetting.value;
+    }
+
+    // 5. Validation
+    const arAccount = await tx.account.findFirst({ where: { code: arCode, tenantId, deletedAt: null } });
+    if (!arAccount) {
+      throw new Error(`Missing configured revaluation account: ${arCode} (AR) in Chart of Accounts.`);
+    }
+    if (!arAccount.isActive) {
+      throw new Error(`Revaluation account ${arCode} (AR) is inactive.`);
+    }
+    if (arAccount.type !== 'asset') {
+      throw new Error(`Revaluation account ${arCode} (AR) must be an asset account.`);
+    }
+
+    const apAccount = await tx.account.findFirst({ where: { code: apCode, tenantId, deletedAt: null } });
+    if (!apAccount) {
+      throw new Error(`Missing configured revaluation account: ${apCode} (AP) in Chart of Accounts.`);
+    }
+    if (!apAccount.isActive) {
+      throw new Error(`Revaluation account ${apCode} (AP) is inactive.`);
+    }
+    if (apAccount.type !== 'liability') {
+      throw new Error(`Revaluation account ${apCode} (AP) must be a liability account.`);
+    }
+
+    const gainAccount = await tx.account.findFirst({ where: { code: gainCode, tenantId, deletedAt: null } });
+    if (!gainAccount) {
+      throw new Error(`Missing configured revaluation account: ${gainCode} (Unrealized Gain) in Chart of Accounts.`);
+    }
+    if (!gainAccount.isActive) {
+      throw new Error(`Revaluation account ${gainCode} (Unrealized Gain) is inactive.`);
+    }
+    if (gainAccount.type !== 'revenue' && gainAccount.type !== 'expense') {
+      throw new Error(`Revaluation account ${gainCode} (Unrealized Gain) must be a revenue or expense account.`);
+    }
+
+    const lossAccount = await tx.account.findFirst({ where: { code: lossCode, tenantId, deletedAt: null } });
+    if (!lossAccount) {
+      throw new Error(`Missing configured revaluation account: ${lossCode} (Unrealized Loss) in Chart of Accounts.`);
+    }
+    if (!lossAccount.isActive) {
+      throw new Error(`Revaluation account ${lossCode} (Unrealized Loss) is inactive.`);
+    }
+    if (lossAccount.type !== 'revenue' && lossAccount.type !== 'expense') {
+      throw new Error(`Revaluation account ${lossCode} (Unrealized Loss) must be a revenue or expense account.`);
+    }
+
+    return { arCode, apCode, gainCode, lossCode };
+  }
+
   /**
    * FX-01A: Calculate dry-run FX revaluation preview for outstanding foreign currency AR/AP invoices
    */
@@ -226,6 +343,9 @@ export class FXRevaluationEngine {
     targetDate: Date
   ): Promise<any> {
     const baseCurrencyCode = 'SAR';
+
+    // Resolve and validate accounts early
+    const { arCode, apCode, gainCode, lossCode } = await this.resolveAndValidateAccounts(tx, tenantId);
 
     // 1. Fetch active foreign currencies with their closing rates up to targetDate
     const currencies = await tx.currency.findMany({
@@ -360,7 +480,7 @@ export class FXRevaluationEngine {
       if (line.unrealizedGainLoss > 0) {
         projectedJournalLines.push(
           {
-            accountCode: line.type === 'AR' ? '1101' : '2101',
+            accountCode: line.type === 'AR' ? arCode : apCode,
             description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
             debit: line.type === 'AR' ? line.unrealizedGainLoss : 0,
             credit: line.type === 'AP' ? line.unrealizedGainLoss : 0,
@@ -368,7 +488,7 @@ export class FXRevaluationEngine {
             foreignCredit: 0,
           },
           {
-            accountCode: '8101',
+            accountCode: gainCode,
             description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
             debit: line.type === 'AP' ? line.unrealizedGainLoss : 0,
             credit: line.type === 'AR' ? line.unrealizedGainLoss : 0,
@@ -380,7 +500,7 @@ export class FXRevaluationEngine {
         const absVal = Math.abs(line.unrealizedGainLoss);
         projectedJournalLines.push(
           {
-            accountCode: '8102',
+            accountCode: lossCode,
             description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
             debit: line.type === 'AR' ? 0 : absVal,
             credit: line.type === 'AP' ? 0 : absVal,
@@ -388,7 +508,7 @@ export class FXRevaluationEngine {
             foreignCredit: 0,
           },
           {
-            accountCode: line.type === 'AR' ? '1101' : '2101',
+            accountCode: line.type === 'AR' ? arCode : apCode,
             description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
             debit: line.type === 'AR' ? absVal : 0,
             credit: line.type === 'AP' ? absVal : 0,
@@ -446,24 +566,8 @@ export class FXRevaluationEngine {
       actor,
     });
 
-    // 1.5 Shielding: Verify that all required revaluation accounts exist in COA (Explicitly Tenant-isolated)
-    const arAccount = await tx.account.findFirst({ where: { code: '1101', tenantId } });
-    const apAccount = await tx.account.findFirst({ where: { code: '2101', tenantId } });
-    const gainAccount = await tx.account.findFirst({ where: { code: '8101', tenantId } });
-    const lossAccount = await tx.account.findFirst({ where: { code: '8102', tenantId } });
-
-    if (!arAccount) {
-      throw new Error('Missing configured revaluation account: 1101 (AR) in Chart of Accounts.');
-    }
-    if (!apAccount) {
-      throw new Error('Missing configured revaluation account: 2101 (AP) in Chart of Accounts.');
-    }
-    if (!gainAccount) {
-      throw new Error('Missing configured revaluation account: 8101 (Unrealized Gain) in Chart of Accounts.');
-    }
-    if (!lossAccount) {
-      throw new Error('Missing configured revaluation account: 8102 (Unrealized Loss) in Chart of Accounts.');
-    }
+    // 1.5 Shielding: Verify that all required revaluation accounts exist, are active, and match correct type
+    const { arCode, apCode, gainCode, lossCode } = await this.resolveAndValidateAccounts(tx, tenantId);
 
     // 2. Fetch active foreign currencies with their closing rates
     const currencies = await tx.currency.findMany({
@@ -622,7 +726,7 @@ export class FXRevaluationEngine {
           const gainVal = line.unrealizedGainLoss;
           revalJournalLines.push(
             {
-              accountCode: line.type === 'AR' ? '1101' : '2101',
+              accountCode: line.type === 'AR' ? arCode : apCode,
               description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? gainVal : 0,
               credit: line.type === 'AP' ? gainVal : 0,
@@ -630,7 +734,7 @@ export class FXRevaluationEngine {
               foreignCredit: 0,
             },
             {
-              accountCode: '8101',
+              accountCode: gainCode,
               description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AP' ? gainVal : 0,
               credit: line.type === 'AR' ? gainVal : 0,
@@ -640,7 +744,7 @@ export class FXRevaluationEngine {
           );
           reversalJournalLines.push(
             {
-              accountCode: line.type === 'AR' ? '1101' : '2101',
+              accountCode: line.type === 'AR' ? arCode : apCode,
               description: `Reversal: Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AP' ? gainVal : 0,
               credit: line.type === 'AR' ? gainVal : 0,
@@ -648,7 +752,7 @@ export class FXRevaluationEngine {
               foreignCredit: 0,
             },
             {
-              accountCode: '8101',
+              accountCode: gainCode,
               description: `Reversal: Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? gainVal : 0,
               credit: line.type === 'AP' ? gainVal : 0,
@@ -660,7 +764,7 @@ export class FXRevaluationEngine {
           const absVal = Math.abs(line.unrealizedGainLoss);
           revalJournalLines.push(
             {
-              accountCode: '8102',
+              accountCode: lossCode,
               description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? 0 : absVal,
               credit: line.type === 'AP' ? 0 : absVal,
@@ -668,7 +772,7 @@ export class FXRevaluationEngine {
               foreignCredit: 0,
             },
             {
-              accountCode: line.type === 'AR' ? '1101' : '2101',
+              accountCode: line.type === 'AR' ? arCode : apCode,
               description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? absVal : 0,
               credit: line.type === 'AP' ? absVal : 0,
@@ -678,7 +782,7 @@ export class FXRevaluationEngine {
           );
           reversalJournalLines.push(
             {
-              accountCode: '8102',
+              accountCode: lossCode,
               description: `Reversal: Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? absVal : 0,
               credit: line.type === 'AP' ? absVal : 0,
@@ -686,7 +790,7 @@ export class FXRevaluationEngine {
               foreignCredit: 0,
             },
             {
-              accountCode: line.type === 'AR' ? '1101' : '2101',
+              accountCode: line.type === 'AR' ? arCode : apCode,
               description: `Reversal: Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
               debit: line.type === 'AR' ? 0 : absVal,
               credit: line.type === 'AP' ? 0 : absVal,

@@ -60,6 +60,18 @@ describe('FX-01A: AR/AP Monthly FX Revaluation Engine Preview Tests', () => {
   it('should correctly calculate FX revaluation preview with gains and losses on AR/AP invoices', async () => {
     // Mock the transactional prisma client
     const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '1101') return Promise.resolve({ id: 1101, code: '1101', isActive: true, type: 'asset' });
+          if (where.code === '2101') return Promise.resolve({ id: 2101, code: '2101', isActive: true, type: 'liability' });
+          if (where.code === '8101') return Promise.resolve({ id: 8101, code: '8101', isActive: true, type: 'revenue' });
+          if (where.code === '8102') return Promise.resolve({ id: 8102, code: '8102', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
+      },
       currency: {
         findMany: jest.fn().mockResolvedValue(mockCurrencies),
       },
@@ -120,6 +132,18 @@ describe('FX-01A: AR/AP Monthly FX Revaluation Engine Preview Tests', () => {
   it('should throw a safe and clear error when a closing exchange rate is missing', async () => {
     // Mock where EUR rate is missing (returns null)
     const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '1101') return Promise.resolve({ id: 1101, code: '1101', isActive: true, type: 'asset' });
+          if (where.code === '2101') return Promise.resolve({ id: 2101, code: '2101', isActive: true, type: 'liability' });
+          if (where.code === '8101') return Promise.resolve({ id: 8101, code: '8101', isActive: true, type: 'revenue' });
+          if (where.code === '8102') return Promise.resolve({ id: 8102, code: '8102', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
+      },
       currency: {
         findMany: jest.fn().mockResolvedValue(mockCurrencies),
       },

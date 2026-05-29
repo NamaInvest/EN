@@ -74,8 +74,17 @@ describe('FX-01B: AR/AP Monthly FX Revaluation Real Posting Engine Tests', () =>
   it('should successfully post FX revaluation journal entry and immediately generate auto-reversals', async () => {
     // Mock the transactional prisma client
     const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
       account: {
-        findFirst: jest.fn().mockResolvedValue({ id: 12345 }),
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '1101') return Promise.resolve({ id: 1101, code: '1101', isActive: true, type: 'asset' });
+          if (where.code === '2101') return Promise.resolve({ id: 2101, code: '2101', isActive: true, type: 'liability' });
+          if (where.code === '8101') return Promise.resolve({ id: 8101, code: '8101', isActive: true, type: 'revenue' });
+          if (where.code === '8102') return Promise.resolve({ id: 8102, code: '8102', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
       },
       currency: {
         findMany: jest.fn().mockResolvedValue(mockCurrencies),
@@ -134,8 +143,17 @@ describe('FX-01B: AR/AP Monthly FX Revaluation Real Posting Engine Tests', () =>
 
   it('should throw an error and prevent double posting if a revaluation already exists', async () => {
     const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
       account: {
-        findFirst: jest.fn().mockResolvedValue({ id: 12345 }),
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '1101') return Promise.resolve({ id: 1101, code: '1101', isActive: true, type: 'asset' });
+          if (where.code === '2101') return Promise.resolve({ id: 2101, code: '2101', isActive: true, type: 'liability' });
+          if (where.code === '8101') return Promise.resolve({ id: 8101, code: '8101', isActive: true, type: 'revenue' });
+          if (where.code === '8102') return Promise.resolve({ id: 8102, code: '8102', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
       },
       currency: {
         findMany: jest.fn().mockResolvedValue(mockCurrencies),
@@ -171,5 +189,86 @@ describe('FX-01B: AR/AP Monthly FX Revaluation Real Posting Engine Tests', () =>
     ).rejects.toThrow('الفترة المحاسبية 2026-05 مغلقة نهائياً (CLOSED).');
 
     expect(AccountingJournalService.createEntry).not.toHaveBeenCalled();
+  });
+
+  it('should successfully resolve and validate dynamic custom account codes from Settings', async () => {
+    const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.key === 'FX_REVAL_AR_GL_CODE') return Promise.resolve({ value: '110199' });
+          if (where.key === 'FX_REVAL_AP_GL_CODE') return Promise.resolve({ value: '210199' });
+          if (where.key === 'FX_GAIN_GL_CODE') return Promise.resolve({ value: '810199' });
+          if (where.key === 'FX_LOSS_GL_CODE') return Promise.resolve({ value: '810299' });
+          return Promise.resolve(null);
+        }),
+      },
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '110199') return Promise.resolve({ id: 110199, code: '110199', isActive: true, type: 'asset' });
+          if (where.code === '210199') return Promise.resolve({ id: 210199, code: '210199', isActive: true, type: 'liability' });
+          if (where.code === '810199') return Promise.resolve({ id: 810199, code: '810199', isActive: true, type: 'revenue' });
+          if (where.code === '810299') return Promise.resolve({ id: 810299, code: '810299', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
+      },
+      currency: {
+        findMany: jest.fn().mockResolvedValue(mockCurrencies),
+      },
+      exchangeRate: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          const rate = mockExchangeRates.find(r => r.currencyId === where.currencyId);
+          return Promise.resolve(rate);
+        }),
+      },
+      salesInvoice: {
+        findMany: jest.fn().mockResolvedValue(mockSalesInvoices),
+      },
+      purchaseInvoice: {
+        findMany: jest.fn().mockResolvedValue(mockPurchaseInvoices),
+      },
+      journalEntry: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        update: jest.fn().mockResolvedValue({}),
+      },
+      auditLog: {
+        create: jest.fn().mockResolvedValue({}),
+      },
+    };
+
+    const results = await FXRevaluationEngine.postARAP(
+      mockTx as any,
+      mockTenantId,
+      targetDate,
+      123,
+      1
+    );
+
+    expect(results).toBeDefined();
+    expect(results.length).toBe(1);
+    expect(mockTx.account.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ code: '110199' }) }));
+    expect(mockTx.account.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ code: '210199' }) }));
+    expect(mockTx.account.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ code: '810199' }) }));
+    expect(mockTx.account.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ code: '810299' }) }));
+  });
+
+  it('should throw validation error if custom resolved account has mismatching type', async () => {
+    const mockTx = {
+      setting: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.key === 'FX_REVAL_AR_GL_CODE') return Promise.resolve({ value: '110199' });
+          return Promise.resolve(null);
+        }),
+      },
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }) => {
+          if (where.code === '110199') return Promise.resolve({ id: 110199, code: '110199', isActive: true, type: 'expense' });
+          return Promise.resolve(null);
+        }),
+      },
+    };
+
+    await expect(
+      FXRevaluationEngine.postARAP(mockTx as any, mockTenantId, targetDate, 123)
+    ).rejects.toThrow('Revaluation account 110199 (AR) must be an asset account.');
   });
 });
