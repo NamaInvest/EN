@@ -50,7 +50,8 @@ export async function assertPeriodWritable({
   const month = String(postingDate.getMonth() + 1).padStart(2, '0');
   const periodStr = `${year}-${month}`;
 
-  const period = await prisma.financialPeriod.findUnique({
+  // 1. Check Global Period Lock first
+  const globalPeriod = await prisma.financialPeriod.findUnique({
     where: {
       tenantId_period: {
         tenantId,
@@ -59,16 +60,10 @@ export async function assertPeriodWritable({
     },
   });
 
-  // If period record does not exist, default behavior is that it is implicitly OPEN in this system
-  const status = period?.status || FinancialPeriodStatus.OPEN;
+  const globalStatus = globalPeriod?.status || FinancialPeriodStatus.OPEN;
 
-  if (status === FinancialPeriodStatus.OPEN) {
-    return 'ALLOWED';
-  }
-
-  // HARD_LOCKED is absolute. No override allowed.
-  if (status === FinancialPeriodStatus.HARD_LOCKED) {
-    // Phase 10: Structured rejection trace for HARD_LOCK
+  // HARD_LOCKED global is absolute. No override allowed.
+  if (globalStatus === FinancialPeriodStatus.HARD_LOCKED) {
     tracePeriodLockRejection({
       operationType,
       module,
@@ -79,12 +74,13 @@ export async function assertPeriodWritable({
     throw new PeriodLockViolation(`الفترة المحاسبية ${periodStr} مغلقة نهائياً (CLOSED).`, 'LOCKED');
   }
 
-  // If SOFT_LOCKED, check for a valid override context
-  if (status === FinancialPeriodStatus.SOFT_LOCKED) {
+  // If globally SOFT_LOCKED, verify global override first
+  let isGlobalOverridden = false;
+  let globalOverrideLogCreated = false;
+
+  if (globalStatus === FinancialPeriodStatus.SOFT_LOCKED) {
     if (overrideContext) {
-      // Validate override context
       const { actorRole, reason, confirmationCode, tenantId: ctxTenant, actorId } = overrideContext;
-      
       const isRoleValid = actorRole === 'MASTER_ADMIN' || actorRole === 'SUPER_ADMIN';
       const isReasonValid = reason && reason.trim().length >= 20;
       const isCodeValid = confirmationCode === 'CONFIRM-SOFT-LOCK-OVERRIDE';
@@ -92,14 +88,15 @@ export async function assertPeriodWritable({
       const isActorMatch = actorId && actorId.trim().length > 0;
 
       if (isRoleValid && isReasonValid && isCodeValid && isTenantMatch && isActorMatch) {
-        // Write AuditLog for the successful override
+        isGlobalOverridden = true;
+        // Audit log for global bypass
         try {
           await prisma.auditLog.create({
             data: {
               tenantId,
               action: 'SOFT_LOCK_OVERRIDE',
               entityType: 'FinancialPeriod',
-              entityId: period?.id ? String(period.id) : periodStr,
+              entityId: globalPeriod?.id ? String(globalPeriod.id) : periodStr,
               userId: !isNaN(Number(actorId)) ? Number(actorId) : undefined,
               metadata: {
                 module,
@@ -107,35 +104,158 @@ export async function assertPeriodWritable({
                 postingDate: postingDate.toISOString(),
                 reason,
                 requestId: overrideContext.requestId,
-                decision: 'ALLOWED_WITH_OVERRIDE'
+                decision: 'ALLOWED_WITH_OVERRIDE',
+                scope: 'GLOBAL'
               }
             }
           });
+          globalOverrideLogCreated = true;
         } catch (err) {
-          log.error('Failed to write override audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
+          log.error('Failed to write global override audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
         }
 
-        // Phase 10: Structured override trace (non-blocking)
         traceOverrideUsed({
           operationType,
           module,
           periodState: 'SOFT_LOCKED',
           actorId,
           actorRole,
-          reason: reason.slice(0, 200), // truncate: never log full user input
+          reason: reason.slice(0, 200),
           traceId: overrideContext.requestId,
         });
 
-        log.warn(`SOFT_LOCK bypassed via Master Override`, { tenantId, periodStr, operationType });
+        log.warn(`SOFT_LOCK bypassed via Master Override (Global)`, { tenantId, periodStr, operationType });
+      }
+    }
+
+    if (!isGlobalOverridden) {
+      const violationMsg = `Financial period ${periodStr} is SOFT_LOCKED globally. Operation '${operationType}' from module '${module}' is rejected.`;
+      log.warn(violationMsg, { tenantId, periodStr, status: 'SOFT_LOCKED', operationType, module });
+
+      tracePeriodLockRejection({
+        operationType,
+        module,
+        periodState: 'SOFT_LOCKED',
+        rejectionCode: 'MASTER_OVERRIDE_REQUIRED',
+        period: periodStr,
+      });
+
+      try {
+        await prisma.periodLockLog.create({
+          data: {
+            tenantId,
+            action: `REJECTED_${operationType}`,
+            actionBy: actor,
+            reason: violationMsg,
+            fiscalPeriod: {
+              connectOrCreate: {
+                where: { year_month: { year, month: postingDate.getMonth() + 1 } },
+                create: { tenantId, year, month: postingDate.getMonth() + 1 }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        log.error('Failed to write period lock audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
+      }
+
+      throw new PeriodLockViolation(`الفترة المحاسبية ${periodStr} مقفلة جزئياً (SOFT_LOCKED) عالمياً. يتطلب تجاوز إداري (Master Override).`, 'MASTER_OVERRIDE_REQUIRED');
+    }
+  }
+
+  // 2. Check Module-Specific Period Lock
+  let moduleStatus: FinancialPeriodStatus = FinancialPeriodStatus.OPEN;
+  let modulePeriodLock = null;
+
+  if (module) {
+    modulePeriodLock = await (prisma as any).financialPeriodModuleLock.findUnique({
+      where: {
+        tenantId_period_module: {
+          tenantId,
+          period: periodStr,
+          module,
+        },
+      },
+    });
+    if (modulePeriodLock) {
+      moduleStatus = modulePeriodLock.status;
+    }
+  }
+
+  if (moduleStatus === FinancialPeriodStatus.OPEN) {
+    return isGlobalOverridden ? 'ALLOWED_WITH_OVERRIDE' : 'ALLOWED';
+  }
+
+  if (moduleStatus === FinancialPeriodStatus.HARD_LOCKED) {
+    tracePeriodLockRejection({
+      operationType,
+      module,
+      periodState: 'HARD_LOCKED',
+      rejectionCode: 'LOCKED',
+      period: periodStr,
+    });
+    throw new PeriodLockViolation(`الوحدة ${module} في الفترة ${periodStr} مغلقة نهائياً (CLOSED).`, 'LOCKED');
+  }
+
+  if (moduleStatus === FinancialPeriodStatus.SOFT_LOCKED) {
+    let isModuleOverridden = false;
+
+    if (overrideContext) {
+      const { actorRole, reason, confirmationCode, tenantId: ctxTenant, actorId } = overrideContext;
+      const isRoleValid = actorRole === 'MASTER_ADMIN' || actorRole === 'SUPER_ADMIN';
+      const isReasonValid = reason && reason.trim().length >= 20;
+      const isCodeValid = confirmationCode === 'CONFIRM-SOFT-LOCK-OVERRIDE';
+      const isTenantMatch = ctxTenant === tenantId;
+      const isActorMatch = actorId && actorId.trim().length > 0;
+
+      if (isRoleValid && isReasonValid && isCodeValid && isTenantMatch && isActorMatch) {
+        isModuleOverridden = true;
+        
+        // Write AuditLog for the successful module override (if not already written by global lock)
+        if (!globalOverrideLogCreated) {
+          try {
+            await prisma.auditLog.create({
+              data: {
+                tenantId,
+                action: 'SOFT_LOCK_OVERRIDE',
+                entityType: 'FinancialPeriodModuleLock',
+                entityId: modulePeriodLock?.id ? String(modulePeriodLock.id) : `${periodStr}:${module}`,
+                userId: !isNaN(Number(actorId)) ? Number(actorId) : undefined,
+                metadata: {
+                  module,
+                  operationType,
+                  postingDate: postingDate.toISOString(),
+                  reason,
+                  requestId: overrideContext.requestId,
+                  decision: 'ALLOWED_WITH_OVERRIDE',
+                  scope: 'MODULE'
+                }
+              }
+            });
+          } catch (err) {
+            log.error('Failed to write module override audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
+          }
+        }
+
+        traceOverrideUsed({
+          operationType,
+          module,
+          periodState: 'SOFT_LOCKED',
+          actorId,
+          actorRole,
+          reason: reason.slice(0, 200),
+          traceId: overrideContext.requestId,
+        });
+
+        log.warn(`SOFT_LOCK bypassed via Master Override (Module: ${module})`, { tenantId, periodStr, operationType });
         return 'ALLOWED_WITH_OVERRIDE';
       }
     }
 
-    // Invalid or missing override context
-    const violationMsg = `Financial period ${periodStr} is SOFT_LOCKED. Operation '${operationType}' from module '${module}' is rejected.`;
+    // Invalid or missing override context for the module
+    const violationMsg = `Financial period ${periodStr} is SOFT_LOCKED for module '${module}'. Operation '${operationType}' is rejected.`;
     log.warn(violationMsg, { tenantId, periodStr, status: 'SOFT_LOCKED', operationType, module });
 
-    // Phase 10: Structured rejection trace
     tracePeriodLockRejection({
       operationType,
       module,
@@ -160,10 +280,10 @@ export async function assertPeriodWritable({
         }
       });
     } catch (err) {
-      log.error('Failed to write period lock audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
+      log.error('Failed to write module period lock audit log', { errorMessage: err instanceof Error ? err.message : String(err) });
     }
 
-    throw new PeriodLockViolation(`الفترة المحاسبية ${periodStr} مقفلة جزئياً (SOFT_LOCKED). يتطلب تجاوز إداري (Master Override).`, 'MASTER_OVERRIDE_REQUIRED');
+    throw new PeriodLockViolation(`الفترة المحاسبية ${periodStr} للوحدة ${module} مقفلة جزئياً (SOFT_LOCKED). يتطلب تجاوز إداري (Master Override).`, 'MASTER_OVERRIDE_REQUIRED');
   }
 
   // Fallback for any unknown status

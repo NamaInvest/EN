@@ -9074,6 +9074,25 @@ Table financial_periods {
   Note: 'إقفال الفترات المحاسبية — Financial Period Lock'
 }
 
+Table financial_period_module_locks {
+  id Int [pk, increment]
+  tenantId String [not null]
+  period String [not null]
+  module String [not null]
+  status FinancialPeriodStatus [not null, default: 'OPEN']
+  lockedBy String
+  lockedAt DateTime
+  reason String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (tenantId, period, module) [unique]
+  }
+
+  Note: 'إقفال الفترات المحاسبية على مستوى الوحدة — Module-Specific Financial Period Lock'
+}
+
 Table accrual_entries {
   id Int [pk, increment]
   tenantId String [not null]

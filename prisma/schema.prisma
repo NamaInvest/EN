@@ -11426,6 +11426,25 @@ model FinancialPeriod {
   @@map("financial_periods")
 }
 
+/// إقفال الفترات المحاسبية على مستوى الوحدة — Module-Specific Financial Period Lock
+model FinancialPeriodModuleLock {
+  id         Int                   @id @default(autoincrement())
+  tenantId   String                @map("tenant_id")
+  period     String                // YYYY-MM
+  module     String                // e.g., 'sales', 'purchases', 'inventory', 'treasury', 'gl', 'fixed_assets', 'payroll', 'tax'
+  status     FinancialPeriodStatus @default(OPEN)
+  lockedBy   String?               @map("locked_by")
+  lockedAt   DateTime?             @map("locked_at")
+  reason     String?
+  createdAt  DateTime              @default(now()) @map("created_at")
+  updatedAt  DateTime              @updatedAt @map("updated_at")
+
+  @@unique([tenantId, period, module])
+  @@index([tenantId, status])
+  @@map("financial_period_module_locks")
+}
+
+
 /// مصاريف مستحقة ومدفوعات مقدماً — Accruals & Prepayments
 model AccrualEntry {
   id               Int       @id @default(autoincrement())

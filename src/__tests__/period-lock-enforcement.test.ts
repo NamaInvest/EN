@@ -9,6 +9,9 @@ jest.mock('../lib/prisma', () => {
       financialPeriod: {
         findUnique: jest.fn(),
       },
+      financialPeriodModuleLock: {
+        findUnique: jest.fn(),
+      },
       auditLog: {
         create: jest.fn(),
       },
@@ -216,6 +219,159 @@ describe('Period Lock Enforcement & Interlocking (F-04)', () => {
       expect(auditArgs.data.tenantId).toBe(tenantId);
       expect(auditArgs.data.userId).toBe(99);
       expect(auditArgs.data.metadata.reason).toBe(validOverride.reason);
+    });
+
+    it('should ALLOW access to module-specific OPEN periods', async () => {
+      (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+        id: 1,
+        tenantId,
+        period: '2026-05',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      ((prisma as any).financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+        id: 10,
+        tenantId,
+        period: '2026-05',
+        module: 'sales',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      const result = await assertPeriodWritable({
+        tenantId,
+        postingDate: openDate,
+        operationType: 'CREATE_SALES_INVOICE',
+        module: 'sales',
+        actor: 'user-1',
+      });
+
+      expect(result).toBe('ALLOWED');
+    });
+
+    it('should REJECT access to module-specific HARD_LOCKED periods completely', async () => {
+      (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+        id: 1,
+        tenantId,
+        period: '2026-04',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      ((prisma as any).financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+        id: 11,
+        tenantId,
+        period: '2026-04',
+        module: 'sales',
+        status: FinancialPeriodStatus.HARD_LOCKED,
+      });
+
+      await expect(
+        assertPeriodWritable({
+          tenantId,
+          postingDate: lockedDate,
+          operationType: 'CREATE_SALES_INVOICE',
+          module: 'sales',
+          actor: 'user-1',
+        })
+      ).rejects.toThrow(PeriodLockViolation);
+    });
+
+    it('should REJECT access to module-specific SOFT_LOCKED periods when no override context is provided', async () => {
+      (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+        id: 1,
+        tenantId,
+        period: '2026-04',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      ((prisma as any).financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+        id: 12,
+        tenantId,
+        period: '2026-04',
+        module: 'sales',
+        status: FinancialPeriodStatus.SOFT_LOCKED,
+      });
+
+      await expect(
+        assertPeriodWritable({
+          tenantId,
+          postingDate: lockedDate,
+          operationType: 'CREATE_SALES_INVOICE',
+          module: 'sales',
+          actor: 'user-2',
+        })
+      ).rejects.toThrow(PeriodLockViolation);
+    });
+
+    it('should ALLOW access to module-specific SOFT_LOCKED periods with a valid override context', async () => {
+      (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+        id: 1,
+        tenantId,
+        period: '2026-04',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      ((prisma as any).financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+        id: 12,
+        tenantId,
+        period: '2026-04',
+        module: 'sales',
+        status: FinancialPeriodStatus.SOFT_LOCKED,
+      });
+
+      const validOverride = {
+        actorId: '99',
+        actorRole: 'SUPER_ADMIN',
+        tenantId,
+        operationType: 'CREATE_SALES_INVOICE',
+        module: 'sales',
+        postingDate: lockedDate,
+        reason: 'Emergency audit correction required for Q2 reporting closing',
+        confirmationCode: 'CONFIRM-SOFT-LOCK-OVERRIDE',
+        requestId: 'req-valid-456',
+      };
+
+      const result = await assertPeriodWritable({
+        tenantId,
+        postingDate: lockedDate,
+        operationType: 'CREATE_SALES_INVOICE',
+        module: 'sales',
+        actor: '99',
+        overrideContext: validOverride,
+      });
+
+      expect(result).toBe('ALLOWED_WITH_OVERRIDE');
+      expect(prisma.auditLog.create).toHaveBeenCalledTimes(1);
+
+      const auditArgs = (prisma.auditLog.create as any).mock.calls[0][0];
+      expect(auditArgs.data.action).toBe('SOFT_LOCK_OVERRIDE');
+      expect(auditArgs.data.entityType).toBe('FinancialPeriodModuleLock');
+    });
+
+    it('should enforces Global HARD_LOCK dominance over module-specific OPEN status', async () => {
+      (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+        id: 2,
+        tenantId,
+        period: '2026-04',
+        status: FinancialPeriodStatus.HARD_LOCKED,
+      });
+
+      ((prisma as any).financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+        id: 13,
+        tenantId,
+        period: '2026-04',
+        module: 'sales',
+        status: FinancialPeriodStatus.OPEN,
+      });
+
+      await expect(
+        assertPeriodWritable({
+          tenantId,
+          postingDate: lockedDate,
+          operationType: 'CREATE_SALES_INVOICE',
+          module: 'sales',
+          actor: 'user-1',
+        })
+      ).rejects.toThrow(PeriodLockViolation);
     });
   });
 
