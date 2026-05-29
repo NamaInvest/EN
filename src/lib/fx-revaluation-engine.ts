@@ -876,4 +876,315 @@ export class FXRevaluationEngine {
 
     return runs;
   }
+
+  /**
+   * FX-02A: Calculate dry-run FX revaluation preview for foreign currency Bank Accounts
+   */
+  static async previewBank(
+    tx: any,
+    tenantId: string,
+    targetDate: Date
+  ): Promise<any> {
+    const baseCurrencyCode = 'SAR';
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+
+    // 1. Fetch active bank accounts for the tenant
+    const bankAccounts = await tx.bankAccount.findMany({
+      where: {
+        tenantId,
+        isActive: true,
+        deletedAt: null,
+      },
+    });
+
+    const lines: any[] = [];
+    const projectedJournalLines: any[] = [];
+    let totalGain = 0;
+    let totalLoss = 0;
+
+    // Resolve general Gain/Loss settings as fallback
+    let fallbackGainCode = '8101';
+    const gainSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_GAIN_GL_CODE' } });
+    if (gainSetting?.value) fallbackGainCode = gainSetting.value;
+
+    let fallbackLossCode = '8102';
+    const lossSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_LOSS_GL_CODE' } });
+    if (lossSetting?.value) fallbackLossCode = lossSetting.value;
+
+    for (const bankAccount of bankAccounts) {
+      // Rule: Skip local currency (SAR) bank accounts
+      if (bankAccount.currency === baseCurrencyCode) {
+        continue;
+      }
+
+      // Safeguard #2: Read Setting-based bank-to-GL mapping
+      const mappingSetting = await tx.setting.findFirst({
+        where: {
+          tenantId,
+          key: `GL_BANK_MAPPING_${bankAccount.id}`,
+        },
+      });
+
+      if (!mappingSetting?.value) {
+        // Reject or flag unmapped bank accounts
+        lines.push({
+          bankAccountId: bankAccount.id,
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+          currency: bankAccount.currency,
+          glAccountCode: null,
+          operationalBalance: Number(bankAccount.currentBalance ?? 0),
+          ledgerFcyBalance: 0,
+          carryingVariance: 0,
+          historicalRate: 0,
+          closingRate: 0,
+          sarAtHistorical: 0,
+          sarAtClosing: 0,
+          unrealizedGainLoss: 0,
+          direction: 'NONE',
+          status: 'UNMAPPED',
+          error: `Unmapped bank account. Define GL_BANK_MAPPING_${bankAccount.id} in Settings.`,
+        });
+        continue;
+      }
+
+      const glAccountCode = mappingSetting.value;
+
+      // Safeguard #3: Validate mapped GL account exists and is tenant-scoped
+      const glAccount = await tx.account.findFirst({
+        where: {
+          tenantId,
+          code: glAccountCode,
+          deletedAt: null,
+        },
+      });
+
+      if (!glAccount) {
+        lines.push({
+          bankAccountId: bankAccount.id,
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+          currency: bankAccount.currency,
+          glAccountCode,
+          operationalBalance: Number(bankAccount.currentBalance ?? 0),
+          ledgerFcyBalance: 0,
+          carryingVariance: 0,
+          historicalRate: 0,
+          closingRate: 0,
+          sarAtHistorical: 0,
+          sarAtClosing: 0,
+          unrealizedGainLoss: 0,
+          direction: 'NONE',
+          status: 'INVALID_GL_ACCOUNT',
+          error: `Mapped GL Account ${glAccountCode} does not exist, is inactive, or not tenant-scoped.`,
+        });
+        continue;
+      }
+
+      // Safeguard #4: Calculate ledger foreign balance and local balance from JournalLine
+      const journalLines = await tx.journalLine.findMany({
+        where: {
+          tenantId,
+          accountId: glAccount.id,
+          entry: {
+            status: { in: ['posted', 'POSTED'] },
+            entryDate: { lte: targetDateStr },
+          },
+          deletedAt: null,
+        },
+      });
+
+      let ledgerFcyDebit = 0;
+      let ledgerFcyCredit = 0;
+      let ledgerSarDebit = 0;
+      let ledgerSarCredit = 0;
+
+      for (const line of journalLines) {
+        ledgerFcyDebit += Number(line.foreignDebit ?? 0);
+        ledgerFcyCredit += Number(line.foreignCredit ?? 0);
+        ledgerSarDebit += Number(line.debit ?? 0);
+        ledgerSarCredit += Number(line.credit ?? 0);
+      }
+
+      const ledgerFcyBalance = Math.round((ledgerFcyDebit - ledgerFcyCredit) * 100) / 100;
+      const ledgerSarBalance = Math.round((ledgerSarDebit - ledgerSarCredit) * 100) / 100;
+
+      // Safeguard #5: Compare against BankAccount.currentBalance as advisory mismatch only
+      const operationalBalance = Number(bankAccount.currentBalance ?? 0);
+      const carryingVariance = Math.round((operationalBalance - ledgerFcyBalance) * 100) / 100;
+
+      // Safeguard #6: Use target date exchange rate
+      const currencyDoc = await tx.currency.findFirst({
+        where: {
+          tenantId,
+          code: bankAccount.currency,
+          isActive: true,
+        },
+      });
+
+      if (!currencyDoc) {
+        lines.push({
+          bankAccountId: bankAccount.id,
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+          currency: bankAccount.currency,
+          glAccountCode,
+          operationalBalance,
+          ledgerFcyBalance,
+          carryingVariance,
+          historicalRate: 0,
+          closingRate: 0,
+          sarAtHistorical: ledgerSarBalance,
+          sarAtClosing: 0,
+          unrealizedGainLoss: 0,
+          direction: 'NONE',
+          status: 'MISSING_CURRENCY',
+          error: `Currency ${bankAccount.currency} is inactive or does not exist for this tenant.`,
+        });
+        continue;
+      }
+
+      const exchangeRateDoc = await tx.exchangeRate.findFirst({
+        where: {
+          tenantId,
+          currencyId: currencyDoc.id,
+          date: { lte: targetDate },
+        },
+        orderBy: { date: 'desc' },
+      });
+
+      if (!exchangeRateDoc?.rate) {
+        lines.push({
+          bankAccountId: bankAccount.id,
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+          currency: bankAccount.currency,
+          glAccountCode,
+          operationalBalance,
+          ledgerFcyBalance,
+          carryingVariance,
+          historicalRate: 0,
+          closingRate: 0,
+          sarAtHistorical: ledgerSarBalance,
+          sarAtClosing: 0,
+          unrealizedGainLoss: 0,
+          direction: 'NONE',
+          status: 'MISSING_EXCHANGE_RATE',
+          error: `Missing exchange rate for ${bankAccount.currency} on or before ${targetDateStr}.`,
+        });
+        continue;
+      }
+
+      const closingRate = Number(exchangeRateDoc.rate);
+
+      // Math calculations
+      const historicalRate = ledgerFcyBalance !== 0 ? Math.round((ledgerSarBalance / ledgerFcyBalance) * 10000) / 10000 : 0;
+      const sarAtClosing = Math.round(ledgerFcyBalance * closingRate * 100) / 100;
+      const sarAtHistorical = ledgerSarBalance;
+      const unrealizedGainLoss = Math.round((sarAtClosing - sarAtHistorical) * 100) / 100;
+      const direction = unrealizedGainLoss > 0 ? 'GAIN' : unrealizedGainLoss < 0 ? 'LOSS' : 'NONE';
+
+      // Safeguard #7: Generate deterministic preview reference
+      const bankRef = `FX_REVAL_BANK_${year}_${month}_${bankAccount.id}`;
+
+      // Check if zero difference scenario
+      if (Math.abs(unrealizedGainLoss) < 0.01) {
+        lines.push({
+          bankAccountId: bankAccount.id,
+          bankName: bankAccount.bankName,
+          accountNumber: bankAccount.accountNumber,
+          glAccountCode,
+          currency: bankAccount.currency,
+          operationalBalance,
+          ledgerFcyBalance,
+          carryingVariance,
+          historicalRate,
+          closingRate,
+          sarAtHistorical,
+          sarAtClosing,
+          unrealizedGainLoss: 0,
+          direction: 'NONE',
+          status: 'ZERO_DIFFERENCE',
+          reference: bankRef,
+        });
+        continue;
+      }
+
+      if (unrealizedGainLoss > 0) {
+        totalGain += unrealizedGainLoss;
+        projectedJournalLines.push(
+          {
+            accountCode: glAccountCode,
+            description: `Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: unrealizedGainLoss,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: fallbackGainCode,
+            description: `Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: unrealizedGainLoss,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      } else {
+        const absLoss = Math.abs(unrealizedGainLoss);
+        totalLoss += absLoss;
+        projectedJournalLines.push(
+          {
+            accountCode: fallbackLossCode,
+            description: `Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: absLoss,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: glAccountCode,
+            description: `Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: absLoss,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      }
+
+      lines.push({
+        bankAccountId: bankAccount.id,
+        bankName: bankAccount.bankName,
+        accountNumber: bankAccount.accountNumber,
+        glAccountCode,
+        currency: bankAccount.currency,
+        operationalBalance,
+        ledgerFcyBalance,
+        carryingVariance,
+        historicalRate,
+        closingRate,
+        sarAtHistorical,
+        sarAtClosing,
+        unrealizedGainLoss,
+        direction,
+        status: 'SUCCESS',
+        reference: bankRef,
+      });
+    }
+
+    return {
+      tenantId,
+      revalDate: targetDateStr,
+      baseCurrency: baseCurrencyCode,
+      lines,
+      totalUnrealized: Math.round((totalGain - totalLoss) * 100) / 100,
+      totalGain: Math.round(totalGain * 100) / 100,
+      totalLoss: Math.round(totalLoss * 100) / 100,
+      projectedJournalLines,
+      generatedAt: new Date(),
+    };
+  }
 }
