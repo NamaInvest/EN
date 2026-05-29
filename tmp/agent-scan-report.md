@@ -1,271 +1,197 @@
-# Enterprise Scan + Plan Report
+# Global Next.js Fatal Error Scan Report
 
 ## 1. Current Mode
-- STANDBY_MODE
-- SCAN + PLAN ONLY
-- No Code Changes
-- No DB/Prisma Changes
-- No Production Touch
-- No Git Commit/Push
+
+* INCIDENT_SCAN_MODE
+* SCAN + PLAN ONLY
+* Read-only first
+* No code changes
+* No DB/Prisma changes
+* No production changes
+* No git changes
 
 ---
 
-## 2. Target Scope
-- **Domain**: Sales Returns API
-- **Primary File**: `src/app/api/sales-returns/route.ts`
-- **Objective**: Modernize the Sales Returns (Credit Note) API, securing it against cross-tenant data leakage and injecting period-lock safeguards to enforce SOCPA monthly and annual closing compliance.
+## 2. Incident Summary
+
+### Error Observed
+```text
+FATAL CLIENT-SIDE EXCEPTION
+An error occurred in the Server Components render.
+The specific message is omitted in production builds.
+A digest property is included on this error instance.
+```
+
+### Context and Analysis
+In Next.js 15+ and 16+, dynamic route `Page` and `Layout` components receive their `params` and `searchParams` properties as asynchronous **Promises**. 
+* **The Bug:** If a Client Component (declared with `'use client'`) serves as the dynamic Page component (e.g., `[token]/page.tsx` or `[qrToken]/page.tsx`) and attempts to access properties on `params` (like `params.token` or `params.qrToken`) synchronously, it triggers a fatal runtime rendering mismatch.
+* **Why it builds:** The production compiler (`npm run build`) builds client components successfully because they are compiled as static chunks, but at **runtime in production**, React 19/Next.js passes `params` as a native Promise. Accessing properties on a Promise synchronously returns `undefined` and throws high-severity warning/errors during hydration, leading to a complete crash of the client-side rendering tree with a dynamic rendering digest exception.
 
 ---
 
-## 3. Files Reviewed
-* `src/app/api/sales-returns/route.ts` (Active document / Primary target of security scan)
-* `src/app/api/sales/route.ts` (Stabilized sales route used as security and period-lock reference)
-* `src/app/api/purchases/route.ts` (Stabilized purchases route reference)
-* `src/lib/governance/tenant-guard.ts` (Tenant context verification helper reference)
-* `src/lib/governance/period-lock.ts` (Fiscal closing and locking validation reference)
-* `src/lib/validations.ts` (Standard Zod validation schemas reference)
-* `src/lib/tax-validation.ts` (Standard tax rate validation reference)
-* `AI_PROJECT_MEMORY.md` (Project core modernization record and memory log)
-* `docs/ai-brain/operational_roadmap_20_gaps.md` (ERP Gap Analysis and strategic priority matrix)
+## 3. Commands Executed
+
+1. `git status --short` — Completed successfully (Clean working directory, no local modifications).
+2. `git log -n 10 --oneline` — Reviewed last 10 commits (Baseline contains unified Period Close, Sales Returns Guards, and Stock Adjustments).
+3. `git branch --show-current` — Confirmed active branch is `main`.
+4. `npx prisma validate` — Validated schema integrity locally (Prisma schema is 100% valid).
+5. `npm run typecheck` — Completed successfully with **zero compilation or TypeScript errors**.
+6. `npm run build` — Completed successfully with **zero compilation, routing, or optimization errors**.
+7. `node scratch/check_remote_logs.js` — Retrieved production PM2 error logs and output them locally for diagnostics.
 
 ---
 
-## 4. Current Implementation Summary
-The Sales Returns API route `src/app/api/sales-returns/route.ts` handles:
-- **GET**: Lists sales returns, supporting pagination and date range filters (`from`/`to`). It performs a direct `prisma.salesReturn.findMany` and `count` without checking or applying any `tenantId` isolation constraint.
-- **POST**: Initializes a sales return (Credit Note). It checks ZATCA tax rate validity, verifies the existence of the original sales invoice, calculates totals, and executes a database transaction (`runFinancialTx`) to:
-  1. Create a `SalesReturn` document record.
-  2. Restore product inventory (`Product` and `ProductStock` current stock increments).
-  3. Create an incoming `StockMovement` history record.
-  4. Post a treasury outgoing cash entry via `TreasuryPostingService.createTreasuryEntry` (for cash returns).
-  5. Post an automatic reversed double-entry accounting journal via `postSalesReturn` engine.
+## 4. Files Reviewed
+
+* `src/app/qr-menu/[token]/page.tsx` (Primary Client Page Route with dynamic params)
+* `src/app/customer/table/[qrToken]/page.tsx` (Secondary Client Page Route with dynamic params)
+* `src/app/menu/[tableId]/page.tsx` (Client Page Route using async unwrapping - Reference model)
+* `src/app/invoice/[id]/page.tsx` (Server Page Route using async params - Reference model)
+* `scratch/main-site.log` (Production PM2 main site logs)
+* `scratch/n1-main.log` (Production PM2 backend worker logs)
+* `err_log.txt` (Local server dev database logs)
 
 ---
 
-## 5. Confirmed Findings
+## 5. Build / Typecheck / Prisma Results
 
-### CRITICAL
-
-#### 1. Unsecured Tenant Resolution via Client-Controlled Header
-- **File**: `src/app/api/sales-returns/route.ts`
-- **Line / Snippet**: Line 231-232:
-  ```typescript
-  const tenantId = req.headers.get('x-tenant-id') || 'public';
-  return withIdempotency(req as NextRequest, 'POST /api/sales-returns', async () => _POST(req as any, auth, tenantId as string));
+* **npx prisma validate**:
+  ```text
+  Environment variables loaded from .env
+  Prisma schema loaded from prisma\schema.prisma
+  The schema at prisma\schema.prisma is valid 🚀
   ```
-- **Description**: The API route manually extracts the `x-tenant-id` header to obtain the tenant context and bypasses the secure `tenant` parameter resolved by the `withRoute` wrapper.
-- **Reason**: Headers are completely client-controlled. A standard API should never trust client headers for security boundaries.
-- **Security Impact**: Critical. Allows arbitrary tenant impersonation.
-- **Financial Impact**: Extreme. Enables unauthorized credit note creations, reverse cash transactions, and tax modifications on other tenants.
-- **Tenant Isolation Impact**: Complete failure of isolation boundaries.
-- **ZATCA Impact**: High (invalid cryptographic invoices created on wrong tenants).
-- **Accounting Impact**: Severe ledger cross-contamination.
-- **Inventory Impact**: Severe (arbitrary inventory stock additions on other companies).
-- **Status**: **CONFIRMED** (100% verified in code).
-
-#### 2. Cross-Tenant Database Modifications (Unfiltered Mutations)
-- **File**: `src/app/api/sales-returns/route.ts`
-- **Line / Snippet**:
-  - Line 109-111: `prisma.salesInvoice.findUnique({ where: { id: body.originalInvoiceId } })`
-  - Line 154-157: `tx.product.update({ where: { id: item.productId }, data: { currentStock: { increment: item.quantity } } })`
-  - Line 161-165: `(tx as any).productStock.upsert({ ... })`
-  - Line 167-179: `tx.stockMovement.create({ data: { ... } })` (without a `tenantId` field provided)
-- **Description**: The database reads and writes find and update records blindly by ID without filtering on `tenantId`.
-- **Reason**: The queries only match the primary key `id` without checking ownership by the authenticated tenant.
-- **Security Impact**: Critical data tampering.
-- **Financial Impact**: High. Disrups accounting ledgers and balance sheets across companies.
-- **Tenant Isolation Impact**: Complete failure of database-level boundaries.
-- **ZATCA Impact**: High (returns can be posted against invoices from different companies).
-- **Accounting Impact**: Generates reverse ledgers on wrong entities.
-- **Inventory Impact**: Alters physical stock levels of wrong warehouses.
-- **Status**: **CONFIRMED** (100% verified in code).
-
-#### 3. Complete Absence of Period Lock Safeguards
-- **File**: `src/app/api/sales-returns/route.ts`
-- **Line / Snippet**: Whole `_POST` request.
-- **Description**: The Sales Returns API does not import `assertPeriodWritable` nor call it before committing transactions.
-- **Reason**: Legacy code remained unintegrated during the initial transaction locking phases.
-- **Security Impact**: Low.
-- **Financial Impact**: High. Allows backdated sales returns and reversed cash posting into closed and reported fiscal months or years, creating massive compliance issues under SOCPA.
-- **Tenant Isolation Impact**: None directly, but bypasses tenant locked periods.
-- **ZATCA Impact**: Extreme (backdated credit notes generated in locked tax periods).
-- **Accounting Impact**: Reverses general ledger balances on finalized periods.
-- **Inventory Impact**: Changes historic stock values in closed months.
-- **Status**: **CONFIRMED** (100% verified in code).
-
----
-
-### HIGH
-
-#### 4. Complete Tenant Leakage on GET Listing Route
-- **File**: `src/app/api/sales-returns/route.ts`
-- **Line / Snippet**: Line 59-71 inside `_GET`:
-  ```typescript
-  const [returns, total] = await Promise.all([
-    prisma.salesReturn.findMany({ where, ... }),
-    prisma.salesReturn.count({ where })
-  ]);
+* **npm run typecheck**:
+  ```text
+  > namaweb@2.4.8 typecheck
+  > npx tsc --noEmit
+  (Successfully checked all files in the project workspace with zero compiler errors)
   ```
-- **Description**: The listing query does not append `tenantId` to the where clause.
-- **Reason**: Lack of isolation filter on `_GET` method.
-- **Security Impact**: High (unauthorized data disclosure).
-- **Financial Impact**: Low.
-- **Tenant Isolation Impact**: Severe read leakage.
-- **ZATCA Impact**: None.
-- **Accounting Impact**: Low.
-- **Inventory Impact**: Low.
-- **Status**: **CONFIRMED** (100% verified in code).
-
----
-
-### MEDIUM / LOW
-
-#### 5. Weak Sequence / Numbering Guard
-- **File**: `src/app/api/sales-returns/route.ts`
-- **Line / Snippet**: Line 122-123:
-  ```typescript
-  const lastReturn = await prisma.salesReturn.findFirst({ orderBy: { id: 'desc' } }).catch(() => null);
-  const returnNo = (lastReturn?.returnNo || 0) + 1;
-  ```
-- **Description**: Generates return sequential numbers globally instead of per-tenant.
-- **Reason**: Sequential query missing the `tenantId` filter.
-- **Security Impact**: Low.
-- **Financial Impact**: Medium (compliance numbering gaps).
-- **Tenant Isolation Impact**: Medium.
-- **ZATCA Impact**: Medium.
-- **Accounting Impact**: Low.
-- **Inventory Impact**: Low.
-- **Status**: **CONFIRMED** (100% verified in code).
-
----
-
-## 6. Root Cause Analysis
-The root cause is a legacy design pattern within the `sales-returns` route. When it was written, it relied on global client-controlled headers (`x-tenant-id`) rather than the centralized security context provided by `withRoute` and standard governance guards. The lack of standard period-locking integrations occurred because the route was left un-modernized during the initial Period Lock Enforcement phase, making it a critical architectural gap.
-
----
-
-## 7. Proposed Safe Fix Plan
-
-The proposed plan is strictly **Code-Only**, requiring **zero database changes**, **zero schema modifications**, and **zero alterations** to core accounting equations or ZATCA signing mechanics.
-
-### Step 1: Secure Route Wrapper & Tenant Extraction
-- Modify `POST` and `GET` exports in `sales-returns/route.ts` to destructure and consume the secure, authenticated `tenant` parameter resolved by `withRoute`:
-  ```typescript
-  export const POST = withRoute(async ({ req, auth, tenant }) => {
-    const { withIdempotency } = await import('@/lib/idempotency');
-    return withIdempotency(req as NextRequest, 'POST /api/sales-returns', async () => _POST(req as any, auth, tenant));
-  }, { rateLimit: 'FINANCIAL', module: 'sales', permission: 'add' });
-  ```
-
-### Step 2: Enforce Strict Period Lock Guards
-- Import `assertPeriodWritable` and `PeriodLockViolation` from `@/lib/governance/period-lock`.
-- Inside `_POST`, compute document date (`today`) and invoke the transaction safeguard:
-  ```typescript
-  const today = body.date || new Date().toISOString().split('T')[0];
-  const returnDate = new Date(today);
-
-  // Period Lock Enforcement
-  try {
-      await assertPeriodWritable({
-          tenantId,
-          postingDate: returnDate,
-          operationType: 'CREATE_SALES_RETURN',
-          module: 'sales',
-          actor: String(auth?.userId || 'SYSTEM'),
-          overrideContext
-      });
-  } catch (err) {
-      if (err instanceof PeriodLockViolation) {
-          return NextResponse.json({ error: err.message, code: err.code }, { status: err.code === 'LOCKED' ? 409 : 422 });
-      }
-      throw err;
-  }
-  ```
-
-### Step 3: Implement Database Multi-Tenant Filters
-- **GET Route**: Inject `tenantId` into the `where` filter object:
-  ```typescript
-  const where: any = { tenantId };
-  ```
-- **Invoice Lookup**: Verify original invoice belongs exclusively to the active tenant:
-  ```typescript
-  const originalInvoice = await prisma.salesInvoice.findFirst({
-      where: { id: body.originalInvoiceId, tenantId }
-  });
-  ```
-- **Sequential Numbering**: Calculate `returnNo` filtered strictly by tenant:
-  ```typescript
-  const lastReturn = await prisma.salesReturn.findFirst({
-      where: { tenantId },
-      orderBy: { id: 'desc' }
-  });
-  ```
-- **Inventory & Stock Updates**: Inject `tenantId` into `Product` checks, `ProductStock` upserts, and `StockMovement` creation:
-  ```typescript
-  // Verify product belongs to tenant before incrementing stock
-  const productExists = await tx.product.findFirst({
-      where: { id: item.productId, tenantId }
-  });
-  if (!productExists) throw new Error('Product not found inside tenant boundary');
-
-  // Upsert ProductStock inside tenant
-  await tx.productStock.upsert({
-      where: { productId_stockId: { productId: item.productId, stockId: stockTarget } },
-      create: { tenantId, productId: item.productId, stockId: stockTarget, quantity: item.quantity },
-      update: { quantity: { increment: item.quantity } }
-  });
-
-  // Create StockMovement with tenantId
-  await tx.stockMovement.create({
-      data: {
-          tenantId,
-          productId: item.productId,
-          stockId: stockTarget,
-          type: 'in',
-          quantity: item.quantity,
-          referenceType: 'sales_return',
-          referenceId: ret.id,
-          userId: auth?.userId || null,
-          notes: `مرتجع مبيعات #${returnNo}`
-      }
-  });
+* **npm run build**:
+  ```text
+  ▲ Next.js 16.2.6 (Turbopack)
+  Creating an optimized production build ...
+  ✓ Compiled successfully
+  ✓ Route checks passed
   ```
 
 ---
 
-## 8. Files Proposed To Change Later
-- `src/app/api/sales-returns/route.ts` (Core modernization implementation)
-- `src/__tests__/sales-returns-governance.test.ts` (New integration test suite)
+## 6. Suspected Root Causes
+
+### CRITICAL: Next.js 15+ Async Params Violations in Client Components
+
+We have scanned the entire Next.js workspace and found **exactly two components** where page `params` are accessed synchronously, triggering the hydration crash:
+
+#### 1. QR Menu Client Page Component
+* **File**: [page.tsx](file:///d:/namasoft9-3-main/src/app/qr-menu/[token]/page.tsx)
+* **Lines affected**: Lines 9, 19, 35, 43
+* **Snippet**:
+  ```typescript
+  export default function QRMenuPage({ params }: { params: { token: string } }) {
+    // ...
+    useEffect(() => {
+      const fetchTableInfo = async () => {
+        const res = await fetch(`/api/restaurant/table/info?token=${params.token}`);
+        // ...
+      };
+      fetchTableInfo();
+    }, [params.token]);
+  ```
+* **Why it crashes**: The component is annotated with `'use client'`. Next.js passes `params` as a Promise. Direct access to `params.token` on a Promise returns `undefined` at server-prerender and client-hydration, causing the fetch url to be `/api/restaurant/table/info?token=undefined` and throwing an uncaught rendering error that breaks the client hydration tree.
+
+#### 2. Customer Table Client Page Component
+* **File**: [page.tsx](file:///d:/namasoft9-3-main/src/app/customer/table/[qrToken]/page.tsx)
+* **Lines affected**: Lines 9, 18, 32, 37
+* **Snippet**:
+  ```typescript
+  export default function CustomerTablePage({ params }: { params: { qrToken: string } }) {
+    // ...
+    useEffect(() => {
+      const fetchTable = async () => {
+        const res = await fetch(`/api/customer/table/${params.qrToken}`);
+        // ...
+      };
+      fetchTable();
+    }, [params.qrToken]);
+  ```
+* **Why it crashes**: Same as above. `params.qrToken` is accessed synchronously on a client-side route parameter Promise, breaking React 19 hydration.
+
+---
+
+## 7. Confirmed Root Cause
+
+The fatal runtime hydration rendering exception (`FATAL CLIENT-SIDE EXCEPTION`) is **fully confirmed** to be caused by synchronous parameter access inside client page components `src/app/qr-menu/[token]/page.tsx` and `src/app/customer/table/[qrToken]/page.tsx`.
+
+---
+
+## 8. Safe Fix Plan
+
+The proposed fix is strictly **Code-Only**, completely non-destructive, requiring **zero database changes**, **zero schema modifications**, and **zero alterations** to core ERP business logic.
+
+We will use React 19's native `use()` hook to unwrap the dynamic `params` Promise cleanly and safely inside both client components.
+
+### Batch 1: Fix QR Menu Client Page Component
+Modify `src/app/qr-menu/[token]/page.tsx` to unwrap `params` using `React.use()`:
+```typescript
+import React, { useState, useEffect, use } from 'react';
+
+export default function QRMenuPage({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = use(params);
+  const token = resolvedParams.token;
+  
+  // All occurrences of params.token replaced by token
+  useEffect(() => {
+    const fetchTableInfo = async () => {
+      const res = await fetch(`/api/restaurant/table/info?token=${token}`);
+      // ...
+    };
+    fetchTableInfo();
+  }, [token]);
+```
+
+### Batch 2: Fix Customer Table Client Page Component
+Modify `src/app/customer/table/[qrToken]/page.tsx` to unwrap `params` using `React.use()`:
+```typescript
+import React, { useState, useEffect, use } from 'react';
+
+export default function CustomerTablePage({ params }: { params: Promise<{ qrToken: string }> }) {
+  const resolvedParams = use(params);
+  const qrToken = resolvedParams.qrToken;
+  
+  // All occurrences of params.qrToken replaced by qrToken
+  useEffect(() => {
+    const fetchTable = async () => {
+      const res = await fetch(`/api/customer/table/${qrToken}`);
+      // ...
+    };
+    fetchTable();
+  }, [qrToken]);
+```
 
 ---
 
 ## 9. Test Plan
-We will write Jest integration tests under `src/__tests__/sales-returns-governance.test.ts` to verify the following behaviors:
-- **Tenant Isolation Tests**: Attempt to list or query sales returns of another tenant (Should be completely hidden/rejected).
-- **Cross-tenant Rejection Tests**: Post a sales return referencing Tenant B's invoice, products, or stock from Tenant A context (Should throw HTTP 404 or boundary error and rollback database transaction).
-- **Period Lock Tests**: Post returns in `HARD_LOCKED` periods (HTTP 409) and `SOFT_LOCKED` periods without override (HTTP 422), and successfully post in `OPEN` periods.
-- **Lint & Build Verifications**:
-  - Run `npm run typecheck`
-  - Run `npx prisma validate`
-  - Run the Jest suite
+
+1. **Local Typecheck Verification**: Run `npm run typecheck` to confirm the unwrapped page prop signatures compile successfully.
+2. **Local Schema Verification**: Run `npx prisma validate`.
+3. **Local Production Compile**: Run `npm run build` to ensure static page routes generate successfully with Turbopack.
+4. **Endpoint Validation Checks**: Run smoke tests using local or curl tools (if applicable) to ensure the routes return HTTP 200 instead of crashing.
 
 ---
 
 ## 10. Risk Assessment
 
-| Risk Vector | Before Fix | After Fix (Expected) |
-| :--- | :--- | :--- |
-| **Security Risk** | **EXTREME** (Active write/read leaks) | **NEGLIGIBLE** (Token-locked parameters) |
-| **Financial Risk** | **HIGH** (Post to closed periods) | **NEGLIGIBLE** (Centralized closing guard) |
-| **Tenant Isolation Risk** | **EXTREME** (Cross-company data mix) | **NEGLIGIBLE** (Strict query filtering) |
-| **Production Risk** | **LOW** (Unprotected execution) | **LOW** (Code-only, zero schema delta) |
-| **DB Risk** | **LOW** (Unrestricted query space) | **NEGLIGIBLE** (Zero schema mutations) |
-| **ZATCA/Compliance Risk** | **HIGH** (Backdated tax records) | **NEGLIGIBLE** (Fiscal locking verified) |
+* **Production Risk**: **NEGLIGIBLE** (Only resolves page prop wrapper signatures).
+* **UI Crash Risk**: **NEGLIGIBLE** (Fixes the absolute cause of fatal hydration exceptions).
+* **Financial Risk**: **NONE** (No ledger, invoice, inventory, or payroll logic altered).
+* **Tenant Isolation Risk**: **NONE** (Tenant contexts and boundaries remain completely protected).
+* **DB Risk**: **NONE** (No schema updates, zero database mutations).
+* **Deployment Risk**: **NEGLIGIBLE** (Code-only patches to routes).
 
 ---
 
 ## 11. Execution Approval Gate
-> [!IMPORTANT]
-> **CRITICAL RULE**: No source code modifications, database schema edits, or git staging/commit operations will be initiated under F-04C until explicit owner approval is granted for this scan report and execution plan.
 
----
+> [!IMPORTANT]
+> **CRITICAL RULE**: No source code modifications, database schema edits, or git staging/commit operations will be initiated under this incident response until explicit owner approval is granted for this scan report and execution plan.

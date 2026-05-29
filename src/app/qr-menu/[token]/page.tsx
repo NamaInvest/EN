@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BellRing, CheckCircle2, UtensilsCrossed } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 
-export default function QRMenuPage({ params }: { params: { token: string } }) {
+export default function QRMenuPage({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = use(params);
+  const token = resolvedParams.token;
+
   const [table, setTable] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [calling, setCalling] = useState(false);
@@ -16,7 +19,7 @@ export default function QRMenuPage({ params }: { params: { token: string } }) {
   useEffect(() => {
     const fetchTableInfo = async () => {
       try {
-        const res = await fetch(`/api/restaurant/table/info?token=${params.token}`);
+        const res = await fetch(`/api/restaurant/table/info?token=${token}`);
         const data = await res.json();
         
         if (!res.ok || !data.success) {
@@ -32,7 +35,7 @@ export default function QRMenuPage({ params }: { params: { token: string } }) {
     };
 
     fetchTableInfo();
-  }, [params.token]);
+  }, [token]);
 
   const handleCallWaiter = async () => {
     setCalling(true);
@@ -40,7 +43,7 @@ export default function QRMenuPage({ params }: { params: { token: string } }) {
       const res = await fetch('/api/restaurant/table/call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: params.token })
+        body: JSON.stringify({ token: token })
       });
       const data = await res.json();
       

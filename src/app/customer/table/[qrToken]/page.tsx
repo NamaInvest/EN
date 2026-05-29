@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, Utensils, CheckCircle2, Coffee } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-export default function CustomerTablePage({ params }: { params: { qrToken: string } }) {
+export default function CustomerTablePage({ params }: { params: Promise<{ qrToken: string }> }) {
+    const resolvedParams = use(params);
+    const qrToken = resolvedParams.qrToken;
+
     const [loading, setLoading] = useState(true);
     const [tableData, setTableData] = useState<any>(null);
     const [callStatus, setCallStatus] = useState<'IDLE' | 'CALLING' | 'CALLED'>('IDLE');
@@ -15,7 +18,7 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
         // Fetch table details using the token
         const fetchTable = async () => {
             try {
-                const res = await fetch(`/api/customer/table/${params.qrToken}`);
+                const res = await fetch(`/api/customer/table/${qrToken}`);
                 const data = await res.json();
                 if (data.success) {
                     setTableData(data.table);
@@ -29,12 +32,12 @@ export default function CustomerTablePage({ params }: { params: { qrToken: strin
             }
         };
         fetchTable();
-    }, [params.qrToken]);
+    }, [qrToken]);
 
     const callWaiter = async () => {
         setCallStatus('CALLING');
         try {
-            const res = await fetch(`/api/customer/table/${params.qrToken}`, {
+            const res = await fetch(`/api/customer/table/${qrToken}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'CALL_WAITER' })
