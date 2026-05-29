@@ -474,4 +474,200 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01F)', () => {
       ).rejects.toThrow('This matching allocation has already been reversed.');
     });
   });
+
+  describe('previewCustomerAllocation()', () => {
+    it('13. should return preview data for a valid customer allocation request', async () => {
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 701,
+        tenantId,
+        amount: new Decimal(1000.0),
+        type: 'in',
+        date: new Date(),
+      });
+
+      txMock.openItemMatching.findMany.mockResolvedValue([]);
+
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        customerId: 102,
+        total: new Decimal(1000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(1000.0),
+        status: 'pending',
+        date: new Date(),
+      });
+
+      const preview = await OpenItemsService.previewCustomerAllocation(txMock, {
+        tenantId,
+        partnerId: 102,
+        treasuryId: 701,
+        allocations: [{ salesInvoiceId: 501, amount: 400.0 }],
+        userId,
+      });
+
+      expect(preview.canProceed).toBe(true);
+      expect(preview.type).toBe('CUSTOMER_RECEIPT');
+      expect(preview.totalRequestedAmount).toBe(400.0);
+      expect(preview.unallocatedAmount).toBe(600.0);
+      expect(preview.affectedInvoices).toHaveLength(1);
+      expect(preview.affectedInvoices[0].previewPaid).toBe(400.0);
+      expect(preview.affectedInvoices[0].previewRemaining).toBe(600.0);
+      expect(preview.affectedInvoices[0].status).toBe('pending');
+      expect(preview.blockingErrors).toHaveLength(0);
+    });
+
+    it('14. should flag partner mismatch in customer allocation preview', async () => {
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 701,
+        tenantId,
+        amount: new Decimal(1000.0),
+        type: 'in',
+        date: new Date(),
+      });
+
+      txMock.openItemMatching.findMany.mockResolvedValue([]);
+
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        customerId: 999, // Customer B
+        total: new Decimal(1000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(1000.0),
+        status: 'pending',
+        date: new Date(),
+      });
+
+      const preview = await OpenItemsService.previewCustomerAllocation(txMock, {
+        tenantId,
+        partnerId: 102, // Customer A
+        treasuryId: 701,
+        allocations: [{ salesInvoiceId: 501, amount: 400.0 }],
+        userId,
+      });
+
+      expect(preview.canProceed).toBe(false);
+      expect(preview.blockingErrors[0]).toContain('Partner mismatch');
+    });
+
+    it('15. should flag over-allocation in customer allocation preview', async () => {
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 701,
+        tenantId,
+        amount: new Decimal(1000.0),
+        type: 'in',
+        date: new Date(),
+      });
+
+      txMock.openItemMatching.findMany.mockResolvedValue([]);
+
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        customerId: 102,
+        total: new Decimal(500.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(500.0),
+        status: 'pending',
+        date: new Date(),
+      });
+
+      const preview = await OpenItemsService.previewCustomerAllocation(txMock, {
+        tenantId,
+        partnerId: 102,
+        treasuryId: 701,
+        allocations: [{ salesInvoiceId: 501, amount: 600.0 }], // exceeds remaining 500
+        userId,
+      });
+
+      expect(preview.canProceed).toBe(false);
+      expect(preview.blockingErrors[0]).toContain('exceeds remaining invoice');
+    });
+  });
+
+  describe('previewSupplierAllocation()', () => {
+    it('16. should return preview data for a valid supplier allocation request', async () => {
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 702,
+        tenantId,
+        amount: new Decimal(2000.0),
+        type: 'out',
+        date: new Date(),
+      });
+
+      txMock.openItemMatching.findMany.mockResolvedValue([]);
+
+      txMock.purchaseInvoice.findFirst.mockResolvedValue({
+        id: 601,
+        tenantId,
+        supplierId: 105,
+        total: new Decimal(2000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(2000.0),
+        status: 'pending',
+        date: new Date(),
+      });
+
+      const preview = await OpenItemsService.previewSupplierAllocation(txMock, {
+        tenantId,
+        partnerId: 105,
+        treasuryId: 702,
+        allocations: [{ purchaseInvoiceId: 601, amount: 2000.0 }],
+        userId,
+      });
+
+      expect(preview.canProceed).toBe(true);
+      expect(preview.type).toBe('SUPPLIER_PAYMENT');
+      expect(preview.totalRequestedAmount).toBe(2000.0);
+      expect(preview.unallocatedAmount).toBe(0);
+      expect(preview.affectedInvoices[0].status).toBe('completed');
+    });
+  });
+
+  describe('previewReverseAllocation()', () => {
+    it('17. should return preview data for a valid reversal request', async () => {
+      txMock.openItemMatching.findFirst.mockResolvedValue({
+        id: 901,
+        tenantId,
+        salesInvoiceId: 501,
+        amount: new Decimal(300.0),
+        status: 'ACTIVE',
+      });
+
+      txMock.salesInvoice.findUnique.mockResolvedValue({
+        id: 501,
+        tenantId,
+        total: new Decimal(1000.0),
+        paid: new Decimal(300.0),
+        remaining: new Decimal(700.0),
+      });
+
+      const preview = await OpenItemsService.previewReverseAllocation(
+        txMock,
+        tenantId,
+        901,
+        userId,
+        'Testing reversal preview validity reason'
+      );
+
+      expect(preview.canProceed).toBe(true);
+      expect(preview.type).toBe('REVERSAL');
+      expect(preview.affectedInvoices[0].previewPaid).toBe(0);
+      expect(preview.affectedInvoices[0].previewRemaining).toBe(1000.0);
+    });
+
+    it('18. should reject reversal preview if reason is too short', async () => {
+      const preview = await OpenItemsService.previewReverseAllocation(
+        txMock,
+        tenantId,
+        901,
+        userId,
+        'short'
+      );
+
+      expect(preview.canProceed).toBe(false);
+      expect(preview.blockingErrors[0]).toContain('minimum 10 characters');
+    });
+  });
 });

@@ -601,4 +601,348 @@ export class OpenItemsService {
       };
     }
   }
+
+  /**
+   * Preview customer payment allocation without mutating any data
+   */
+  static async previewCustomerAllocation(
+    prisma: any,
+    request: {
+      tenantId: string;
+      partnerId: number;
+      treasuryId: number;
+      allocations: { salesInvoiceId: number; amount: number | Decimal }[];
+      userId: string;
+    }
+  ): Promise<any> {
+    const { tenantId, partnerId, treasuryId, allocations, userId } = request;
+    const blockingErrors: string[] = [];
+    const warnings: string[] = [];
+    const affectedInvoices: any[] = [];
+    let requiresOverride = false;
+
+    // Validate request parameters
+    if (!treasuryId || !allocations || allocations.length === 0) {
+      blockingErrors.push('treasuryId and at least one allocation are required.');
+    }
+
+    const treasury = await prisma.treasury.findFirst({
+      where: { id: treasuryId, tenantId, deletedAt: null },
+    });
+
+    if (!treasury) {
+      blockingErrors.push('Treasury entry not found or unauthorized.');
+    } else if (treasury.type !== 'in') {
+      blockingErrors.push('Customer allocation requires an inward treasury receipt (type: in).');
+    }
+
+    let priorMatchedSum = new Decimal(0);
+    if (treasury) {
+      const priorMatchings = await prisma.openItemMatching.findMany({
+        where: { treasuryId, status: 'ACTIVE', deletedAt: null },
+        select: { amount: true },
+      });
+      priorMatchedSum = priorMatchings.reduce(
+        (sum: Decimal, m: any) => sum.plus(m.amount),
+        new Decimal(0)
+      );
+    }
+
+    const treasuryAmount = treasury ? new Decimal(treasury.amount) : new Decimal(0);
+    const treasuryRemaining = Decimal.max(0, treasuryAmount.minus(priorMatchedSum));
+
+    let totalRequestedAmount = new Decimal(0);
+    for (const alloc of allocations) {
+      const allocAmt = new Decimal(alloc.amount);
+      if (allocAmt.lessThanOrEqualTo(0)) {
+        blockingErrors.push(`Allocation amount for invoice ${alloc.salesInvoiceId} must be greater than zero.`);
+        continue;
+      }
+      totalRequestedAmount = totalRequestedAmount.plus(allocAmt);
+
+      const invoice = await prisma.salesInvoice.findFirst({
+        where: { id: alloc.salesInvoiceId, tenantId, deletedAt: null },
+      });
+
+      if (!invoice) {
+        blockingErrors.push(`Sales invoice ${alloc.salesInvoiceId} not found or unauthorized.`);
+        continue;
+      }
+
+      if (invoice.customerId !== partnerId) {
+        blockingErrors.push(`Partner mismatch. Invoice ${alloc.salesInvoiceId} customer does not match partnerId ${partnerId}.`);
+      }
+
+      // Partner matching via treasury reference
+      if (invoice.customerId && treasury && treasury.referenceType === 'sale' && treasury.referenceId) {
+        const referencedSale = await prisma.salesInvoice.findUnique({
+          where: { id: treasury.referenceId },
+          select: { customerId: true },
+        });
+        if (referencedSale && referencedSale.customerId !== invoice.customerId) {
+          blockingErrors.push(`Partner mismatch. Treasury payment customer does not match invoice ${alloc.salesInvoiceId} customer.`);
+        }
+      }
+
+      if (invoice.status === 'cancelled' || invoice.status === 'voided') {
+        blockingErrors.push(`Cannot allocate payments to cancelled or voided invoice ${alloc.salesInvoiceId}.`);
+      }
+
+      const outstandingInvoice = new Decimal(invoice.remaining);
+      if (allocAmt.greaterThan(outstandingInvoice)) {
+        blockingErrors.push(`Allocation amount (${allocAmt}) exceeds remaining invoice ${alloc.salesInvoiceId} balance (${outstandingInvoice}).`);
+      }
+
+      const currentPaid = new Decimal(invoice.paid);
+      const previewPaid = currentPaid.plus(allocAmt);
+      const previewRemaining = Decimal.max(0, new Decimal(invoice.total).minus(previewPaid));
+
+      affectedInvoices.push({
+        invoiceId: alloc.salesInvoiceId,
+        invoiceType: 'sales',
+        currentPaid: currentPaid.toNumber(),
+        currentRemaining: outstandingInvoice.toNumber(),
+        previewPaid: previewPaid.toNumber(),
+        previewRemaining: previewRemaining.toNumber(),
+        allocationAmount: allocAmt.toNumber(),
+        status: previewRemaining.lessThanOrEqualTo(0) ? 'completed' : 'pending',
+        warnings: [],
+      });
+    }
+
+    if (totalRequestedAmount.greaterThan(treasuryRemaining)) {
+      blockingErrors.push(`Total allocation request (${totalRequestedAmount}) exceeds remaining treasury balance (${treasuryRemaining}).`);
+    }
+
+    return {
+      canProceed: blockingErrors.length === 0,
+      type: 'CUSTOMER_RECEIPT',
+      tenantId,
+      partnerId,
+      totalRequestedAmount: totalRequestedAmount.toNumber(),
+      totalAllocatedAmount: blockingErrors.length === 0 ? totalRequestedAmount.toNumber() : 0,
+      unallocatedAmount: blockingErrors.length === 0 ? treasuryRemaining.minus(totalRequestedAmount).toNumber() : treasuryRemaining.toNumber(),
+      affectedInvoices,
+      blockingErrors,
+      warnings,
+      requiresOverride,
+      dryRun: true,
+    };
+  }
+
+  /**
+   * Preview supplier payment allocation without mutating any data
+   */
+  static async previewSupplierAllocation(
+    prisma: any,
+    request: {
+      tenantId: string;
+      partnerId: number;
+      treasuryId: number;
+      allocations: { purchaseInvoiceId: number; amount: number | Decimal }[];
+      userId: string;
+    }
+  ): Promise<any> {
+    const { tenantId, partnerId, treasuryId, allocations, userId } = request;
+    const blockingErrors: string[] = [];
+    const warnings: string[] = [];
+    const affectedInvoices: any[] = [];
+    let requiresOverride = false;
+
+    if (!treasuryId || !allocations || allocations.length === 0) {
+      blockingErrors.push('treasuryId and at least one allocation are required.');
+    }
+
+    const treasury = await prisma.treasury.findFirst({
+      where: { id: treasuryId, tenantId, deletedAt: null },
+    });
+
+    if (!treasury) {
+      blockingErrors.push('Treasury entry not found or unauthorized.');
+    } else if (treasury.type !== 'out') {
+      blockingErrors.push('Supplier allocation requires an outward treasury payment (type: out).');
+    }
+
+    let priorMatchedSum = new Decimal(0);
+    if (treasury) {
+      const priorMatchings = await prisma.openItemMatching.findMany({
+        where: { treasuryId, status: 'ACTIVE', deletedAt: null },
+        select: { amount: true },
+      });
+      priorMatchedSum = priorMatchings.reduce(
+        (sum: Decimal, m: any) => sum.plus(m.amount),
+        new Decimal(0)
+      );
+    }
+
+    const treasuryAmount = treasury ? new Decimal(treasury.amount) : new Decimal(0);
+    const treasuryRemaining = Decimal.max(0, treasuryAmount.minus(priorMatchedSum));
+
+    let totalRequestedAmount = new Decimal(0);
+    for (const alloc of allocations) {
+      const allocAmt = new Decimal(alloc.amount);
+      if (allocAmt.lessThanOrEqualTo(0)) {
+        blockingErrors.push(`Allocation amount for purchase invoice ${alloc.purchaseInvoiceId} must be greater than zero.`);
+        continue;
+      }
+      totalRequestedAmount = totalRequestedAmount.plus(allocAmt);
+
+      const invoice = await prisma.purchaseInvoice.findFirst({
+        where: { id: alloc.purchaseInvoiceId, tenantId, deletedAt: null },
+      });
+
+      if (!invoice) {
+        blockingErrors.push(`Purchase invoice ${alloc.purchaseInvoiceId} not found or unauthorized.`);
+        continue;
+      }
+
+      if (invoice.supplierId !== partnerId) {
+        blockingErrors.push(`Partner mismatch. Invoice ${alloc.purchaseInvoiceId} supplier does not match partnerId ${partnerId}.`);
+      }
+
+      if (invoice.supplierId && treasury && treasury.referenceType === 'purchase' && treasury.referenceId) {
+        const referencedPurchase = await prisma.purchaseInvoice.findUnique({
+          where: { id: treasury.referenceId },
+          select: { supplierId: true },
+        });
+        if (referencedPurchase && referencedPurchase.supplierId !== invoice.supplierId) {
+          blockingErrors.push(`Partner mismatch. Treasury payment supplier does not match invoice ${alloc.purchaseInvoiceId} supplier.`);
+        }
+      }
+
+      if (invoice.status === 'cancelled' || invoice.status === 'voided') {
+        blockingErrors.push(`Cannot allocate payments to cancelled or voided invoice ${alloc.purchaseInvoiceId}.`);
+      }
+
+      const outstandingInvoice = new Decimal(invoice.remaining);
+      if (allocAmt.greaterThan(outstandingInvoice)) {
+        blockingErrors.push(`Allocation amount (${allocAmt}) exceeds remaining invoice ${alloc.purchaseInvoiceId} balance (${outstandingInvoice}).`);
+      }
+
+      const currentPaid = new Decimal(invoice.paid);
+      const previewPaid = currentPaid.plus(allocAmt);
+      const previewRemaining = Decimal.max(0, new Decimal(invoice.total).minus(previewPaid));
+
+      affectedInvoices.push({
+        invoiceId: alloc.purchaseInvoiceId,
+        invoiceType: 'purchase',
+        currentPaid: currentPaid.toNumber(),
+        currentRemaining: outstandingInvoice.toNumber(),
+        previewPaid: previewPaid.toNumber(),
+        previewRemaining: previewRemaining.toNumber(),
+        allocationAmount: allocAmt.toNumber(),
+        status: previewRemaining.lessThanOrEqualTo(0) ? 'completed' : 'pending',
+        warnings: [],
+      });
+    }
+
+    if (totalRequestedAmount.greaterThan(treasuryRemaining)) {
+      blockingErrors.push(`Total allocation request (${totalRequestedAmount}) exceeds remaining treasury balance (${treasuryRemaining}).`);
+    }
+
+    return {
+      canProceed: blockingErrors.length === 0,
+      type: 'SUPPLIER_PAYMENT',
+      tenantId,
+      partnerId,
+      totalRequestedAmount: totalRequestedAmount.toNumber(),
+      totalAllocatedAmount: blockingErrors.length === 0 ? totalRequestedAmount.toNumber() : 0,
+      unallocatedAmount: blockingErrors.length === 0 ? treasuryRemaining.minus(totalRequestedAmount).toNumber() : treasuryRemaining.toNumber(),
+      affectedInvoices,
+      blockingErrors,
+      warnings,
+      requiresOverride,
+      dryRun: true,
+    };
+  }
+
+  /**
+   * Preview reversal of a matching allocation without mutating any data
+   */
+  static async previewReverseAllocation(
+    prisma: any,
+    tenantId: string,
+    matchingId: number,
+    userId: string,
+    reason: string
+  ): Promise<any> {
+    const blockingErrors: string[] = [];
+    const warnings: string[] = [];
+    const affectedInvoices: any[] = [];
+    let requiresOverride = false;
+
+    if (!reason || reason.trim().length < 10) {
+      blockingErrors.push('A detailed reversal reason (minimum 10 characters) is strictly required.');
+    }
+
+    const match = await prisma.openItemMatching.findFirst({
+      where: { id: matchingId, tenantId, deletedAt: null },
+    });
+
+    if (!match) {
+      blockingErrors.push('Active matching record not found or unauthorized.');
+    } else {
+      if (match.status === 'REVERSED') {
+        blockingErrors.push('This matching allocation has already been reversed.');
+      }
+
+      const allocationAmt = new Decimal(match.amount);
+
+      if (match.salesInvoiceId) {
+        const invoice = await prisma.salesInvoice.findUnique({
+          where: { id: match.salesInvoiceId },
+        });
+        if (invoice) {
+          const currentPaid = new Decimal(invoice.paid);
+          const previewPaid = Decimal.max(0, currentPaid.minus(allocationAmt));
+          const previewRemaining = Decimal.min(invoice.total, new Decimal(invoice.total).minus(previewPaid));
+
+          affectedInvoices.push({
+            invoiceId: match.salesInvoiceId,
+            invoiceType: 'sales',
+            currentPaid: currentPaid.toNumber(),
+            currentRemaining: new Decimal(invoice.remaining).toNumber(),
+            previewPaid: previewPaid.toNumber(),
+            previewRemaining: previewRemaining.toNumber(),
+            allocationAmount: allocationAmt.toNumber(),
+            status: 'pending',
+            warnings: [],
+          });
+        }
+      } else if (match.purchaseInvoiceId) {
+        const invoice = await prisma.purchaseInvoice.findUnique({
+          where: { id: match.purchaseInvoiceId },
+        });
+        if (invoice) {
+          const currentPaid = new Decimal(invoice.paid);
+          const previewPaid = Decimal.max(0, currentPaid.minus(allocationAmt));
+          const previewRemaining = Decimal.min(invoice.total, new Decimal(invoice.total).minus(previewPaid));
+
+          affectedInvoices.push({
+            invoiceId: match.purchaseInvoiceId,
+            invoiceType: 'purchase',
+            currentPaid: currentPaid.toNumber(),
+            currentRemaining: new Decimal(invoice.remaining).toNumber(),
+            previewPaid: previewPaid.toNumber(),
+            previewRemaining: previewRemaining.toNumber(),
+            allocationAmount: allocationAmt.toNumber(),
+            status: 'pending',
+            warnings: [],
+          });
+        }
+      }
+    }
+
+    return {
+      canProceed: blockingErrors.length === 0,
+      type: 'REVERSAL',
+      tenantId,
+      matchingId,
+      affectedInvoices,
+      blockingErrors,
+      warnings,
+      requiresOverride,
+      dryRun: true,
+    };
+  }
 }
