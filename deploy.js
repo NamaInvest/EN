@@ -31,8 +31,8 @@ const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: SSH
 
 const SITES = {
     'main-site':  { path: '/www/wwwroot/namainvist.com',      pm2: 'main-site' },
-    'n1':         { path: '/www/wwwroot/namainvist.com',       pm2: 'n1-main' },
-    'n11':        { path: '/www/wwwroot/namainvist.com',       pm2: 'saas-app' },
+    'n1':         { path: '/www/wwwroot/n1.namainvist.com',     pm2: 'n1-main' },
+    'n11':        { path: '/www/wwwroot/n11.namainvist.com',    pm2: 'saas-app' },
 };
 
 // Files that REQUIRE a rebuild when changed
@@ -74,16 +74,25 @@ function exec(conn, cmd, timeout = 300000) {
     });
 }
 
-function uploadFile(conn, localPath, remotePath) {
+async function uploadFile(conn, localPath, remotePath) {
+    const remoteDir = remotePath.split('/').slice(0, -1).join('/');
+    if (remoteDir) {
+        await exec(conn, `mkdir -p ${JSON.stringify(remoteDir)}`);
+    }
     return new Promise((resolve, reject) => {
         conn.sftp((err, sftp) => {
             if (err) return reject(err);
-            const content = fs.readFileSync(localPath);
-            sftp.writeFile(remotePath, content, (err) => {
+            try {
+                const content = fs.readFileSync(localPath);
+                sftp.writeFile(remotePath, content, (err) => {
+                    sftp.end();
+                    if (err) return reject(err);
+                    resolve();
+                });
+            } catch (fsErr) {
                 sftp.end();
-                if (err) return reject(err);
-                resolve();
-            });
+                reject(fsErr);
+            }
         });
     });
 }
@@ -136,7 +145,10 @@ async function deployWithBuild(conn, files, parallel = false) {
                 const remotePath = `${site.path}/${file}`;
                 try {
                     await uploadFile(conn, localPath, remotePath);
-                } catch (e) { /* skip */ }
+                    console.log(`  ✅ ${name}: ${file}`);
+                } catch (e) {
+                    console.log(`  ❌ ${name}: ${file} — ${e.message}`);
+                }
             }
         }
         console.log('  ✅ Files uploaded');

@@ -287,18 +287,19 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Runtime Verification**: Home page returned `200 OK`, `/api/admin/siem` returned `401 Unauthorized` (no middleware regression), Open Items dry-run preview dashboard loads beautifully with explicit "Safe Financial Simulation Mode" alert banners and no database write capabilities.
 
 ### Phase: Real Allocation Engine - F-03 (2026-05-29)
-* **Status**: `REAL_ALLOCATION_ENGINE_IMPLEMENTED_AND_VERIFIED`
-* **Commit**: Pending commit
+* **Status**: `PRODUCTION_OPEN_ITEMS_REAL_ALLOCATION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `3ed0dbcafeat(open-items): add real allocation engine` (`3ed0dbca`)
 * **Scope**: Implement real payment-to-invoice allocation APIs for customer and supplier and reversal APIs, secured via module-level RBAC (`module: 'accounting'`, `permission: 'add'/'delete'`) and Clerk multi-tenant validation. Fully integrated dashboard UI matching buttons to trigger mutations and re-query the grid dynamically.
-* **Tests**: `src/__tests__/open-items-real-allocation.test.ts` (5/5 passed integration tests covering customer/supplier transactions, overmatching, duplicate prevention, and balance reversal).
-* **SHA256 Checksums**:
-  - `allocate/customer-allocation/route.ts`: `CCA8257758E1DF9D2A100A331073546A58BBD6BAB84E5E6730FF369D9270A477`
-  - `allocate/supplier-allocation/route.ts`: `C19B68CD29870B16925B80FCF3DBF80E364CDFF4BEDB97300AB74C335DDC07C6`
-  - `allocate/reversal/route.ts`: `FC79D1CD5B71C2B8653C01FF9EAEAD166F44E459C02A9A401C1AF1FBF702DE5E`
+* **Tests**: `src/__tests__/open-items-real-allocation.test.ts` (5/5 passed integration tests covering customer/supplier transactions, overmatching, duplicate prevention, and balance reversal). All 34 local Jest tests passed cleanly (100%).
+* **Deployment**: Smart, Parallel Next.js build and code-only PM2 reload on Hetzner VPS (`46.4.188.170`) across all 3 active domains (`main-site`, `n1`, `n11`) with SSH-based directory structure preparation (`mkdir -p`) to prevent silent SFTP failures.
+* **Test files uploaded to production**: NO
+* **SHA256 Checksums (100% Match Local & Production across all sites)**:
+  - `src/app/api/open-items/allocate/customer-allocation/route.ts`: `cca8257758e1df9d2a100a331073546a58bbd6bab84e5e6730ff369d9270a477`
+  - `src/app/api/open-items/allocate/supplier-allocation/route.ts`: `c19b68cd29870b16925b80fcf3dbf80e364cdff4bedb97300ab74c335ddc07c6`
+  - `src/app/api/open-items/allocate/reversal/route.ts`: `fc79d1cd5b71c2b8653c01ff9eaead166f44e459c02a9a401c1af1fbf702de5e`
+  - `src/app/(dashboard)/accounting/open-items/page.tsx`: `a87683f69bdf2099172b7a1c668a659a20e2b33634c398a437a7737cb73d802a`
 * **Database**: Unchanged (no migrations, no db push).
 * **Prisma Schema**: Unchanged.
 * **migrations/db push**: NO
-* **PM2**: Unchanged (Pending deployment).
-* **Runtime Verification**: Run local typecheck (`npm run typecheck` - PASS), Jest test suites (`open-items-real-allocation.test.ts` - PASS) successfully with zero errors. All code changes verified and fully locked under transactions.
-
-
+* **PM2**: `main-site`, `n1-main`, and `saas-app` all online and successfully restarted with the new runtime files.
+* **Runtime Verification / Smoke Tests**: 16/16 tests passed. Home page returned `200 OK`, SIEM endpoints on all sites returned `401 Unauthorized` (no middleware regressions), roles settings returned `401 Unauthorized`, and allocate POST APIs returned `401 Unauthorized` without a valid session. Zero leakage of passwords, MFA tokens, or device/session secrets.
