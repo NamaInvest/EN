@@ -13,7 +13,11 @@ const PreviewReversalSchema = z.object({
   matchingId: z.number(),
   reason: z.string().min(10, 'A detailed reversal reason (minimum 10 characters) is strictly required.'),
   dryRun: z.boolean().optional().default(true),
+}).refine(data => data.dryRun === true, {
+  message: 'Actual allocations / mutations are strictly forbidden in dry-run preview endpoints.',
+  path: ['dryRun']
 });
+
 
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request);

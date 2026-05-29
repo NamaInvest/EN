@@ -17,7 +17,11 @@ const PreviewSupplierSchema = z.object({
     amount: z.number().positive(),
   })).min(1),
   dryRun: z.boolean().optional().default(true),
+}).refine(data => data.dryRun === true, {
+  message: 'Actual allocations / mutations are strictly forbidden in dry-run preview endpoints.',
+  path: ['dryRun']
 });
+
 
 async function _POST(request: NextRequest) {
   const prisma = getPrisma(request);

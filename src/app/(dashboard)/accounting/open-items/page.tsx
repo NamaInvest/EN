@@ -415,6 +415,29 @@ export default function OpenItemsDashboard() {
           );
         })}
       </div>
+ 
+      {/* Dynamic Safety Warning Banner for Preview Wizards */}
+      {activeTab !== 'dashboard' && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/25 rounded-2xl p-5 flex gap-4 text-amber-900 text-sm items-start shadow-sm backdrop-blur-sm animate-fadeIn">
+          <span className="p-2.5 bg-amber-500/10 text-amber-600 rounded-xl border border-amber-500/20">
+            <AlertTriangle className="w-5 h-5 animate-pulse" />
+          </span>
+          <div className="space-y-1.5 flex-1">
+            <h4 className="font-extrabold text-amber-950 flex items-center gap-2">
+              <span>{_t('وضع محاكاة مالي معزول وآمن (Dry-Run Preview Active)', 'Safe Financial Simulation Mode Active')}</span>
+              <span className="px-2 py-0.5 bg-amber-500/20 text-amber-900 text-[10px] font-black rounded uppercase">
+                {_t('قراءة ومعاينة فقط', 'Dry-Run Only')}
+              </span>
+            </h4>
+            <p className="text-xs font-light text-amber-800 leading-relaxed">
+              {_t(
+                'تنبيه محاسبي: أنت الآن تستعرض نتائج ومحاكاة التسوية محاسبياً بشكل وهمي. يمنع النظام تماماً كتابة أو ترحيل مطابقات الأرصدة أو تغيير قيم الفواتير أو الخزينة الفعلية في قاعدة البيانات خلال هذه المرحلة لتأمين الحسابات المفتوحة.',
+                'Accounting Guard: You are previewing settlement balance changes dynamically. In this phase, direct general ledger updates, database mutations, and invoice paid balance modifications are strictly prohibited and locked.'
+              )}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* TAB CONTAINER CONTENT */}
       {activeTab === 'dashboard' && (

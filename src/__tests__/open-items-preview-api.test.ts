@@ -234,4 +234,60 @@ describe('Open Items POST Preview API Endpoints (Phase OPEN-ITEMS-02D)', () => {
       expect(OpenItemsService.reverseAllocation).not.toHaveBeenCalled();
     });
   });
+
+  describe('Dry-Run Safety Enforcement (Phase OPEN-ITEMS-02H)', () => {
+    it('6. should reject customer preview if dryRun is explicitly set to false', async () => {
+      const req = new NextRequest('http://localhost/api/open-items/preview/customer-allocation', {
+        method: 'POST',
+        body: JSON.stringify({
+          partnerId: 102,
+          treasuryId: 450,
+          allocations: [{ salesInvoiceId: 12, amount: 500 }],
+          dryRun: false,
+        }),
+      });
+
+      const res = await previewCustomerPOST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain('Invalid request body parameters');
+      expect(data.details.dryRun[0]).toContain('strictly forbidden');
+    });
+
+    it('7. should reject supplier preview if dryRun is explicitly set to false', async () => {
+      const req = new NextRequest('http://localhost/api/open-items/preview/supplier-allocation', {
+        method: 'POST',
+        body: JSON.stringify({
+          partnerId: 105,
+          treasuryId: 702,
+          allocations: [{ purchaseInvoiceId: 601, amount: 1000 }],
+          dryRun: false,
+        }),
+      });
+
+      const res = await previewSupplierPOST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain('Invalid request body parameters');
+      expect(data.details.dryRun[0]).toContain('strictly forbidden');
+    });
+
+    it('8. should reject reversal preview if dryRun is explicitly set to false', async () => {
+      const req = new NextRequest('http://localhost/api/open-items/preview/reversal', {
+        method: 'POST',
+        body: JSON.stringify({
+          matchingId: 901,
+          reason: 'Valid matching correction reason',
+          dryRun: false,
+        }),
+      });
+
+      const res = await previewReversalPOST(req);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toContain('Invalid request body parameters');
+      expect(data.details.dryRun[0]).toContain('strictly forbidden');
+    });
+  });
 });
+
