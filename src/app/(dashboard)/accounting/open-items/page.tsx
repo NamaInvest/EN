@@ -90,6 +90,14 @@ export default function OpenItemsDashboard() {
   const [reversalPreviewResult, setReversalPreviewResult] = useState<any>(null);
   const [reversalPreviewError, setReversalPreviewError] = useState<string | null>(null);
 
+  // ── 4. Actual Allocation (AR/AP/Reversal) Execution States ─────────────────
+  const [customerAllocateLoading, setCustomerAllocateLoading] = useState(false);
+  const [customerAllocateSuccess, setCustomerAllocateSuccess] = useState<string | null>(null);
+  const [supplierAllocateLoading, setSupplierAllocateLoading] = useState(false);
+  const [supplierAllocateSuccess, setSupplierAllocateSuccess] = useState<string | null>(null);
+  const [reversalAllocateLoading, setReversalAllocateLoading] = useState(false);
+  const [reversalAllocateSuccess, setReversalAllocateSuccess] = useState<string | null>(null);
+
   const fetchOpenItems = async (cId: string) => {
     if (!cId || isNaN(Number(cId)) || Number(cId) <= 0) {
       setError(_t('يرجى إدخال رقم تعريف صحيح للشريك.', 'Please enter a valid Partner ID.'));
@@ -341,6 +349,177 @@ export default function OpenItemsDashboard() {
       setReversalPreviewError(err instanceof Error ? err.message : String(err));
     } finally {
       setReversalPreviewLoading(false);
+    }
+  };
+
+  // ── 4. Actual Customer Allocation Execution Handler ─────────────────────────
+  const handleCustomerAllocate = async () => {
+    setCustomerAllocateLoading(true);
+    setCustomerAllocateSuccess(null);
+    setCustomerPreviewError(null);
+
+    const partnerId = parseInt(customerId);
+    const treasuryId = parseInt(selectedReceiptId);
+    
+    if (isNaN(partnerId) || partnerId <= 0) {
+      setCustomerPreviewError(_t('يرجى اختيار شريك صحيح للاستعلام أولاً.', 'Please select a valid partner ID first.'));
+      setCustomerAllocateLoading(false);
+      return;
+    }
+    if (isNaN(treasuryId) || treasuryId <= 0) {
+      setCustomerPreviewError(_t('يرجى اختيار سند القبض معلق التوزيع لإتمام المطابقة.', 'Please select an unallocated receipt first.'));
+      setCustomerAllocateLoading(false);
+      return;
+    }
+
+    const allocationsArray = Object.entries(customerAllocations)
+      .map(([invoiceId, amount]) => ({
+        salesInvoiceId: parseInt(invoiceId),
+        amount: parseFloat(amount)
+      }))
+      .filter(alloc => !isNaN(alloc.salesInvoiceId) && !isNaN(alloc.amount) && alloc.amount > 0);
+
+    if (allocationsArray.length === 0) {
+      setCustomerPreviewError(_t('يرجى إدخال قيمة تخصيص موجبة أكبر من صفر لأي فاتورة معلقة واحدة على الأقل.', 'Please enter a positive allocation amount for at least one outstanding invoice.'));
+      setCustomerAllocateLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/allocate/customer-allocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          partnerId,
+          treasuryId,
+          allocations: allocationsArray
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت عملية حفظ التخصيص الفعلي للعميل.', 'Customer payment allocation failed on the server.'));
+      }
+      setCustomerAllocateSuccess(_t('تم تأكيد وإثبات التخصيص والمطابقة الفعلية للعميل بنجاح!', 'Customer allocation matched and saved successfully!'));
+      setCustomerPreviewResult(null);
+      setCustomerAllocations({});
+      fetchOpenItems(customerId);
+    } catch (err: any) {
+      setCustomerPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomerAllocateLoading(false);
+    }
+  };
+
+  // ── 5. Actual Supplier Allocation Execution Handler ─────────────────────────
+  const handleSupplierAllocate = async () => {
+    setSupplierAllocateLoading(true);
+    setSupplierAllocateSuccess(null);
+    setSupplierPreviewError(null);
+
+    const partnerId = parseInt(customerId);
+    const treasuryId = parseInt(selectedApReceiptId);
+    
+    if (isNaN(partnerId) || partnerId <= 0) {
+      setSupplierPreviewError(_t('يرجى اختيار شريك صحيح للاستعلام أولاً.', 'Please select a valid partner ID first.'));
+      setSupplierAllocateLoading(false);
+      return;
+    }
+    if (isNaN(treasuryId) || treasuryId <= 0) {
+      setSupplierPreviewError(_t('يرجى اختيار سند الصرف معلق التوزيع لإتمام المطابقة.', 'Please select an unallocated payment receipt first.'));
+      setSupplierAllocateLoading(false);
+      return;
+    }
+
+    const allocationsArray = Object.entries(supplierAllocations)
+      .map(([invoiceId, amount]) => ({
+        purchaseInvoiceId: parseInt(invoiceId),
+        amount: parseFloat(amount)
+      }))
+      .filter(alloc => !isNaN(alloc.purchaseInvoiceId) && !isNaN(alloc.amount) && alloc.amount > 0);
+
+    if (allocationsArray.length === 0) {
+      setSupplierPreviewError(_t('يرجى إدخال قيمة تخصيص موجبة أكبر من صفر لأي فاتورة مشتريات واحدة على الأقل.', 'Please enter a positive allocation amount for at least one purchase invoice.'));
+      setSupplierAllocateLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/allocate/supplier-allocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          partnerId,
+          treasuryId,
+          allocations: allocationsArray
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت عملية حفظ التخصيص الفعلي للمورد.', 'Supplier payment allocation failed on the server.'));
+      }
+      setSupplierAllocateSuccess(_t('تم تأكيد وإثبات التخصيص والمطابقة الفعلية للمورد بنجاح!', 'Supplier allocation matched and saved successfully!'));
+      setSupplierPreviewResult(null);
+      setSupplierAllocations({});
+      fetchOpenItems(customerId);
+    } catch (err: any) {
+      setSupplierPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSupplierAllocateLoading(false);
+    }
+  };
+
+  // ── 6. Actual Reversal Execution Handler ────────────────────────────────────
+  const handleReversalAllocate = async () => {
+    setReversalAllocateLoading(true);
+    setReversalAllocateSuccess(null);
+    setReversalPreviewError(null);
+
+    const matchingId = parseInt(selectedMatchingId);
+    if (isNaN(matchingId) || matchingId <= 0) {
+      setReversalPreviewError(_t('يرجى إدخال رقم تسوية/مطابقة صحيح ومكتوب بالأرقام.', 'Please enter a valid matching/reconciliation ID.'));
+      setReversalAllocateLoading(false);
+      return;
+    }
+
+    if (reversalReason.length < 10) {
+      setReversalPreviewError(_t('يجب كتابة مبرر الإلغاء تفصيلياً بما لا يقل عن 10 أحرف للتدقيق المالي.', 'Audit requirements strictly dictate a detailed reversal reason of minimum 10 characters.'));
+      setReversalAllocateLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/allocate/reversal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          matchingId,
+          reason: reversalReason
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت عملية تراجع وإبطال التسوية الفعلية.', 'Reversal execution failed on the server.'));
+      }
+      setReversalAllocateSuccess(_t('تم إلغاء وعكس المطابقة والتسوية المحددة بنجاح وإعادة الأرصدة لوضعها المفتوح!', 'Allocation reversed and balances restored successfully!'));
+      setReversalPreviewResult(null);
+      setReversalReason('');
+      fetchOpenItems(customerId);
+    } catch (err: any) {
+      setReversalPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setReversalAllocateLoading(false);
     }
   };
 
@@ -852,7 +1031,7 @@ export default function OpenItemsDashboard() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
                 </div>
 
                 {/* Calculations summaries */}
@@ -891,17 +1070,18 @@ export default function OpenItemsDashboard() {
                   </button>
 
                   <button
-                    disabled
-                    className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
+                    onClick={handleCustomerAllocate}
+                    disabled={customerAllocateLoading}
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
                   >
-                    <Lock className="w-4 h-4 text-rose-500" />
+                    <CheckCircle className={`w-4 h-4 ${customerAllocateLoading ? 'animate-spin' : ''}`} />
                     {_t('إثبات وحفظ التسوية فعلياً', 'Save Actual Allocation')}
                   </button>
                 </div>
 
                 <span className="text-xs text-slate-500 flex items-center gap-1.5 font-light">
                   <Info className="w-4 h-4 text-indigo-500" />
-                  {_t('لن يتم إجراء أي كتابة أو تعديل على دفاتر الحسابات العام والخزينة.', 'No database write or mutation will be performed.')}
+                  {_t('سيتم تحديث أرصدة الفواتير المفتوحة وربطها محاسبياً داخل نظام معزول وآمن.', 'Open invoice balances will be updated and matched securely inside an isolated transaction.')}
                 </span>
               </div>
 
@@ -1105,10 +1285,11 @@ export default function OpenItemsDashboard() {
                   </button>
 
                   <button
-                    disabled
-                    className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
+                    onClick={handleSupplierAllocate}
+                    disabled={supplierAllocateLoading}
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
                   >
-                    <Lock className="w-4 h-4 text-rose-500" />
+                    <CheckCircle className={`w-4 h-4 ${supplierAllocateLoading ? 'animate-spin' : ''}`} />
                     {_t('ترحيل وحفظ الدفع الفعلي', 'Post Supplier Payment')}
                   </button>
                 </div>
@@ -1122,6 +1303,17 @@ export default function OpenItemsDashboard() {
                     <h4 className="font-extrabold">{_t('فشل فحص التسوية ماليّاً للمورد', 'Validation Blocking Errors')}</h4>
                   </div>
                   <p className="text-xs text-rose-955 font-semibold">{supplierPreviewError}</p>
+                </div>
+              )}
+
+              {/* SUCCESS AP RESPONSE */}
+              {supplierAllocateSuccess && (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 space-y-2 animate-fadeIn">
+                  <div className="flex items-center gap-2 text-emerald-800">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <h4 className="font-extrabold">{_t('نجاح حفظ وتثبيت المطابقة الفعلية للمورد', 'Supplier Actual Allocation Succeeded')}</h4>
+                  </div>
+                  <p className="text-xs text-emerald-950 font-semibold">{supplierAllocateSuccess}</p>
                 </div>
               )}
 
@@ -1219,10 +1411,11 @@ export default function OpenItemsDashboard() {
               </button>
 
               <button
-                disabled
-                className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
+                onClick={handleReversalAllocate}
+                disabled={reversalAllocateLoading}
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
               >
-                <Lock className="w-4 h-4 text-rose-500" />
+                <CheckCircle className={`w-4 h-4 ${reversalAllocateLoading ? 'animate-spin' : ''}`} />
                 {_t('تنفيذ الإلغاء وعكس التسوية فعلياً', 'Execute Actual Reversal')}
               </button>
             </div>
@@ -1236,6 +1429,17 @@ export default function OpenItemsDashboard() {
                 <h4 className="font-extrabold">{_t('فشل فحص إلغاء المطابقة (أخطاء مانعة)', 'Reversal Validation Blocking Errors')}</h4>
               </div>
               <p className="text-xs text-rose-955 font-semibold">{reversalPreviewError}</p>
+            </div>
+          )}
+
+          {/* SUCCESS REVERSAL RESPONSE PANEL */}
+          {reversalAllocateSuccess && (
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 space-y-2 animate-fadeIn">
+              <div className="flex items-center gap-2 text-emerald-800">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+                <h4 className="font-extrabold">{_t('نجاح إلغاء وعكس المطابقة المحددة', 'Reversal Succeeded')}</h4>
+              </div>
+              <p className="text-xs text-emerald-950 font-semibold">{reversalAllocateSuccess}</p>
             </div>
           )}
 

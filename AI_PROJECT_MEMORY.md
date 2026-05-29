@@ -266,3 +266,39 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **migrations/db push**: NO
 * **PM2**: Unchanged (Pending deployment).
 * **Runtime Verification**: Run local typecheck (`npm run typecheck` - PASS), prisma validation (`npx prisma validate` - PASS), and Jest tests (`npx jest` - PASS) successfully with zero errors. Committed to main repository branch cleanly.
+
+### Phase: Production Open Items Dry-Run Preview - F-02I (2026-05-29)
+* **Status**: `PRODUCTION_OPEN_ITEMS_DRY_RUN_PREVIEW_DEPLOYED_AND_VERIFIED`
+* **Commit**: `7b71c81df0e0fa926fae371c72c0b0cecb6ed16b` (`7b71c81d`)
+* **Scope**: Safe, isolated, and code-only deployment of Open Items Dry-Run Simulation/Preview engine, matching wizard, and preview API endpoints to production VPS, strictly under absolute financial locking constraint (write mutations disabled).
+* **Tests**: `src/__tests__/open-items-preview-api.test.ts` (14/14 integration tests covering simulation bounds and safety constraints passed). `src/__tests__/open-items.service.test.ts` (15/15 tests covering dry-run previews passed). Total 29/29 passed.
+* **Deployment**: Smart, Parallel Next.js build and code-only PM2 reload on Hetzner VPS (`46.4.188.170`) at `/www/wwwroot/namainvist.com` following a full databases and codebase backup (17.5 GB downloaded to local machine).
+* **Test files uploaded to production**: NO
+* **SHA256 Checksums**:
+  - `open-items.service.ts`: `C4FC71B197A3877D04ADE472EF0A965DCC5A264FCD0EE170AA12C992098E954C`
+  - `customer-allocation/route.ts`: `DF300FC66D2C113576116B61ADBA4DD5E13ABAED6164797768F863A0894DCA61`
+  - `supplier-allocation/route.ts`: `91FD6DC6D24EE5EA4018177A051F1EF98AAD08D3E44DA4689BC6AF0846AEA27E`
+  - `reversal/route.ts`: `C8E645F0192EB0500E873617ED68E39C94C5401BF6756D006EFF3A313827F0C7`
+  - `open-items/page.tsx`: `66DDCF8B48BF9671C545C23ED5359C836D8362DE83EC10235A5857F1297E303C`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted.
+* **Runtime Verification**: Home page returned `200 OK`, `/api/admin/siem` returned `401 Unauthorized` (no middleware regression), Open Items dry-run preview dashboard loads beautifully with explicit "Safe Financial Simulation Mode" alert banners and no database write capabilities.
+
+### Phase: Real Allocation Engine - F-03 (2026-05-29)
+* **Status**: `REAL_ALLOCATION_ENGINE_IMPLEMENTED_AND_VERIFIED`
+* **Commit**: Pending commit
+* **Scope**: Implement real payment-to-invoice allocation APIs for customer and supplier and reversal APIs, secured via module-level RBAC (`module: 'accounting'`, `permission: 'add'/'delete'`) and Clerk multi-tenant validation. Fully integrated dashboard UI matching buttons to trigger mutations and re-query the grid dynamically.
+* **Tests**: `src/__tests__/open-items-real-allocation.test.ts` (5/5 passed integration tests covering customer/supplier transactions, overmatching, duplicate prevention, and balance reversal).
+* **SHA256 Checksums**:
+  - `allocate/customer-allocation/route.ts`: `CCA8257758E1DF9D2A100A331073546A58BBD6BAB84E5E6730FF369D9270A477`
+  - `allocate/supplier-allocation/route.ts`: `C19B68CD29870B16925B80FCF3DBF80E364CDFF4BEDB97300AB74C335DDC07C6`
+  - `allocate/reversal/route.ts`: `FC79D1CD5B71C2B8653C01FF9EAEAD166F44E459C02A9A401C1AF1FBF702DE5E`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: Unchanged (Pending deployment).
+* **Runtime Verification**: Run local typecheck (`npm run typecheck` - PASS), Jest test suites (`open-items-real-allocation.test.ts` - PASS) successfully with zero errors. All code changes verified and fully locked under transactions.
+
+
