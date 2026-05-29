@@ -56,6 +56,33 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 
 ## 🚀 Completed Modernization Phases
 
+### Phase WORKER-HARDEN-01 — Reconciliation Worker Safety Fix (2026-05-29)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `1cc63c6edc1fa310cb5d5b0606f21112c5a268b6` (`1cc63c6e`)
+* **Scope**: Hardening the `SystemReconciliationWorker` against unmigrated trial/free/test databases lacking the dynamic `deleted_at` soft-delete column (Schema Drift).
+* **Files Modified & Deployed**:
+  - `src/workers/audit/reconciliation.worker.ts` *(Only deployed runtime file, tests excluded)*
+* **Tests Added**:
+  - `src/workers/audit/__tests__/reconciliation.worker.test.ts`
+* **Reason for Fix**: Prevent database query crashes (`P2021` / PostgreSQL column does not exist) from unmigrated or abandoned trial/free/demo subdomains from halting or cluttering the system background reconciliation worker logs.
+* **What was Done**:
+  - Implemented strict tenant filtering to only run reconciliation for active, non-trial, non-free, and non-test subdomains.
+  - Added resilient schema-drift checking in `try-catch` to classify missing `deleted_at` / `P2021` errors as clean warnings (`logger.warn`) and allow the worker to seamlessly proceed processing remaining paying tenants.
+  - Zero financial/accounting calculation logic changed.
+* **Local Verification**: Local typecheck PASS, local prisma validate PASS, Jest 3/3 tests PASS, local build PASS.
+* **Production Deployment & Verification**:
+  - Uploaded ONLY `reconciliation.worker.ts` to `/www/wwwroot/namainvist.com/src/workers/audit/reconciliation.worker.ts`.
+  - Local and Server SHA256 matched perfectly: `18aa590f27eecee39665b73fb6364fe78f623065a0997a6b41d996e7922b0a8c`.
+  - Server prisma validate PASS, Server build completed successfully with exit code 0.
+  - PM2 `saas-app` restarted cleanly and remains online. Verified that `main-site`, `n1-main`, and `staging` were completely untouched.
+  - Confirmed 0 unhandled exceptions or worker crashes in server logs since deployment.
+* **Strict Confirmed Guarantees**:
+  - NO database or Prisma schema changes.
+  - NO migrations or db push executed.
+  - NO environment (.env) configuration changes.
+  - NO test files or temporary reports uploaded to the server.
+  - Zero change to reconciliation/accounting calculations.
+
 ### Phase UI-HARDEN-01 — Server Component i18n Runtime Fix (2026-05-29)
 * **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
 * **Commit**: `4b19bb14fa60053e1a77b0110b5dd14292356b99` (`4b19bb14`)
