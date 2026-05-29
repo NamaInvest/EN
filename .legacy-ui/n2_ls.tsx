@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation, languages } from '@/lib/i18n';
+import { useTranslation, languages } from '../src/lib/i18n';
 
 export default function LanguageSwitcher() {
     const { lang, setLang } = useTranslation();
@@ -13,7 +13,7 @@ export default function LanguageSwitcher() {
 
     return (
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {languages.map(l => (
+            {languages.map((l: any) => (
                 <button
                     key={l.code}
                     onClick={() => handleSetLang(l.code)}
