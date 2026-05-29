@@ -56,6 +56,30 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 
 ## 🚀 Completed Modernization Phases
 
+### Phase UI-HARDEN-01 — Server Component i18n Runtime Fix (2026-05-29)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `4b19bb14fa60053e1a77b0110b5dd14292356b99` (`4b19bb14`)
+* **Scope**: Refactor 7 Next.js Server Components violating the client/server boundary by invoking the client-side `useTranslation()` hook. Refactored all synchronous and asynchronous Server Components to use the asynchronous, cookie-based `getServerLang()` pattern from `@/lib/server-t`.
+* **Files Modified & Deployed**:
+  - `src/app/(dashboard)/quality/inspections/page.tsx`
+  - `src/app/(dashboard)/admin/prompts/cost/page.tsx`
+  - `src/app/(dashboard)/purchases/orders/page.tsx`
+  - `src/app/(dashboard)/admin/compliance-dashboard/page.tsx`
+  - `src/app/(dashboard)/admin/migration/page.tsx`
+  - `src/app/(dashboard)/admin/training-compliance/page.tsx`
+  - `src/app/(dashboard)/learn/page.tsx`
+* **SHA256 Checksums**:
+  - `inspections`: `7ff867f212bfcffa3fa586f80f2373d3d33cf10f6db7ac1c970f525d3496f35c`
+  - `prompts/cost`: `4661972139036dd218e6d752f578e7995fc9f4214570bf87f8720d20c98a39f7`
+  - `purchases/orders`: `80992649571c623277fa461e046ce078a5cd62cb37a84ff7f106b37bb537ed57`
+  - `compliance-dashboard`: `73419e5e2146f3e32de291db7f408943dc8a3a562f72bdbab152091cba17c0c0`
+  - `migration`: `2676810b1d57216c72e8886514e7179583a819cec67b28b2dbd0606da5278e09`
+  - `training-compliance`: `7abf033d2c5ac32f50f92f1bed0697ca3421c0f26ca97d00f742079389182f29`
+  - `learn`: `8f531844b06904c4ebcfe76f33da7577c305aa91b531d2fb163aaece8b449c73`
+* **Database / Prisma Schema**: Unchanged (no migrations, no db push).
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted with clean boot logs (0 errors).
+* **Runtime Verification**: Local typecheck PASS, local prisma validate PASS, local build PASS. Server build completed successfully under Turbopack. Curled live subdomains (`namainvist.com` returned 200 OK, `ahmedalyamicompany.namainvist.com` returned 200 OK). Audited PM2 logs and confirmed 0 occurrences of `useTranslation` warnings, server render crashes, hydration mismatches, or 500 errors since deployment.
+
 ### Phase UI-HOTFIX-01 — Next.js Dynamic Params Production Fix (2026-05-29)
 * **Status**: `PRODUCTION_DYNAMIC_PARAMS_HOTFIX_DEPLOYED_AND_VERIFIED`
 * **Commit**: `643288770c8144802e3e05742f5c3e4ad2dd3327` (`64328877`)
