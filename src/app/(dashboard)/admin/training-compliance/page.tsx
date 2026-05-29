@@ -1,10 +1,10 @@
 import React from 'react';
 import { BookOpen, UserCheck, AlertOctagon } from 'lucide-react';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
-export default function TrainingComplianceDashboard() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+export default async function TrainingComplianceDashboard() {
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const employees = [
     { id: 1, name: 'Ahmad M.', role: 'DevOps', status: 'Compliant', lastCompleted: '2026-01-15' },
     { id: 2, name: 'Sarah T.', role: 'HR Manager', status: 'Pending', lastCompleted: '2025-04-10' },

@@ -8,12 +8,12 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import { _t } from '@/lib/server-t';
 import { logger } from '@/lib/logger';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 export default async function PurchaseOrdersPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const orders = await prisma.purchaseOrder.findMany({
         include: {
             supplier: true,

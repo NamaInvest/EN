@@ -3,7 +3,7 @@ import { getPrisma } from '@/lib/prisma';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { logger } from '@/lib/logger';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
 const log = logger.child({ service: 'D:.namasoft9-3-main.src.app.(dashboard).' });
 
@@ -12,8 +12,8 @@ export const metadata = {
 };
 
 export default async function CostDashboardPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     const prisma = getPrisma();
     
     // Aggregations

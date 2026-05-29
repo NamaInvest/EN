@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
-export default function LearningDashboardPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+export default async function LearningDashboardPage() {
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-6">

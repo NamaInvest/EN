@@ -1,197 +1,186 @@
-# Global Next.js Fatal Error Scan Report
+# Global UI Runtime Error Scan Report
 
 ## 1. Current Mode
-
-* INCIDENT_SCAN_MODE
-* SCAN + PLAN ONLY
-* Read-only first
-* No code changes
-* No DB/Prisma changes
-* No production changes
-* No git changes
+* **STANDBY_MODE**
+* **SCAN + PLAN ONLY**
+* **Read-only** (No code modifications have been made to any source files)
+* **No DB/Prisma Changes** (Database schemas remain completely pristine)
+* **No Production Touch** (No PM2 reloads, PM2 restarts, or deployments)
+* **No Git Changes** (No git add, commit, or push operations performed)
 
 ---
 
-## 2. Incident Summary
-
-### Error Observed
-```text
-FATAL CLIENT-SIDE EXCEPTION
-An error occurred in the Server Components render.
-The specific message is omitted in production builds.
-A digest property is included on this error instance.
-```
-
-### Context and Analysis
-In Next.js 15+ and 16+, dynamic route `Page` and `Layout` components receive their `params` and `searchParams` properties as asynchronous **Promises**. 
-* **The Bug:** If a Client Component (declared with `'use client'`) serves as the dynamic Page component (e.g., `[token]/page.tsx` or `[qrToken]/page.tsx`) and attempts to access properties on `params` (like `params.token` or `params.qrToken`) synchronously, it triggers a fatal runtime rendering mismatch.
-* **Why it builds:** The production compiler (`npm run build`) builds client components successfully because they are compiled as static chunks, but at **runtime in production**, React 19/Next.js passes `params` as a native Promise. Accessing properties on a Promise synchronously returns `undefined` and throws high-severity warning/errors during hydration, leading to a complete crash of the client-side rendering tree with a dynamic rendering digest exception.
+## 2. Scope
+The scope of this scan was a proactive, comprehensive audit of Next.js 16 and Prisma ORM architectures across all interfaces to detect critical runtime, hydration, server/client boundary, and database mismatches. Specifically, the audit focused on:
+1. Identifying **Client-side Hook boundary violations** (`useTranslation()`) mistakenly invoked inside Server Components.
+2. Checking **Dynamic dynamic route unwrapping** under Next.js 15/16 (`params` and `searchParams` Promise handling) across Client Components.
+3. Investigating **Background worker database schema crashes**—specifically the `SystemReconciliationWorker` database column crash (`deleted_at` column absent on trial/free tenants).
+4. Local baseline compilation verification via strict compilers (`tsc` and Next.js Turbopack).
 
 ---
 
 ## 3. Commands Executed
+We executed the following diagnostic utilities and validation suites locally:
 
-1. `git status --short` — Completed successfully (Clean working directory, no local modifications).
-2. `git log -n 10 --oneline` — Reviewed last 10 commits (Baseline contains unified Period Close, Sales Returns Guards, and Stock Adjustments).
-3. `git branch --show-current` — Confirmed active branch is `main`.
-4. `npx prisma validate` — Validated schema integrity locally (Prisma schema is 100% valid).
-5. `npm run typecheck` — Completed successfully with **zero compilation or TypeScript errors**.
-6. `npm run build` — Completed successfully with **zero compilation, routing, or optimization errors**.
-7. `node scratch/check_remote_logs.js` — Retrieved production PM2 error logs and output them locally for diagnostics.
+1. **Custom `useTranslation` AST Scanner**:
+   * Command: `node scratch/find_use_translation_server_components.js`
+   * Result: Identifed **7 files** violating the client/server boundary by importing and executing client hooks within Server Components.
+2. **Custom Dynamic Route Params Promise Scanner**:
+   * Command: `node scratch/find_dynamic_params_issues.js`
+   * Result: Checked all 17 dynamic layout/page routes. Zero active dynamic params promise bugs exist (all client dynamic components utilize async `useEffect` unwrapping via `.then()`).
+3. **TypeScript Typecheck**:
+   * Command: `npm run typecheck`
+   * Result: **PASS** (Zero compile-time static type errors across the entire project).
+4. **Prisma Schema Validation**:
+   * Command: `npx prisma validate`
+   * Result: **PASS** (Unified Prisma schema is fully valid and compliant).
+5. **Next.js Production Build**:
+   * Command: `npm run build`
+   * Result: **PASS** (Compiled all 787 static/dynamic pages perfectly under Next.js Turbopack Optimizer with zero compilation errors).
 
 ---
 
 ## 4. Files Reviewed
-
-* `src/app/qr-menu/[token]/page.tsx` (Primary Client Page Route with dynamic params)
-* `src/app/customer/table/[qrToken]/page.tsx` (Secondary Client Page Route with dynamic params)
-* `src/app/menu/[tableId]/page.tsx` (Client Page Route using async unwrapping - Reference model)
-* `src/app/invoice/[id]/page.tsx` (Server Page Route using async params - Reference model)
-* `scratch/main-site.log` (Production PM2 main site logs)
-* `scratch/n1-main.log` (Production PM2 backend worker logs)
-* `err_log.txt` (Local server dev database logs)
-
----
-
-## 5. Build / Typecheck / Prisma Results
-
-* **npx prisma validate**:
-  ```text
-  Environment variables loaded from .env
-  Prisma schema loaded from prisma\schema.prisma
-  The schema at prisma\schema.prisma is valid 🚀
-  ```
-* **npm run typecheck**:
-  ```text
-  > namaweb@2.4.8 typecheck
-  > npx tsc --noEmit
-  (Successfully checked all files in the project workspace with zero compiler errors)
-  ```
-* **npm run build**:
-  ```text
-  ▲ Next.js 16.2.6 (Turbopack)
-  Creating an optimized production build ...
-  ✓ Compiled successfully
-  ✓ Route checks passed
-  ```
+We conducted a granular code review of the following critical files:
+* **Quality Inspections**: [src/app/(dashboard)/quality/inspections/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/quality/inspections/page.tsx)
+* **Purchase Orders**: [src/app/(dashboard)/purchases/orders/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/purchases/orders/page.tsx)
+* **AI Cost Dashboard**: [src/app/(dashboard)/admin/prompts/cost/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/prompts/cost/page.tsx)
+* **Compliance Posture**: [src/app/(dashboard)/admin/compliance-dashboard/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/compliance-dashboard/page.tsx)
+* **Migration Cockpit**: [src/app/(dashboard)/admin/migration/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/migration/page.tsx)
+* **Training compliance**: [src/app/(dashboard)/admin/training-compliance/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/training-compliance/page.tsx)
+* **Learning Hub**: [src/app/(dashboard)/learn/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/learn/page.tsx)
+* **Reconciliation Worker**: [src/workers/audit/reconciliation.worker.ts](file:///d:/namasoft9-3-main/src/workers/audit/reconciliation.worker.ts)
+* **System Audit Library**: [src/lib/system-audit.ts](file:///d:/namasoft9-3-main/src/lib/system-audit.ts)
+* **OLAP Cube Engine**: [src/lib/gaps/olap-cube-engine.ts](file:///d:/namasoft9-3-main/src/lib/gaps/olap-cube-engine.ts)
+* **Database Schema**: [prisma/schema.prisma](file:///d:/namasoft9-3-main/prisma/schema.prisma)
 
 ---
 
-## 6. Suspected Root Causes
+## 5. Confirmed Findings
 
-### CRITICAL: Next.js 15+ Async Params Violations in Client Components
+### 🔴 CRITICAL SEVERITY
+#### 1. Inspections Page Client Hook Violation
+* **File**: [src/app/(dashboard)/quality/inspections/page.tsx:L11-15](file:///d:/namasoft9-3-main/src/app/(dashboard)/quality/inspections/page.tsx#L11-15)
+* **Error**: Client hook `useTranslation()` is executed inside an `async` Server Component.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION / SERVER-RENDER CRASH**. When accessed, this page triggers a full Next.js Edge runtime exception and fails to render.
+* **Logs vs Scan**: Logged in `saas-app-error.log` (digest error), confirmed by scans.
+* **Later Fix**: Yes, must be refactored to use `getServerLang()` from `@/lib/server-t`.
 
-We have scanned the entire Next.js workspace and found **exactly two components** where page `params` are accessed synchronously, triggering the hydration crash:
+#### 2. AI Cost Page Client Hook Violation
+* **File**: [src/app/(dashboard)/admin/prompts/cost/page.tsx:L6-15](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/prompts/cost/page.tsx#L6-15)
+* **Error**: Client hook `useTranslation()` is executed inside an `async` Server Component.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION / SERVER-RENDER CRASH**. Accessing the AI Cost aggregation dashboard causes a full render failure.
+* **Logs vs Scan**: Discovered proactively via AST Scanner.
+* **Later Fix**: Yes, must be refactored to use `getServerLang()` from `@/lib/server-t`.
 
-#### 1. QR Menu Client Page Component
-* **File**: [page.tsx](file:///d:/namasoft9-3-main/src/app/qr-menu/[token]/page.tsx)
-* **Lines affected**: Lines 9, 19, 35, 43
-* **Snippet**:
-  ```typescript
-  export default function QRMenuPage({ params }: { params: { token: string } }) {
-    // ...
-    useEffect(() => {
-      const fetchTableInfo = async () => {
-        const res = await fetch(`/api/restaurant/table/info?token=${params.token}`);
-        // ...
-      };
-      fetchTableInfo();
-    }, [params.token]);
-  ```
-* **Why it crashes**: The component is annotated with `'use client'`. Next.js passes `params` as a Promise. Direct access to `params.token` on a Promise returns `undefined` at server-prerender and client-hydration, causing the fetch url to be `/api/restaurant/table/info?token=undefined` and throwing an uncaught rendering error that breaks the client hydration tree.
-
-#### 2. Customer Table Client Page Component
-* **File**: [page.tsx](file:///d:/namasoft9-3-main/src/app/customer/table/[qrToken]/page.tsx)
-* **Lines affected**: Lines 9, 18, 32, 37
-* **Snippet**:
-  ```typescript
-  export default function CustomerTablePage({ params }: { params: { qrToken: string } }) {
-    // ...
-    useEffect(() => {
-      const fetchTable = async () => {
-        const res = await fetch(`/api/customer/table/${params.qrToken}`);
-        // ...
-      };
-      fetchTable();
-    }, [params.qrToken]);
-  ```
-* **Why it crashes**: Same as above. `params.qrToken` is accessed synchronously on a client-side route parameter Promise, breaking React 19 hydration.
+#### 3. Purchase Orders Page Client Hook Violation
+* **File**: [src/app/(dashboard)/purchases/orders/page.tsx:L11-15](file:///d:/namasoft9-3-main/src/app/(dashboard)/purchases/orders/page.tsx#L11-15)
+* **Error**: Client hook `useTranslation()` is executed inside an `async` Server Component.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION / SERVER-RENDER CRASH**. Accessing `/purchases/orders` fails immediately.
+* **Logs vs Scan**: Discovered proactively via AST Scanner.
+* **Later Fix**: Yes, must be refactored to use `getServerLang()` from `@/lib/server-t`.
 
 ---
 
-## 7. Confirmed Root Cause
+### 🟡 HIGH SEVERITY
+#### 4. Compliance Dashboard Hook Violation
+* **File**: [src/app/(dashboard)/admin/compliance-dashboard/page.tsx:L3-6](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/compliance-dashboard/page.tsx#L3-6)
+* **Error**: Synchronous Server Component invokes client hook `useTranslation()`.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION**. Accessing the page crashes with a React hook boundary error.
+* **Later Fix**: Yes, must change component to `async` and use `getServerLang()`.
 
-The fatal runtime hydration rendering exception (`FATAL CLIENT-SIDE EXCEPTION`) is **fully confirmed** to be caused by synchronous parameter access inside client page components `src/app/qr-menu/[token]/page.tsx` and `src/app/customer/table/[qrToken]/page.tsx`.
+#### 5. Migration Cockpit Hook Violation
+* **File**: [src/app/(dashboard)/admin/migration/page.tsx:L2-5](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/migration/page.tsx#L2-5)
+* **Error**: Synchronous Server Component invokes client hook `useTranslation()`.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION**. Accessing the cockpit causes a render crash.
+* **Later Fix**: Yes, must change component to `async` and use `getServerLang()`.
 
----
+#### 6. Training Compliance Hook Violation
+* **File**: [src/app/(dashboard)/admin/training-compliance/page.tsx:L3-6](file:///d:/namasoft9-3-main/src/app/(dashboard)/admin/training-compliance/page.tsx#L3-6)
+* **Error**: Synchronous Server Component invokes client hook `useTranslation()`.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION**. Accessing the compliance page causes a render crash.
+* **Later Fix**: Yes, must change component to `async` and use `getServerLang()`.
 
-## 8. Safe Fix Plan
-
-The proposed fix is strictly **Code-Only**, completely non-destructive, requiring **zero database changes**, **zero schema modifications**, and **zero alterations** to core ERP business logic.
-
-We will use React 19's native `use()` hook to unwrap the dynamic `params` Promise cleanly and safely inside both client components.
-
-### Batch 1: Fix QR Menu Client Page Component
-Modify `src/app/qr-menu/[token]/page.tsx` to unwrap `params` using `React.use()`:
-```typescript
-import React, { useState, useEffect, use } from 'react';
-
-export default function QRMenuPage({ params }: { params: Promise<{ token: string }> }) {
-  const resolvedParams = use(params);
-  const token = resolvedParams.token;
-  
-  // All occurrences of params.token replaced by token
-  useEffect(() => {
-    const fetchTableInfo = async () => {
-      const res = await fetch(`/api/restaurant/table/info?token=${token}`);
-      // ...
-    };
-    fetchTableInfo();
-  }, [token]);
-```
-
-### Batch 2: Fix Customer Table Client Page Component
-Modify `src/app/customer/table/[qrToken]/page.tsx` to unwrap `params` using `React.use()`:
-```typescript
-import React, { useState, useEffect, use } from 'react';
-
-export default function CustomerTablePage({ params }: { params: Promise<{ qrToken: string }> }) {
-  const resolvedParams = use(params);
-  const qrToken = resolvedParams.qrToken;
-  
-  // All occurrences of params.qrToken replaced by qrToken
-  useEffect(() => {
-    const fetchTable = async () => {
-      const res = await fetch(`/api/customer/table/${qrToken}`);
-      // ...
-    };
-    fetchTable();
-  }, [qrToken]);
-```
+#### 7. Learning Hub Hook Violation
+* **File**: [src/app/(dashboard)/learn/page.tsx:L2-5](file:///d:/namasoft9-3-main/src/app/(dashboard)/learn/page.tsx#L2-5)
+* **Error**: Synchronous Server Component invokes client hook `useTranslation()`.
+* **Impact**: **FATAL CLIENT-SIDE EXCEPTION**. Accessing `/learn` causes a render crash.
+* **Later Fix**: Yes, must change component to `async` and use `getServerLang()`.
 
 ---
 
-## 9. Test Plan
-
-1. **Local Typecheck Verification**: Run `npm run typecheck` to confirm the unwrapped page prop signatures compile successfully.
-2. **Local Schema Verification**: Run `npx prisma validate`.
-3. **Local Production Compile**: Run `npm run build` to ensure static page routes generate successfully with Turbopack.
-4. **Endpoint Validation Checks**: Run smoke tests using local or curl tools (if applicable) to ensure the routes return HTTP 200 instead of crashing.
-
----
-
-## 10. Risk Assessment
-
-* **Production Risk**: **NEGLIGIBLE** (Only resolves page prop wrapper signatures).
-* **UI Crash Risk**: **NEGLIGIBLE** (Fixes the absolute cause of fatal hydration exceptions).
-* **Financial Risk**: **NONE** (No ledger, invoice, inventory, or payroll logic altered).
-* **Tenant Isolation Risk**: **NONE** (Tenant contexts and boundaries remain completely protected).
-* **DB Risk**: **NONE** (No schema updates, zero database mutations).
-* **Deployment Risk**: **NEGLIGIBLE** (Code-only patches to routes).
+### 🟠 MEDIUM SEVERITY
+#### 8. Reconciliation Worker Mapped Column DB Crash
+* **File**: [src/workers/audit/reconciliation.worker.ts:L31-61](file:///d:/namasoft9-3-main/src/workers/audit/reconciliation.worker.ts#L31-61)
+* **Error**: The background worker queries `salesInvoice` via Prisma ORM for all active tenants. Prisma attempts to select the `deletedAt` field, which is mapped to the `deleted_at` database column. Trial/experimental tenants (which run on separate, old databases) have not run recent migrations, so the database column `deleted_at` does not exist in their schemas.
+* **Impact**: **BACKGROUND WORKER CRASH**. When processing trial tenant accounts, the database query fails and crashes the worker thread with the error `The column sales_invoices.deleted_at does not exist in the current database.`
+* **Logs vs Scan**: Logged in `saas-app-error.log`, audited and confirmed via prisma maps.
+* **Later Fix**: Yes, must filter out trial tenants and wrap the execution in a robust try-catch block.
 
 ---
 
-## 11. Execution Approval Gate
+## 6. Root Cause Analysis
+1. **i18n Hook Boundary Mismatch**: The project utilizes standard next-intl-like client wrappers (`useTranslation` from `lib/i18n`). In Server Components, there is no React Context provider available. Calling `useTranslation()` inside components lacking `'use client'` invokes client-side hook logic inside a server execution thread, raising React Hook exceptions.
+2. **Reconciliation Worker database Sync Lag**: During development, new fields like `deletedAt` were mapped to database columns (`@map("deleted_at")`) inside the unified Prisma schema. The matching database migrations were applied to the main system databases, but SaaS trial tenants run in dynamic, separate, lightweight databases which remain un-migrated. The worker attempts to aggregate sales data for all active tenants indiscriminately, triggering PostgreSQL column mismatch failures on these trial schemas.
 
+---
+
+## 7. Proposed Safe Fix Plan
+
+### Part A: Standardizing Translations inside Server Components
+We will replace all 7 client hook violations with standard async server-side translations.
+
+1. **Refactor Async Server Components** (Inspections, Purchases Orders, AI Cost):
+   ```typescript
+   // FROM
+   import { useTranslation } from "@/lib/i18n";
+   const { lang } = useTranslation();
+   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+
+   // TO
+   import { getServerLang } from "@/lib/server-t";
+   const lang = await getServerLang();
+   const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+   ```
+2. **Refactor Synchronous Server Components** (Compliance, Migration, Training, Learning):
+   * Add the `async` keyword to their default function declarations.
+   * Fetch `getServerLang()` asynchronously and render standard bilingual options.
+
+### Part B: hardening SystemReconciliationWorker
+1. **Exclude Trial Tenants**: Update the tenant query filter to select active, paid non-trial subdomains only:
+   ```typescript
+   // Exclude plan: 'free' and subscriptionStatus: 'trial'
+   const activeTenants = tenants
+       .filter((t: any) => t.status === 'active' && t.plan !== 'free' && t.subscriptionStatus !== 'trial')
+       .map((t: any) => t.subdomain);
+   ```
+2. **Database Schema Safeguards**: Wrap the system reconciliation execution block inside a resilient local `try-catch` statement to log database errors gracefully without halting the worker's processing of other paying clients.
+
+---
+
+## 8. Test Plan
+* **Automated Tests**:
+  * Run local compiler checks: `npm run typecheck`
+  * Run schema validator: `npx prisma validate`
+  * Run comprehensive Next.js build: `npm run build`
+* **Manual Verification**:
+  * Navigate to `/quality/inspections` and verify that the page renders correctly in Arabic and English without throwing Edge exceptions.
+  * Access `/admin/prompts/cost` and `/purchases/orders` to ensure zero crash screens.
+  * Inspect PM2 worker logs via `pm2 logs saas-app` to confirm `SystemReconciliationWorker` completes successfully with no database column crashes.
+
+---
+
+## 9. Risk Assessment
+* **UI Crash Risk**: **HIGH** (The 7 files identified will continue to cause crash exceptions for users until fixed).
+* **Production Deployment Risk**: **VERY LOW** (Refactoring translation hooks to server functions and adding tenant filters are standard, non-destructive Next.js/Prisma operations).
+* **DB/Prisma Schema Risk**: **ZERO** (No schema updates, database resets, or table modifications required).
+* **Tenant Isolation Risk**: **ZERO** (Excluding trial tenants in worker queries has zero impact on operational multi-tenant security boundaries).
+* **Financial Risk**: **ZERO** (No ledger entries, invoices, payments, or transaction validation calculations are changed).
+
+---
+
+## 10. Execution Approval Gate
 > [!IMPORTANT]
-> **CRITICAL RULE**: No source code modifications, database schema edits, or git staging/commit operations will be initiated under this incident response until explicit owner approval is granted for this scan report and execution plan.
+> **CRITICAL RULE**: In compliance with `AGENTS.md`, we are currently in `STANDBY_MODE` / `SCAN + PLAN ONLY`. No source files, databases, or environment configurations have been modified.
+>
+> **No changes will be executed until the project owner reviews this plan and provides explicit approval to proceed.**

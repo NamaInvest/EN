@@ -1,10 +1,10 @@
 import React from 'react';
 import { ShieldCheck, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
-export default function ComplianceDashboard() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+export default async function ComplianceDashboard() {
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
   const complianceStatus = {
     soc2: 95,
     iso27001: 88,

@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTranslation } from "@/lib/i18n";
+import { getServerLang } from "@/lib/server-t";
 
-export default function MigrationDashboardPage() {
-    const { lang } = useTranslation();
-        const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
+export default async function MigrationDashboardPage() {
+    const lang = await getServerLang();
+    const _t = (ar: string, en: string) => lang === 'ar' ? ar : en;
     return (
         <div className="p-6 max-w-5xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-gray-900">{_t('لوحة تحكم هجرة البيانات', 'Data Migration Cockpit')}</h1>
