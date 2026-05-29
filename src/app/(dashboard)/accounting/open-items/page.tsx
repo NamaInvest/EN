@@ -69,24 +69,26 @@ export default function OpenItemsDashboard() {
   const [filterType, setFilterType] = useState<'all' | 'ar' | 'ap'>('all');
   const [minRemaining, setMinRemaining] = useState<string>('');
 
-  // Local interactive states for Mock Wizards
-  const [mockCustomerSelected, setMockCustomerSelected] = useState('102');
-  const [mockReceiptSelected, setMockReceiptSelected] = useState('TREAS-201');
-  const [mockAllocAmt1, setMockAllocAmt1] = useState('5000');
-  const [mockAllocAmt2, setMockAllocAmt2] = useState('4000');
+  // ── 1. Customer Allocation (AR) Wired States ──────────────────────────────
+  const [customerAllocations, setCustomerAllocations] = useState<{ [invoiceId: number]: string }>({});
+  const [selectedReceiptId, setSelectedReceiptId] = useState<string>('');
   const [customerPreviewLoading, setCustomerPreviewLoading] = useState(false);
   const [customerPreviewResult, setCustomerPreviewResult] = useState<any>(null);
+  const [customerPreviewError, setCustomerPreviewError] = useState<string | null>(null);
 
-  const [mockSupplierSelected, setMockSupplierSelected] = useState('504');
-  const [mockBillAllocAmt, setMockBillAllocAmt] = useState('7000');
+  // ── 2. Supplier Allocation (AP) Wired States ──────────────────────────────
+  const [supplierAllocations, setSupplierAllocations] = useState<{ [invoiceId: number]: string }>({});
+  const [selectedApReceiptId, setSelectedApReceiptId] = useState<string>('');
   const [supplierPreviewLoading, setSupplierPreviewLoading] = useState(false);
   const [supplierPreviewResult, setSupplierPreviewResult] = useState<any>(null);
+  const [supplierPreviewError, setSupplierPreviewError] = useState<string | null>(null);
 
-  const [mockMatchSelected, setMockMatchSelected] = useState('MATCH-4820');
+  // ── 3. Reversal Wired States ──────────────────────────────────────────────
+  const [selectedMatchingId, setSelectedMatchingId] = useState<string>('4820');
   const [reversalReason, setReversalReason] = useState('');
-  const [reversalReasonError, setReversalReasonError] = useState<string | null>(null);
   const [reversalPreviewLoading, setReversalPreviewLoading] = useState(false);
   const [reversalPreviewResult, setReversalPreviewResult] = useState<any>(null);
+  const [reversalPreviewError, setReversalPreviewError] = useState<string | null>(null);
 
   const fetchOpenItems = async (cId: string) => {
     if (!cId || isNaN(Number(cId)) || Number(cId) <= 0) {
@@ -110,6 +112,12 @@ export default function OpenItemsDashboard() {
 
       const json = await response.json();
       setData(json);
+      // Reset wizard allocations on data reload
+      setCustomerAllocations({});
+      setSupplierAllocations({});
+      setCustomerPreviewResult(null);
+      setSupplierPreviewResult(null);
+      setReversalPreviewResult(null);
     } catch (err: any) {
       setError(err instanceof Error ? err.message : _t('حدث خطأ غير متوقع أثناء معالجة الطلب.', 'An unexpected error occurred.'));
       setData(null);
@@ -171,115 +179,177 @@ export default function OpenItemsDashboard() {
                     filteredPurchaseInvoices.length === 0 && 
                     filteredReceipts.length === 0;
 
-  // Mock Simulator Actions
-  const runCustomerSimulation = () => {
+  // ── 1. Wired Customer Allocation Preview Call ──────────────────────────────
+  const handleCustomerPreview = async () => {
     setCustomerPreviewLoading(true);
     setCustomerPreviewResult(null);
-    setTimeout(() => {
+    setCustomerPreviewError(null);
+
+    const partnerId = parseInt(customerId);
+    const treasuryId = parseInt(selectedReceiptId);
+    
+    if (isNaN(partnerId) || partnerId <= 0) {
+      setCustomerPreviewError(_t('يرجى اختيار شريك صحيح للاستعلام أولاً.', 'Please select a valid partner ID first.'));
       setCustomerPreviewLoading(false);
-      setCustomerPreviewResult({
-        canProceed: true,
-        dryRun: true,
-        type: 'CUSTOMER_RECEIPT',
-        totalRequestedAmount: Number(mockAllocAmt1) + Number(mockAllocAmt2),
-        totalAllocatedAmount: Number(mockAllocAmt1) + Number(mockAllocAmt2),
-        unallocatedAmount: 15000 - (Number(mockAllocAmt1) + Number(mockAllocAmt2)),
-        affectedInvoices: [
-          {
-            invoiceId: 12,
-            invoiceNo: 'INV-2026-001',
-            invoiceType: 'sales',
-            currentPaid: 5000,
-            currentRemaining: 5000,
-            previewPaid: 5000 + Number(mockAllocAmt1),
-            previewRemaining: Math.max(0, 5000 - Number(mockAllocAmt1)),
-            status: Number(mockAllocAmt1) >= 5000 ? 'COMPLETED' : 'PARTIAL'
-          },
-          {
-            invoiceId: 13,
-            invoiceNo: 'INV-2026-002',
-            invoiceType: 'sales',
-            currentPaid: 2000,
-            currentRemaining: 6000,
-            previewPaid: 2000 + Number(mockAllocAmt2),
-            previewRemaining: Math.max(0, 6000 - Number(mockAllocAmt2)),
-            status: Number(mockAllocAmt2) >= 6000 ? 'COMPLETED' : 'PARTIAL'
-          }
-        ],
-        blockingErrors: [],
-        warnings: [
-          _t('هذه معاملة تجريبية جافة ومعزولة بالكامل عن الدفاتر المالية.', 'This is a test simulation dry-run isolated from general ledgers.')
-        ]
-      });
-    }, 800);
-  };
-
-  const runSupplierSimulation = () => {
-    setSupplierPreviewLoading(true);
-    setSupplierPreviewResult(null);
-    setTimeout(() => {
-      setSupplierPreviewLoading(true);
-      setSupplierPreviewLoading(false);
-      setSupplierPreviewResult({
-        canProceed: true,
-        dryRun: true,
-        type: 'SUPPLIER_PAYMENT',
-        totalRequestedAmount: Number(mockBillAllocAmt),
-        totalAllocatedAmount: Number(mockBillAllocAmt),
-        unallocatedAmount: 10000 - Number(mockBillAllocAmt),
-        affectedInvoices: [
-          {
-            invoiceId: 601,
-            invoiceNo: 'BILL-2026-081',
-            invoiceType: 'purchase',
-            currentPaid: 5000,
-            currentRemaining: 7000,
-            previewPaid: 5000 + Number(mockBillAllocAmt),
-            previewRemaining: Math.max(0, 7000 - Number(mockBillAllocAmt)),
-            status: Number(mockBillAllocAmt) >= 7000 ? 'COMPLETED' : 'PARTIAL'
-          }
-        ],
-        blockingErrors: [],
-        warnings: [
-          _t('وضع معاينة المورد لا يكتب أي تسويات أو يغير رصيد المورد الحقيقي.', 'Supplier preview mode does not write allocations or modify actual supplier balances.')
-        ]
-      });
-    }, 800);
-  };
-
-  const runReversalSimulation = () => {
-    if (reversalReason.length < 10) {
-      setReversalReasonError(_t('مبرر الإبطال يجب ألا يقل عن 10 أحرف للتدقيق.', 'Reversal reason must be at least 10 characters for audit tracking.'));
       return;
     }
-    setReversalReasonError(null);
+    if (isNaN(treasuryId) || treasuryId <= 0) {
+      setCustomerPreviewError(_t('يرجى اختيار سند القبض معلق التوزيع لإتمام المعاينة.', 'Please select an unallocated receipt to preview.'));
+      setCustomerPreviewLoading(false);
+      return;
+    }
+
+    const allocationsArray = Object.entries(customerAllocations)
+      .map(([invoiceId, amount]) => ({
+        salesInvoiceId: parseInt(invoiceId),
+        amount: parseFloat(amount)
+      }))
+      .filter(alloc => !isNaN(alloc.salesInvoiceId) && !isNaN(alloc.amount) && alloc.amount > 0);
+
+    if (allocationsArray.length === 0) {
+      setCustomerPreviewError(_t('يرجى إدخال قيمة تخصيص موجبة أكبر من صفر لأي فاتورة معلقة واحدة على الأقل.', 'Please enter a positive allocation amount for at least one outstanding invoice.'));
+      setCustomerPreviewLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/preview/customer-allocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          partnerId,
+          treasuryId,
+          allocations: allocationsArray,
+          dryRun: true
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت محاكاة التخصيص من الخادم.', 'Allocation dry-run simulation failed on the server.'));
+      }
+      setCustomerPreviewResult(result);
+    } catch (err: any) {
+      setCustomerPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCustomerPreviewLoading(false);
+    }
+  };
+
+  // ── 2. Wired Supplier Allocation Preview Call ──────────────────────────────
+  const handleSupplierPreview = async () => {
+    setSupplierPreviewLoading(true);
+    setSupplierPreviewResult(null);
+    setSupplierPreviewError(null);
+
+    const partnerId = parseInt(customerId);
+    const treasuryId = parseInt(selectedApReceiptId);
+    
+    if (isNaN(partnerId) || partnerId <= 0) {
+      setSupplierPreviewError(_t('يرجى اختيار شريك صحيح للاستعلام أولاً.', 'Please select a valid partner ID first.'));
+      setSupplierPreviewLoading(false);
+      return;
+    }
+    if (isNaN(treasuryId) || treasuryId <= 0) {
+      setSupplierPreviewError(_t('يرجى اختيار سند الصرف معلق التوزيع لإتمام المعاينة.', 'Please select an unallocated payment receipt to preview.'));
+      setSupplierPreviewLoading(false);
+      return;
+    }
+
+    const allocationsArray = Object.entries(supplierAllocations)
+      .map(([invoiceId, amount]) => ({
+        purchaseInvoiceId: parseInt(invoiceId),
+        amount: parseFloat(amount)
+      }))
+      .filter(alloc => !isNaN(alloc.purchaseInvoiceId) && !isNaN(alloc.amount) && alloc.amount > 0);
+
+    if (allocationsArray.length === 0) {
+      setSupplierPreviewError(_t('يرجى إدخال قيمة تخصيص موجبة أكبر من صفر لأي فاتورة مشتريات واحدة على الأقل.', 'Please enter a positive allocation amount for at least one purchase invoice.'));
+      setSupplierPreviewLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/preview/supplier-allocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          partnerId,
+          treasuryId,
+          allocations: allocationsArray,
+          dryRun: true
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت محاكاة التخصيص للمورد.', 'Supplier allocation dry-run failed on server.'));
+      }
+      setSupplierPreviewResult(result);
+    } catch (err: any) {
+      setSupplierPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSupplierPreviewLoading(false);
+    }
+  };
+
+  // ── 3. Wired Reversal Preview Call ──────────────────────────────────────────
+  const handleReversalPreview = async () => {
     setReversalPreviewLoading(true);
     setReversalPreviewResult(null);
-    setTimeout(() => {
+    setReversalPreviewError(null);
+
+    const matchingId = parseInt(selectedMatchingId);
+    if (isNaN(matchingId) || matchingId <= 0) {
+      setReversalPreviewError(_t('يرجى إدخال رقم تسوية/مطابقة صحيح ومكتوب بالأرقام.', 'Please enter a valid matching/reconciliation ID.'));
       setReversalPreviewLoading(false);
-      setReversalPreviewResult({
-        canProceed: true,
-        dryRun: true,
-        type: 'REVERSAL',
-        matchingId: 4820,
-        affectedInvoices: [
-          {
-            invoiceId: 12,
-            invoiceNo: 'INV-2026-001',
-            invoiceType: 'sales',
-            currentPaid: 10000,
-            currentRemaining: 0,
-            previewPaid: 5000,
-            previewRemaining: 5000,
-            status: 'REVERTED_TO_PARTIAL'
-          }
-        ],
-        blockingErrors: [],
-        warnings: [
-          _t('عند إلغاء هذه المطابقة فعلياً، ستعود الفاتورة المعنية لحالتها المعلقة برصيد متبقي 5,000 ر.س.', 'If matching is reversed, affected sales invoice will revert to open status with 5,000 SAR outstanding.')
-        ]
+      return;
+    }
+
+    if (reversalReason.length < 10) {
+      setReversalPreviewError(_t('يجب كتابة مبرر الإلغاء تفصيلياً بما لا يقل عن 10 أحرف للتدقيق المالي.', 'Audit requirements strictly dictate a detailed reversal reason of minimum 10 characters.'));
+      setReversalPreviewLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/open-items/preview/reversal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          matchingId,
+          reason: reversalReason,
+          dryRun: true
+        })
       });
-    }, 800);
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || _t('فشلت محاكاة تراجع وإبطال التسوية.', 'Reversal dry-run simulation failed on the server.'));
+      }
+      setReversalPreviewResult(result);
+    } catch (err: any) {
+      setReversalPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setReversalPreviewLoading(false);
+    }
+  };
+
+  const calculateTotalProposedCustomer = () => {
+    return Object.values(customerAllocations).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+  };
+
+  const calculateTotalProposedSupplier = () => {
+    return Object.values(supplierAllocations).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
   };
 
   return (
@@ -299,7 +369,7 @@ export default function OpenItemsDashboard() {
               </span>
               <span className="px-3 py-1 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-1">
                 <Ban className="w-3.5 h-3.5" />
-                {_t('وضع محاكاة جافة آمنة', 'Safe Dry-Run Preview Mode')}
+                {_t('محرك معالجة جافة مفعل وحي', 'Live Dry-Run Preview Active')}
               </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white mt-2">
@@ -314,7 +384,7 @@ export default function OpenItemsDashboard() {
           </div>
           
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-slate-300 backdrop-blur-sm">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
             <span>{_t('معاينة جافة فقط | Dry-Run Simulation', 'Simulation Dry-Run Only')}</span>
           </div>
         </div>
@@ -673,202 +743,212 @@ export default function OpenItemsDashboard() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
           <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-extrabold text-indigo-950">{_t('معالج محاكاة تسوية أرصدة العملاء (AR Wizard)', 'Customer Allocation Preview Wizard (AR)')}</h2>
-              <p className="text-xs text-slate-500 mt-1">{_t('قم بمحاكاة تخصيص سندات القبض مع فواتير المبيعات معزولاً ومحميّاً بالكامل.', 'Dry-run sales invoice allocation with unallocated receipts safely.')}</p>
+              <h2 className="text-xl font-extrabold text-indigo-950">{_t('معالج تسوية أرصدة العملاء (AR Wizard)', 'Customer Allocation Preview Wizard (AR)')}</h2>
+              <p className="text-xs text-slate-500 mt-1">{_t('قم بمحاكاة تخصيص سندات القبض مع فواتير المبيعات معزولاً ومحميّاً بالكامل باستخدام المحرك الحي.', 'Dry-run sales invoice allocation with unallocated receipts using the live preview engine.')}</p>
             </div>
             <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
               {_t('وضع المعاينة الجافة | Preview Mode', 'Simulation Preview')}
             </span>
           </div>
 
-          {/* Form selectors */}
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر عميلاً نموذجياً (Mock Customer)', 'Select Customer (Mock)')}</label>
-              <select 
-                value={mockCustomerSelected}
-                onChange={(e) => setMockCustomerSelected(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800"
-              >
-                <option value="102">{_t('شركة النما المحدودة - ح/ 102 (Nama Co. Ltd.)', 'Nama Co. Ltd. (ID: 102)')}</option>
-                <option value="105">{_t('مؤسسة الرياض التجارية - ح/ 105 (Riyadh Corp.)', 'Riyadh Corp. (ID: 105)')}</option>
-              </select>
+          {!data || data.salesInvoices.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-500 text-sm font-semibold">
+              {_t('يرجى استعلام البنود المفتوحة للشريك أولاً من لوحة التحكم لعرض فواتيره المفتوحة وسنداته المعلقة.', 'Please query open items for a partner from the Ledger View first to load outstanding invoices and unallocated receipts.')}
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر سند قبض معلق للتوزيع (Mock Receipt)', 'Select Unallocated Receipt (Mock)')}</label>
-              <select
-                value={mockReceiptSelected}
-                onChange={(e) => setMockReceiptSelected(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800"
-              >
-                <option value="TREAS-201">{_t('سند قبض #TREAS-201 - رصيد 15,000 ر.س (رصيد كافٍ)', 'Receipt TREAS-201 - Balance 15,000 SAR')}</option>
-                <option value="TREAS-203">{_t('سند قبض #TREAS-203 - رصيد 8,000 ر.س', 'Receipt TREAS-203 - Balance 8,000 SAR')}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Preview Allocations Table */}
-          <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-4 space-y-4">
-            <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-              <Table className="w-4 h-4 text-indigo-600" />
-              {_t('الفواتير المفتوحة المعلقة للعميل والتخصيص المقترح', 'Open Invoices and Preview Allocations')}
-            </h4>
-
-            <div className="overflow-x-auto bg-white rounded-xl border border-slate-100 shadow-sm">
-              <table className="w-full text-sm text-slate-700 text-right">
-                <thead className="bg-slate-50/40 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
-                  <tr>
-                    <th className="px-4 py-3 text-right">{_t('رقم الفاتورة', 'Invoice No')}</th>
-                    <th className="px-4 py-3 text-right">{_t('التاريخ', 'Date')}</th>
-                    <th className="px-4 py-3 text-left">{_t('المبلغ المتبقي المعلق', 'Outstanding Outstanding')}</th>
-                    <th className="px-4 py-3 text-left w-36">{_t('مبلغ التوزيع المقترح', 'Allocation Amount')}</th>
-                    <th className="px-4 py-3 text-left">{_t('المتبقي المتوقع (بعد المعاينة)', 'Preview Remaining')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="px-4 py-3.5 font-bold text-indigo-600">#INV-2026-001</td>
-                    <td className="px-4 py-3.5 text-slate-500">2026-05-10</td>
-                    <td className="px-4 py-3.5 font-mono text-left">5,000.00 ر.س</td>
-                    <td className="px-4 py-3.5 text-left">
-                      <input 
-                        type="number"
-                        value={mockAllocAmt1}
-                        onChange={(e) => setMockAllocAmt1(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-left font-mono font-bold"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-left text-emerald-600 font-extrabold">
-                      {formatCurrency(Math.max(0, 5000 - Number(mockAllocAmt1)))} ر.س
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3.5 font-bold text-indigo-600">#INV-2026-002</td>
-                    <td className="px-4 py-3.5 text-slate-500">2026-05-15</td>
-                    <td className="px-4 py-3.5 font-mono text-left">6,000.00 ر.س</td>
-                    <td className="px-4 py-3.5 text-left">
-                      <input 
-                        type="number"
-                        value={mockAllocAmt2}
-                        onChange={(e) => setMockAllocAmt2(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-left font-mono font-bold"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-left text-emerald-600 font-extrabold">
-                      {formatCurrency(Math.max(0, 6000 - Number(mockAllocAmt2)))} ر.س
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Calculations summaries */}
-            <div className="grid gap-4 md:grid-cols-3 pt-2">
-              <div className="bg-white rounded-xl border border-slate-100 p-4">
-                <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('قيمة السند الكلي', 'Receipt Value')}</span>
-                <span className="text-base font-extrabold text-indigo-950 font-mono">15,000.00 ر.س</span>
-              </div>
-              <div className="bg-white rounded-xl border border-slate-100 p-4">
-                <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('إجمالي التخصيص المقترح', 'Total Proposed Allocation')}</span>
-                <span className="text-base font-extrabold text-indigo-600 font-mono">
-                  {formatCurrency(Number(mockAllocAmt1) + Number(mockAllocAmt2))} ر.س
-                </span>
-              </div>
-              <div className="bg-white rounded-xl border border-slate-100 p-4">
-                <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('الرصيد المتبقي غير الموزع', 'Remaining Unallocated')}</span>
-                <span className="text-base font-extrabold text-amber-600 font-mono">
-                  {formatCurrency(Math.max(0, 15000 - (Number(mockAllocAmt1) + Number(mockAllocAmt2))))} ر.س
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* SIMULATION TRIGGER BUTTONS AND RESULTS */}
-          <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 items-center justify-between">
-            <div className="flex gap-4">
-              <button
-                onClick={runCustomerSimulation}
-                disabled={customerPreviewLoading}
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
-              >
-                <Play className={`w-4 h-4 ${customerPreviewLoading ? 'animate-spin' : ''}`} />
-                {_t('معاينة ومحاكاة تخصيص الأرصدة (Dry-Run)', 'Run Allocation Simulation')}
-              </button>
-
-              <button
-                disabled
-                className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
-                title="معطل في وضع المعاينة"
-              >
-                <Lock className="w-4 h-4 text-rose-500" />
-                {_t('إثبات وحفظ التسوية فعلياً', 'Save Actual Allocation')}
-                <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded hidden group-hover:block whitespace-nowrap mb-2">
-                  {_t('محمي ومحجوب - وضع المحاكاة فقط', 'Locked - Simulation Preview Only')}
-                </span>
-              </button>
-            </div>
-
-            <span className="text-xs text-slate-500 flex items-center gap-1.5 font-light">
-              <Info className="w-4 h-4 text-indigo-500" />
-              {_t('لن يتم إرسال أو حفظ أي تغييرات إلى الدفاتر المحاسبية للفندق أو المنشأة.', 'No accounting modifications will be posted to the books.')}
-            </span>
-          </div>
-
-          {/* DTO RESULT PANEL */}
-          {customerPreviewResult && (
-            <div className="bg-emerald-50/50 border border-emerald-200/60 rounded-xl p-5 space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
-                  <h4 className="font-extrabold">{_t('نجاح محاكاة التخصيص والمطابقة محاسبياً', 'Allocation Dry-Run Simulation Succeeded')}</h4>
+          ) : (
+            <>
+              {/* Form selectors using real fetched data */}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-2">{_t('الشريك المستهدف (مستعلم حالياً)', 'Target Partner (Active)')}</label>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <User className="w-4 h-4 text-indigo-500" />
+                    <span>{_t(`العميل النشط - معرف ح/ ${customerId}`, `Active Partner - ID: ${customerId}`)}</span>
+                  </div>
                 </div>
-                <span className="px-2 py-0.5 bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded">
-                  {_t('الوضع الجاف: نشط', 'dryRun: true')}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر سند القبض معلق التوزيع (من الدفاتر الحية)', 'Select Unallocated Receipt (Live)')}</label>
+                  <select
+                    value={selectedReceiptId}
+                    onChange={(e) => setSelectedReceiptId(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800"
+                  >
+                    <option value="">{_t('── اختر سند قبض معلق ──', '── Select Pending Receipt ──')}</option>
+                    {data.openReceipts.map(receipt => (
+                      <option key={receipt.id} value={receipt.id}>
+                        {_t(`سند #TREAS-${receipt.id} - رصيد: ${formatCurrency(receipt.remaining)} ر.س`, `Receipt TREAS-${receipt.id} - Bal: ${formatCurrency(receipt.remaining)} SAR`)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Preview Allocations Table */}
+              <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-4 space-y-4">
+                <h4 className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                  <Table className="w-4 h-4 text-indigo-600" />
+                  {_t('فواتير المبيعات المفتوحة الحية والتخصيص المقترح', 'Live Open Invoices & Proposed Allocation')}
+                </h4>
+
+                <div className="overflow-x-auto bg-white rounded-xl border border-slate-100 shadow-sm">
+                  <table className="w-full text-sm text-slate-700 text-right">
+                    <thead className="bg-slate-50/40 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
+                      <tr>
+                        <th className="px-4 py-3 text-right">{_t('رقم الفاتورة', 'Invoice No')}</th>
+                        <th className="px-4 py-3 text-right">{_t('التاريخ', 'Date')}</th>
+                        <th className="px-4 py-3 text-left">{_t('المبلغ المتبقي المعلق', 'Outstanding Balance')}</th>
+                        <th className="px-4 py-3 text-left w-36">{_t('مبلغ التوزيع المقترح', 'Allocation Amount')}</th>
+                        <th className="px-4 py-3 text-left">{_t('المتبقي المتوقع بعد المعاينة', 'Preview Remaining')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {data.salesInvoices.map((inv) => (
+                        <tr key={inv.id} className="hover:bg-slate-50/50">
+                          <td className="px-4 py-3.5 font-bold text-indigo-600">#{inv.invoiceNo}</td>
+                          <td className="px-4 py-3.5 text-slate-500">{formatDate(inv.date)}</td>
+                          <td className="px-4 py-3.5 font-mono text-left">{formatCurrency(inv.remaining)} ر.س</td>
+                          <td className="px-4 py-3.5 text-left">
+                            <input 
+                              type="number"
+                              min="0"
+                              placeholder="0.00"
+                              value={customerAllocations[inv.id] || ''}
+                              onChange={(e) => {
+                                setCustomerAllocations({
+                                  ...customerAllocations,
+                                  [inv.id]: e.target.value
+                                });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-lg px-2 py-1 text-xs text-left font-mono font-bold"
+                            />
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-left text-emerald-600 font-extrabold">
+                            {formatCurrency(Math.max(0, inv.remaining - (parseFloat(customerAllocations[inv.id]) || 0)))} ر.س
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Calculations summaries */}
+                <div className="grid gap-4 md:grid-cols-3 pt-2">
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('قيمة السند المحدد', 'Receipt Value')}</span>
+                    <span className="text-base font-extrabold text-indigo-950 font-mono">
+                      {formatCurrency(data.openReceipts.find(r => r.id === parseInt(selectedReceiptId))?.remaining || 0)} ر.س
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('إجمالي التخصيص المقترح', 'Total Proposed Allocation')}</span>
+                    <span className="text-base font-extrabold text-indigo-600 font-mono">
+                      {formatCurrency(calculateTotalProposedCustomer())} ر.س
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('الرصيد المتبقي غير الموزع', 'Remaining Unallocated')}</span>
+                    <span className="text-base font-extrabold text-amber-600 font-mono">
+                      {formatCurrency(Math.max(0, (data.openReceipts.find(r => r.id === parseInt(selectedReceiptId))?.remaining || 0) - calculateTotalProposedCustomer()))} ر.س
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* SIMULATION TRIGGER BUTTONS AND RESULTS */}
+              <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 items-center justify-between">
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleCustomerPreview}
+                    disabled={customerPreviewLoading}
+                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
+                  >
+                    <Play className={`w-4 h-4 ${customerPreviewLoading ? 'animate-spin' : ''}`} />
+                    {_t('معاينة ومحاكاة تخصيص الأرصدة (Dry-Run)', 'Run Allocation Simulation')}
+                  </button>
+
+                  <button
+                    disabled
+                    className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
+                  >
+                    <Lock className="w-4 h-4 text-rose-500" />
+                    {_t('إثبات وحفظ التسوية فعلياً', 'Save Actual Allocation')}
+                  </button>
+                </div>
+
+                <span className="text-xs text-slate-500 flex items-center gap-1.5 font-light">
+                  <Info className="w-4 h-4 text-indigo-500" />
+                  {_t('لن يتم إجراء أي كتابة أو تعديل على دفاتر الحسابات العام والخزينة.', 'No database write or mutation will be performed.')}
                 </span>
               </div>
 
-              <div className="text-xs text-slate-600 space-y-2">
-                <p>{_t('تم حساب العملية بنجاح. القيد المحاسبي المولد للمعاينة يطابق القواعد المالية الحالية:', 'Calculation finalized. Preview matching matches structural financial validation rules:')}</p>
-                <ul className="list-disc list-inside space-y-1 pl-4">
-                  <li>{_t('القدرة على المضي قدماً (canProceed): ', 'Can Proceed: ')} <span className="font-bold text-emerald-700">true</span></li>
-                  <li>{_t('إجمالي التسوية المقترحة: ', 'Total Allocated: ')} <span className="font-bold text-slate-800 font-mono">{formatCurrency(customerPreviewResult.totalAllocatedAmount)} ر.س</span></li>
-                  <li>{_t('رصيد السند المعلق المتبقي: ', 'Unallocated Remainder: ')} <span className="font-bold text-slate-800 font-mono">{formatCurrency(customerPreviewResult.unallocatedAmount)} ر.س</span></li>
-                </ul>
-              </div>
+              {/* FAILURE RESPONSE PANEL */}
+              {customerPreviewError && (
+                <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 space-y-2 animate-fadeIn">
+                  <div className="flex items-center gap-2 text-rose-800">
+                    <AlertCircle className="w-5 h-5 text-rose-600" />
+                    <h4 className="font-extrabold">{_t('فشل فحص التسوية المالي (أخطاء مانعة)', 'Validation Blocking Errors')}</h4>
+                  </div>
+                  <p className="text-xs text-rose-950 font-semibold">{customerPreviewError}</p>
+                </div>
+              )}
 
-              {/* Table details */}
-              <div className="bg-white rounded-lg border border-slate-100 overflow-hidden text-[11px]">
-                <table className="w-full text-slate-700 text-right">
-                  <thead className="bg-slate-50 text-[10px] font-bold text-slate-500">
-                    <tr>
-                      <th className="px-3 py-2 text-right">{_t('الفاتورة', 'Invoice')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المدفوع حالياً', 'Current Paid')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المتبقي حالياً', 'Current Rem.')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المدفوع بالمعاينة', 'Preview Paid')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المتبقي بالمعاينة', 'Preview Rem.')}</th>
-                      <th className="px-3 py-2 text-center">{_t('الحالة المتوقعة', 'Preview Status')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-mono">
-                    {customerPreviewResult.affectedInvoices.map((inv: any) => (
-                      <tr key={inv.invoiceId} className="hover:bg-slate-50/50">
-                        <td className="px-3 py-2 font-bold text-indigo-600 text-right font-sans">#{inv.invoiceNo}</td>
-                        <td className="px-3 py-2 text-left">{formatCurrency(inv.currentPaid)}</td>
-                        <td className="px-3 py-2 text-left">{formatCurrency(inv.currentRemaining)}</td>
-                        <td className="px-3 py-2 text-left text-indigo-600 font-bold">{formatCurrency(inv.previewPaid)}</td>
-                        <td className="px-3 py-2 text-left text-emerald-600 font-black">{formatCurrency(inv.previewRemaining)}</td>
-                        <td className="px-3 py-2 text-center font-sans">
-                          <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-bold">
-                            {inv.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              {/* SUCCESS DTO RESULT PANEL */}
+              {customerPreviewResult && (
+                <div className="bg-emerald-50/50 border border-emerald-200/60 rounded-xl p-5 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-800">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      <h4 className="font-extrabold">{_t('نجاح محاكاة التخصيص والمطابقة محاسبياً', 'Allocation Dry-Run Simulation Succeeded')}</h4>
+                    </div>
+                    <span className="px-2 py-0.5 bg-emerald-100 border border-emerald-200 text-emerald-800 text-[10px] font-bold rounded">
+                      {_t('الوضع الجاف: نشط', 'dryRun: true')}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-600 space-y-2">
+                    <p>{_t('تم حساب العملية بنجاح. القيد المحاسبي المولد للمعاينة يطابق القواعد المالية الحالية:', 'Calculation finalized. Preview matching matches structural financial validation rules:')}</p>
+                    <ul className="list-disc list-inside space-y-1 pl-4">
+                      <li>{_t('القدرة على المضي قدماً (canProceed): ', 'Can Proceed: ')} <span className="font-bold text-emerald-700">{String(customerPreviewResult.canProceed)}</span></li>
+                      <li>{_t('إجمالي التسوية المقترحة: ', 'Total Proposed: ')} <span className="font-bold text-slate-800 font-mono">{formatCurrency(customerPreviewResult.totalAllocatedAmount)} ر.س</span></li>
+                      <li>{_t('رصيد السند المعلق المتبقي: ', 'Unallocated Remainder: ')} <span className="font-bold text-slate-800 font-mono">{formatCurrency(customerPreviewResult.unallocatedAmount)} ر.س</span></li>
+                    </ul>
+                  </div>
+
+                  {/* Table details */}
+                  <div className="bg-white rounded-lg border border-slate-100 overflow-hidden text-[11px]">
+                    <table className="w-full text-slate-700 text-right">
+                      <thead className="bg-slate-50 text-[10px] font-bold text-slate-500">
+                        <tr>
+                          <th className="px-3 py-2 text-right">{_t('الفاتورة', 'Invoice')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المدفوع حالياً', 'Current Paid')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المتبقي حالياً', 'Current Rem.')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المدفوع بالمعاينة', 'Preview Paid')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المتبقي بالمعاينة', 'Preview Rem.')}</th>
+                          <th className="px-3 py-2 text-center">{_t('الحالة المتوقعة', 'Preview Status')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-mono">
+                        {customerPreviewResult.affectedInvoices.map((inv: any) => (
+                          <tr key={inv.invoiceId} className="hover:bg-slate-50/50">
+                            <td className="px-3 py-2 font-bold text-indigo-600 text-right font-sans">#{inv.invoiceNo}</td>
+                            <td className="px-3 py-2 text-left">{formatCurrency(inv.currentPaid)}</td>
+                            <td className="px-3 py-2 text-left">{formatCurrency(inv.currentRemaining)}</td>
+                            <td className="px-3 py-2 text-left text-indigo-600 font-bold">{formatCurrency(inv.previewPaid)}</td>
+                            <td className="px-3 py-2 text-left text-emerald-600 font-black">{formatCurrency(inv.previewRemaining)}</td>
+                            <td className="px-3 py-2 text-center font-sans">
+                              <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-bold">
+                                {inv.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -878,138 +958,190 @@ export default function OpenItemsDashboard() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
           <div className="border-b border-slate-100 pb-4 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-extrabold text-amber-950">{_t('معالج محاكاة تسوية أرصدة الموردين (AP Wizard)', 'Supplier Allocation Preview Wizard (AP)')}</h2>
-              <p className="text-xs text-slate-500 mt-1">{_t('قم بمحاكاة تخصيص سندات الدفع مع فواتير المشتريات المفتوحة للموردين بشكل معزول ومحمي.', 'Dry-run bills and purchase allocations with supplier payments safely.')}</p>
+              <h2 className="text-xl font-extrabold text-amber-950">{_t('معالج تسوية أرصدة الموردين (AP Wizard)', 'Supplier Allocation Preview Wizard (AP)')}</h2>
+              <p className="text-xs text-slate-500 mt-1">{_t('قم بمحاكاة تخصيص سندات الصرف مع فواتير المشتريات المفتوحة للموردين بشكل معزول ومحمي.', 'Dry-run bills and purchase allocations with supplier payments safely.')}</p>
             </div>
             <span className="px-3 py-1 bg-amber-50 border border-amber-100 text-amber-700 text-xs font-bold rounded-full">
               {_t('وضع المعاينة الجافة | Preview Mode', 'Simulation Preview')}
             </span>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر مورداً نموذجياً (Mock Supplier)', 'Select Supplier (Mock)')}</label>
-              <select 
-                value={mockSupplierSelected}
-                onChange={(e) => setMockSupplierSelected(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800"
-              >
-                <option value="504">{_t('الشركة العربية للمستلزمات - ح/ 504 (Arab Supplies)', 'Arab Supplies (ID: 504)')}</option>
-                <option value="508">{_t('مكتب التقنية الحديثة - ح/ 508 (Modern Tech)', 'Modern Tech (ID: 508)')}</option>
-              </select>
+          {!data || data.purchaseInvoices.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-500 text-sm font-semibold">
+              {_t('يرجى استعلام البنود المفتوحة للشريك أولاً من لوحة التحكم لعرض فواتيره المفتوحة وسنداته المعلقة.', 'Please query open items for a partner from the Ledger View first to load outstanding invoices and unallocated receipts.')}
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر سند صرف نموذجياً للتوزيع (Mock Payment)', 'Select Supplier Payment (Mock)')}</label>
-              <select
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800"
-                disabled
-              >
-                <option value="PAY-301">{_t('سند صرف #PAY-301 - رصيد 10,000 ر.س (رصيد كافٍ)', 'Payment PAY-301 - Balance 10,000 SAR')}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* AP Preview Table */}
-          <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-4 space-y-4">
-            <h4 className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-              <Table className="w-4 h-4 text-amber-600" />
-              {_t('فواتير المشتريات المعلقة للمورد والتخصيص المقترح', 'Purchase Invoices and Preview Allocations')}
-            </h4>
-
-            <div className="overflow-x-auto bg-white rounded-xl border border-slate-100 shadow-sm">
-              <table className="w-full text-sm text-slate-700 text-right">
-                <thead className="bg-slate-50/40 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
-                  <tr>
-                    <th className="px-4 py-3 text-right">{_t('رقم الفاتورة', 'Bill No')}</th>
-                    <th className="px-4 py-3 text-right">{_t('التاريخ', 'Date')}</th>
-                    <th className="px-4 py-3 text-left">{_t('المبلغ المتبقي المعلق', 'Outstanding Outstanding')}</th>
-                    <th className="px-4 py-3 text-left w-36">{_t('مبلغ التوزيع المقترح', 'Allocation Amount')}</th>
-                    <th className="px-4 py-3 text-left">{_t('المتبقي المتوقع (بعد المعاينة)', 'Preview Remaining')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="px-4 py-3.5 font-bold text-amber-600">#BILL-2026-081</td>
-                    <td className="px-4 py-3.5 text-slate-500">2026-05-02</td>
-                    <td className="px-4 py-3.5 font-mono text-left">7,000.00 ر.س</td>
-                    <td className="px-4 py-3.5 text-left">
-                      <input 
-                        type="number"
-                        value={mockBillAllocAmt}
-                        onChange={(e) => setMockBillAllocAmt(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-left font-mono font-bold"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-left text-emerald-600 font-extrabold">
-                      {formatCurrency(Math.max(0, 7000 - Number(mockBillAllocAmt)))} ر.س
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* SIMULATION TRIGGER */}
-          <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 items-center justify-between">
-            <div className="flex gap-4">
-              <button
-                onClick={runSupplierSimulation}
-                disabled={supplierPreviewLoading}
-                className="px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
-              >
-                <Play className={`w-4 h-4 ${supplierPreviewLoading ? 'animate-spin' : ''}`} />
-                {_t('معاينة ومحاكاة تسوية الموردين (Dry-Run)', 'Run Supplier Simulation')}
-              </button>
-
-              <button
-                disabled
-                className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
-              >
-                <Lock className="w-4 h-4 text-rose-500" />
-                {_t('ترحيل وحفظ الدفع الفعلي', 'Post Supplier Payment')}
-              </button>
-            </div>
-          </div>
-
-          {/* DTO RESULT */}
-          {supplierPreviewResult && (
-            <div className="bg-amber-50/40 border border-amber-200/60 rounded-xl p-5 space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-amber-800">
-                  <CheckCircle className="w-5 h-5 text-amber-600" />
-                  <h4 className="font-extrabold">{_t('نجاح محاكاة تسوية المورد محاسبياً', 'Supplier Dry-Run Simulation Succeeded')}</h4>
+          ) : (
+            <>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-2">{_t('المورد النشط (مستعلم حالياً)', 'Target Partner (Active)')}</label>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <User className="w-4 h-4 text-amber-500" />
+                    <span>{_t(`المورد النشط - معرف ح/ ${customerId}`, `Active Partner - ID: ${customerId}`)}</span>
+                  </div>
                 </div>
-                <span className="px-2 py-0.5 bg-amber-100 border border-amber-200 text-amber-800 text-[10px] font-bold rounded">
-                  {_t('الوضع الجاف: نشط', 'dryRun: true')}
-                </span>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر سند الدفع/الصرف معلق التوزيع (من الدفاتر الحية)', 'Select Unallocated Payment (Live)')}</label>
+                  <select
+                    value={selectedApReceiptId}
+                    onChange={(e) => setSelectedApReceiptId(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800"
+                  >
+                    <option value="">{_t('── اختر سند صرف معلق ──', '── Select Pending Payment ──')}</option>
+                    {data.openReceipts.map(receipt => (
+                      <option key={receipt.id} value={receipt.id}>
+                        {_t(`سند #TREAS-${receipt.id} - رصيد: ${formatCurrency(receipt.remaining)} ر.س`, `Payment TREAS-${receipt.id} - Bal: ${formatCurrency(receipt.remaining)} SAR`)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-slate-100 overflow-hidden text-[11px]">
-                <table className="w-full text-slate-700 text-right">
-                  <thead className="bg-slate-50 text-[10px] font-bold text-slate-500">
-                    <tr>
-                      <th className="px-3 py-2 text-right">{_t('الفاتورة', 'Bill')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المدفوع حالياً', 'Current Paid')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المتبقي حالياً', 'Current Rem.')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المدفوع بالمعاينة', 'Preview Paid')}</th>
-                      <th className="px-3 py-2 text-left">{_t('المتبقي بالمعاينة', 'Preview Rem.')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-mono">
-                    {supplierPreviewResult.affectedInvoices.map((inv: any) => (
-                      <tr key={inv.invoiceId} className="hover:bg-slate-50/50">
-                        <td className="px-3 py-2 font-bold text-amber-600 text-right font-sans">#{inv.invoiceNo}</td>
-                        <td className="px-3 py-2 text-left">{formatCurrency(inv.currentPaid)}</td>
-                        <td className="px-3 py-2 text-left">{formatCurrency(inv.currentRemaining)}</td>
-                        <td className="px-3 py-2 text-left text-amber-600 font-bold">{formatCurrency(inv.previewPaid)}</td>
-                        <td className="px-3 py-2 text-left text-emerald-600 font-black">{formatCurrency(inv.previewRemaining)}</td>
+              {/* AP Preview Table */}
+              <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-4 space-y-4">
+                <h4 className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                  <Table className="w-4 h-4 text-amber-600" />
+                  {_t('فواتير المشتريات المعلقة للمورد والتخصيص المقترح', 'Purchase Invoices & Proposed Allocation')}
+                </h4>
+
+                <div className="overflow-x-auto bg-white rounded-xl border border-slate-100 shadow-sm">
+                  <table className="w-full text-sm text-slate-700 text-right">
+                    <thead className="bg-slate-50/40 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
+                      <tr>
+                        <th className="px-4 py-3 text-right">{_t('رقم الفاتورة', 'Bill No')}</th>
+                        <th className="px-4 py-3 text-right">{_t('التاريخ', 'Date')}</th>
+                        <th className="px-4 py-3 text-left">{_t('المبلغ المتبقي المعلق', 'Outstanding Balance')}</th>
+                        <th className="px-4 py-3 text-left w-36">{_t('مبلغ التوزيع المقترح', 'Allocation Amount')}</th>
+                        <th className="px-4 py-3 text-left">{_t('المتبقي المتوقع بعد المعاينة', 'Preview Remaining')}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {data.purchaseInvoices.map((inv) => (
+                        <tr key={inv.id} className="hover:bg-slate-50/50">
+                          <td className="px-4 py-3.5 font-bold text-amber-600">#{inv.invoiceNo}</td>
+                          <td className="px-4 py-3.5 text-slate-500">{formatDate(inv.date)}</td>
+                          <td className="px-4 py-3.5 font-mono text-left">{formatCurrency(inv.remaining)} ر.س</td>
+                          <td className="px-4 py-3.5 text-left">
+                            <input 
+                              type="number"
+                              min="0"
+                              placeholder="0.00"
+                              value={supplierAllocations[inv.id] || ''}
+                              onChange={(e) => {
+                                setSupplierAllocations({
+                                  ...supplierAllocations,
+                                  [inv.id]: e.target.value
+                                });
+                              }}
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-lg px-2 py-1 text-xs text-left font-mono font-bold"
+                            />
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-left text-emerald-600 font-extrabold">
+                            {formatCurrency(Math.max(0, inv.remaining - (parseFloat(supplierAllocations[inv.id]) || 0)))} ر.س
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Calculations summaries */}
+                <div className="grid gap-4 md:grid-cols-3 pt-2">
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('قيمة السند المحدد', 'Payment Value')}</span>
+                    <span className="text-base font-extrabold text-indigo-950 font-mono">
+                      {formatCurrency(data.openReceipts.find(r => r.id === parseInt(selectedApReceiptId))?.remaining || 0)} ر.س
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('إجمالي التخصيص المقترح', 'Total Proposed Allocation')}</span>
+                    <span className="text-base font-extrabold text-indigo-600 font-mono">
+                      {formatCurrency(calculateTotalProposedSupplier())} ر.س
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-100 p-4">
+                    <span className="text-[10px] font-bold text-slate-400 block tracking-wider uppercase">{_t('الرصيد المتبقي غير الموزع', 'Remaining Unallocated')}</span>
+                    <span className="text-base font-extrabold text-amber-600 font-mono">
+                      {formatCurrency(Math.max(0, (data.openReceipts.find(r => r.id === parseInt(selectedApReceiptId))?.remaining || 0) - calculateTotalProposedSupplier()))} ر.س
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+
+              {/* SIMULATION TRIGGER */}
+              <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 items-center justify-between">
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleSupplierPreview}
+                    disabled={supplierPreviewLoading}
+                    className="px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
+                  >
+                    <Play className={`w-4 h-4 ${supplierPreviewLoading ? 'animate-spin' : ''}`} />
+                    {_t('معاينة ومحاكاة تسوية الموردين (Dry-Run)', 'Run Supplier Simulation')}
+                  </button>
+
+                  <button
+                    disabled
+                    className="px-6 py-3 bg-slate-100 text-slate-400 cursor-not-allowed font-bold text-sm rounded-xl border border-slate-200/60 flex items-center gap-2 group relative"
+                  >
+                    <Lock className="w-4 h-4 text-rose-500" />
+                    {_t('ترحيل وحفظ الدفع الفعلي', 'Post Supplier Payment')}
+                  </button>
+                </div>
+              </div>
+
+              {/* FAILURE AP RESPONSE */}
+              {supplierPreviewError && (
+                <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 space-y-2 animate-fadeIn">
+                  <div className="flex items-center gap-2 text-rose-800">
+                    <AlertCircle className="w-5 h-5 text-rose-600" />
+                    <h4 className="font-extrabold">{_t('فشل فحص التسوية ماليّاً للمورد', 'Validation Blocking Errors')}</h4>
+                  </div>
+                  <p className="text-xs text-rose-955 font-semibold">{supplierPreviewError}</p>
+                </div>
+              )}
+
+              {/* SUCCESS AP DTO RESULT */}
+              {supplierPreviewResult && (
+                <div className="bg-amber-50/40 border border-amber-200/60 rounded-xl p-5 space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-800">
+                      <CheckCircle className="w-5 h-5 text-amber-600" />
+                      <h4 className="font-extrabold">{_t('نجاح محاكاة تسوية المورد محاسبياً', 'Supplier Dry-Run Simulation Succeeded')}</h4>
+                    </div>
+                    <span className="px-2 py-0.5 bg-amber-100 border border-amber-200 text-amber-800 text-[10px] font-bold rounded">
+                      {_t('الوضع الجاف: نشط', 'dryRun: true')}
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-lg border border-slate-100 overflow-hidden text-[11px]">
+                    <table className="w-full text-slate-700 text-right">
+                      <thead className="bg-slate-50 text-[10px] font-bold text-slate-500">
+                        <tr>
+                          <th className="px-3 py-2 text-right">{_t('الفاتورة', 'Bill')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المدفوع حالياً', 'Current Paid')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المتبقي حالياً', 'Current Rem.')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المدفوع بالمعاينة', 'Preview Paid')}</th>
+                          <th className="px-3 py-2 text-left">{_t('المتبقي بالمعاينة', 'Preview Rem.')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-mono">
+                        {supplierPreviewResult.affectedInvoices.map((inv: any) => (
+                          <tr key={inv.invoiceId} className="hover:bg-slate-50/50">
+                            <td className="px-3 py-2 font-bold text-amber-600 text-right font-sans">#{inv.invoiceNo}</td>
+                            <td className="px-3 py-2 text-left">{formatCurrency(inv.currentPaid)}</td>
+                            <td className="px-3 py-2 text-left">{formatCurrency(inv.currentRemaining)}</td>
+                            <td className="px-3 py-2 text-left text-amber-600 font-bold">{formatCurrency(inv.previewPaid)}</td>
+                            <td className="px-3 py-2 text-left text-emerald-600 font-black">{formatCurrency(inv.previewRemaining)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -1029,31 +1161,25 @@ export default function OpenItemsDashboard() {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('اختر حركة مطابقة سابقة (Mock Match Ledger)', 'Select Registered Matching (Mock)')}</label>
-              <select 
-                value={mockMatchSelected}
-                onChange={(e) => setMockMatchSelected(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-800 font-mono"
-              >
-                <option value="MATCH-4820">{_t('مطابقة #MATCH-4820 - فاتورة INV-001 مع سند TREAS-201 بقيمة 5,000.00 ر.س', 'Reconciliation MATCH-4820 - Invoice INV-001 - 5,000 SAR')}</option>
-              </select>
+              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('رقم حركة المطابقة السابقة (Matching ID)', 'Enter Matching ID (Numeric)')}</label>
+              <input
+                type="number"
+                min="1"
+                value={selectedMatchingId}
+                onChange={(e) => setSelectedMatchingId(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-rose-500 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 font-mono"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('مبرر إلغاء وإبطال المطابقة (يطلب المحاسب حداً أدنى 10 أحرف)', 'Detailed Reversal Reason (Minimum 10 chars)')}</label>
+              <label className="block text-xs font-bold text-slate-600 mb-2">{_t('مبرر إلغاء وإبطال المطابقة (يطلب الخادم حداً أدنى 10 أحرف للتدقيق)', 'Detailed Reversal Reason (Minimum 10 chars)')}</label>
               <textarea
                 value={reversalReason}
-                onChange={(e) => {
-                  setReversalReason(e.target.value);
-                  if (e.target.value.length >= 10) setReversalReasonError(null);
-                }}
+                onChange={(e) => setReversalReason(e.target.value)}
                 placeholder={_t('اكتب مبرراً تفصيلياً لإلغاء هذه المطابقة لتدوين سجلات التدقيق المالي...', 'Provide a clear auditing reason for voiding this match...')}
                 rows={2}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-rose-500 rounded-xl px-4 py-2 text-xs font-semibold text-slate-800"
               />
-              {reversalReasonError && (
-                <span className="text-[10px] font-bold text-rose-600 block mt-1">{reversalReasonError}</span>
-              )}
             </div>
           </div>
 
@@ -1061,7 +1187,7 @@ export default function OpenItemsDashboard() {
           <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 items-center justify-between">
             <div className="flex gap-4">
               <button
-                onClick={runReversalSimulation}
+                onClick={handleReversalPreview}
                 disabled={reversalPreviewLoading}
                 className="px-6 py-3 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-bold text-sm rounded-xl shadow-md transition-all flex items-center gap-2"
               >
@@ -1079,7 +1205,18 @@ export default function OpenItemsDashboard() {
             </div>
           </div>
 
-          {/* DTO RESULT */}
+          {/* FAILURE REVERSAL RESPONSE */}
+          {reversalPreviewError && (
+            <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 space-y-2 animate-fadeIn">
+              <div className="flex items-center gap-2 text-rose-800">
+                <AlertCircle className="w-5 h-5 text-rose-600" />
+                <h4 className="font-extrabold">{_t('فشل فحص إلغاء المطابقة (أخطاء مانعة)', 'Reversal Validation Blocking Errors')}</h4>
+              </div>
+              <p className="text-xs text-rose-955 font-semibold">{reversalPreviewError}</p>
+            </div>
+          )}
+
+          {/* SUCCESS REVERSAL DTO RESULT */}
           {reversalPreviewResult && (
             <div className="bg-rose-50/40 border border-rose-200/60 rounded-xl p-5 space-y-4 animate-fadeIn">
               <div className="flex items-center justify-between">
@@ -1092,8 +1229,8 @@ export default function OpenItemsDashboard() {
                 </span>
               </div>
 
-              <div className="text-xs text-rose-950 font-light leading-relaxed">
-                {_t('في حال اعتماد التراجع الفعلي لاحقاً، ستتأثر الفواتير المسواة سابقاً كالتالي وتعود لمستحقات المنشأة:', 'Upon execution, historically settled sales/purchase documents will revert back as follows:')}
+              <div className="text-xs text-rose-950 font-light leading-relaxed font-semibold">
+                {_t('في حال اعتماد التراجع الفعلي لاحقاً، ستتأثر المستندات كالتالي وتعود لمستحقات المنشأة مع إلغاء ربطها التام:', 'Upon execution, historically settled sales/purchase documents will revert back as follows:')}
               </div>
 
               <div className="bg-white rounded-lg border border-slate-100 overflow-hidden text-[11px]">
