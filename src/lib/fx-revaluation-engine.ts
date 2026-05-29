@@ -215,4 +215,199 @@ export class FXRevaluationEngine {
     const lastDay  = new Date(now.getFullYear(), now.getMonth(), 0);  // last day of prev month
     return this.run(tenantId, lastDay, true, userId);
   }
+
+  /**
+   * FX-01A: Calculate dry-run FX revaluation preview for outstanding foreign currency AR/AP invoices
+   */
+  static async previewARAP(
+    tx: any,
+    tenantId: string,
+    targetDate: Date
+  ): Promise<any> {
+    const baseCurrencyCode = 'SAR';
+
+    // 1. Fetch active foreign currencies with their closing rates up to targetDate
+    const currencies = await tx.currency.findMany({
+      where: {
+        tenantId,
+        code: { not: baseCurrencyCode },
+        isActive: true,
+      },
+    });
+
+    const closingRates: Record<number, number> = {};
+    for (const currency of currencies) {
+      const latestRate = await tx.exchangeRate.findFirst({
+        where: {
+          tenantId,
+          currencyId: currency.id,
+          date: { lte: targetDate },
+        },
+        orderBy: { date: 'desc' },
+      });
+      if (!latestRate?.rate) {
+        throw new Error(`Missing closing exchange rate for ${currency.code} on ${targetDate.toISOString().split('T')[0]}`);
+      }
+      closingRates[currency.id] = Number(latestRate.rate);
+    }
+
+    // 2. Fetch outstanding foreign Sales Invoices (AR)
+    const salesInvoices = await tx.salesInvoice.findMany({
+      where: {
+        tenantId,
+        currencyId: { not: null },
+        remaining: { gt: 0 },
+        deletedAt: null,
+        status: { notIn: ['cancelled', 'voided'] },
+      },
+      include: {
+        currency: true,
+        customer: { select: { fullName: true } },
+      },
+    });
+
+    const lines: any[] = [];
+    let totalGain = 0;
+    let totalLoss = 0;
+
+    for (const inv of salesInvoices) {
+      if (!inv.currencyId) continue;
+      const closingRate = closingRates[inv.currencyId] || 1.0;
+      const originalRate = inv.exchangeRate ? Number(inv.exchangeRate) : 1.0;
+      const fcyBalance = Number(inv.remaining);
+
+      const sarAtHistorical = Math.round(fcyBalance * originalRate * 100) / 100;
+      const sarAtClosing = Math.round(fcyBalance * closingRate * 100) / 100;
+      // For AR (Asset): Gain if rate increases (closingRate > originalRate)
+      const unrealized = Math.round((sarAtClosing - sarAtHistorical) * 100) / 100;
+
+      if (Math.abs(unrealized) < 0.01) continue;
+
+      if (unrealized > 0) {
+        totalGain += unrealized;
+      } else {
+        totalLoss += Math.abs(unrealized);
+      }
+
+      lines.push({
+        type: 'AR',
+        documentNo: String(inv.invoiceNo),
+        partnerName: inv.customer?.fullName || 'Customer',
+        currency: inv.currency?.code || 'USD',
+        fcyBalance,
+        originalRate,
+        closingRate,
+        sarAtHistorical,
+        sarAtClosing,
+        unrealizedGainLoss: unrealized,
+        direction: unrealized > 0 ? 'GAIN' : 'LOSS',
+      });
+    }
+
+    // 3. Fetch outstanding foreign Purchase Invoices (AP)
+    const purchaseInvoices = await tx.purchaseInvoice.findMany({
+      where: {
+        tenantId,
+        currencyId: { not: null },
+        remaining: { gt: 0 },
+        deletedAt: null,
+        status: { notIn: ['cancelled', 'voided'] },
+      },
+      include: {
+        currency: true,
+        supplier: { select: { fullName: true } },
+      },
+    });
+
+    for (const inv of purchaseInvoices) {
+      if (!inv.currencyId) continue;
+      const closingRate = closingRates[inv.currencyId] || 1.0;
+      const originalRate = inv.exchangeRate ? Number(inv.exchangeRate) : 1.0;
+      const fcyBalance = Number(inv.remaining);
+
+      const sarAtHistorical = Math.round(fcyBalance * originalRate * 100) / 100;
+      const sarAtClosing = Math.round(fcyBalance * closingRate * 100) / 100;
+      // For AP (Liability): Loss if rate increases (closingRate > originalRate), Gain if rate decreases
+      const unrealized = Math.round((sarAtHistorical - sarAtClosing) * 100) / 100;
+
+      if (Math.abs(unrealized) < 0.01) continue;
+
+      if (unrealized > 0) {
+        totalGain += unrealized;
+      } else {
+        totalLoss += Math.abs(unrealized);
+      }
+
+      lines.push({
+        type: 'AP',
+        documentNo: String(inv.invoiceNo),
+        partnerName: inv.supplier?.fullName || 'Supplier',
+        currency: inv.currency?.code || 'USD',
+        fcyBalance,
+        originalRate,
+        closingRate,
+        sarAtHistorical,
+        sarAtClosing,
+        unrealizedGainLoss: unrealized,
+        direction: unrealized > 0 ? 'GAIN' : 'LOSS',
+      });
+    }
+
+    // 4. Build projected journal lines (Draft preview)
+    const projectedJournalLines: any[] = [];
+    for (const line of lines) {
+      if (line.unrealizedGainLoss > 0) {
+        projectedJournalLines.push(
+          {
+            accountCode: line.type === 'AR' ? '1101' : '2101',
+            description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+            debit: line.type === 'AR' ? line.unrealizedGainLoss : 0,
+            credit: line.type === 'AP' ? line.unrealizedGainLoss : 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: '8101',
+            description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+            debit: line.type === 'AP' ? line.unrealizedGainLoss : 0,
+            credit: line.type === 'AR' ? line.unrealizedGainLoss : 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      } else {
+        const absVal = Math.abs(line.unrealizedGainLoss);
+        projectedJournalLines.push(
+          {
+            accountCode: '8102',
+            description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+            debit: line.type === 'AR' ? 0 : absVal,
+            credit: line.type === 'AP' ? 0 : absVal,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: line.type === 'AR' ? '1101' : '2101',
+            description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+            debit: line.type === 'AR' ? absVal : 0,
+            credit: line.type === 'AP' ? absVal : 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      }
+    }
+
+    return {
+      tenantId,
+      revalDate: targetDate.toISOString().split('T')[0],
+      baseCurrency: baseCurrencyCode,
+      lines,
+      totalUnrealized: Math.round((totalGain - totalLoss) * 100) / 100,
+      totalGain: Math.round(totalGain * 100) / 100,
+      totalLoss: Math.round(totalLoss * 100) / 100,
+      projectedJournalLines,
+      generatedAt: new Date(),
+    };
+  }
 }
