@@ -45,7 +45,7 @@ jest.mock('@/lib/db/transaction', () => ({
 import { OpenItemsService } from '../lib/services/open-items.service';
 import { assertPeriodWritable } from '@/lib/governance/period-lock';
 
-describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
+describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01F)', () => {
   const tenantId = 'test-tenant';
   const userId = '101';
 
@@ -102,6 +102,7 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
         date: new Date('2026-05-15'),
       });
 
+      txMock.openItemMatching.findFirst.mockResolvedValue(null); // no duplicate
       txMock.openItemMatching.findMany.mockResolvedValue([]); // no prior allocations
 
       txMock.openItemMatching.create.mockResolvedValue({
@@ -162,6 +163,7 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
         date: new Date(),
       });
 
+      txMock.openItemMatching.findFirst.mockResolvedValue(null);
       txMock.openItemMatching.findMany.mockResolvedValue([]);
 
       await expect(
@@ -230,10 +232,117 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
         })
       ).rejects.toThrow('Treasury entry not found or unauthorized.');
     });
+
+    it('6. should reject allocation if sales invoice is cancelled or voided', async () => {
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        total: new Decimal(1000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(1000.0),
+        status: 'cancelled',
+        date: new Date(),
+      });
+
+      await expect(
+        OpenItemsService.allocateCustomerPayment(txMock, {
+          tenantId,
+          salesInvoiceId: 501,
+          treasuryId: 701,
+          amount: 500.0,
+          allocatedBy: 'MANUAL_USER',
+          sourceType: 'MANUAL',
+          userId,
+        })
+      ).rejects.toThrow('Cannot allocate payments to cancelled or voided invoices.');
+    });
+
+    it('7. should reject duplicate allocations (Idempotency check)', async () => {
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        total: new Decimal(1000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(1000.0),
+        date: new Date(),
+      });
+
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 701,
+        tenantId,
+        amount: new Decimal(1500.0),
+        type: 'in',
+        date: new Date(),
+      });
+
+      // Mock an existing active matching record with the exact same details
+      txMock.openItemMatching.findFirst.mockResolvedValue({
+        id: 901,
+        tenantId,
+        salesInvoiceId: 501,
+        treasuryId: 701,
+        amount: new Decimal(500.0),
+        status: 'ACTIVE',
+      });
+
+      await expect(
+        OpenItemsService.allocateCustomerPayment(txMock, {
+          tenantId,
+          salesInvoiceId: 501,
+          treasuryId: 701,
+          amount: 500.0,
+          allocatedBy: 'MANUAL_USER',
+          sourceType: 'MANUAL',
+          userId,
+        })
+      ).rejects.toThrow('An identical active matching allocation already exists. Blocked duplicate request.');
+    });
+
+    it('8. should reject allocation if treasury payment is associated with customer A but invoice with customer B', async () => {
+      txMock.salesInvoice.findFirst.mockResolvedValue({
+        id: 501,
+        tenantId,
+        customerId: 11, // Customer A
+        total: new Decimal(1000.0),
+        paid: new Decimal(0),
+        remaining: new Decimal(1000.0),
+        date: new Date(),
+      });
+
+      txMock.treasury.findFirst.mockResolvedValue({
+        id: 701,
+        tenantId,
+        amount: new Decimal(1000.0),
+        type: 'in',
+        referenceType: 'sale',
+        referenceId: 888, // reference to another sale
+        date: new Date(),
+      });
+
+      // Mock the sale referenced by treasury to have a different customer (Customer B)
+      txMock.salesInvoice.findUnique.mockResolvedValue({
+        id: 888,
+        customerId: 12, // Customer B
+      });
+
+      txMock.openItemMatching.findFirst.mockResolvedValue(null);
+
+      await expect(
+        OpenItemsService.allocateCustomerPayment(txMock, {
+          tenantId,
+          salesInvoiceId: 501,
+          treasuryId: 701,
+          amount: 500.0,
+          allocatedBy: 'MANUAL_USER',
+          sourceType: 'MANUAL',
+          userId,
+        })
+      ).rejects.toThrow('Partner mismatch. Treasury payment customer does not match invoice customer.');
+    });
   });
 
   describe('allocateSupplierPayment()', () => {
-    it('6. should successfully allocate supplier payment to purchase invoice', async () => {
+    it('9. should successfully allocate supplier payment to purchase invoice', async () => {
       txMock.purchaseInvoice.findFirst.mockResolvedValue({
         id: 601,
         tenantId,
@@ -251,6 +360,7 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
         date: new Date('2026-05-15'),
       });
 
+      txMock.openItemMatching.findFirst.mockResolvedValue(null);
       txMock.openItemMatching.findMany.mockResolvedValue([]);
 
       txMock.openItemMatching.create.mockResolvedValue({
@@ -286,7 +396,7 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
   });
 
   describe('reverseAllocation()', () => {
-    it('7. should successfully reverse an active allocation and restore parent balances', async () => {
+    it('10. should successfully reverse an active allocation and restore parent balances', async () => {
       txMock.openItemMatching.findFirst.mockResolvedValue({
         id: 901,
         tenantId,
@@ -332,7 +442,7 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
       });
     });
 
-    it('8. should reject reversal if reason is too short', async () => {
+    it('11. should reject reversal if reason is too short', async () => {
       await expect(
         OpenItemsService.reverseAllocation(
           txMock,
@@ -342,6 +452,26 @@ describe('Open Items Allocation Service Engine (Phase OPEN-ITEMS-01E)', () => {
           'Short' // too short (< 10 chars)
         )
       ).rejects.toThrow('A detailed reversal reason (minimum 10 characters) is strictly required.');
+    });
+
+    it('12. should reject double reversals', async () => {
+      txMock.openItemMatching.findFirst.mockResolvedValue({
+        id: 901,
+        tenantId,
+        salesInvoiceId: 501,
+        amount: new Decimal(400.0),
+        status: 'REVERSED', // already reversed!
+      });
+
+      await expect(
+        OpenItemsService.reverseAllocation(
+          txMock,
+          tenantId,
+          901,
+          userId,
+          'Reversal attempt for an already reversed match'
+        )
+      ).rejects.toThrow('This matching allocation has already been reversed.');
     });
   });
 });

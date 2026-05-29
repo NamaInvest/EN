@@ -142,9 +142,13 @@ export class OpenItemsService {
       throw new Error('Sales invoice not found or unauthorized.');
     }
 
-    // Ensure invoice customer matches the request target if applicable
-    if (invoice.remaining.lessThanOrEqualTo(0)) {
-      throw new Error('Invoiced outstanding balance is already fully settled.');
+    // Document State Checks
+    if (invoice.status === 'cancelled' || invoice.status === 'voided') {
+      throw new Error('Cannot allocate payments to cancelled or voided invoices.');
+    }
+
+    if (invoice.status === 'completed' || invoice.remaining.lessThanOrEqualTo(0)) {
+      throw new Error('Invoice outstanding balance is already fully settled.');
     }
 
     // 2. Pessimistic Lock & Fetch Treasury Entry
@@ -160,7 +164,34 @@ export class OpenItemsService {
       throw new Error('Customer allocation requires an inward treasury receipt (type: in).');
     }
 
-    // 3. Verify Period Lock Rules on transaction date
+    // 3. Partner Matching Verification
+    if (invoice.customerId && treasury.referenceType === 'sale' && treasury.referenceId) {
+      const referencedSale = await tx.salesInvoice.findUnique({
+        where: { id: treasury.referenceId },
+        select: { customerId: true },
+      });
+      if (referencedSale && referencedSale.customerId !== invoice.customerId) {
+        throw new Error('Partner mismatch. Treasury payment customer does not match invoice customer.');
+      }
+    }
+
+    // 4. Concurrency & Idempotency Duplicate Allocation Guard
+    const existingMatch = await tx.openItemMatching.findFirst({
+      where: {
+        tenantId,
+        salesInvoiceId,
+        treasuryId,
+        amount: allocationAmt,
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+    });
+
+    if (existingMatch) {
+      throw new Error('An identical active matching allocation already exists. Blocked duplicate request.');
+    }
+
+    // 5. Verify Period Lock Rules on transaction date
     await assertPeriodWritable({
       tenantId,
       postingDate: new Date(invoice.date),
@@ -170,13 +201,13 @@ export class OpenItemsService {
       overrideContext,
     });
 
-    // 4. Overmatching Arithmetic Safeguard (Invoice side)
+    // 6. Overmatching Arithmetic Safeguard (Invoice side)
     const outstandingInvoice = new Decimal(invoice.remaining);
     if (allocationAmt.greaterThan(outstandingInvoice)) {
       throw new Error(`Allocation amount (${allocationAmt}) exceeds remaining invoice balance (${outstandingInvoice}).`);
     }
 
-    // 5. Overmatching Arithmetic Safeguard (Treasury side)
+    // 7. Overmatching Arithmetic Safeguard (Treasury side)
     const priorMatchings = await tx.openItemMatching.findMany({
       where: { treasuryId, status: 'ACTIVE', deletedAt: null },
       select: { amount: true },
@@ -191,7 +222,7 @@ export class OpenItemsService {
       throw new Error(`Allocation amount (${allocationAmt}) exceeds remaining treasury balance (${treasuryRemaining}).`);
     }
 
-    // 6. Create the Allocating matching record
+    // 8. Create the Allocating matching record
     const match = await tx.openItemMatching.create({
       data: {
         tenantId,
@@ -205,7 +236,7 @@ export class OpenItemsService {
       },
     });
 
-    // 7. Update Invoice Balances Atomically
+    // 9. Update Invoice Balances Atomically
     const newPaid = new Decimal(invoice.paid).plus(allocationAmt);
     const newRemaining = new Decimal(invoice.total).minus(newPaid);
 
@@ -218,7 +249,7 @@ export class OpenItemsService {
       },
     });
 
-    // 8. Write AuditLog
+    // 10. Write AuditLog
     await tx.auditLog.create({
       data: {
         tenantId,
@@ -277,7 +308,12 @@ export class OpenItemsService {
       throw new Error('Purchase invoice not found or unauthorized.');
     }
 
-    if (invoice.remaining.lessThanOrEqualTo(0)) {
+    // Document State Checks
+    if (invoice.status === 'cancelled' || invoice.status === 'voided') {
+      throw new Error('Cannot allocate payments to cancelled or voided invoices.');
+    }
+
+    if (invoice.status === 'completed' || invoice.remaining.lessThanOrEqualTo(0)) {
       throw new Error('Invoice outstanding balance is already fully settled.');
     }
 
@@ -294,7 +330,34 @@ export class OpenItemsService {
       throw new Error('Supplier allocation requires an outward treasury payment (type: out).');
     }
 
-    // 3. Verify Period Lock Rules
+    // 3. Partner Matching Verification
+    if (invoice.supplierId && treasury.referenceType === 'purchase' && treasury.referenceId) {
+      const referencedPurchase = await tx.purchaseInvoice.findUnique({
+        where: { id: treasury.referenceId },
+        select: { supplierId: true },
+      });
+      if (referencedPurchase && referencedPurchase.supplierId !== invoice.supplierId) {
+        throw new Error('Partner mismatch. Treasury payment supplier does not match invoice supplier.');
+      }
+    }
+
+    // 4. Concurrency & Idempotency Duplicate Allocation Guard
+    const existingMatch = await tx.openItemMatching.findFirst({
+      where: {
+        tenantId,
+        purchaseInvoiceId,
+        treasuryId,
+        amount: allocationAmt,
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+    });
+
+    if (existingMatch) {
+      throw new Error('An identical active matching allocation already exists. Blocked duplicate request.');
+    }
+
+    // 5. Verify Period Lock Rules
     await assertPeriodWritable({
       tenantId,
       postingDate: new Date(invoice.date),
@@ -304,13 +367,13 @@ export class OpenItemsService {
       overrideContext,
     });
 
-    // 4. Overmatching Arithmetic Safeguard (Invoice side)
+    // 6. Overmatching Arithmetic Safeguard (Invoice side)
     const outstandingInvoice = new Decimal(invoice.remaining);
     if (allocationAmt.greaterThan(outstandingInvoice)) {
       throw new Error(`Allocation amount (${allocationAmt}) exceeds remaining invoice balance (${outstandingInvoice}).`);
     }
 
-    // 5. Overmatching Arithmetic Safeguard (Treasury side)
+    // 7. Overmatching Arithmetic Safeguard (Treasury side)
     const priorMatchings = await tx.openItemMatching.findMany({
       where: { treasuryId, status: 'ACTIVE', deletedAt: null },
       select: { amount: true },
@@ -325,7 +388,7 @@ export class OpenItemsService {
       throw new Error(`Allocation amount (${allocationAmt}) exceeds remaining treasury balance (${treasuryRemaining}).`);
     }
 
-    // 6. Create the Allocating matching record
+    // 8. Create the Allocating matching record
     const match = await tx.openItemMatching.create({
       data: {
         tenantId,
@@ -339,7 +402,7 @@ export class OpenItemsService {
       },
     });
 
-    // 7. Update Invoice Balances Atomically
+    // 9. Update Invoice Balances Atomically
     const newPaid = new Decimal(invoice.paid).plus(allocationAmt);
     const newRemaining = new Decimal(invoice.total).minus(newPaid);
 
@@ -352,7 +415,7 @@ export class OpenItemsService {
       },
     });
 
-    // 8. Write AuditLog
+    // 10. Write AuditLog
     await tx.auditLog.create({
       data: {
         tenantId,
@@ -391,11 +454,15 @@ export class OpenItemsService {
 
     // 1. Fetch matching record
     const match = await tx.openItemMatching.findFirst({
-      where: { id: matchingId, tenantId, status: 'ACTIVE', deletedAt: null },
+      where: { id: matchingId, tenantId, deletedAt: null },
     });
 
     if (!match) {
       throw new Error('Active matching record not found or unauthorized.');
+    }
+
+    if (match.status === 'REVERSED') {
+      throw new Error('This matching allocation has already been reversed.');
     }
 
     // 2. Period Lock Enforcement on Reversal Date
@@ -421,14 +488,14 @@ export class OpenItemsService {
       },
     });
 
-    // 4. Update Parent Document Balances
+    // 4. Update Parent Document Balances with strict absolute boundaries
     if (match.salesInvoiceId) {
       const invoice = await tx.salesInvoice.findUnique({
         where: { id: match.salesInvoiceId },
       });
       if (invoice) {
         const newPaid = Decimal.max(0, new Decimal(invoice.paid).minus(allocationAmt));
-        const newRemaining = new Decimal(invoice.total).minus(newPaid);
+        const newRemaining = Decimal.min(invoice.total, new Decimal(invoice.total).minus(newPaid));
         await tx.salesInvoice.update({
           where: { id: match.salesInvoiceId },
           data: {
@@ -444,7 +511,7 @@ export class OpenItemsService {
       });
       if (invoice) {
         const newPaid = Decimal.max(0, new Decimal(invoice.paid).minus(allocationAmt));
-        const newRemaining = new Decimal(invoice.total).minus(newPaid);
+        const newRemaining = Decimal.min(invoice.total, new Decimal(invoice.total).minus(newPaid));
         await tx.purchaseInvoice.update({
           where: { id: match.purchaseInvoiceId },
           data: {
