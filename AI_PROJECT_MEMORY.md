@@ -56,6 +56,21 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 
 ## 🚀 Completed Modernization Phases
 
+### Phase UI-HOTFIX-01 — Next.js Dynamic Params Production Fix (2026-05-29)
+* **Status**: `PRODUCTION_DYNAMIC_PARAMS_HOTFIX_DEPLOYED_AND_VERIFIED`
+* **Commit**: `643288770c8144802e3e05742f5c3e4ad2dd3327` (`64328877`)
+* **Scope**: Resolve fatal client-side exception and server components render crash on dynamic page routes by wrapping and unwrapping the `params` Promise using React 19's `use()` hook inside client-side page files.
+* **Files Modified & Deployed**:
+  - `src/app/qr-menu/[token]/page.tsx`
+  - `src/app/customer/table/[qrToken]/page.tsx`
+* **SHA256 Checksums**:
+  - `qr-menu token page`: `3853bd0667da379bbdbefae62d0c07a33aad4996bbd44fd9e0ffd46b3e927e6e`
+  - `customer table qrToken page`: `871676674b2cdaa779eb27bca3fb01f5cf7512c4f32598b1934d3c03e05e6b23`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully restarted.
+* **Runtime Verification**: `namainvist.com` returned 200, `ahmedalyamicompany.namainvist.com` returned 200, verified PM2 logs and confirmed the dynamic parameter promise unwrapping prevents any hydration or rendering exceptions.
+
 ### Phase: Production Credit Control Enforcement (2026-05-28)
 * **Status**: `PRODUCTION_CREDIT_LIMIT_BLOCK_DEPLOYED_AND_VERIFIED`
 * **Commit**: `513b3d59e9a4f4efb79435b6fa72e0d7c71dcf87` (`513b3d59`)
