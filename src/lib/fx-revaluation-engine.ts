@@ -12,6 +12,7 @@
 
 import { prisma } from './prisma';
 import { logger } from '@/lib/logger';
+import { assertPeriodWritable } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'fx-revaluation' });
 
@@ -409,5 +410,366 @@ export class FXRevaluationEngine {
       projectedJournalLines,
       generatedAt: new Date(),
     };
+  }
+
+  /**
+   * FX-01B: Post monthly FX revaluation journal entry and immediately generate auto-reversal entries for AR/AP
+   */
+  static async postARAP(
+    tx: any,
+    tenantId: string,
+    targetDate: Date,
+    userId?: number,
+    branchId?: number | null
+  ): Promise<any[]> {
+    const baseCurrencyCode = 'SAR';
+    // Reversal date: always the first day of the next month
+    const nextPeriodDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+
+    const actor = userId ? String(userId) : 'SYSTEM';
+    const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+
+    // 1. Period Lock validation for targetDate and nextPeriodDate
+    await assertPeriodWritable({
+      tenantId,
+      postingDate: targetDate,
+      operationType: 'FX_REVALUATION_POST',
+      module: 'accounting',
+      actor,
+    });
+
+    await assertPeriodWritable({
+      tenantId,
+      postingDate: nextPeriodDate,
+      operationType: 'FX_REVALUATION_REVERSAL',
+      module: 'accounting',
+      actor,
+    });
+
+    // 1.5 Shielding: Verify that all required revaluation accounts exist in COA (Explicitly Tenant-isolated)
+    const arAccount = await tx.account.findFirst({ where: { code: '1101', tenantId } });
+    const apAccount = await tx.account.findFirst({ where: { code: '2101', tenantId } });
+    const gainAccount = await tx.account.findFirst({ where: { code: '8101', tenantId } });
+    const lossAccount = await tx.account.findFirst({ where: { code: '8102', tenantId } });
+
+    if (!arAccount) {
+      throw new Error('Missing configured revaluation account: 1101 (AR) in Chart of Accounts.');
+    }
+    if (!apAccount) {
+      throw new Error('Missing configured revaluation account: 2101 (AP) in Chart of Accounts.');
+    }
+    if (!gainAccount) {
+      throw new Error('Missing configured revaluation account: 8101 (Unrealized Gain) in Chart of Accounts.');
+    }
+    if (!lossAccount) {
+      throw new Error('Missing configured revaluation account: 8102 (Unrealized Loss) in Chart of Accounts.');
+    }
+
+    // 2. Fetch active foreign currencies with their closing rates
+    const currencies = await tx.currency.findMany({
+      where: {
+        tenantId,
+        code: { not: baseCurrencyCode },
+        isActive: true,
+      },
+    });
+
+    const closingRates: Record<number, number> = {};
+    for (const currency of currencies) {
+      const latestRate = await tx.exchangeRate.findFirst({
+        where: {
+          tenantId,
+          currencyId: currency.id,
+          date: { lte: targetDate },
+        },
+        orderBy: { date: 'desc' },
+      });
+      if (!latestRate?.rate) {
+        throw new Error(`Missing closing exchange rate for ${currency.code} on ${targetDate.toISOString().split('T')[0]}`);
+      }
+      closingRates[currency.id] = Number(latestRate.rate);
+    }
+
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const runs: any[] = [];
+
+    // 3. Process each foreign currency independently
+    for (const currency of currencies) {
+      const ref = `FX_REVAL_ARAP_${year}_${month}_${currency.code}`;
+
+      // Check duplicates (only active, non-deleted, posted entries - case-insensitive safety)
+      const existingEntry = await tx.journalEntry.findFirst({
+        where: {
+          tenantId,
+          reference: ref,
+          deletedAt: null,
+          status: { in: ['posted', 'POSTED'] },
+        },
+      });
+      if (existingEntry) {
+        throw new Error(`FX Revaluation for ${currency.code} in period ${year}-${month} has already been posted.`);
+      }
+
+      // Fetch outstanding Sales Invoices (AR) for this currency
+      const salesInvoices = await tx.salesInvoice.findMany({
+        where: {
+          tenantId,
+          currencyId: currency.id,
+          remaining: { gt: 0 },
+          deletedAt: null,
+          status: { notIn: ['cancelled', 'voided'] },
+        },
+        include: {
+          currency: true,
+          customer: { select: { fullName: true } },
+        },
+      });
+
+      // Fetch outstanding Purchase Invoices (AP) for this currency
+      const purchaseInvoices = await tx.purchaseInvoice.findMany({
+        where: {
+          tenantId,
+          currencyId: currency.id,
+          remaining: { gt: 0 },
+          deletedAt: null,
+          status: { notIn: ['cancelled', 'voided'] },
+        },
+        include: {
+          currency: true,
+          supplier: { select: { fullName: true } },
+        },
+      });
+
+      const lines: any[] = [];
+      let totalGain = 0;
+      let totalLoss = 0;
+
+      // AR
+      for (const inv of salesInvoices) {
+        const closingRate = closingRates[currency.id];
+        const originalRate = inv.exchangeRate ? Number(inv.exchangeRate) : 1.0;
+        const fcyBalance = Number(inv.remaining);
+
+        const sarAtHistorical = Math.round(fcyBalance * originalRate * 100) / 100;
+        const sarAtClosing = Math.round(fcyBalance * closingRate * 100) / 100;
+        const unrealized = Math.round((sarAtClosing - sarAtHistorical) * 100) / 100;
+
+        if (Math.abs(unrealized) < 0.01) continue;
+
+        if (unrealized > 0) {
+          totalGain += unrealized;
+        } else {
+          totalLoss += Math.abs(unrealized);
+        }
+
+        lines.push({
+          type: 'AR',
+          documentNo: String(inv.invoiceNo),
+          partnerName: inv.customer?.fullName || 'Customer',
+          currency: currency.code,
+          fcyBalance,
+          originalRate,
+          closingRate,
+          sarAtHistorical,
+          sarAtClosing,
+          unrealizedGainLoss: unrealized,
+          direction: unrealized > 0 ? 'GAIN' : 'LOSS',
+        });
+      }
+
+      // AP
+      for (const inv of purchaseInvoices) {
+        const closingRate = closingRates[currency.id];
+        const originalRate = inv.exchangeRate ? Number(inv.exchangeRate) : 1.0;
+        const fcyBalance = Number(inv.remaining);
+
+        const sarAtHistorical = Math.round(fcyBalance * originalRate * 100) / 100;
+        const sarAtClosing = Math.round(fcyBalance * closingRate * 100) / 100;
+        const unrealized = Math.round((sarAtHistorical - sarAtClosing) * 100) / 100;
+
+        if (Math.abs(unrealized) < 0.01) continue;
+
+        if (unrealized > 0) {
+          totalGain += unrealized;
+        } else {
+          totalLoss += Math.abs(unrealized);
+        }
+
+        lines.push({
+          type: 'AP',
+          documentNo: String(inv.invoiceNo),
+          partnerName: inv.supplier?.fullName || 'Supplier',
+          currency: currency.code,
+          fcyBalance,
+          originalRate,
+          closingRate,
+          sarAtHistorical,
+          sarAtClosing,
+          unrealizedGainLoss: unrealized,
+          direction: unrealized > 0 ? 'GAIN' : 'LOSS',
+        });
+      }
+
+      // If no revaluation changes are found for this currency, skip it
+      if (lines.length === 0) continue;
+
+      const revalJournalLines: any[] = [];
+      const reversalJournalLines: any[] = [];
+
+      for (const line of lines) {
+        if (line.unrealizedGainLoss > 0) {
+          const gainVal = line.unrealizedGainLoss;
+          revalJournalLines.push(
+            {
+              accountCode: line.type === 'AR' ? '1101' : '2101',
+              description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? gainVal : 0,
+              credit: line.type === 'AP' ? gainVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            },
+            {
+              accountCode: '8101',
+              description: `Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AP' ? gainVal : 0,
+              credit: line.type === 'AR' ? gainVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            }
+          );
+          reversalJournalLines.push(
+            {
+              accountCode: line.type === 'AR' ? '1101' : '2101',
+              description: `Reversal: Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AP' ? gainVal : 0,
+              credit: line.type === 'AR' ? gainVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            },
+            {
+              accountCode: '8101',
+              description: `Reversal: Unrealized FX Gain on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? gainVal : 0,
+              credit: line.type === 'AP' ? gainVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            }
+          );
+        } else {
+          const absVal = Math.abs(line.unrealizedGainLoss);
+          revalJournalLines.push(
+            {
+              accountCode: '8102',
+              description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? 0 : absVal,
+              credit: line.type === 'AP' ? 0 : absVal,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            },
+            {
+              accountCode: line.type === 'AR' ? '1101' : '2101',
+              description: `Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? absVal : 0,
+              credit: line.type === 'AP' ? absVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            }
+          );
+          reversalJournalLines.push(
+            {
+              accountCode: '8102',
+              description: `Reversal: Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? absVal : 0,
+              credit: line.type === 'AP' ? absVal : 0,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            },
+            {
+              accountCode: line.type === 'AR' ? '1101' : '2101',
+              description: `Reversal: Unrealized FX Loss on ${line.type} Invoice #${line.documentNo} (${line.currency})`,
+              debit: line.type === 'AR' ? 0 : absVal,
+              credit: line.type === 'AP' ? 0 : absVal,
+              foreignDebit: 0,
+              foreignCredit: 0,
+            }
+          );
+        }
+      }
+
+      const targetDateStr = targetDate.toISOString().split('T')[0];
+      const nextPeriodDateStr = nextPeriodDate.toISOString().split('T')[0];
+
+      // Create primary journal entry
+      const je = await AccountingJournalService.createEntry(tx, {
+        description: `إعادة تقييم عملات أجنبية - ${currency.code} - فواتير مفتوحة`,
+        reference: ref,
+        lines: revalJournalLines,
+        userId,
+        branchId,
+        date: targetDateStr,
+      });
+
+      await tx.journalEntry.update({
+        where: { id: je.id },
+        data: {
+          isReversal: false,
+          autoReverseDate: nextPeriodDate,
+        },
+      });
+
+      // Create reversing journal entry
+      const revRef = `REV_${ref}`;
+      const revJe = await AccountingJournalService.createEntry(tx, {
+        description: `عكس قيد إعادة تقييم عملات أجنبية - ${currency.code}`,
+        reference: revRef,
+        lines: reversalJournalLines,
+        userId,
+        branchId,
+        date: nextPeriodDateStr,
+      });
+
+      await tx.journalEntry.update({
+        where: { id: revJe.id },
+        data: {
+          isReversal: true,
+        },
+      });
+
+      // Write Audit Log
+      await tx.auditLog.create({
+        data: {
+          tenantId,
+          action: 'FX_REVALUATION_POST',
+          entityType: 'JournalEntry',
+          entityId: String(je.id),
+          userId,
+          metadata: {
+            currency: currency.code,
+            reference: ref,
+            revalDate: targetDateStr,
+            revalEntryId: je.id,
+            reversalEntryId: revJe.id,
+            totalGain,
+            totalLoss,
+            netUnrealized: Math.round((totalGain - totalLoss) * 100) / 100,
+          },
+        },
+      });
+
+      runs.push({
+        currency: currency.code,
+        reference: ref,
+        revalEntryNo: je.entryNumber,
+        revalEntryId: je.id,
+        reversalEntryNo: revJe.entryNumber,
+        reversalEntryId: revJe.id,
+        totalGain: Math.round(totalGain * 100) / 100,
+        totalLoss: Math.round(totalLoss * 100) / 100,
+        linesCount: lines.length,
+      });
+    }
+
+    return runs;
   }
 }
