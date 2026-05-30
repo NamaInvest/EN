@@ -12,6 +12,7 @@ import { useTranslation } from "@/lib/i18n";
 import { FeatureGuard } from '@/hooks/FeatureGuard';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useToast } from '@/components/Toast';
+import { toArray } from '@/lib/utils/safe-data';
 
 export default function RestaurantPOS() {
     const { lang } = useTranslation();
@@ -331,11 +332,11 @@ export default function RestaurantPOS() {
             const res = await fetch('/api/pos/products');
             const data = await res.json();
             if (data.success) {
-                setProducts(data.products || []);
-                const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...data.categories];
+                setProducts(toArray<any>(data?.products));
+                const cats = [{id: t('pos.all'), name: t('sys.str_4068')}, ...toArray<any>(data?.categories)];
                 setCategories(cats);
                 // Cache for offline use
-                cacheProducts(data.products || []);
+                cacheProducts(toArray<any>(data?.products));
             }
         } catch (e) {
             toastError(t('sys.str_4069'));
@@ -347,7 +348,7 @@ export default function RestaurantPOS() {
     const fetchCustomers = async (query: string = '') => {
         try {
             const res = await fetch(`/api/customers?search=${query}`);
-            if (res.ok) setCustomers(await res.json());
+            if (res.ok) setCustomers(toArray<any>(await res.json()));
         } catch (e) { console.error('Error fetching customers', e) }
     };
 
