@@ -5,6 +5,7 @@ import { handleApiError } from '@/lib/api-handler';
 import { runFinancialTx } from '@/lib/db/transaction';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { buildOverrideContextFromRequest } from '@/lib/governance/override-context';
 
 const log = logger.child({ service: 'fx-revaluation-post-route' });
 
@@ -28,9 +29,16 @@ async function _POST(ctx: any) {
     const targetDate = new Date(parsed.data.targetDate);
     const userId = auth?.userId;
 
+    const overrideContext = buildOverrideContextFromRequest(req, {
+      tenantId: tenant,
+      actorId: String(userId || 'system'),
+      actorRole: auth?.role || 'USER',
+      requestId: req.headers.get('x-request-id') || undefined,
+    });
+
     // Run the posting and reversals atomically inside runFinancialTx
     const runs = await runFinancialTx(prisma, async (tx: any) => {
-      return FXRevaluationEngine.postARAP(tx, tenant, targetDate, userId);
+      return FXRevaluationEngine.postARAP(tx, tenant, targetDate, userId, undefined, overrideContext);
     }, 'fx-revaluation-post');
 
     return NextResponse.json({

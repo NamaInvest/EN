@@ -196,7 +196,7 @@ export class OpenItemsService {
       tenantId,
       postingDate: new Date(invoice.date),
       operationType: 'ALLOCATE_CUSTOMER_PAYMENT',
-      module: 'accounting',
+      module: 'open_items',
       actor: userId,
       overrideContext,
     });
@@ -362,7 +362,7 @@ export class OpenItemsService {
       tenantId,
       postingDate: new Date(invoice.date),
       operationType: 'ALLOCATE_SUPPLIER_PAYMENT',
-      module: 'accounting',
+      module: 'open_items',
       actor: userId,
       overrideContext,
     });
@@ -470,7 +470,7 @@ export class OpenItemsService {
       tenantId,
       postingDate: new Date(),
       operationType: 'REVERSE_ALLOCATION',
-      module: 'accounting',
+      module: 'open_items',
       actor: userId,
       overrideContext,
     });

@@ -5,6 +5,7 @@ import { OpenItemsService } from '@/lib/services/open-items.service';
 import { handleApiError } from '@/lib/api-handler';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { buildOverrideContextFromRequest } from '@/lib/governance/override-context';
 
 const log = logger.child({ service: 'open-items-allocate-reversal' });
 
@@ -28,6 +29,13 @@ async function _POST(ctx: any) {
 
     const { matchingId, reason } = parsed.data;
 
+    const overrideContext = buildOverrideContextFromRequest(req, {
+      tenantId: tenant,
+      actorId: String(auth.userId),
+      actorRole: auth.role || 'USER',
+      requestId: req.headers.get('x-request-id') || undefined,
+    });
+
     // Wrap execution inside a retryable financial transaction Client
     await runFinancialTx(prisma, async (tx) => {
       await OpenItemsService.reverseAllocation(
@@ -35,7 +43,8 @@ async function _POST(ctx: any) {
         tenant,
         matchingId,
         String(auth.userId),
-        reason
+        reason,
+        overrideContext
       );
     });
 

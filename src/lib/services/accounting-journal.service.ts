@@ -1,6 +1,8 @@
 import { FinancialTxClient } from '@/lib/db/transaction';
 import { getNextNumber } from '@/lib/numbering';
 import { logger } from '@/lib/logger';
+import { assertPeriodWritable } from '@/lib/governance/period-lock';
+import { resolveTenant } from '@/lib/prisma';
 
 const log = logger.child({ service: 'accounting-journal-service' });
 
@@ -35,6 +37,9 @@ export type CreateJournalEntryDTO = {
     currencyId?: number | null;
     exchangeRate?: number;
     status?: string;
+    tenantId?: string;
+    actor?: string;
+    overrideContext?: any;
 };
 
 export class AccountingJournalService {
@@ -112,6 +117,17 @@ export class AccountingJournalService {
                     throw new Error(`الفترة المالية (${month}/${year}) مغلقة أو مقفلة، لا يمكن إضافة قيود جديدة.`);
                 }
             }
+
+            // Verify granular governance period lock
+            const resolvedTenantId = params.tenantId || resolveTenant();
+            await assertPeriodWritable({
+                tenantId: resolvedTenantId,
+                postingDate: new Date(entryDate),
+                operationType: params.status === 'posted' ? 'POST_JOURNAL' : 'CREATE_JOURNAL',
+                module: 'gl',
+                actor: params.actor || String(params.userId || 'system'),
+                overrideContext: params.overrideContext,
+            });
 
             const finalStatus = params.status || 'posted';
             

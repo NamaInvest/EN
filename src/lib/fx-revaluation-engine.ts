@@ -540,7 +540,8 @@ export class FXRevaluationEngine {
     tenantId: string,
     targetDate: Date,
     userId?: number,
-    branchId?: number | null
+    branchId?: number | null,
+    overrideContext?: any
   ): Promise<any[]> {
     const baseCurrencyCode = 'SAR';
     // Reversal date: always the first day of the next month
@@ -554,16 +555,18 @@ export class FXRevaluationEngine {
       tenantId,
       postingDate: targetDate,
       operationType: 'FX_REVALUATION_POST',
-      module: 'accounting',
+      module: 'fx_revaluation',
       actor,
+      overrideContext,
     });
 
     await assertPeriodWritable({
       tenantId,
       postingDate: nextPeriodDate,
       operationType: 'FX_REVALUATION_REVERSAL',
-      module: 'accounting',
+      module: 'fx_revaluation',
       actor,
+      overrideContext,
     });
 
     // 1.5 Shielding: Verify that all required revaluation accounts exist, are active, and match correct type
@@ -812,6 +815,7 @@ export class FXRevaluationEngine {
         userId,
         branchId,
         date: targetDateStr,
+        overrideContext,
       });
 
       await tx.journalEntry.update({
@@ -831,6 +835,7 @@ export class FXRevaluationEngine {
         userId,
         branchId,
         date: nextPeriodDateStr,
+        overrideContext,
       });
 
       await tx.journalEntry.update({
