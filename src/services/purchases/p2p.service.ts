@@ -16,7 +16,7 @@
 import { Decimal } from '@prisma/client/runtime/library';
 import type { PrismaClient } from '@prisma/client';
 import type { BusinessContext } from '@/services/shared/event-bus.service';
-import { FinancialPeriodService } from '../accounting/financial-period.service';
+import { assertPeriodWritable } from '@/lib/governance/period-lock';
 
 export interface PrLine {
   itemId: string;
@@ -130,8 +130,13 @@ export class ProcureToPayService {
       const prisma   = tx;
 
       // Phase 3: Period Lock Enforcement inside transaction
-      const periodService = new FinancialPeriodService(tx, this.ctx);
-      await periodService.requireOpenPeriod(new Date()); // orderDate is effectively now
+      await assertPeriodWritable({
+        tenantId,
+        postingDate: new Date(),
+        operationType: 'CREATE_PURCHASE_ORDER',
+        module: 'purchases',
+        actor: String(this.ctx.user?.id || 'SYSTEM')
+      });
 
       const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
       const taxTotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice * (l.taxRate ?? 0.15), 0);
@@ -195,8 +200,13 @@ export class ProcureToPayService {
       const prisma   = tx;
 
       // Phase 3: Period Lock Enforcement inside transaction
-      const periodService = new FinancialPeriodService(tx, this.ctx);
-      await periodService.requireOpenPeriod(new Date());
+      await assertPeriodWritable({
+        tenantId,
+        postingDate: new Date(),
+        operationType: 'RECEIVE_GOODS_GRN',
+        module: 'purchases',
+        actor: String(this.ctx.user?.id || 'SYSTEM')
+      });
 
       const po = await prisma.purchaseOrder?.findFirst?.({
         where: { id: poId, tenantId },
