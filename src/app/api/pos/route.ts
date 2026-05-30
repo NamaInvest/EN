@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
 import { postSalesInvoice } from '@/lib/auto-journal';
 import { lockIdempotencyKey, completeIdempotencyKey, unlockIdempotencyKey } from '@/lib/idempotency';
+import { getUserFromRequest } from '@/lib/auth';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'pos' });
 
@@ -28,6 +30,36 @@ async function _POST(req: NextRequest) {
         if (!tenantString) {
             return NextResponse.json({ error: "Missing or invalid Tenant ID" }, { status: 401 });
         }
+
+        const auth = getUserFromRequest(req as any);
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId: tenantString,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId: tenantString,
+                postingDate: new Date(),
+                operationType: 'POS_CHECKOUT',
+                module: 'pos',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    success: false,
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         const idempotencyKey = req.headers.get('x-idempotency-key');
         if (!idempotencyKey) {

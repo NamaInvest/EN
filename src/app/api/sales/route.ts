@@ -554,6 +554,28 @@ async function _PUT(request: Request) {
             actorId: String(auth?.userId || '0'),
             actorRole: auth?.role || 'USER'
         });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'COLLECT_SALES_PAYMENT',
+                module: 'sales',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const invoice = await prisma.salesInvoice.findUnique({ where: { id: Number(invoiceId), tenantId } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
 
@@ -631,6 +653,14 @@ async function _DELETE(request: NextRequest) {
         const auth = getUserFromRequest(request as any);
         if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
 
+        const tenantId = requireTenantId(request as any);
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');
         const id = Number(searchParams.get('id'));
@@ -647,6 +677,29 @@ async function _DELETE(request: NextRequest) {
             if (hasTerminal) {
                 return NextResponse.json({ error: 'لا يمكن حذف الفواتير المحددة لوجود فواتير مرحّلة أو ملغاة أو معكوسة بينها. يرجى تصفية الفواتير أولاً.' }, { status: 400 });
             }
+
+            // ── Period Lock Enforcement (Bulk) ───────────────────────────────────
+            for (const inv of allSales) {
+                try {
+                    await assertPeriodWritable({
+                        tenantId,
+                        postingDate: inv.date,
+                        operationType: 'DELETE_SALES_INVOICE',
+                        module: 'sales',
+                        actor: String(auth?.userId || 'SYSTEM'),
+                        overrideContext
+                    });
+                } catch (err) {
+                    if (err instanceof PeriodLockViolation) {
+                        return NextResponse.json({
+                            error: `الفاتورة #${inv.invoiceNo}: ${err.message}`,
+                            code: err.code
+                        }, { status: err.code === 'LOCKED' ? 409 : 422 });
+                    }
+                    throw err;
+                }
+            }
+            // ──────────────────────────────────────────────────────────────────────
             
             const result = await runFinancialTx(prisma, async (tx: any) => {
                 // Reverse stock
@@ -703,9 +756,29 @@ async function _DELETE(request: NextRequest) {
 
         if (!id) return NextResponse.json({ error: 'معرف الفاتورة مطلوب' }, { status: 400 });
 
-        const tenantId = requireTenantId(request as any);
         const invoice = await prisma.salesInvoice.findUnique({ where: { id, tenantId }, include: { details: true } });
         if (!invoice) return NextResponse.json({ error: 'الفاتورة غير موجودة' }, { status: 404 });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: invoice.date,
+                operationType: 'DELETE_SALES_INVOICE',
+                module: 'sales',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         try {
             assertEditable(invoice.status, 'SalesInvoice');
