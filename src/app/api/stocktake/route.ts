@@ -7,6 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'stocktake' });
 async function _GET(request: NextRequest) {
@@ -37,6 +38,36 @@ async function _POST(request: Request) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
+        const auth = getUserFromRequest(request as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || body.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'STOCKTAKE',
+                module: 'inventory',
+                actor: String(auth?.userId || body.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const products = await prisma.product.findMany({ take: 100, where: { active: true, tenantId }, select: { id: true, name: true, currentStock: true, buyPrice: true } });
 
         const items = (body.items || []).map((item: { productId: number; actualQty: number }) => {

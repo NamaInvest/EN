@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
 import { FinancialPeriodService } from '@/services/accounting/financial-period.service';
 import { DEFAULT_STOCK_ADJUSTMENT_TOLERANCE } from '@/app/api/adjustments/route';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'stock.adjustments' });
 
@@ -56,8 +57,7 @@ async function _POST(req: Request) {
     const prisma = getPrisma(req as any);
 
     // Auth guard
-    const { getUserFromRequest: _getAuth } = require('@/lib/auth');
-    const _auth = _getAuth(req);
+    const _auth = getUserFromRequest(req as any);
     if (!_auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
     try {
@@ -79,10 +79,36 @@ async function _POST(req: Request) {
         }
 
         const tenantId = requireTenantId(req as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(_auth?.userId || decoded.userId || '0'),
+            actorRole: _auth?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'STOCK_ADJUSTMENT',
+                module: 'inventory',
+                actor: String(_auth?.userId || decoded.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const adjustment = await runInventoryTx(prisma, async (tx: any) => {
-            // Phase 2: Period Lock Enforcement inside the transaction
-            const periodService = new FinancialPeriodService(tx, { tenant: { id: tenantId } } as any);
-            await periodService.requireOpenPeriod(new Date());
 
             const product = await tx.product.findFirst({ where: { id: parseInt(productId), tenantId } });
             if (!product) throw new Error('المنتج غير موجود');
