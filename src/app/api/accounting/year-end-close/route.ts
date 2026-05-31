@@ -1,108 +1,130 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { YearEndCloseEngine } from '@/lib/accounting/year-end-close';
+import { logger } from '@/lib/observability/logger';
+
+const log = logger.child({ module: 'api.accounting.year-end-close' });
+
 /**
- * Year-End Close API — Full wizard endpoints
- *
- * GET  /api/accounting/year-end-close/validate?fiscalYearId=X
- * GET  /api/accounting/year-end-close/checklist?fiscalYearId=X
- * POST /api/accounting/year-end-close/preview-je
- * POST /api/accounting/year-end-close/post-je
- * POST /api/accounting/year-end-close/rollover-balances
- * POST /api/accounting/year-end-close/lock-year
- * POST /api/accounting/year-end-close/generate-reports
+ * GET /api/accounting/year-end-close
+ * للتحقق من جاهزية السنة المالية للإغلاق وعرض blockers/warnings
  */
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { withRoute } from '@/lib/api/with-route';
-import { validateRequest } from '@/lib/api/validate-request';
-import { requireTenantId } from '@/lib/tenant/tenant-guard';
-import { YearEndCloseEngine } from '@/lib/year-end-close';
-import { logger } from '@/lib/logger';
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await getUserFromRequest(request as any);
+    if (!auth) {
+      return NextResponse.json({ error: 'غير مصرح بالدخول' }, { status: 401 });
+    }
 
-const log = logger.child({ service: 'accounting.year-end-close' });
+    const { searchParams } = new URL(request.url);
+    const fiscalYear = searchParams.get('fiscalYear'); // e.g. "2026"
+    const tenantId = auth.tenantId || 'default';
 
-const CLOSE_ROLES = ['admin', 'owner', 'cfo', 'finance'];
+    if (!fiscalYear) {
+      return NextResponse.json({ error: 'السنة المالية مطلوبة' }, { status: 400 });
+    }
 
-const PostJESchema = z.object({
-  fiscalYearId:             z.number().int().positive(),
-  retainedEarningsAccountId: z.number().int().positive(),
-  confirmToken:              z.literal('أؤكد', { error: 'يجب كتابة "أؤكد" للتأكيد' }),
-});
-
-const RolloverSchema = z.object({
-  fromFiscalYearId: z.number().int().positive(),
-  toFiscalYearId:   z.number().int().positive(),
-  confirmToken:     z.literal('أؤكد', { error: 'يجب كتابة "أؤكد" للتأكيد' }),
-});
-
-const LockSchema = z.object({
-  fiscalYearId: z.number().int().positive(),
-  confirmToken: z.literal('أؤكد', { error: 'يجب كتابة "أؤكد" للتأكيد' }),
-});
-
-// GET /validate?fiscalYearId=X
-export const GET = withRoute(async ({ req, prisma, auth }) => {
-  if (!CLOSE_ROLES.includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
-  
-  const tenantId = requireTenantId(req as any);
-  const path         = req.nextUrl.pathname;
-  const fiscalYearId = parseInt(req.nextUrl.searchParams.get('fiscalYearId') ?? '0');
-  if (!fiscalYearId) return NextResponse.json({ error: 'fiscalYearId مطلوب' }, { status: 400 });
-
-  if (path.endsWith('/validate')) {
-    const result = await YearEndCloseEngine.validateYearReadiness(prisma as any, tenantId, fiscalYearId);
-    return NextResponse.json(result);
+    const validation = await YearEndCloseEngine.validateYearReadiness(tenantId, fiscalYear);
+    return NextResponse.json(validation);
+  } catch (error: any) {
+    log.error('GET /api/accounting/year-end-close failed', { error: error.message });
+    return NextResponse.json({ error: error.message || 'حدث خطأ داخلي' }, { status: 500 });
   }
+}
 
-  if (path.endsWith('/checklist')) {
-    const checklist = await YearEndCloseEngine.buildChecklist(prisma as any, tenantId, fiscalYearId);
-    return NextResponse.json({ checklist, total: checklist.length, done: checklist.filter((t: any) => t.status === 'DONE').length });
+/**
+ * POST /api/accounting/year-end-close
+ * لتنفيذ قيد الإقفال السنوي وتدوير الأرصدة الافتتاحية
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await getUserFromRequest(request as any);
+    if (!auth) {
+      return NextResponse.json({ error: 'غير مصرح بالدخول' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { fiscalYear, retainedEarningsAccountId, action } = body;
+    const tenantId = auth.tenantId || 'default';
+    const userId = String(auth.userId || '0');
+
+    if (!fiscalYear) {
+      return NextResponse.json({ error: 'السنة المالية مطلوبة' }, { status: 400 });
+    }
+
+    // أ. قيد الإقفال السنوي
+    if (action === 'POST_CLOSING_JE') {
+      if (!retainedEarningsAccountId) {
+        return NextResponse.json({ error: 'حساب الأرباح المحتجزة مطلوب لتصفير قائمة الدخل' }, { status: 400 });
+      }
+
+      const result = await YearEndCloseEngine.closeIncomeStatement({
+        tenantId,
+        fiscalYear,
+        retainedEarningsAccountId: Number(retainedEarningsAccountId),
+        userId,
+      });
+
+      // تسجيل الحدث في الـ Audit Log للحوكمة
+      await prisma.auditLog.create({
+        data: {
+          tenantId,
+          action: 'YEAR_END_CLOSE_POSTED',
+          entityType: 'FiscalYear',
+          entityId: fiscalYear,
+          userId: Number(userId) || undefined,
+          metadata: {
+            fiscalYear,
+            retainedEarningsAccountId,
+            journalEntryId: result.journalEntryId,
+            netIncome: result.netIncome.toString(),
+          },
+        },
+      });
+
+      return NextResponse.json({
+        message: `تم ترحيل قيد الإقفال السنوي المجمع للسنة ${fiscalYear} بنجاح.`,
+        ...result,
+      });
+    }
+
+    // ب. تدوير وتوليد الأرصدة الافتتاحية للسنة الجديدة
+    if (action === 'ROLLOVER_BALANCES') {
+      const nextYear = String(parseInt(fiscalYear, 10) + 1);
+
+      const result = await YearEndCloseEngine.rolloverOpeningBalances({
+        tenantId,
+        fromFiscalYear: fiscalYear,
+        toFiscalYear: nextYear,
+        userId,
+      });
+
+      // تسجيل الحدث في الـ Audit Log للحوكمة
+      await prisma.auditLog.create({
+        data: {
+          tenantId,
+          action: 'YEAR_END_ROLLOVER_COMPLETED',
+          entityType: 'FiscalYear',
+          entityId: fiscalYear,
+          userId: Number(userId) || undefined,
+          metadata: {
+            fromFiscalYear: fiscalYear,
+            toFiscalYear: nextYear,
+            openingBalancesCount: result.openingBalancesCount,
+          },
+        },
+      });
+
+      return NextResponse.json({
+        message: `تم تدوير الأرصدة الافتتاحية بنجاح من السنة ${fiscalYear} إلى السنة الجديدة ${nextYear}.`,
+        ...result,
+      });
+    }
+
+    return NextResponse.json({ error: 'الإجراء المطلوب غير صالح' }, { status: 400 });
+  } catch (error: any) {
+    log.error('POST /api/accounting/year-end-close failed', { error: error.message });
+    return NextResponse.json({ error: error.message || 'حدث خطأ داخلي' }, { status: 500 });
   }
-
-  if (path.endsWith('/preview-je')) {
-    const preview = await YearEndCloseEngine.previewClosingJE(prisma as any, tenantId, fiscalYearId);
-    return NextResponse.json(preview);
-  }
-
-  return NextResponse.json({ error: 'Route not found' }, { status: 404 });
-}, { rateLimit: 'FINANCIAL' });
-
-// POST — dispatches to correct action via URL segment
-export const POST = withRoute(async ({ req, prisma, auth }) => {
-  if (!CLOSE_ROLES.includes(auth.role)) return NextResponse.json({ error: 'صلاحيات غير كافية' }, { status: 403 });
-
-  const tenantId = requireTenantId(req as any);
-  const path = req.nextUrl.pathname;
-
-  if (path.endsWith('/post-je')) {
-    const { data: body, error } = await validateRequest(req, PostJESchema);
-    if (error) return error;
-
-    const result = await YearEndCloseEngine.postClosingJE(prisma as any, tenantId, body.fiscalYearId, body.retainedEarningsAccountId, Number(auth.userId) || 0);
-    return NextResponse.json({ success: true, journalEntryId: result.id, linesCount: result.linesCount }, { status: 201 });
-  }
-
-  if (path.endsWith('/rollover-balances')) {
-    const { data: body, error } = await validateRequest(req, RolloverSchema);
-    if (error) return error;
-
-    const result = await YearEndCloseEngine.rolloverOpeningBalances(prisma as any, tenantId, body.fromFiscalYearId, body.toFiscalYearId, Number(auth.userId) || 0);
-    return NextResponse.json({ success: true, ...result }, { status: 201 });
-  }
-
-  if (path.endsWith('/lock-year')) {
-    const { data: body, error } = await validateRequest(req, LockSchema);
-    if (error) return error;
-
-    await YearEndCloseEngine.lockFiscalYear(prisma as any, tenantId, body.fiscalYearId, Number(auth.userId) || 0);
-    return NextResponse.json({ success: true, message: 'السنة المالية مقفلة نهائياً' });
-  }
-
-  if (path.endsWith('/generate-reports')) {
-    const body = await req.json();
-    if (!body?.fiscalYearId) return NextResponse.json({ error: 'fiscalYearId مطلوب' }, { status: 400 });
-
-    const result = await YearEndCloseEngine.generateClosingReports(prisma as any, tenantId, body.fiscalYearId, Number(auth.userId) || 0);
-    return NextResponse.json({ success: true, ...result });
-  }
-
-  return NextResponse.json({ error: 'Route not found' }, { status: 404 });
-}, { rateLimit: 'FINANCIAL' });
+}
