@@ -164,8 +164,9 @@ node deploy.js --db-push
 |---|---------|-------|-------|
 | 1 | 🔴 | تفعيل أقفال فترات المخزون للجرد والاعتماد والتحويلات | `api/inventory/stocktake/[id]/approve`, `api/stocktake`, `api/stock-transfers`, `api/smart-transfers`, `api/stock/adjustments` |
 | 2 | 🔴 | تفعيل أقفال فترات المبيعات والمشتريات والقيود | `api/sales/route.ts`, `api/purchases/route.ts`, `api/accounting/journal/route.ts` |
-| 3 | 🟡 | تحصين وتوسيع اختبارات التكامل للامتثال المحاسبي | `tests/integration/inventory/period-lock.test.ts` |
-| 4 | 🟢 | النشر الكامل على خادم VPS ومزامنة tenant virtual hosts | `deploy.js` / VPS instances |
+| 3 | 🔴 | تفعيل أقفال الخزينة والرواتب والأصول الثابتة التفصيلية | `lib/services/treasury-posting.service`, `api/payroll/route.ts`, `api/fixed-assets/[id]/depreciate/route.ts` |
+| 4 | 🟡 | إنشاء وتوسيع اختبارات التكامل الشاملة لضوابط أقفال الفترات | `tests/integration/treasury/`, `tests/integration/payroll/`, `tests/integration/fixed-assets/` |
+| 5 | 🟢 | النشر الكامل على خادم VPS ومزامنة tenant virtual hosts وإعادة تشغيل PM2 | `deploy.js` / VPS instances / PM2 reloads |
 
 ### 2026-05-14 — SSO Authentication Hardening (14 إصلاح)
 
