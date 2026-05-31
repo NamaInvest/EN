@@ -429,6 +429,22 @@ export async function _POST(request: Request) {
                 log.error('[document-state-machine] POS audit log failed', { err: e?.message });
             }
 
+            // --- SLA Sub-Ledger: Create Open Item for posted invoice ---
+            if (createdInvoice.customerId) {
+                const { OpenItemsEngine } = await import('@/lib/open-items');
+                await OpenItemsEngine.createOpenItem({
+                    partyId: Number(createdInvoice.customerId),
+                    partyType: 'customer',
+                    documentType: 'sales_invoice',
+                    documentId: createdInvoice.id,
+                    documentNumber: String(finalInvoiceNo),
+                    documentDate: invoiceDate,
+                    amount: total,
+                    tenantId,
+                    dueDate: invoiceDate,
+                }, tx);
+            }
+
             if (paid > 0) {
                 if (body.paymentType === 'split') {
                     const sCash = Number(body.splitCash) || 0;

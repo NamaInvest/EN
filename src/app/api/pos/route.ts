@@ -105,6 +105,48 @@ async function _POST(req: NextRequest) {
             total += item.total + item.taxValue || ((item.quantity * item.price) * (1 + (item.taxRate || 15) / 100));
         }
 
+        // ── Credit Limit & Credit Hold Enforcement for POS ───────────────────
+        if (customerId) {
+            const customer = await prisma.customer.findFirst({
+                where: { id: Number(customerId), tenantId: tenantString },
+                select: { creditLimit: true, balance: true, name: true, creditHold: true, creditHoldReason: true, active: true },
+            });
+            if (customer) {
+                if (!customer.active) {
+                    const { unlockIdempotencyKey } = await import('@/lib/idempotency');
+                    await unlockIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+                    return NextResponse.json({
+                        error: `العميل "${customer.name}" غير نشط. لا يمكن إتمام المعاملة.`,
+                        code: 'CUSTOMER_INACTIVE'
+                    }, { status: 422 });
+                }
+
+                const paymentTypeLower = String(paymentType || 'cash').toLowerCase();
+                const isCredit = paymentTypeLower === 'credit' || paymentTypeLower === 'on_account';
+
+                if (isCredit && customer.creditHold) {
+                    const { unlockIdempotencyKey } = await import('@/lib/idempotency');
+                    await unlockIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+                    return NextResponse.json({
+                        error: `العميل "${customer.name}" موقوف ائتمانياً. السبب: ${customer.creditHoldReason || 'غير محدد'}`,
+                        code: 'CREDIT_HOLD_ACTIVE'
+                    }, { status: 422 });
+                }
+
+                if (isCredit && Number(customer.creditLimit) > 0) {
+                    const currentBalance = Number(customer.balance || 0);
+                    if ((currentBalance + total) > Number(customer.creditLimit)) {
+                        const { unlockIdempotencyKey } = await import('@/lib/idempotency');
+                        await unlockIdempotencyKey(tenantString, 'pos_post', idempotencyKey);
+                        return NextResponse.json({
+                            error: `تجاوز حد الائتمان — العميل "${customer.name}" لديه مديونية قائمة ${currentBalance.toFixed(2)} ر.س والحد الائتماني المسموح به ${Number(customer.creditLimit).toFixed(2)} ر.س.`,
+                            code: 'CREDIT_LIMIT_EXCEEDED'
+                        }, { status: 422 });
+                    }
+                }
+            }
+        }
+
         // 2. Perform POS Transaction (Invoice, Details, ZATCA Record, and Stock)
         // Using Prisma $transaction to ensure atomicity
         const result = await runFinancialTx(prisma, async (tx: any) => {

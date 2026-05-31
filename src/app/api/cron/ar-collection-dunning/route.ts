@@ -1,31 +1,25 @@
 /**
- * AR Collection Dunning Cron
+ * AR Collection Dunning Cron (Upgraded to Dunning Engine v2)
  * POST /api/cron/ar-collection-dunning
  *
  * يُشغَّل كل أحد الساعة 7 صباحاً (0 7 * * 0)
- * يفحص الذمم المتأخرة ويُصعِّد مستوى الدانينج تلقائياً:
+ * يفحص الذمم المتأخرة ويُصعِّد مستوى الدانينج تلقائياً باستخدام محرك V2:
  *
  * Level 1 (1-30 يوم):  رسالة تذكير ودية
- * Level 2 (31-60 يوم): إشعار رسمي + توقف الائتمان
- * Level 3 (61-90 يوم): إشعار قانوني
- * Level 4 (>90 يوم):   تحويل لشركة تحصيل
+ * Level 2 (31-60 يوم): إشعار رسمي + رسوم تأخير
+ * Level 3 (61-90 يوم): إشعار قانوني + احتساب فوائد متأخرات
+ * Level 4 (>90 يوم):   تحويل لشركة تحصيل + حظر ائتمان كامل
  *
  * يُرسل تقريراً لـ Telegram
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, getClient } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { DunningEngineV2 } from '@/lib/dunning-engine-v2';
 
 const log  = logger.child({ service: 'cron.ar-dunning' });
 const CRON = process.env.CRON_SECRET ?? 'local-dev';
-
-const DUNNING_LEVELS = [
-  { days: 90, level: 4, label: 'تحويل لشركة تحصيل',   severity: '🚨' },
-  { days: 60, level: 3, label: 'إشعار قانوني',          severity: '🔴' },
-  { days: 30, level: 2, label: 'إشعار رسمي + وقف ائتمان', severity: '🟠' },
-  { days: 1,  level: 1, label: 'تذكير ودي',             severity: '🟡' },
-];
 
 export async function POST(req: NextRequest) {
   const auth = req.headers.get('authorization') ?? req.headers.get('x-cron-secret');
@@ -37,89 +31,62 @@ export async function POST(req: NextRequest) {
   const dryRun = searchParams.get('dryRun') === 'true';
   const now    = new Date();
 
-  const p = prisma as any;
+  // Try to find the active tenant list from the master DB (n11)
+  const masterClient = getClient('n11');
+  const tenants = await masterClient.tenantAccount.findMany({
+    where: { status: 'ACTIVE' },
+    select: { id: true, subdomain: true },
+  }).catch(() => []) as any[];
 
-  const tenants = await p.tenant?.findMany?.({
-    where: { isActive: true },
-    select: { id: true, code: true },
-  }).catch(() => []) ?? [{ id: 'default', code: 'DEFAULT' }];
+  // Fallback to defaults if no active tenants exist or table does not exist
+  const tenantSlugs = tenants.length > 0 
+    ? tenants.map(t => String(t.subdomain || t.id))
+    : ['n11', 'default'];
 
-  const summary: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
-  let totalActions = 0;
+  const summary = {
+    processed: 0,
+    skippedSnooze: 0,
+    skippedPromise: 0,
+    letters: 0,
+    lateFees: 0,
+    blocked: 0,
+  };
+  const errors: string[] = [];
 
-  for (const tenant of tenants) {
-    const tenantId = String(tenant.id ?? tenant.code);
-
-    // Fetch overdue AR invoices
-    const overdueInvoices = await p.salesInvoice?.findMany?.({
-      where: {
-        tenantId,
-        status:          { in: ['PARTIALLY_PAID', 'SENT', 'OVERDUE'] },
-        remainingAmount: { gt: 0 },
-        dueDate:         { lt: now },
-      },
-      include: {
-        customer: { select: { id: true, name: true, nameAr: true, email: true, phone: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-      take: 1000,
-    }).catch(() => []) ?? [];
-
-    for (const inv of overdueInvoices) {
-      const dueDate    = new Date(inv.dueDate);
-      const daysPastDue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-      const dunning    = DUNNING_LEVELS.find(d => daysPastDue >= d.days);
-      if (!dunning) continue;
-
-      const currentLevel = Number(inv.dunningLevel ?? 0);
-
-      // Only escalate if level increased
-      if (dunning.level <= currentLevel) continue;
-
-      summary[dunning.level] = (summary[dunning.level] ?? 0) + 1;
-      totalActions++;
-
-      if (!dryRun) {
-        // Update dunning level on invoice
-        await p.salesInvoice?.update?.({
-          where: { id: inv.id },
-          data: {
-            dunningLevel: dunning.level,
-            dunningDate:  now,
-            ...(dunning.level >= 2 ? { creditHold: true } : {}),
-          },
-        }).catch(() => null);
-
-        // Create dunning activity
-        await p.collectionActivity?.create?.({
-          data: {
-            tenantId,
-            customerId:   inv.customerId,
-            invoiceId:    inv.id,
-            type:         `DUNNING_L${dunning.level}`,
-            notes:        `${dunning.label} — متأخر ${daysPastDue} يوم — المبلغ: ${Number(inv.remainingAmount ?? 0).toLocaleString('ar-SA')} ر.س`,
-            dueAmount:    inv.remainingAmount,
-            daysPastDue,
-            performedAt:  now,
-            performedBy:  'SYSTEM_CRON',
-          },
-        }).catch(() => null);
+  for (const slug of tenantSlugs) {
+    try {
+      const tenantClient = getClient(slug);
+      const res = await DunningEngineV2.executeDailyRun(tenantClient as any, now);
+      summary.processed += res.processed;
+      summary.skippedSnooze += res.skippedSnooze;
+      summary.skippedPromise += res.skippedPromise;
+      summary.letters += res.letters;
+      summary.lateFees += res.lateFees;
+      summary.blocked += res.blocked;
+      if (res.errors.length > 0) {
+        errors.push(...res.errors.map(e => `[${slug}] ${e}`));
       }
+    } catch (e: any) {
+      errors.push(`Tenant [${slug}] failed: ${e.message}`);
     }
   }
 
   // Telegram report
   const token  = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-  if (token && chatId && totalActions > 0) {
-    const lines = DUNNING_LEVELS.map(d => `${d.severity} Level ${d.level}: ${summary[d.level] ?? 0} فاتورة`);
+  const totalLetters = summary.letters;
+  if (token && chatId && totalLetters > 0) {
     const msg   = [
-      `📊 *تقرير تحصيل الذمم الأسبوعي*`,
+      `📊 *تقرير تحصيل الذمم التلقائي (Dunning Engine v2)*`,
       `📅 ${now.toISOString().split('T')[0]}`,
-      `🔔 إجمالي الإجراءات: ${totalActions}`,
-      '',
-      ...lines,
-      dryRun ? '\n🔍 وضع تجريبي — لم يُعدَّل شيء' : '',
+      `🔔 إجمالي العملاء المعالجين: ${summary.processed}`,
+      `✉️ إشعارات مرسلة: ${totalLetters}`,
+      `💸 قيود رسوم تأخير مسجلة: ${summary.lateFees}`,
+      `🔒 عملاء تم إيقافهم ائتمانياً: ${summary.blocked}`,
+      `😴 عملاء مؤجلين (Snoozed): ${summary.skippedSnooze}`,
+      `🤝 وعود سداد سارية (Promise-to-Pay): ${summary.skippedPromise}`,
+      errors.length > 0 ? `⚠️ أخطاء المعالجة: ${errors.length}` : '',
+      dryRun ? '\n🔍 وضع تجريبي' : '',
     ].filter(Boolean).join('\n');
 
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -129,12 +96,13 @@ export async function POST(req: NextRequest) {
     }).catch(() => null);
   }
 
-  log.info('AR Dunning cron complete', { totalActions, dryRun, summary });
+  log.info('AR Dunning v2 cron complete', { summary, errors });
 
   return NextResponse.json({
+    success: true,
     dryRun,
-    totalActions,
-    summary: DUNNING_LEVELS.map(d => ({ level: d.level, label: d.label, count: summary[d.level] ?? 0 })),
+    summary,
+    errors,
     generatedAt: now.toISOString(),
   });
 }

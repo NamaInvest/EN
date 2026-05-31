@@ -109,6 +109,22 @@ export class SalesInvoiceService extends BaseService {
         data: { status: 'posted', postedAt: new Date(), postedBy: this.ctx.user.id },
       });
 
+      // --- SLA Sub-Ledger: Create Open Item for posted invoice ---
+      if (invoice.customerId) {
+        const { OpenItemsEngine } = await import('@/lib/open-items');
+        await OpenItemsEngine.createOpenItem({
+          partyId: Number(invoice.customerId),
+          partyType: 'customer',
+          documentType: 'sales_invoice',
+          documentId: Number(invoiceId),
+          documentNumber: String(invoice.invoiceNo),
+          documentDate: invoice.date,
+          amount: Number(invoice.total),
+          tenantId: this.tenantId,
+          dueDate: invoice.dueDate || invoice.date,
+        }, tx);
+      }
+
       // Submit to ZATCA / Event Bus
       eventBus.afterCommit('sales.invoice.posted', { invoiceId });
     });

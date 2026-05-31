@@ -23,12 +23,13 @@ export class OpenItemsEngine {
         exchangeRate?: number,
         dueDate?: Date,
         tenantId: any
-    }) {
+    }, txClient?: any) {
         const currency = data.currency || 'SAR';
         const rate = data.exchangeRate || 1;
         const amountSAR = data.amount * rate;
+        const client = txClient || prisma;
 
-        return prisma.openItem.create({
+        return client.openItem.create({
             data: {
                 tenantId: data.tenantId,
                 partyId: data.partyId,
@@ -52,8 +53,8 @@ export class OpenItemsEngine {
     /**
      * Apply a Payment with optional discount, writeoff, and FX calculation
      */
-    static async applyPayment(paymentOpenItemId: number, allocations: any[], userId: string, tenantId: any) {
-        return prisma.$transaction(async (tx) => {
+    static async applyPayment(paymentOpenItemId: number, allocations: any[], userId: string, tenantId: any, txClient?: any) {
+        const execute = async (tx: any) => {
             const payment = await tx.openItem.findFirst({ where: { id: paymentOpenItemId, tenantId }});
             if (!payment || payment.openAmount <= 0) throw new Error("Invalid payment");
 
@@ -244,7 +245,13 @@ export class OpenItemsEngine {
                 appliedList,
                 totalFxGainLoss
             };
-        });
+        };
+
+        if (txClient) {
+            return execute(txClient);
+        } else {
+            return prisma.$transaction(execute);
+        }
     }
 
     static async markAsDisputed(openItemId: number, amount: number, reasonCode: string, description: string, userId: string, tenantId: any) {

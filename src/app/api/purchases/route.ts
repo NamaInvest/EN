@@ -220,6 +220,22 @@ async function _POST(request: Request) {
                 }
             }
 
+            // --- SLA Sub-Ledger: Create Open Item for vendor invoice ---
+            if (createdInvoice.supplierId) {
+                const { OpenItemsEngine } = await import('@/lib/open-items');
+                await OpenItemsEngine.createOpenItem({
+                    partyId: Number(createdInvoice.supplierId),
+                    partyType: 'vendor',
+                    documentType: 'purchase_invoice',
+                    documentId: createdInvoice.id,
+                    documentNumber: String(finalInvoiceNo),
+                    documentDate: invoiceDate,
+                    amount: total,
+                    tenantId,
+                    dueDate: invoiceDate,
+                }, tx);
+            }
+
             if (paid > 0) {
                 const { TreasuryPostingService } = await import('@/lib/services/treasury-posting.service');
                 await TreasuryPostingService.createTreasuryEntry(tx, { type: 'out', amount: paid, description: `فاتورة مشتريات #${finalInvoiceNo}`, referenceType: 'purchase', referenceId: createdInvoice.id }, userId, branchId);

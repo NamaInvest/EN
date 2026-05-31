@@ -71,6 +71,77 @@ export class TreasuryPostingService {
                     },
                 });
 
+                // --- SLA Sub-Ledger: Auto matching of cash payments to posted invoices ---
+                const refType = body.referenceType || 'manual';
+                const refId = body.referenceId ? Number(body.referenceId) : null;
+                const isCustomer = body.type === 'in' && (refType === 'sale' || refType === 'sale_payment');
+                const isVendor = body.type === 'out' && (refType === 'purchase' || refType === 'purchase_payment');
+
+                if ((isCustomer || isVendor) && refId) {
+                    let partnerId: number | null = null;
+                    let docType = '';
+                    if (isCustomer) {
+                        const inv = await tx.salesInvoice.findUnique({
+                            where: { id: refId },
+                            select: { customerId: true }
+                        });
+                        if (inv && inv.customerId) {
+                            partnerId = Number(inv.customerId);
+                            docType = 'sales_invoice';
+                        }
+                    } else if (isVendor) {
+                        const inv = await tx.purchaseInvoice.findUnique({
+                            where: { id: refId },
+                            select: { supplierId: true }
+                        });
+                        if (inv && inv.supplierId) {
+                            partnerId = Number(inv.supplierId);
+                            docType = 'purchase_invoice';
+                        }
+                    }
+
+                    if (partnerId) {
+                        const { OpenItemsEngine } = await import('@/lib/open-items');
+                        
+                        // 1. Create a payment OpenItem for this Treasury transaction
+                        const paymentOpenItem = await OpenItemsEngine.createOpenItem({
+                            partyId: partnerId,
+                            partyType: isCustomer ? 'customer' : 'vendor',
+                            documentType: 'payment',
+                            documentId: newTreasury.id,
+                            documentNumber: `TREAS-${newTreasury.id}`,
+                            documentDate: postingDate,
+                            amount: Number(body.amount),
+                            tenantId,
+                            dueDate: postingDate,
+                        }, tx);
+
+                        // 2. Find the invoice OpenItem
+                        const invoiceOpenItem = await tx.openItem.findFirst({
+                            where: {
+                                tenantId,
+                                partyId: partnerId,
+                                partyType: isCustomer ? 'customer' : 'vendor',
+                                documentType: docType,
+                                documentId: refId,
+                                status: { in: ['OPEN', 'PARTIAL'] },
+                            }
+                        });
+
+                        // 3. Match them if outstanding balance exists
+                        if (invoiceOpenItem && Number(invoiceOpenItem.openAmount) > 0) {
+                            const allocAmount = Math.min(Number(body.amount), Number(invoiceOpenItem.openAmount));
+                            await OpenItemsEngine.applyPayment(
+                                paymentOpenItem.id,
+                                [{ invoiceId: invoiceOpenItem.id, amount: allocAmount }],
+                                userId ? String(userId) : 'system-user',
+                                tenantId,
+                                tx
+                            );
+                        }
+                    }
+                }
+
                 log.info('Treasury record created', {
                     operationType: traceOperationType,
                     aggregateId: `TREAS-${newTreasury.id}`,  // non-sensitive reference
