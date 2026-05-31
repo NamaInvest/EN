@@ -28,7 +28,7 @@ export class PosAccountantService {
         tenantId,
         postingDate: syncDate,
         operationType: 'SYNC',
-        module: 'PosAccountant',
+        module: 'pos',
         actor: overrideContext?.actorId || '0',
         overrideContext
       });
