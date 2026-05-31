@@ -158,6 +158,15 @@ node deploy.js --db-push
 
 ## 📝 سجل الإصلاحات (Change Log)
 
+### 2026-05-31 — GL-02: Module-Specific Granular Period Locking (تفعيل وإغلاق كامل)
+
+| # | الخطورة | الوصف | الملف |
+|---|---------|-------|-------|
+| 1 | 🔴 | تفعيل أقفال فترات المخزون للجرد والاعتماد والتحويلات | `api/inventory/stocktake/[id]/approve`, `api/stocktake`, `api/stock-transfers`, `api/smart-transfers`, `api/stock/adjustments` |
+| 2 | 🔴 | تفعيل أقفال فترات المبيعات والمشتريات والقيود | `api/sales/route.ts`, `api/purchases/route.ts`, `api/accounting/journal/route.ts` |
+| 3 | 🟡 | تحصين وتوسيع اختبارات التكامل للامتثال المحاسبي | `tests/integration/inventory/period-lock.test.ts` |
+| 4 | 🟢 | النشر الكامل على خادم VPS ومزامنة tenant virtual hosts | `deploy.js` / VPS instances |
+
 ### 2026-05-14 — SSO Authentication Hardening (14 إصلاح)
 
 | # | الخطورة | الوصف | الملف |
