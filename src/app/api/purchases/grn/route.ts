@@ -8,6 +8,7 @@ import { postGRN } from '@/lib/auto-journal';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'purchases/grn' });
 
@@ -70,6 +71,17 @@ async function _POST(req: Request) {
             actorId: String(decoded.userId || '0'),
             actorRole: decoded.role || 'USER'
         });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        await assertPeriodWritable({
+            tenantId,
+            postingDate: new Date(),
+            operationType: 'CREATE_GRN',
+            module: 'purchases',
+            actor: String(decoded.userId || 'SYSTEM'),
+            overrideContext
+        });
+        // ────────────────────────────────────────────────────────────────────
 
         const seqResult = await getNextNumber(prisma, 'GRN');
         const nextNo = seqResult.current;
@@ -223,6 +235,12 @@ async function _POST(req: Request) {
 
         return NextResponse.json(grn);
     } catch (e: any) {
+        if (e instanceof PeriodLockViolation) {
+            return NextResponse.json({
+                error: e.message,
+                code: e.code
+            }, { status: e.code === 'LOCKED' ? 409 : 422 });
+        }
         log.error(e);
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }

@@ -42,10 +42,18 @@ vi.mock('@/lib/audit-trail', () => ({
 // Mock prisma
 vi.mock('@/lib/prisma', () => {
     const mockPrisma: any = {
-        customer: { findUnique: vi.fn().mockResolvedValue({ name: 'Test Supplier' }) },
+        customer: {
+            findUnique: vi.fn().mockResolvedValue({ name: 'Test Supplier' }),
+            findFirst: vi.fn().mockResolvedValue({ name: 'Test Supplier' })
+        },
         goodsReceiptNote: { create: vi.fn().mockResolvedValue({ id: 1, grnNo: 100, supplierId: 1 }) },
         goodsReceiptNoteDetail: { create: vi.fn() },
-        product: { findUnique: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10, minStock: 10 }), update: vi.fn() },
+        product: {
+            findUnique: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10, minStock: 10 }),
+            findFirst: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10, minStock: 10 }),
+            update: vi.fn(),
+            updateMany: vi.fn()
+        },
         stockMovement: { create: vi.fn() },
         qualityInspection: { create: vi.fn().mockResolvedValue({}) },
         systemAlert: { create: vi.fn().mockResolvedValue({}) },
@@ -53,11 +61,15 @@ vi.mock('@/lib/prisma', () => {
         productBatch: { create: vi.fn() },
         user: { findUnique: vi.fn().mockResolvedValue({ branchId: 1 }) },
         setting: { findUnique: vi.fn().mockResolvedValue(null) },
-        treasury: { create: vi.fn() }
+        treasury: { create: vi.fn() },
+        financialPeriod: { findUnique: vi.fn().mockResolvedValue({ status: 'OPEN' }) },
+        financialPeriodModuleLock: { findUnique: vi.fn().mockResolvedValue(null) },
+        periodLockLog: { create: vi.fn() }
     };
     mockPrisma.$transaction = vi.fn(async (cb: any) => typeof cb === 'function' ? cb(mockPrisma) : cb);
     return {
-        getPrisma: vi.fn().mockReturnValue(mockPrisma)
+        getPrisma: vi.fn().mockReturnValue(mockPrisma),
+        prisma: mockPrisma
     };
 });
 
@@ -71,6 +83,7 @@ vi.mock('@/lib/api/with-route', () => ({
 import { POST } from '@/app/api/purchases/grn/route';
 import { postGRN } from '@/lib/auto-journal';
 import jwt from 'jsonwebtoken';
+import { getPrisma } from '@/lib/prisma';
 
 describe('GRN POST API - Override Context Wiring (Phase 7.4)', () => {
     beforeEach(() => {
@@ -169,5 +182,49 @@ describe('GRN POST API - Override Context Wiring (Phase 7.4)', () => {
                 })
             })
         );
+    });
+
+    it('should BLOCK GRN creation when purchases module period lock is HARD_LOCKED', async () => {
+        (jwt.verify as any).mockReturnValue({ userId: 1, role: 'USER' });
+        const mockPrisma = getPrisma({} as any);
+        (mockPrisma.setting.findUnique as any).mockResolvedValue({ value: 'true' });
+        (mockPrisma.financialPeriod.findUnique as any).mockResolvedValue({ status: 'OPEN' });
+        (mockPrisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({ status: 'HARD_LOCKED' });
+
+        const req = new NextRequest('http://localhost/api/purchases/grn', {
+            method: 'POST',
+            body: JSON.stringify(buildValidBody()),
+            headers: {
+                'Authorization': 'Bearer test_token',
+                'x-tenant': 'tenant_test',
+                'x-idempotency-key': 'key-lock1',
+            }
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(409);
+        const data = await res.json();
+        expect(data.error).toContain('مغلقة'); // maps to 'مغلقة نهائياً' Arabic message
+    });
+
+    it('should ALLOW GRN creation when purchases module period lock is HARD_LOCKED but MODULE_PERIOD_LOCK_ENABLED is false', async () => {
+        (jwt.verify as any).mockReturnValue({ userId: 1, role: 'USER' });
+        const mockPrisma = getPrisma({} as any);
+        (mockPrisma.setting.findUnique as any).mockResolvedValue(null); // disabled
+        (mockPrisma.financialPeriod.findUnique as any).mockResolvedValue({ status: 'OPEN' });
+        (mockPrisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({ status: 'HARD_LOCKED' });
+
+        const req = new NextRequest('http://localhost/api/purchases/grn', {
+            method: 'POST',
+            body: JSON.stringify(buildValidBody()),
+            headers: {
+                'Authorization': 'Bearer test_token',
+                'x-tenant': 'tenant_test',
+                'x-idempotency-key': 'key-lock2',
+            }
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(200);
     });
 });

@@ -15,6 +15,7 @@ import { logger }                from '@/lib/logger';
 import { runFinancialTx }        from '@/lib/db/transaction';
 import { InventoryService }      from '@/lib/services/inventory.service';
 import { assertTenant, requireTenantFilter } from '@/lib/security/tenant-guard';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'grn' });
 
@@ -95,6 +96,34 @@ async function _POST(req: NextRequest, auth: any) {
   const body     = parsed.data;
   const today    = body.date || new Date().toISOString().split('T')[0];
   const stockId  = body.stockId || null;
+
+  const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+  const overrideContext = buildOverrideContextFromRequest(req as any, {
+      tenantId,
+      actorId: String(auth?.userId || '0'),
+      actorRole: auth?.role || 'USER'
+  });
+
+  // ── Period Lock Enforcement ────────────────────────────────────────
+  try {
+      await assertPeriodWritable({
+          tenantId,
+          postingDate: new Date(today),
+          operationType: 'CREATE_GRN',
+          module: 'purchases',
+          actor: String(auth?.userId || 'SYSTEM'),
+          overrideContext
+      });
+  } catch (err) {
+      if (err instanceof PeriodLockViolation) {
+          return NextResponse.json({
+              error: err.message,
+              code: err.code
+          }, { status: err.code === 'LOCKED' ? 409 : 422 });
+      }
+      throw err;
+  }
+  // ────────────────────────────────────────────────────────────────────
 
   // Compute total cost
   const totalCost = body.items.reduce((sum, item) => {

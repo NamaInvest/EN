@@ -15,6 +15,7 @@ import { validateRequest, validateQuery, PaginationSchema, DateRangeSchema } fro
 import { buildPurchaseOrderSaga, buildGRNSaga } from '@/lib/workflow/saga/purchase-sagas';
 import { Decimal }                   from '@prisma/client/runtime/library';
 import { logger } from '@/lib/logger';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'purchase-orders' });
 
@@ -109,6 +110,24 @@ async function _POST(req: NextRequest) {
       const { data, error } = await validateRequest(req, GRNSchema);
       if (error) return error;
 
+      const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+      const overrideContext = buildOverrideContextFromRequest(req as any, {
+          tenantId,
+          actorId: String(auth?.userId || '0'),
+          actorRole: auth?.role || 'USER'
+      });
+
+      // ── Period Lock Enforcement ────────────────────────────────────────
+      await assertPeriodWritable({
+          tenantId,
+          postingDate: new Date(data.receivedDate),
+          operationType: 'RECEIVE_PO_GOODS',
+          module: 'purchases',
+          actor: String(auth?.userId || 'SYSTEM'),
+          overrideContext
+      });
+      // ────────────────────────────────────────────────────────────────────
+
       const saga = buildGRNSaga(prisma as any);
       const result = await saga.execute({
         tenantId,
@@ -165,6 +184,12 @@ async function _POST(req: NextRequest) {
     }, { status: 201 });
 
   } catch (e: any) {
+    if (e instanceof PeriodLockViolation) {
+      return NextResponse.json({
+        error: e.message,
+        code: e.code
+      }, { status: e.code === 'LOCKED' ? 409 : 422 });
+    }
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
