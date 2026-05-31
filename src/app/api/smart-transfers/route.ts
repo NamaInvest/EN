@@ -7,6 +7,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { runInventoryTx } from '@/lib/db/transaction';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'smart-transfers' });
 
@@ -99,6 +100,36 @@ async function _POST(req: NextRequest) {
             return NextResponse.json({ error: 'بيانات غير مكتملة' }, { status: 400 });
         }
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(user?.userId || '0'),
+            actorRole: user?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'DISPATCH_SMART_TRANSFER',
+                module: 'inventory',
+                actor: String(user?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // Validate sender stock availability
         const currentStock = await prisma.productStock.findFirst({
             where: { productId: Number(productId), stockId: Number(senderStockId) }
@@ -179,6 +210,36 @@ async function _PUT(req: NextRequest) {
 
         const { movementId } = body;
         if (!movementId) return NextResponse.json({ error: 'No ID provided' }, { status: 400 });
+
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(user?.userId || '0'),
+            actorRole: user?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'RECEIVE_SMART_TRANSFER',
+                module: 'inventory',
+                actor: String(user?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         const tr = await prisma.stockMovement.findUnique({ 
             where: { id: parseInt(movementId) },

@@ -8,6 +8,7 @@ import { getUserFromRequest } from '@/lib/auth';
 import { postStockTransfer } from '@/lib/auto-journal';
 import { logger } from '@/lib/logger';
 import { withTransaction, runInventoryTx } from '@/lib/db/transaction';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'stock-transfers' });
 
@@ -54,6 +55,35 @@ async function _POST(request: NextRequest) {
 
         const body        = parsed.data;
         const tenantId    = (await import('@/lib/governance/tenant-guard')).requireTenantId(request as any);
+
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'STOCK_TRANSFER',
+                module: 'inventory',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const last        = await prisma.stockTransfer.findFirst({ where: { tenantId }, orderBy: { transferNo: 'desc' } });
         const transferNo  = (last?.transferNo || 0) + 1;
         const fromStockId = body.fromStockId ? Number(body.fromStockId) : null;
