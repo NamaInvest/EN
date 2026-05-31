@@ -511,3 +511,14 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Database / Prisma Schema**: Unchanged (no migrations, no db push).
 * **PM2**: `main-site`, `n1-main`, `saas-app` all online and successfully reloaded.
 * **Runtime Verification**: `namainvist.com` returned 200 OK, `/api/auth/me` returned 401 (no 500 crashes), and QR print preview verified with images showing properly.
+
+### Phase: Sales Returns GET Pagination Hardening (2026-05-31)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `458634cd733c987339e2f014add91487f82cc95b` (`fix(sales-returns): harden get pagination against invalid params`)
+* **Scope**: Harden GET API `/api/sales-returns` pagination parameter reading (`page`, `take`) to protect Prisma query skip/take from receiving NaN or negative/zero values which generate 500 internal server crashes under invalid query inputs.
+* **Files Modified & Deployed**:
+  - `src/app/api/sales-returns/route.ts`
+  - `src/__tests__/sales-returns-governance.test.ts`
+* **Database / Prisma Schema**: Unchanged (no migrations, no db push).
+* **PM2**: `main-site`, `n1-main`, and `saas-app` all online and successfully reloaded with clean boot logs.
+* **Runtime Verification**: Local typecheck PASS, local prisma validate PASS, Jest targeted tests 7/7 PASS, local production build PASS. Remote deployment ff-only pull and server build PASS. Smoke tests curled on all domains returned healthy 200/401 and `/api/sales-returns?page=abc&take=-10` returned 401 instead of crashing (validated fallback safely to page=1, take=50). Zero database, schema, or financial period mutations occurred.
