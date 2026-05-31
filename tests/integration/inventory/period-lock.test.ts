@@ -39,7 +39,8 @@ vi.mock('@/lib/prisma', () => {
             findFirst: vi.fn().mockResolvedValue({ id: 1, currentStock: 100, buyPrice: 10 }),
             findUnique: vi.fn().mockResolvedValue({ id: 1, currentStock: 100, buyPrice: 10, name: 'Test Product' }),
             findMany: vi.fn().mockResolvedValue([{ id: 1, name: 'Test Product', currentStock: 100, buyPrice: 10, active: true }]),
-            updateMany: vi.fn().mockResolvedValue({ count: 1 })
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+            update: vi.fn().mockResolvedValue({})
         },
         productStock: {
             upsert: vi.fn(),
@@ -59,7 +60,17 @@ vi.mock('@/lib/prisma', () => {
             findFirst: vi.fn().mockResolvedValue(null)
         },
         stocktake: {
-            create: vi.fn().mockResolvedValue({ id: 1, items: [] })
+            create: vi.fn().mockResolvedValue({ id: 1, items: [] }),
+            findUnique: vi.fn().mockResolvedValue({
+                id: 1,
+                status: 'pending',
+                date: new Date(),
+                items: [{ id: 1, productId: 1, actualQty: 110, systemQty: 100, product: { id: 1, buyPrice: 10 } }]
+            }),
+            update: vi.fn().mockResolvedValue({})
+        },
+        stocktakeItem: {
+            update: vi.fn().mockResolvedValue({})
         },
         setting: {
             findUnique: vi.fn().mockResolvedValue(null)
@@ -101,6 +112,7 @@ import { POST as POSTAdjustment } from '@/app/api/stock/adjustments/route';
 import { POST as POSTStocktake } from '@/app/api/stocktake/route';
 import { POST as POSTTransfer } from '@/app/api/stock-transfers/route';
 import { POST as POSTSmartDispatch, PUT as PUTSmartReceive } from '@/app/api/smart-transfers/route';
+import { POST as POSTApproveStocktake } from '@/app/api/inventory/stocktake/[id]/approve/route';
 import jwt from 'jsonwebtoken';
 import { getPrisma } from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
@@ -308,6 +320,39 @@ describe('Inventory Module Period Lock Integration Tests', () => {
             });
 
             const res = await PUTSmartReceive(req);
+            expect(res.status).toBe(409);
+            const data = await res.json();
+            expect(data.error).toContain('مغلقة');
+        });
+    });
+
+    describe('5. Stocktake Approval API', () => {
+        it('should ALLOW stocktake approval in an open period', async () => {
+            const req = new NextRequest('http://localhost/api/inventory/stocktake/1/approve', {
+                method: 'POST',
+                headers: {
+                    'x-tenant': 'tenant_test'
+                }
+            });
+
+            const res = await POSTApproveStocktake(req, { params: Promise.resolve({ id: '1' }) });
+            expect(res.status).toBe(200);
+            const data = await res.json();
+            expect(data.success).toBe(true);
+        });
+
+        it('should BLOCK stocktake approval with HTTP 409 when inventory module is HARD_LOCKED', async () => {
+            const mockPrisma = getPrisma({} as any);
+            (mockPrisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({ status: 'HARD_LOCKED' });
+
+            const req = new NextRequest('http://localhost/api/inventory/stocktake/1/approve', {
+                method: 'POST',
+                headers: {
+                    'x-tenant': 'tenant_test'
+                }
+            });
+
+            const res = await POSTApproveStocktake(req, { params: Promise.resolve({ id: '1' }) });
             expect(res.status).toBe(409);
             const data = await res.json();
             expect(data.error).toContain('مغلقة');
