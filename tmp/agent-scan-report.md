@@ -1,45 +1,56 @@
-# Agent Scan Report (تقرير فحص الوكيل)
+# Agent Scan Report — GL-02 Phase D6: Supporting Payroll & Fixed Assets Period Locks
 
-## 1. الملفات التي قرأتها (Scanned Files)
-- `deploy.js` (ملف النشر الذكي والتعديلات المطلوبة لإصلاح مسارات المواقع وتهيئة المجلدات)
-- `scratch/check-remote-hashes.mjs` (ملف التحقق من بصمات الملفات على الخادم)
-- `AGENTS.md` (قواعد النشر والالتزامات الصارمة للمشروع)
+This report documents the deep scan conducted before integrating modular period locks (`module: 'payroll'` and `module: 'fixed_assets'`) into operational human resource and asset write paths.
 
-## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
-- `deploy.js` (تصحيح مسارات `SITES` وإضافة تهيئة تلقائية للمجلدات باستخدام `mkdir -p` قبل رفع الملفات عبر SFTP)
-- `scratch/check-remote-hashes.mjs` (توسيع نطاق التحقق ليشمل المواقع الثلاثة المحددة: `namainvist.com`, `n1.namainvist.com`, `n11.namainvist.com`)
+---
 
-## 3. الدومينات المتأثرة (Affected Domains)
-- DevOps / Deployment Automation
-- Production System Stability
-- Verification / Security Audits
+## 1. Scanned Documents & Resources
 
-## 4. المخاطر (Risks)
-- **فشل صامت لرفع الملفات**: عدم وجود المجلدات الفرعية `src/app/api/open-items/allocate/...` على الخادم يؤدي إلى تجاهل رفع ملفات محرك التسويات دون إصدار خطأ صريح.
-- **مسارات غير صحيحة للمواقع**: توجيه `n1` و `n11` إلى نفس مسار `main-site` بدلاً من مساراتهم المعزولة الحقيقية:
-  * `main-site` -> `/www/wwwroot/namainvist.com`
-  * `n1` -> `/www/wwwroot/n1.namainvist.com`
-  * `n11` -> `/www/wwwroot/n11.namainvist.com`
-- **مخاطر الكتابة المالية**: تفعيل تسويات حقيقية يتطلب دقة 100% في تطابق البصمات (SHA256 Parity) لضمان عدم وجود تباين أو ملفات قديمة تؤدي إلى سلوك غير متوقع.
+* [.ai-brain/00-index.md](file:///d:/namasoft9-3-main/.ai-brain/00-index.md)
+* [.ai-brain/25-hr-payroll.md](file:///d:/namasoft9-3-main/.ai-brain/25-hr-payroll.md)
+* [.ai-brain/26-assets.md](file:///d:/namasoft9-3-main/.ai-brain/26-assets.md)
+* [project-governance/06-ACCOUNTING_LOCK_RULES.md](file:///d:/namasoft9-3-main/project-governance/06-ACCOUNTING_LOCK_RULES.md)
+* [src/app/api/payroll/route.ts](file:///d:/namasoft9-3-main/src/app/api/payroll/route.ts)
+* [src/app/api/fixed-assets/[id]/depreciate/route.ts](file:///d:/namasoft9-3-main/src/app/api/fixed-assets/[id]/depreciate/route.ts)
 
-## 5. خطة التنفيذ (Execution Plan)
-1. **تعديل `deploy.js`**:
-   - تحديث الكائن `SITES` بالمسارات الفعلية الصحيحة.
-   - تعديل وظيفة رفع الملفات لتشغيل `mkdir -p` للمجلد الأب لكل ملف يتم رفعه قبل بدء عملية SFTP لضمان عدم حدوث فشل صامت.
-2. **تعديل `scratch/check-remote-hashes.mjs`**:
-   - السماح بالتحقق من جميع بصمات الملفات المنشورة عبر كل من المواقع الثلاثة بشكل منظم ودقيق.
-3. **دفع الكود إلى المستودع البعيد**:
-   - التحقق من `git status` و `git log`.
-   - دفع الالتزامات المحلية الحالية إلى `origin main`.
-4. **تشغيل النشر الذكي**:
-   - تشغيل `node deploy.js` للملفات الأربعة المنشورة.
-5. **التحقق وبناء الإنتاج**:
-   - تشغيل `npx prisma validate` وبناء التطبيق وإعادة تحميل pm2 على البيئة الإنتاجية.
+---
 
-## 6. خطة الاختبار والتحقق (Testing Plan)
-- مطابقة بصمات SHA256 محلياً وإنتاجياً لجميع الملفات المنشورة عبر المواقع الثلاثة.
-- اختبارات الدخان (Smoke Tests) للتحقق من:
-  - استجابة الموقع الرئيسي 200 OK.
-  - حماية مسارات الـ SIEM والصلاحيات 401 Unauthorized.
-  - حماية واجهات API التسويات (allocate APIs) بدون توكن 401 Unauthorized.
-  - تحميل واجهة المستخدم بشكل سليم.
+## 2. Candidates for Modification
+
+* [src/app/api/payroll/route.ts](file:///d:/namasoft9-3-main/src/app/api/payroll/route.ts): We will intercept `action === 'run'` (payroll run) and `action === 'gosi'` (monthly insurance calculation), applying `assertPeriodWritable` under `module: 'payroll'`.
+* [src/app/api/fixed-assets/[id]/depreciate/route.ts](file:///d:/namasoft9-3-main/src/app/api/fixed-assets/[id]/depreciate/route.ts): We will intercept the individual asset depreciation runner, applying `assertPeriodWritable` under `module: 'fixed_assets'`.
+
+---
+
+## 3. Affected Domains
+
+* **HR & Payroll Administration**: Salary processing calculations, payslip records writing, loans schedule installment updating, and WPS SIF generation.
+* **Fixed Assets & Depreciation**: NBV (Net Book Value) and accumulated depreciation adjustments, depreciation run logging, and auto-journal creations.
+* **Financial Integrity**: Both components generate automated accounting entries. Shielding these write pathways ensures no retroactive postings leak into audited months.
+
+---
+
+## 4. Key Risks & Mitigation
+
+* **Operational Delay**: Since monthly salary runs can be critical, soft locks must be bypassable by MASTER_ADMIN or SUPER_ADMIN with proper headers without failing during runtime.
+* **Dual Lock Cascades**: The auto-journal entries generated downstream must carry over the same `overrideContext` so they succeed seamlessly without failing on core GL locks. This is already supported by the downstream engines.
+
+---
+
+## 5. Execution Plan
+
+1. **Modify `src/app/api/payroll/route.ts`**:
+   - Extract `tenantId`, authenticate the session, and resolve the target date dynamically from `period` arguments.
+   - Invoke `assertPeriodWritable` for `run` and `gosi` actions under `module: 'payroll'`.
+   - Handle `PeriodLockViolation` in the router catch-block to return `409/422` statuses.
+2. **Modify `src/app/api/fixed-assets/[id]/depreciate/route.ts`**:
+   - Extract tenant details, authenticate, and resolve target date.
+   - Invoke `assertPeriodWritable` under `module: 'fixed_assets'`.
+   - Handle `PeriodLockViolation` in the catch-block returning `409/422`.
+3. **Write Integration Tests**:
+   - Add new test files or suites verifying that:
+     * Open periods allow payroll runs and asset depreciation runs.
+     * Closed/Locked periods reject runs immediately with HTTP 409 Conflict.
+     * Soft-locked periods allow Super Admin override with confirmation header.
+4. **Validate static gates**:
+   - Run typechecks and test commands to ensure 100% green status.
