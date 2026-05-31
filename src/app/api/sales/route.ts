@@ -538,11 +538,12 @@ async function _PUT(request: Request) {
     const prisma = getPrisma(request);
     try {
         const rawBody = await request.json();
-        const { invoiceId, amount, paymentType, userId } = z.object({
+        const { invoiceId, amount, paymentType, userId, date } = z.object({
             invoiceId: z.union([z.string(), z.number()]),
             amount: z.union([z.string(), z.number()]),
             paymentType: z.string().default('cash'),
             userId: z.union([z.string(), z.number()]).optional().nullable(),
+            date: z.string().optional().nullable(),
         }).parse(rawBody);
 
         const tenantId = requireTenantId(request as any);
@@ -555,11 +556,13 @@ async function _PUT(request: Request) {
             actorRole: auth?.role || 'USER'
         });
 
+        const paymentDate = date ? new Date(date) : new Date();
+
         // ── Period Lock Enforcement ────────────────────────────────────────
         try {
             await assertPeriodWritable({
                 tenantId,
-                postingDate: new Date(),
+                postingDate: paymentDate,
                 operationType: 'COLLECT_SALES_PAYMENT',
                 module: 'sales',
                 actor: String(auth?.userId || 'SYSTEM'),
@@ -613,9 +616,10 @@ async function _PUT(request: Request) {
             const treasuryRec = await TreasuryPostingService.createTreasuryEntry(tx, {
                     type: 'in',
                     amount: payAmount,
-                    description: `تحصيل دفعة - فاتورة مبيعات #${invoice.invoiceNo}`,
+                    description: `تحصيل دفصة - فاتورة مبيعات #${invoice.invoiceNo}`,
                     referenceType: 'sale_payment',
                     referenceId: invoice.id,
+                    date: paymentDate.toISOString(),
                 }, parsedUserId, branchId);
 
             const { postSalesPayment } = await import('@/lib/auto-journal');
@@ -626,7 +630,7 @@ async function _PUT(request: Request) {
                 treasuryId: treasuryRec.id,
                 userId: parsedUserId,
                 branchId: branchId,
-                date: new Date().toISOString().split('T')[0],
+                date: paymentDate.toISOString().split('T')[0],
                 txClient: tx,
                 overrideContext
             });
@@ -642,7 +646,7 @@ async function _PUT(request: Request) {
         return NextResponse.json(updated);
     } catch (error: any) {
         log.error('Sales PUT error', { err: error?.message });
-        return NextResponse.json({ error: 'فشل في تحصيل الدفعة' }, { status: 500 });
+        return NextResponse.json({ error: 'فشل في تحصيل الدفصة' }, { status: 500 });
     }
 }
 

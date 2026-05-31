@@ -39,11 +39,30 @@ async function _POST(req: NextRequest) {
             actorRole: auth?.role || 'USER'
         });
 
+        // Parse Request Body
+        const body = await req.json();
+
+        const _parsed = _POSTSchema.safeParse(body);
+        if (!_parsed.success) {
+          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
+        }
+        const {
+            customerId,
+            stockId = 1,
+            paymentType = "cash",
+            notes,
+            details, // Array of SalesInvoiceDetail
+            userId,
+            date
+        } = body;
+
+        const invoiceDate = date ? new Date(date) : new Date();
+
         // ── Period Lock Enforcement ────────────────────────────────────────
         try {
             await assertPeriodWritable({
                 tenantId: tenantString,
-                postingDate: new Date(),
+                postingDate: invoiceDate,
                 operationType: 'POS_CHECKOUT',
                 module: 'pos',
                 actor: String(auth?.userId || 'SYSTEM'),
@@ -71,22 +90,6 @@ async function _POST(req: NextRequest) {
             return NextResponse.json({ error: "Duplicate request detected or currently processing" }, { status: 409 });
         }
 
-        // Parse Request Body
-        const body = await req.json();
-
-        const _parsed = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-        const {
-            customerId,
-            stockId = 1,
-            paymentType = "cash",
-            notes,
-            details, // Array of SalesInvoiceDetail
-            userId
-        } = body;
-
         if (!details || !Array.isArray(details) || details.length === 0) {
             return NextResponse.json({ error: "Invoice must contain at least one detail line." }, { status: 400 });
         }
@@ -110,6 +113,7 @@ async function _POST(req: NextRequest) {
                 data: {
                     tenantId: tenantString,
                     invoiceNo: Math.floor(Math.random() * 1000000), // Auto-generate or sequence
+                    date: invoiceDate,
                     customerId,
                     stockId,
                     subtotal,

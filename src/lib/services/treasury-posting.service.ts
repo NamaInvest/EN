@@ -18,10 +18,23 @@ export class TreasuryPostingService {
         overrideContext?: any
     ) {
         const tenantId = body.tenantId || 'default';
+        const postingDate = body.date ? new Date(body.date) : new Date();
 
         // Phase 10: determine operation type early for trace
         // type 'in' = Receipt (money coming in), 'out' = Payment (money going out)
         const traceOperationType = body.type === 'in' ? 'TREASURY_RECEIPT' : 'TREASURY_PAYMENT';
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        const { assertPeriodWritable } = await import('@/lib/governance/period-lock');
+        await assertPeriodWritable({
+            tenantId,
+            postingDate,
+            operationType: traceOperationType,
+            module: 'treasury',
+            actor: userId ? String(userId) : 'SYSTEM',
+            overrideContext
+        });
+        // ────────────────────────────────────────────────────────────────────
 
         return traceFinancialOperation(
             {
@@ -47,6 +60,7 @@ export class TreasuryPostingService {
                 const newTreasury = await tx.treasury.create({
                     data: {
                         tenantId,
+                        date: postingDate,
                         type: body.type,
                         amount: body.amount,
                         description: body.description || null,
@@ -91,7 +105,7 @@ export class TreasuryPostingService {
                         lines: journalLines,
                         userId: userId || undefined,
                         branchId: branchId || undefined,
-                        date: new Date().toISOString(),
+                        date: postingDate.toISOString(),
                         txClient: tx,
                         overrideContext,
                         // Phase 10: pass treasury operation type to createJournalEntry for richer trace
