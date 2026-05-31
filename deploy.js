@@ -21,13 +21,22 @@ const fs = require('fs');
 const path = require('path');
 
 // ─── Config ──────────────────────────────────────────────────────
+const keyPath = path.join(__dirname, '.ssh', 'id_rsa');
+const hasKey = fs.existsSync(keyPath);
 const SSH_PASSWORD = process.env.SSH_PASSWORD;
-if (!SSH_PASSWORD) {
-    console.error("❌ Error: SSH_PASSWORD environment variable is not defined!");
-    console.error("💡 Please run: $env:SSH_PASSWORD='your_password' (PowerShell) or export SSH_PASSWORD='your_password' (Bash)");
+
+if (!SSH_PASSWORD && !hasKey) {
+    console.error("❌ Error: Neither SSH_PASSWORD environment variable nor .ssh/id_rsa private key is defined!");
     process.exit(1);
 }
-const SERVER = { host: '46.4.188.170', port: 22, username: 'root', password: SSH_PASSWORD };
+
+const SERVER = { 
+    host: '46.4.188.170', 
+    port: 22, 
+    username: 'root', 
+    privateKey: hasKey ? fs.readFileSync(keyPath) : undefined,
+    password: SSH_PASSWORD 
+};
 
 const SITES = {
     'main-site':  { path: '/www/wwwroot/namainvist.com',      pm2: 'main-site' },

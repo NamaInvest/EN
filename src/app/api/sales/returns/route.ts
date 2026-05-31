@@ -47,10 +47,42 @@ async function _POST(req: Request) {
         }
         const { originalInvoiceId, customerId, details, restockingFee, notes } = body;
 
+        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
+
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        const { assertPeriodWritable, PeriodLockViolation } = await import('@/lib/governance/period-lock');
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const { getUserFromRequest } = await import('@/lib/auth');
+        
+        const auth = getUserFromRequest(req as any);
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: 'CREATE_SALES_RETURN',
+                module: 'sales',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         // Note: in a real environment, we'd pull these from the original invoice
         const total = details.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0);
-
-        const tenantId = (await import('@/lib/governance/tenant-guard')).requireTenantId(req as any);
         const rma = await prisma.salesReturn.create({
             data: {
                 tenantId,

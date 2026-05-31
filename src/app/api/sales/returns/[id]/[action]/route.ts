@@ -33,6 +33,38 @@ async function _POST(req: Request, { params }: { params: Promise<{ id: string, a
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
         const tenantId = requireTenantId(req as any);
 
+        // ── Period Lock Enforcement ────────────────────────────────────────
+        const { assertPeriodWritable, PeriodLockViolation } = await import('@/lib/governance/period-lock');
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const { getUserFromRequest } = await import('@/lib/auth');
+        
+        const auth = getUserFromRequest(req as any);
+        const overrideContext = buildOverrideContextFromRequest(req as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        try {
+            await assertPeriodWritable({
+                tenantId,
+                postingDate: new Date(),
+                operationType: `TRANSITION_RMA_${targetState}`,
+                module: 'sales',
+                actor: String(auth?.userId || 'SYSTEM'),
+                overrideContext
+            });
+        } catch (err) {
+            if (err instanceof PeriodLockViolation) {
+                return NextResponse.json({
+                    error: err.message,
+                    code: err.code
+                }, { status: err.code === 'LOCKED' ? 409 : 422 });
+            }
+            throw err;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const salesReturn = await prisma.salesReturn.findUnique({ where: { id, tenantId }, include: { details: true } });
         if (!salesReturn) return NextResponse.json({ error: 'Return not found' }, { status: 404 });
 
