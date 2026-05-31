@@ -133,11 +133,11 @@ export default function RestaurantPOS() {
             <style>
                 body { font-family: 'Courier New', monospace; width: 280px; margin: 0 auto; text-align: center; padding: 20px 0; }
                 h2 { font-size: 24px; margin-bottom: 5px; }
-                .qr-placeholder { margin: 20px auto; width: 200px; height: 200px; background: url('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}') no-repeat center center; background-size: cover; }
+                .qr-image { margin: 20px auto; width: 200px; height: 200px; display: block; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
                 .footer { font-size: 14px; margin-top: 10px; color: #555; }
             </style></head><body>
             <h2>طاولة ${table.name}</h2>
-            <div class="qr-placeholder"></div>
+            <img class="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}" alt="QR Code" />
             <div class="footer">امسح الباركود لاستعراض المنيو واستدعاء النادل</div>
             <script>setTimeout(() => { window.print(); setTimeout(() => window.close(), 1000); }, 500);</script>
             </body></html>`;
