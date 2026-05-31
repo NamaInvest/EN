@@ -248,7 +248,7 @@ export default function RestaurantFloorPlan({ onTableSelect }: { onTableSelect?:
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowQrCode(null)}>
                     <Card className="p-8 flex flex-col items-center bg-white" onClick={e => e.stopPropagation()}>
                         <h2 className="text-2xl font-black mb-6 text-slate-800">{_t('باركود الطاولة', 'Table Barcode')}</h2>
-                        <QRCodeCanvas value={`https://ahmedalyamicompany.namainvist.com/customer/table/${showQrCode}`} size={250} level="H" />
+                        <QRCodeCanvas value={`${typeof window !== 'undefined' ? window.location.origin : 'https://namainvist.com'}/customer/table/${showQrCode}`} size={250} level="H" />
                         <p className="mt-4 text-slate-500 text-center text-sm max-w-xs">
                             {_t('قم بطباعة هذا الباركود ووضعه على الطاولة ليتمكن العملاء من استدعاء النادل أو تصفح المنيو.', 'Print this barcode and place it on the table so customers can call the waiter or browse the menu.')}
                         </p>
