@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * FX Revaluation Engine (Partial Gap Fix)
  * ══════════════════════════════════════════════════════════════════════════════
@@ -246,7 +247,7 @@ export class FXRevaluationEngine {
           });
           if (acc) arCode = acc.code;
         }
-      } catch (e) {}
+      } catch {}
     }
 
     // 2. Resolve AP control account
@@ -269,7 +270,7 @@ export class FXRevaluationEngine {
           });
           if (acc) apCode = acc.code;
         }
-      } catch (e) {}
+      } catch {}
     }
 
     // 3. Resolve Gain Account
@@ -1191,5 +1192,315 @@ export class FXRevaluationEngine {
       projectedJournalLines,
       generatedAt: new Date(),
     };
+  }
+
+  /**
+   * FX-02B: Post monthly Bank FX revaluation journal entry and immediately generate auto-reversal entries
+   */
+  static async postBank(
+    tx: any,
+    tenantId: string,
+    targetDate: Date,
+    userId?: number,
+    branchId?: number | null,
+    overrideContext?: any
+  ): Promise<any[]> {
+    const baseCurrencyCode = 'SAR';
+    const nextPeriodDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+    const actor = userId ? String(userId) : 'SYSTEM';
+    const { AccountingJournalService } = await import('@/lib/services/accounting-journal.service');
+
+    // 1. Period Lock validation for targetDate and nextPeriodDate
+    await assertPeriodWritable({
+      tenantId,
+      postingDate: targetDate,
+      operationType: 'FX_BANK_REVALUATION_POST',
+      module: 'accounting',
+      actor,
+      overrideContext,
+    });
+
+    await assertPeriodWritable({
+      tenantId,
+      postingDate: nextPeriodDate,
+      operationType: 'FX_BANK_REVALUATION_REVERSAL',
+      module: 'accounting',
+      actor,
+      overrideContext,
+    });
+
+    // 2. Fetch active bank accounts for the tenant
+    const bankAccounts = await tx.bankAccount.findMany({
+      where: {
+        tenantId,
+        isActive: true,
+        deletedAt: null,
+      },
+    });
+
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const runs: any[] = [];
+
+    // Resolve general Gain/Loss settings as fallback
+    let fallbackGainCode = '8101';
+    const gainSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_GAIN_GL_CODE' } });
+    if (gainSetting?.value) fallbackGainCode = gainSetting.value;
+
+    let fallbackLossCode = '8102';
+    const lossSetting = await tx.setting.findFirst({ where: { tenantId, key: 'FX_LOSS_GL_CODE' } });
+    if (lossSetting?.value) fallbackLossCode = lossSetting.value;
+
+    for (const bankAccount of bankAccounts) {
+      if (bankAccount.currency === baseCurrencyCode) continue;
+
+      const ref = `FX_REVAL_BANK_${year}_${month}_${bankAccount.id}`;
+
+      // Check duplicates (only active, non-deleted, posted entries)
+      const existingEntry = await tx.journalEntry.findFirst({
+        where: {
+          tenantId,
+          reference: ref,
+          deletedAt: null,
+          status: { in: ['posted', 'POSTED'] },
+        },
+      });
+      if (existingEntry) {
+        throw new Error(`Bank FX Revaluation for bank account ID ${bankAccount.id} in period ${year}-${month} has already been posted.`);
+      }
+
+      // Resolve bank-to-GL mapping
+      const mappingSetting = await tx.setting.findFirst({
+        where: {
+          tenantId,
+          key: `GL_BANK_MAPPING_${bankAccount.id}`,
+        },
+      });
+      if (!mappingSetting?.value) continue;
+
+      const glAccountCode = mappingSetting.value;
+
+      // Validate mapped GL Account
+      const glAccount = await tx.account.findFirst({
+        where: {
+          tenantId,
+          code: glAccountCode,
+          deletedAt: null,
+        },
+      });
+      if (!glAccount || !glAccount.isActive) {
+        throw new Error(`Mapped GL Account ${glAccountCode} for Bank Account ID ${bankAccount.id} does not exist or is inactive.`);
+      }
+
+      // Fetch target date exchange rate
+      const currencyDoc = await tx.currency.findFirst({
+        where: {
+          tenantId,
+          code: bankAccount.currency,
+          isActive: true,
+        },
+      });
+      if (!currencyDoc) continue;
+
+      const exchangeRateDoc = await tx.exchangeRate.findFirst({
+        where: {
+          tenantId,
+          currencyId: currencyDoc.id,
+          date: { lte: targetDate },
+        },
+        orderBy: { date: 'desc' },
+      });
+      if (!exchangeRateDoc?.rate) {
+        throw new Error(`Missing exchange rate for ${bankAccount.currency} on or before ${targetDate.toISOString().split('T')[0]}.`);
+      }
+      const closingRate = Number(exchangeRateDoc.rate);
+
+      // Fetch ledger transaction history from JournalLine
+      const journalLines = await tx.journalLine.findMany({
+        where: {
+          tenantId,
+          accountId: glAccount.id,
+          entry: {
+            status: { in: ['posted', 'POSTED'] },
+            entryDate: { lte: targetDate.toISOString().split('T')[0] },
+          },
+          deletedAt: null,
+        },
+      });
+
+      let ledgerFcyDebit = 0;
+      let ledgerFcyCredit = 0;
+      let ledgerSarDebit = 0;
+      let ledgerSarCredit = 0;
+
+      for (const line of journalLines) {
+        ledgerFcyDebit += Number(line.foreignDebit ?? 0);
+        ledgerFcyCredit += Number(line.foreignCredit ?? 0);
+        ledgerSarDebit += Number(line.debit ?? 0);
+        ledgerSarCredit += Number(line.credit ?? 0);
+      }
+
+      const ledgerFcyBalance = Math.round((ledgerFcyDebit - ledgerFcyCredit) * 100) / 100;
+      const ledgerSarBalance = Math.round((ledgerSarDebit - ledgerSarCredit) * 100) / 100;
+
+      const sarAtClosing = Math.round(ledgerFcyBalance * closingRate * 100) / 100;
+      const unrealized = Math.round((sarAtClosing - ledgerSarBalance) * 100) / 100;
+
+      if (Math.abs(unrealized) < 0.01) continue;
+
+      const revalJournalLines: any[] = [];
+      const reversalJournalLines: any[] = [];
+
+      if (unrealized > 0) {
+        revalJournalLines.push(
+          {
+            accountCode: glAccountCode,
+            description: `Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: unrealized,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: fallbackGainCode,
+            description: `Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: unrealized,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+        reversalJournalLines.push(
+          {
+            accountCode: glAccountCode,
+            description: `Reversal: Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: unrealized,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: fallbackGainCode,
+            description: `Reversal: Unrealized FX Gain on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: unrealized,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      } else {
+        const absVal = Math.abs(unrealized);
+        revalJournalLines.push(
+          {
+            accountCode: fallbackLossCode,
+            description: `Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: absVal,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: glAccountCode,
+            description: `Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: absVal,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+        reversalJournalLines.push(
+          {
+            accountCode: fallbackLossCode,
+            description: `Reversal: Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: 0,
+            credit: absVal,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          },
+          {
+            accountCode: glAccountCode,
+            description: `Reversal: Unrealized FX Loss on Bank Account ${bankAccount.accountName} (${bankAccount.currency})`,
+            debit: absVal,
+            credit: 0,
+            foreignDebit: 0,
+            foreignCredit: 0,
+          }
+        );
+      }
+
+      const targetDateStr = targetDate.toISOString().split('T')[0];
+      const nextPeriodDateStr = nextPeriodDate.toISOString().split('T')[0];
+
+      // Create primary journal entry
+      const je = await AccountingJournalService.createEntry(tx, {
+        description: `إعادة تقييم عملات أجنبية - حساب بنكي: ${bankAccount.bankName} (${bankAccount.currency})`,
+        reference: ref,
+        lines: revalJournalLines,
+        userId: userId ? Number(userId) : undefined,
+        branchId,
+        date: targetDateStr,
+        overrideContext,
+      });
+
+      await tx.journalEntry.update({
+        where: { id: je.id },
+        data: {
+          isReversal: false,
+          autoReverseDate: nextPeriodDate,
+        },
+      });
+
+      // Create reversing journal entry
+      const revRef = `REV_${ref}`;
+      const revJe = await AccountingJournalService.createEntry(tx, {
+        description: `عكس قيد إعادة تقييم عملات أجنبية - حساب بنكي: ${bankAccount.bankName}`,
+        reference: revRef,
+        lines: reversalJournalLines,
+        userId: userId ? Number(userId) : undefined,
+        branchId,
+        date: nextPeriodDateStr,
+        overrideContext,
+      });
+
+      await tx.journalEntry.update({
+        where: { id: revJe.id },
+        data: {
+          isReversal: true,
+        },
+      });
+
+      // Write Audit Log
+      await tx.auditLog.create({
+        data: {
+          tenantId,
+          action: 'FX_BANK_REVALUATION_POST',
+          entityType: 'JournalEntry',
+          entityId: String(je.id),
+          userId: actor,
+          metadata: {
+            bankAccountId: bankAccount.id,
+            glAccountCode,
+            currency: bankAccount.currency,
+            reference: ref,
+            revalDate: targetDateStr,
+            revalEntryId: je.id,
+            reversalEntryId: revJe.id,
+            unrealized,
+          },
+        },
+      });
+
+      runs.push({
+        bankAccountId: bankAccount.id,
+        reference: ref,
+        revalEntryNo: je.entryNumber,
+        revalEntryId: je.id,
+        reversalEntryNo: revJe.entryNumber,
+        reversalEntryId: revJe.id,
+        unrealized,
+      });
+    }
+
+    return runs;
   }
 }
