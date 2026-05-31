@@ -16,7 +16,7 @@ async function handler(ctx: any) {
     select: {
       id:          true,
       username:    true,
-      name:        true,
+      fullName:    true,
       role:        true,
       active:      true,
       branchId:    true,
@@ -34,6 +34,7 @@ async function handler(ctx: any) {
 
   return NextResponse.json({
     ...user,
+    name: user.fullName,
     tenantId,
     // Build permissions map for frontend
     permissionsMap: Object.fromEntries(
