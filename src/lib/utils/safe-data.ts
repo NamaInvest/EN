@@ -16,6 +16,9 @@ export function toArray<T>(value: unknown): T[] {
     if (Array.isArray(obj.records)) return obj.records as T[];
     if (Array.isArray(obj.results)) return obj.results as T[];
     if (Array.isArray(obj.rows)) return obj.rows as T[];
+    if (Array.isArray(obj.returns)) return obj.returns as T[];
+    if (Array.isArray(obj.salesReturns)) return obj.salesReturns as T[];
+    if (Array.isArray(obj.sales_returns)) return obj.sales_returns as T[];
   }
 
   return [];
