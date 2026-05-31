@@ -124,7 +124,7 @@ export class AccountingJournalService {
                 tenantId: resolvedTenantId,
                 postingDate: new Date(entryDate),
                 operationType: params.status === 'posted' ? 'POST_JOURNAL' : 'CREATE_JOURNAL',
-                module: 'gl',
+                module: 'accounting',
                 actor: params.actor || String(params.userId || 'system'),
                 overrideContext: params.overrideContext,
             });

@@ -555,7 +555,7 @@ export class FXRevaluationEngine {
       tenantId,
       postingDate: targetDate,
       operationType: 'FX_REVALUATION_POST',
-      module: 'fx_revaluation',
+      module: 'accounting',
       actor,
       overrideContext,
     });
@@ -564,7 +564,7 @@ export class FXRevaluationEngine {
       tenantId,
       postingDate: nextPeriodDate,
       operationType: 'FX_REVALUATION_REVERSAL',
-      module: 'fx_revaluation',
+      module: 'accounting',
       actor,
       overrideContext,
     });

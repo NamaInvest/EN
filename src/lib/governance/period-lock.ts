@@ -168,17 +168,24 @@ export async function assertPeriodWritable({
   let modulePeriodLock = null;
 
   if (module) {
-    modulePeriodLock = await (prisma as any).financialPeriodModuleLock.findUnique({
-      where: {
-        tenantId_period_module: {
-          tenantId,
-          period: periodStr,
-          module,
-        },
-      },
+    const featureFlag = await prisma.setting.findUnique({
+      where: { key: 'MODULE_PERIOD_LOCK_ENABLED' }
     });
-    if (modulePeriodLock) {
-      moduleStatus = modulePeriodLock.status;
+    const isModuleLockEnabled = featureFlag?.value === 'true';
+
+    if (isModuleLockEnabled) {
+      modulePeriodLock = await (prisma as any).financialPeriodModuleLock.findUnique({
+        where: {
+          tenantId_period_module: {
+            tenantId,
+            period: periodStr,
+            module,
+          },
+        },
+      });
+      if (modulePeriodLock) {
+        moduleStatus = modulePeriodLock.status;
+      }
     }
   }
 

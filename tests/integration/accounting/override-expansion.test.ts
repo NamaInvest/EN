@@ -16,14 +16,15 @@ vi.mock('@/lib/prisma', () => {
         purchaseInvoice: { findFirst: vi.fn(), create: vi.fn(() => ({ id: 1, stockId: 1 })), update: vi.fn() },
         auditLog: { create: vi.fn() },
         user: { findUnique: vi.fn() },
-        setting: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
+        setting: { findUnique: vi.fn().mockResolvedValue(null), findFirst: vi.fn().mockResolvedValue(null), findMany: vi.fn(() => []) },
+        financialPeriod: { findUnique: vi.fn().mockResolvedValue({ status: 'OPEN' }) },
         account: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
         stock: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
-        customer: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
+        customer: { findUnique: vi.fn(() => ({ id: 1, name: 'Test Customer', active: true })), findFirst: vi.fn(() => ({ id: 1, name: 'Test Customer', active: true })), findMany: vi.fn(() => []) },
         supplier: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
         branch: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
         stockItem: { update: vi.fn(), upsert: vi.fn(), create: vi.fn(), findUnique: vi.fn(() => ({ quantity: 100 })), findMany: vi.fn(() => []) },
-        product: { update: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(() => ({ currentStock: 100, isService: false, name: 'Test Product' })), findMany: vi.fn(() => []) },
+        product: { update: vi.fn(), updateMany: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(() => ({ currentStock: 100, isService: false, name: 'Test Product' })), findFirst: vi.fn(() => ({ currentStock: 100, isService: false, name: 'Test Product' })), findMany: vi.fn(() => []) },
         productStock: { update: vi.fn(), upsert: vi.fn(), findUnique: vi.fn(() => ({ currentStock: 100 })), findMany: vi.fn(() => []) },
         tax: { findUnique: vi.fn(), findMany: vi.fn(() => []) },
         payment: { findMany: vi.fn(() => []), create: vi.fn() },
@@ -34,7 +35,9 @@ vi.mock('@/lib/prisma', () => {
         recipe: { findFirst: vi.fn(() => null) },
         journalEntry: { findMany: vi.fn(() => []), create: vi.fn() },
         $transaction: vi.fn(async (cb) => cb(mockPrismaObj)),
-        $executeRaw: vi.fn()
+        $executeRaw: vi.fn(),
+        $executeRawUnsafe: vi.fn(),
+        $queryRawUnsafe: vi.fn().mockResolvedValue([{ id: 1, current: 1, prefix: 'MOCK-', pad_length: 6 }])
     };
     return {
         __esModule: true,

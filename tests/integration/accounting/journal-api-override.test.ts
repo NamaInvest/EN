@@ -16,14 +16,19 @@ vi.mock('@/lib/auto-journal', () => ({
 }));
 
 // Mock prisma
-vi.mock('@/lib/prisma', async (importOriginal) => {
-    const actual: any = await importOriginal();
+vi.mock('@/lib/prisma', () => {
+    const mockPrismaObj = {
+        journalEntry: { findMany: vi.fn(), create: vi.fn() },
+        auditLog: { create: vi.fn() },
+        financialPeriod: { findUnique: vi.fn() },
+        setting: { findUnique: vi.fn() }
+    };
     return {
-        ...actual,
-        getPrisma: vi.fn().mockReturnValue({
-            journalEntry: { findMany: vi.fn(), create: vi.fn() },
-            auditLog: { create: vi.fn() }
-        })
+        __esModule: true,
+        default: mockPrismaObj,
+        prisma: mockPrismaObj,
+        getPrisma: vi.fn().mockReturnValue(mockPrismaObj),
+        resolveTenant: vi.fn().mockReturnValue('tenant_test'),
     };
 });
 

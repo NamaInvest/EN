@@ -11,6 +11,12 @@ vi.mock('@/lib/prisma', () => ({
     },
     periodLockLog: {
       create: vi.fn(),
+    },
+    setting: {
+      findUnique: vi.fn(),
+    },
+    financialPeriodModuleLock: {
+      findUnique: vi.fn(),
     }
   }
 }));
@@ -283,5 +289,137 @@ describe('Financial Period Lock Enforcement (Phase 7)', () => {
                 }
             })
         ).rejects.toHaveProperty('code', 'LOCKED');
+    });
+
+    describe('Granular Module Period Lock Enforcement (Wave 1)', () => {
+        beforeEach(() => {
+            (prisma.financialPeriod.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                status: FinancialPeriodStatus.OPEN
+            });
+        });
+
+        it('should bypass module check when MODULE_PERIOD_LOCK_ENABLED is not set to true', async () => {
+            (prisma.setting.findUnique as any).mockResolvedValue(null); // Disabled
+            (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                module: 'accounting',
+                status: FinancialPeriodStatus.HARD_LOCKED
+            });
+
+            await expect(
+                assertPeriodWritable({
+                    tenantId: ctx.tenantId,
+                    postingDate: new Date('2026-05-18'),
+                    operationType: 'TEST_MUTATION',
+                    module: 'accounting',
+                    actor: 'TEST_USER'
+                })
+            ).resolves.not.toThrow();
+        });
+
+        it('should allow posting when MODULE_PERIOD_LOCK_ENABLED is true and module lock status is OPEN', async () => {
+            (prisma.setting.findUnique as any).mockResolvedValue({ key: 'MODULE_PERIOD_LOCK_ENABLED', value: 'true' });
+            (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                module: 'accounting',
+                status: FinancialPeriodStatus.OPEN
+            });
+
+            await expect(
+                assertPeriodWritable({
+                    tenantId: ctx.tenantId,
+                    postingDate: new Date('2026-05-18'),
+                    operationType: 'TEST_MUTATION',
+                    module: 'accounting',
+                    actor: 'TEST_USER'
+                })
+            ).resolves.not.toThrow();
+        });
+
+        it('should block posting when MODULE_PERIOD_LOCK_ENABLED is true and module lock is HARD_LOCKED', async () => {
+            (prisma.setting.findUnique as any).mockResolvedValue({ key: 'MODULE_PERIOD_LOCK_ENABLED', value: 'true' });
+            (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                module: 'accounting',
+                status: FinancialPeriodStatus.HARD_LOCKED
+            });
+
+            await expect(
+                assertPeriodWritable({
+                    tenantId: ctx.tenantId,
+                    postingDate: new Date('2026-05-18'),
+                    operationType: 'TEST_MUTATION',
+                    module: 'accounting',
+                    actor: 'TEST_USER'
+                })
+            ).rejects.toHaveProperty('code', 'LOCKED');
+        });
+
+        it('should block posting when MODULE_PERIOD_LOCK_ENABLED is true and module lock is SOFT_LOCKED without override', async () => {
+            (prisma.setting.findUnique as any).mockResolvedValue({ key: 'MODULE_PERIOD_LOCK_ENABLED', value: 'true' });
+            (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                module: 'accounting',
+                status: FinancialPeriodStatus.SOFT_LOCKED
+            });
+
+            await expect(
+                assertPeriodWritable({
+                    tenantId: ctx.tenantId,
+                    postingDate: new Date('2026-05-18'),
+                    operationType: 'TEST_MUTATION',
+                    module: 'accounting',
+                    actor: 'TEST_USER'
+                })
+            ).rejects.toHaveProperty('code', 'MASTER_OVERRIDE_REQUIRED');
+        });
+
+        it('should allow posting when MODULE_PERIOD_LOCK_ENABLED is true and module lock is SOFT_LOCKED with valid override', async () => {
+            vi.mocked(prisma as any).auditLog = { create: vi.fn() };
+            (prisma.setting.findUnique as any).mockResolvedValue({ key: 'MODULE_PERIOD_LOCK_ENABLED', value: 'true' });
+            (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
+                tenantId: ctx.tenantId,
+                period: '2026-05',
+                module: 'accounting',
+                status: FinancialPeriodStatus.SOFT_LOCKED,
+                id: 42
+            });
+
+            const result = await assertPeriodWritable({
+                tenantId: ctx.tenantId,
+                postingDate: new Date('2026-05-18'),
+                operationType: 'TEST_MUTATION',
+                module: 'accounting',
+                actor: 'TEST_USER',
+                overrideContext: {
+                    actorId: '1',
+                    actorRole: 'MASTER_ADMIN',
+                    tenantId: ctx.tenantId,
+                    operationType: 'TEST_MUTATION',
+                    module: 'accounting',
+                    postingDate: new Date('2026-05-18'),
+                    reason: 'Valid reason to bypass module soft lock constraints for testing',
+                    confirmationCode: 'CONFIRM-SOFT-LOCK-OVERRIDE',
+                    requestId: 'req_456'
+                }
+            });
+
+            expect(result).toBe('ALLOWED_WITH_OVERRIDE');
+            expect((prisma as any).auditLog.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        action: 'SOFT_LOCK_OVERRIDE',
+                        entityType: 'FinancialPeriodModuleLock',
+                        tenantId: ctx.tenantId
+                    })
+                })
+            );
+        });
     });
 });

@@ -13,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
     financialPeriod: { findUnique: vi.fn() },
     auditLog: { create: vi.fn() },
     periodLockLog: { create: vi.fn() },
+    setting: { findUnique: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn((fn: (tx: any) => any) => fn({
       account: {
         findFirst: vi.fn(),
