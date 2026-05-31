@@ -43,8 +43,11 @@ const CreateSalesReturnSchema = z.object({
 async function _GET(req: NextRequest, tenantId: string) {
   const prisma = getPrisma(req);
   const q      = req.nextUrl.searchParams;
-  const take   = Math.min(parseInt(q.get('take') || '50'), 200);
-  const page   = parseInt(q.get('page') || '1');
+  const rawTake = parseInt(q.get('take') || '50', 10);
+  const take = Number.isInteger(rawTake) && rawTake > 0 ? Math.min(rawTake, 200) : 50;
+
+  const rawPage = parseInt(q.get('page') || '1', 10);
+  const page = Number.isInteger(rawPage) && rawPage > 0 ? rawPage : 1;
   const from   = q.get('from');
   const to     = q.get('to');
 

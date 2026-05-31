@@ -282,4 +282,28 @@ describe('Sales Returns Enterprise Governance (Phase F-04C)', () => {
     expect(data.success).toBe(true);
     expect(data.returnId).toBe(901);
   });
+
+  it('6. should handle invalid page param (NaN) gracefully in GET API', async () => {
+    prismaMock.salesReturn.findMany.mockResolvedValue([]);
+    prismaMock.salesReturn.count.mockResolvedValue(0);
+
+    const req = new NextRequest('http://localhost/api/sales-returns?page=abc&take=xyz');
+    const res = await GET(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.page).toBe(1);
+    expect(data.returns).toEqual([]);
+  });
+
+  it('7. should handle negative page and take params gracefully in GET API', async () => {
+    prismaMock.salesReturn.findMany.mockResolvedValue([]);
+    prismaMock.salesReturn.count.mockResolvedValue(0);
+
+    const req = new NextRequest('http://localhost/api/sales-returns?page=-5&take=-10');
+    const res = await GET(req);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.page).toBe(1);
+    expect(data.returns).toEqual([]);
+  });
 });
