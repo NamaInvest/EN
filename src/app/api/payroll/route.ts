@@ -120,6 +120,27 @@ async function _POST(req: NextRequest) {
       const { data, error } = await validateRequest(req, RunPayrollSchema);
       if (error) return error;
 
+      // ── Period Lock Enforcement (بوابة فحص أقفال الفترات لموديول الرواتب) ──
+      const { assertPeriodWritable } = await import('@/lib/governance/period-lock');
+      const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+      const overrideContext = buildOverrideContextFromRequest(req as any, {
+        tenantId,
+        actorId: String(auth?.userId || '0'),
+        actorRole: auth?.role || 'USER'
+      });
+      const [year, month] = data.period.split('-').map(Number);
+      const postingDate = new Date(year, month - 1, 1);
+
+      await assertPeriodWritable({
+        tenantId,
+        postingDate,
+        operationType: 'PAYROLL_RUN',
+        module: 'payroll',
+        actor: String(auth?.userId || 'SYSTEM'),
+        overrideContext
+      });
+      // ────────────────────────────────────────────────────────────────────
+
       const result = await service.runPayroll(data.period);
       return NextResponse.json(result, { status: 201 });
     }
@@ -160,6 +181,26 @@ async function _POST(req: NextRequest) {
       const { data, error } = await validateRequest(req, GosiSchema);
       if (error) return error;
 
+      // ── Period Lock Enforcement (بوابة فحص أقفال الفترات لموديول التأمينات) ──
+      const { assertPeriodWritable } = await import('@/lib/governance/period-lock');
+      const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+      const overrideContext = buildOverrideContextFromRequest(req as any, {
+        tenantId,
+        actorId: String(auth?.userId || '0'),
+        actorRole: auth?.role || 'USER'
+      });
+      const postingDate = new Date(data.year, data.month - 1, 1);
+
+      await assertPeriodWritable({
+        tenantId,
+        postingDate,
+        operationType: 'PAYROLL_GOSI_RUN',
+        module: 'payroll',
+        actor: String(auth?.userId || 'SYSTEM'),
+        overrideContext
+      });
+      // ────────────────────────────────────────────────────────────────────
+
       const compliance = saudiCompliance(prisma as any, tenantId);
       const result = await compliance.gosi.runMonthlyBatch(data.year, data.month);
       return NextResponse.json(result, { status: 201 });
@@ -177,6 +218,14 @@ async function _POST(req: NextRequest) {
       { status: 400 }
     );
   } catch (e: any) {
+    const { PeriodLockViolation } = await import('@/lib/governance/period-lock');
+    if (e instanceof PeriodLockViolation) {
+      log.warn(`Payroll action blocked by period lock: ${e.message}`);
+      return NextResponse.json({
+        error: e.message,
+        code: e.code
+      }, { status: e.code === 'LOCKED' ? 409 : 422 });
+    }
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

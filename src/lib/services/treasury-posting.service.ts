@@ -30,7 +30,7 @@ export class TreasuryPostingService {
             tenantId,
             postingDate,
             operationType: traceOperationType,
-            module: 'accounting',
+            module: 'treasury',
             actor: userId ? String(userId) : 'SYSTEM',
             overrideContext
         });

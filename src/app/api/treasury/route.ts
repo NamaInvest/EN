@@ -83,6 +83,14 @@ async function _POST(request: NextRequest) {
         
         return NextResponse.json(entry, { status: 201 });
     } catch (error: any) {
+        const { PeriodLockViolation } = await import('@/lib/governance/period-lock');
+        if (error instanceof PeriodLockViolation) {
+            log.warn(`Treasury posting blocked by period lock: ${error.message}`);
+            return NextResponse.json({
+                error: error.message,
+                code: error.code
+            }, { status: error.code === 'LOCKED' ? 409 : 422 });
+        }
         log.error('src/app/api/treasury/route.ts', { error: error instanceof Error ? error.message : error });
         return handleApiError(error); 
     }

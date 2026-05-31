@@ -61,6 +61,25 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
 
         const now = new Date();
 
+        // ── Period Lock Enforcement (بوابة فحص أقفال الفترات لموديول الأصول الثابتة) ──
+        const { assertPeriodWritable } = await import('@/lib/governance/period-lock');
+        const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+        const overrideContext = buildOverrideContextFromRequest(request as any, {
+            tenantId,
+            actorId: String(auth?.userId || '0'),
+            actorRole: auth?.role || 'USER'
+        });
+
+        await assertPeriodWritable({
+            tenantId,
+            postingDate: now,
+            operationType: 'FIXED_ASSET_DEPRECIATE',
+            module: 'fixed_assets',
+            actor: String(auth?.userId || 'SYSTEM'),
+            overrideContext
+        });
+        // ────────────────────────────────────────────────────────────────────
+
         await runFinancialTx(prisma, async (tx: any) => {
             await tx.fixedAsset.update({
                 where: { id: assetId },
@@ -110,6 +129,14 @@ async function _POST(request: NextRequest, { params }: { params: Promise<{ id: s
 
         return NextResponse.json({ success: true, message: 'تم إهلاك الأصل وتسجيل القيد بنجاح' });
     } catch (error: any) {
+        const { PeriodLockViolation } = await import('@/lib/governance/period-lock');
+        if (error instanceof PeriodLockViolation) {
+            log.warn(`Fixed asset depreciation blocked by period lock: ${error.message}`, { id, tenantId });
+            return NextResponse.json({
+                error: error.message,
+                code: error.code
+            }, { status: error.code === 'LOCKED' ? 409 : 422 });
+        }
         log.error('fixed-assets/depreciate', { error: error instanceof Error ? error.message : error, tenantId });
         return apiError(error, 'حدث خطأ في المعالجة', { context: 'fixed-assets-depreciate' });
     }
