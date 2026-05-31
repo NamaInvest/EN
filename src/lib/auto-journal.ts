@@ -164,6 +164,10 @@ async function createJournalEntry(params: {
 
 /**
  * قيد بيع نقدي
+ * ─────────────────────────────────────────────────────
+ * [Universal Journal Pattern]
+ * يتم إثبات القيد تلقائياً مع ربط الأبعاد المحاسبية الكاملة (العميل، المنتج، الكمية، مراكز الربحية والتكلفة)
+ * ─────────────────────────────────────────────────────
  * مدين: الصندوق (الإجمالي مع الضريبة)
  * دائن: المبيعات (المبلغ قبل الضريبة)
  * دائن: ضريبة مخرجات (مبلغ الضريبة)
@@ -183,8 +187,37 @@ export async function postSalesInvoice(invoice: {
     totalCost?: number; // تكلفة البضاعة المباعة
     txClient?: any;
     overrideContext?: any;
+    // الأبعاد الموحدة (Universal Dimensions)
+    customerId?: number;
+    productId?: number;
+    quantity?: number;
+    uom?: string;
+    projectId?: number;
+    costCenterId?: number;
+    profitCenterId?: number;
+    segmentId?: number;
 }) {
-    const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
+    const lines: Array<{
+        accountCode: string;
+        debit: number;
+        credit: number;
+        description?: string;
+        customerId?: number;
+        productId?: number;
+        quantity?: number;
+        uom?: string;
+        projectId?: number;
+        costCenterId?: number;
+        profitCenterId?: number;
+        segmentId?: number;
+    }> = [];
+
+    const commonDims = {
+        projectId: invoice.projectId,
+        costCenterId: invoice.costCenterId,
+        profitCenterId: invoice.profitCenterId,
+        segmentId: invoice.segmentId,
+    };
 
     // Debit: cash/bank/receivables (or split)
     if (invoice.paymentType === 'split') {
@@ -194,6 +227,8 @@ export async function postSalesInvoice(invoice: {
                 debit: invoice.splitCash,
                 credit: 0,
                 description: `تحصيل نقدي - فاتورة بيع #${invoice.invoiceNo}`,
+                customerId: invoice.customerId,
+                ...commonDims,
             });
         }
         if (invoice.splitCard && invoice.splitCard > 0) {
@@ -202,6 +237,8 @@ export async function postSalesInvoice(invoice: {
                 debit: invoice.splitCard,
                 credit: 0,
                 description: `تحصيل شبكة - فاتورة بيع #${invoice.invoiceNo}`,
+                customerId: invoice.customerId,
+                ...commonDims,
             });
         }
     } else {
@@ -213,6 +250,8 @@ export async function postSalesInvoice(invoice: {
             debit: invoice.total,
             credit: 0,
             description: `تحصيل فاتورة بيع #${invoice.invoiceNo}`,
+            customerId: invoice.customerId,
+            ...commonDims,
         });
     }
 
@@ -223,6 +262,11 @@ export async function postSalesInvoice(invoice: {
         debit: 0,
         credit: netSales,
         description: `مبيعات فاتورة #${invoice.invoiceNo}`,
+        customerId: invoice.customerId,
+        productId: invoice.productId,
+        quantity: invoice.quantity,
+        uom: invoice.uom,
+        ...commonDims,
     });
 
     // Credit: VAT Output
@@ -232,6 +276,8 @@ export async function postSalesInvoice(invoice: {
             debit: 0,
             credit: invoice.taxValue,
             description: `ضريبة مبيعات فاتورة #${invoice.invoiceNo}`,
+            customerId: invoice.customerId,
+            ...commonDims,
         });
     }
 
@@ -242,6 +288,8 @@ export async function postSalesInvoice(invoice: {
             debit: invoice.discountValue,
             credit: 0,
             description: `خصم فاتورة بيع #${invoice.invoiceNo}`,
+            customerId: invoice.customerId,
+            ...commonDims,
         });
     }
 
@@ -253,6 +301,10 @@ export async function postSalesInvoice(invoice: {
             debit: invoice.totalCost,
             credit: 0,
             description: `تكلفة بضاعة مباعة فاتورة #${invoice.invoiceNo}`,
+            productId: invoice.productId,
+            quantity: invoice.quantity,
+            uom: invoice.uom,
+            ...commonDims,
         });
         // Credit Inventory
         lines.push({
@@ -260,6 +312,10 @@ export async function postSalesInvoice(invoice: {
             debit: 0,
             credit: invoice.totalCost,
             description: `صرف مخزون مباع فاتورة #${invoice.invoiceNo}`,
+            productId: invoice.productId,
+            quantity: invoice.quantity,
+            uom: invoice.uom,
+            ...commonDims,
         });
     }
 
@@ -272,6 +328,8 @@ export async function postSalesInvoice(invoice: {
         date: invoice.date,
         txClient: invoice.txClient,
         overrideContext: invoice.overrideContext,
+        operationType: 'POST_SALES_INVOICE',
+        module: 'sales',
     });
 }
 
@@ -300,11 +358,41 @@ export async function postPurchaseInvoice(invoice: {
     hasGRN?: boolean; // [EG-02] true = GRN exists, clear GRNI; false = direct to Inventory
     txClient?: any;
     overrideContext?: any;
+    // الأبعاد الموحدة (Universal Dimensions)
+    vendorId?: number;
+    productId?: number;
+    quantity?: number;
+    uom?: string;
+    projectId?: number;
+    costCenterId?: number;
+    profitCenterId?: number;
+    segmentId?: number;
 }) {
-    const lines: Array<{ accountCode: string; debit: number; credit: number; description?: string }> = [];
+    const lines: Array<{
+        accountCode: string;
+        debit: number;
+        credit: number;
+        description?: string;
+        vendorId?: number;
+        productId?: number;
+        quantity?: number;
+        uom?: string;
+        projectId?: number;
+        costCenterId?: number;
+        profitCenterId?: number;
+        segmentId?: number;
+    }> = [];
+
     const payAccount = invoice.paymentType === 'cash' ? ACCOUNTS.CASH :
         invoice.paymentType === 'bank' ? ACCOUNTS.BANK :
             ACCOUNTS.PAYABLES;
+
+    const commonDims = {
+        projectId: invoice.projectId,
+        costCenterId: invoice.costCenterId,
+        profitCenterId: invoice.profitCenterId,
+        segmentId: invoice.segmentId,
+    };
 
     let totalLandedCost = 0;
     if (invoice.landedCosts && invoice.landedCosts.length > 0) {
@@ -316,6 +404,8 @@ export async function postPurchaseInvoice(invoice: {
                 debit: 0,
                 credit: lc.amountValue,
                 description: `توزيع تكلفة: ${lc.description} لفاتورة #${invoice.invoiceNo}`,
+                vendorId: invoice.vendorId,
+                ...commonDims,
             });
         }
     }
@@ -335,6 +425,11 @@ export async function postPurchaseInvoice(invoice: {
         debit: inventoryBase + totalLandedCost,
         credit: 0,
         description: debitDescription,
+        vendorId: invoice.vendorId,
+        productId: invoice.productId,
+        quantity: invoice.quantity,
+        uom: invoice.uom,
+        ...commonDims,
     });
 
     // Debit/Credit: PPV (Purchase Price Variance)
@@ -344,6 +439,8 @@ export async function postPurchaseInvoice(invoice: {
             debit: ppv > 0 ? ppv : 0,           // Unfavorable (Paid more)
             credit: ppv < 0 ? Math.abs(ppv) : 0, // Favorable (Paid less)
             description: ppv > 0 ? `انحراف أسعار غير ملائم - فاتورة #${invoice.invoiceNo}` : `انحراف أسعار ملائم (توفير) - فاتورة #${invoice.invoiceNo}`,
+            vendorId: invoice.vendorId,
+            ...commonDims,
         });
     }
 
@@ -354,6 +451,8 @@ export async function postPurchaseInvoice(invoice: {
             debit: invoice.taxValue,
             credit: 0,
             description: `ضريبة مشتريات فاتورة #${invoice.invoiceNo}`,
+            vendorId: invoice.vendorId,
+            ...commonDims,
         });
     }
 
@@ -363,6 +462,8 @@ export async function postPurchaseInvoice(invoice: {
         debit: 0,
         credit: invoice.total,
         description: `سداد فاتورة شراء #${invoice.invoiceNo}`,
+        vendorId: invoice.vendorId,
+        ...commonDims,
     });
 
     return createJournalEntry({
@@ -374,6 +475,8 @@ export async function postPurchaseInvoice(invoice: {
         date: invoice.date,
         txClient: invoice.txClient,
         overrideContext: invoice.overrideContext,
+        operationType: 'POST_PURCHASE_INVOICE',
+        module: 'purchases',
     });
 }
 
