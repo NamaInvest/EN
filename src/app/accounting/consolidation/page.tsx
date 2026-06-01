@@ -1,5 +1,6 @@
 import React from 'react';
 import ConsolidationPreviewClient from './ConsolidationPreviewClient';
+// Force TS cache refresh
 
 export const metadata = {
   title: '📈 معاينة توحيد القوائم المالية - نماء للاستثمار',
