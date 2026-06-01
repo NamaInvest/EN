@@ -43,6 +43,40 @@ async function _GET(request: NextRequest) {
   const engine = new FinancialStatementsEngine(prisma);
   const rows   = await engine.generateTrialBalance(tenantId, new Date(from), new Date(to), filters);
 
+  // Fetch all active accounts of this tenant for client-side tree rollup
+  const accounts = await prisma.account.findMany({
+    where: { tenantId, isActive: true },
+    orderBy: { code: 'asc' }
+  }).catch(() => []);
+
+  // Map transactional sums to accounts
+  const txMap = new Map(rows.map(r => [r.accountCode, r]));
+  const processedAccounts = accounts.map((acc: any) => {
+    const tx = txMap.get(acc.code);
+    const periodDebit = tx ? tx.debits.toNumber() : 0;
+    const periodCredit = tx ? tx.credits.toNumber() : 0;
+    
+    let netBalance = 0;
+    const typeLower = (acc.type || '').toLowerCase();
+    if (typeLower === 'asset' || typeLower === 'expense') {
+      netBalance = periodDebit - periodCredit;
+    } else {
+      netBalance = periodCredit - periodDebit;
+    }
+
+    return {
+      id: acc.id,
+      code: acc.code,
+      name: acc.name,
+      nameEn: acc.nameEn,
+      type: acc.type,
+      parentId: acc.parentId,
+      periodDebit,
+      periodCredit,
+      netBalance,
+    };
+  });
+
   const totalDebits  = rows.reduce((s, r) => s + r.debits.toNumber(), 0);
   const totalCredits = rows.reduce((s, r) => s + r.credits.toNumber(), 0);
   const isBalanced   = Math.abs(totalDebits - totalCredits) < 1;
@@ -52,6 +86,7 @@ async function _GET(request: NextRequest) {
     from, to,
     totalDebits, totalCredits, isBalanced,
     rows,
+    accounts: processedAccounts,
   };
 
   if (validate) {
