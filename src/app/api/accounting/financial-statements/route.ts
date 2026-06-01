@@ -216,7 +216,7 @@ async function _GET(req: NextRequest) {
       columns
     });
 
-    return new Response(new Uint8Array(excelBuffer), {
+    return new Response(new Uint8Array(excelBuffer) as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${type.toLowerCase()}_${generatedTo}.xlsx"`,
@@ -370,7 +370,7 @@ async function _GET(req: NextRequest) {
 
     const pdfBuffer = await PDFService.generate(htmlContent, { format: 'A4' });
 
-    return new Response(new Uint8Array(pdfBuffer), {
+    return new Response(new Uint8Array(pdfBuffer) as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="${type.toLowerCase()}_${generatedTo}.pdf"`,
