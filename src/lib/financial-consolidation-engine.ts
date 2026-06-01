@@ -60,6 +60,34 @@ export interface CompanyBranchValidation {
   status: 'VALID' | 'WARNING_NO_BRANCHES' | 'WARNING_NO_TRANSACTIONS';
 }
 
+export interface ProposedLine {
+  accountCode: string;
+  accountName: string;
+  debit: Decimal;
+  credit: Decimal;
+  description: string;
+}
+
+export interface ProposedJournalEntry {
+  description: string;
+  reference: string;
+  entryDate: string;
+  autoReverseDate: string | null;
+  lines: ProposedLine[];
+}
+
+export interface DryRunResult {
+  groupId: number;
+  groupName: string;
+  periodFrom: string;
+  periodTo: string;
+  isBalanced: boolean;
+  totalDebit: Decimal;
+  totalCredit: Decimal;
+  proposedEntries: ProposedJournalEntry[];
+  warnings: string[];
+}
+
 export interface ConsolidationResult {
   groupId: number;
   groupName: string;
@@ -451,8 +479,8 @@ export class FinancialConsolidationEngine {
     }
 
     // 8. Compute Completeness Score
-    let baseScore = companiesList.length > 0 ? (validEntitiesCount / companiesList.length) * 100 : 100;
-    let mappingCompletenessScore = Math.max(0, Math.round(baseScore - mismatchedCount * 10));
+    const baseScore = companiesList.length > 0 ? (validEntitiesCount / companiesList.length) * 100 : 100;
+    const mappingCompletenessScore = Math.max(0, Math.round(baseScore - mismatchedCount * 10));
 
     return {
       groupId: group.id,
@@ -472,6 +500,123 @@ export class FinancialConsolidationEngine {
       mappingCompletenessScore,
       intercompanyMatches,
       companyBranchValidations,
+    };
+  }
+
+  /**
+   * إجراء محاكاة ترحيل قيود الاستبعاد (Dry-run) وعرض سطور القيود المقترحة بدون ترحيل فعلي.
+   */
+  async dryRunEliminations(
+    tenantId: string,
+    groupId: number,
+    from: Date,
+    to: Date
+  ): Promise<DryRunResult> {
+    // 1. Fetch group details to resolve rules
+    const group = await this.prisma.consolidationGroup.findFirst({
+      where: { id: groupId, tenantId, isActive: true },
+      include: { eliminationRules: true },
+    });
+
+    if (!group) {
+      throw new Error(`مجموعة التوحيد غير موجودة أو غير نشطة: ${groupId}`);
+    }
+
+    // 2. Perform consolidate to gather matches and balances
+    const consolidation = await this.consolidate(tenantId, groupId, from, to);
+
+    const proposedEntries: ProposedJournalEntry[] = [];
+    const warnings: string[] = [];
+    let totalDebit = new Decimal(0);
+    let totalCredit = new Decimal(0);
+
+    const fromStr = from.toISOString().split('T')[0];
+    const toStr = to.toISOString().split('T')[0];
+    const periodStr = to.toISOString().substring(0, 7); // e.g. "2026-05"
+
+    // Calculate auto-reverse date: first day of subsequent month
+    const nextMonth = new Date(to);
+    nextMonth.setDate(1);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const autoReverseDate = nextMonth.toISOString().split('T')[0];
+
+    // 3. Convert matches to proposed journal entries in-memory
+    for (let idx = 0; idx < consolidation.intercompanyMatches.length; idx++) {
+      const match = consolidation.intercompanyMatches[idx];
+      if (match.eliminationAmount.isZero()) continue;
+
+      const lines: ProposedLine[] = [];
+
+      if (match.ruleType === 'INTERCOMPANY_AR_AP') {
+        // Debit adjustment (reduces Payable/Credit nature)
+        lines.push({
+          accountCode: match.targetAccount,
+          accountName: match.targetAccountName,
+          debit: match.eliminationAmount,
+          credit: new Decimal(0),
+          description: `استبعاد أرصدة دائنة بينية - ${match.ruleName}`,
+        });
+
+        // Credit adjustment (reduces Receivable/Debit nature)
+        lines.push({
+          accountCode: match.sourceAccount,
+          accountName: match.sourceAccountName,
+          debit: new Decimal(0),
+          credit: match.eliminationAmount,
+          description: `استبعاد أرصدة مدينة بينية - ${match.ruleName}`,
+        });
+      } else if (match.ruleType === 'INTERCOMPANY_REVENUE_COGS') {
+        // Debit adjustment (reduces Revenue/Credit nature)
+        lines.push({
+          accountCode: match.sourceAccount,
+          accountName: match.sourceAccountName,
+          debit: match.eliminationAmount,
+          credit: new Decimal(0),
+          description: `استبعاد إيرادات بينية - ${match.ruleName}`,
+        });
+
+        // Credit adjustment (reduces Expense/COGS/Debit nature)
+        lines.push({
+          accountCode: match.targetAccount,
+          accountName: match.targetAccountName,
+          debit: new Decimal(0),
+          credit: match.eliminationAmount,
+          description: `استبعاد تكاليف بينية - ${match.ruleName}`,
+        });
+      }
+
+      totalDebit = totalDebit.add(match.eliminationAmount);
+      totalCredit = totalCredit.add(match.eliminationAmount);
+
+      const ref = `ELIM_${groupId}_${periodStr}_${match.ruleType}_${idx}`;
+
+      proposedEntries.push({
+        description: `استبعاد عمليات بينية بموجب القاعدة: ${match.ruleName}`,
+        reference: ref,
+        entryDate: toStr,
+        autoReverseDate,
+        lines,
+      });
+
+      if (match.status === 'MISMATCHED') {
+        warnings.push(
+          `فرق غير متوازن في قاعدة الاستبعاد [${match.ruleName}]: قيمة الفارق البيني ${match.difference.toNumber()} SAR`
+        );
+      }
+    }
+
+    const isBalanced = totalDebit.sub(totalCredit).abs().lt(0.01);
+
+    return {
+      groupId,
+      groupName: group.name,
+      periodFrom: fromStr,
+      periodTo: toStr,
+      isBalanced,
+      totalDebit,
+      totalCredit,
+      proposedEntries,
+      warnings,
     };
   }
 

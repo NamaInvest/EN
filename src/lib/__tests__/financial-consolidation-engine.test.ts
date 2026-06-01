@@ -392,4 +392,108 @@ describe('FinancialConsolidationEngine (F-13A) Unit Tests', () => {
     // baseScore: 2/2 = 100%. Deduct 10% per mismatch = 90%
     expect(result.mappingCompletenessScore).toBe(90);
   });
+
+  it('should successfully run dry-run eliminations and produce virtual journal entries', async () => {
+    // 1. Mock ConsolidationGroup and members with an elimination rule
+    mockPrisma.consolidationGroup.findFirst.mockResolvedValue({
+      id: groupId,
+      tenantId,
+      name: 'Nama Holding Group',
+      parentCompanyId: 1,
+      baseCurrency: 'SAR',
+      isActive: true,
+      members: [
+        {
+          id: 'member-1',
+          tenantId,
+          groupId,
+          entityId: '2',
+          ownership: new Decimal(1.0),
+          consolidationMethod: 'FULL',
+          active: true,
+        },
+      ],
+      eliminationRules: [
+        {
+          id: 'rule-ar-ap',
+          tenantId,
+          groupId,
+          ruleName: 'AR/AP Offset Rule',
+          ruleType: 'INTERCOMPANY_AR_AP',
+          sourceAccount: '1210',
+          targetAccount: '2110',
+          active: true,
+        },
+      ],
+    });
+
+    // 2. Mock Companies
+    mockPrisma.company.findFirst.mockImplementation(({ where }: any) => {
+      if (where.id === 1) return Promise.resolve({ id: 1, tenantId, name: 'Parent Company A' });
+      if (where.id === 2) return Promise.resolve({ id: 2, tenantId, name: 'Subsidiary Company B' });
+      return Promise.resolve(null);
+    });
+
+    // 3. Mock Branches
+    mockPrisma.branch.findMany.mockImplementation(({ where }: any) => {
+      if (where.companyId === 1) return Promise.resolve([{ id: 11, companyId: 1, name: 'Parent Branch' }]);
+      if (where.companyId === 2) return Promise.resolve([{ id: 22, companyId: 2, name: 'Sub Branch' }]);
+      return Promise.resolve([]);
+    });
+
+    // 4. Mock Accounts
+    mockPrisma.account.findMany.mockResolvedValue([
+      { id: 11, code: '1210', name: 'Intercompany Receivables', type: 'asset', parentId: null },
+      { id: 22, code: '2110', name: 'Intercompany Payables', type: 'liability', parentId: null },
+    ]);
+
+    // 5. Mock JournalLine balances (Receivable: 2000, Payable: 1500)
+    mockPrisma.journalLine.groupBy.mockImplementation(({ where }: any) => {
+      const branchFilter = where.entry.branchId;
+      if (branchFilter && branchFilter.in && branchFilter.in.includes(11)) {
+        return Promise.resolve([
+          { accountId: 11, _sum: { debit: 2000, credit: 0 } },
+        ]);
+      }
+      if (branchFilter && branchFilter.in && branchFilter.in.includes(22)) {
+        return Promise.resolve([
+          { accountId: 22, _sum: { debit: 0, credit: 1500 } },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const engine = new FinancialConsolidationEngine(mockPrisma as any);
+    const result = await engine.dryRunEliminations(tenantId, groupId, fromDate, toDate);
+
+    expect(result).toBeDefined();
+    expect(result.groupId).toBe(groupId);
+    expect(result.groupName).toBe('Nama Holding Group');
+    expect(result.isBalanced).toBe(true); // Proposed entries must be self-balancing (Debit = Credit = 1500)
+    expect(result.totalDebit.toNumber()).toBe(1500);
+    expect(result.totalCredit.toNumber()).toBe(1500);
+
+    // Verify proposed entries list
+    expect(result.proposedEntries).toHaveLength(1);
+    const entry = result.proposedEntries[0];
+    expect(entry.reference).toBe('ELIM_101_2026-05_INTERCOMPANY_AR_AP_0');
+    expect(entry.entryDate).toBe('2026-05-31');
+    expect(entry.autoReverseDate).toBe('2026-06-01'); // First day of next month
+
+    // Verify proposed entry lines
+    expect(entry.lines).toHaveLength(2);
+    const payLine = entry.lines.find(l => l.accountCode === '2110');
+    expect(payLine).toBeDefined();
+    expect(payLine?.debit.toNumber()).toBe(1500);
+    expect(payLine?.credit.toNumber()).toBe(0);
+
+    const recLine = entry.lines.find(l => l.accountCode === '1210');
+    expect(recLine).toBeDefined();
+    expect(recLine?.debit.toNumber()).toBe(0);
+    expect(recLine?.credit.toNumber()).toBe(1500);
+
+    // Warnings for mismatch
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('فرق غير متوازن في قاعدة الاستبعاد [AR/AP Offset Rule]');
+  });
 });
