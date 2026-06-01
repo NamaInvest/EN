@@ -11,6 +11,7 @@
  */
 
 import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@prisma/client';
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
@@ -153,12 +154,18 @@ export class FinancialStatementsEngine {
     const fromStr = from.toISOString().split('T')[0];
     const toStr = to.toISOString().split('T')[0];
 
-    const whereClause: any = {
+    const entryFilter: Prisma.JournalEntryWhereInput = {
+      status: { equals: 'posted', mode: 'insensitive' },
+      entryDate: { gte: fromStr, lte: toStr }
+    };
+
+    if (filters && filters.branchId !== undefined) {
+      entryFilter.branchId = filters.branchId;
+    }
+
+    const whereClause: Prisma.JournalLineWhereInput = {
       tenantId,
-      entry: {
-        status: { equals: 'posted', mode: 'insensitive' },
-        entryDate: { gte: fromStr, lte: toStr }
-      }
+      entry: entryFilter,
     };
 
     if (filters) {
@@ -166,7 +173,6 @@ export class FinancialStatementsEngine {
       if (filters.profitCenterId !== undefined) whereClause.profitCenterId = filters.profitCenterId;
       if (filters.projectId !== undefined) whereClause.projectId = filters.projectId;
       if (filters.segmentId !== undefined) whereClause.segmentId = filters.segmentId;
-      if (filters.branchId !== undefined) whereClause.entry.branchId = filters.branchId;
     }
 
     const rows = await prisma.journalLine.groupBy({
@@ -219,6 +225,23 @@ export class FinancialStatementsEngine {
       }
     }
     return total.abs().toDecimalPlaces(2);
+  }
+
+  /**
+   * جمع أرصدة في نطاق كود حسابات مع الاحتفاظ بالإشارة المحاسبية الصافية (Credit - Debit)
+   */
+  private _sumRangeSigned(
+    balances: Map<string, Decimal>,
+    from: string,
+    to: string,
+  ): Decimal {
+    let total = new Decimal(0);
+    for (const [code, net] of balances) {
+      if (code >= from && code <= to) {
+        total = total.add(net);
+      }
+    }
+    return total.toDecimalPlaces(2);
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -316,18 +339,18 @@ export class FinancialStatementsEngine {
     to: Date,
     filters?: DimensionalFilters,
   ): Promise<CashFlowResult> {
-    const [is, priorStart] = await Promise.all([
+    const periodStart = new Date(from.getFullYear(), 0, 1);
+    const [is, current] = await Promise.all([
       this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
-      this._getBalances(tenantId, new Date(from.getFullYear(), 0, 1), from, filters),
+      this._getBalances(tenantId, from, to, filters),
     ]);
 
-    const current = await this._getBalances(tenantId, from, to, filters);
-
     // ─ التشغيل ─────────────────────────────────────────────────────────────
-    const depreciationAddback = this._sumRange(current, '5220', '5229', 1);
-    const arChange   = this._sumRange(current, '1200', '1299', 1).neg();  // زيادة AR = استخدام نقد
-    const invChange  = this._sumRange(current, '1300', '1329', 1).neg();  // زيادة مخزون = استخدام نقد
-    const apChange   = this._sumRange(current, '2110', '2119', 1);        // زيادة AP = مصدر نقد
+    // الاستهلاك غير نقدي (GOSI/Depreciation code matches in test: 5220-5229)
+    const depreciationAddback = this._sumRangeSigned(current, '5220', '5229').neg();
+    const arChange   = this._sumRangeSigned(current, '1200', '1299');        // net is credit - debit (Asset decrease is cash inflow)
+    const invChange  = this._sumRangeSigned(current, '1300', '1329');        // net is credit - debit (Asset decrease is cash inflow)
+    const apChange   = this._sumRangeSigned(current, '2110', '2119');        // net is credit - debit (Liability increase is cash inflow)
     const operatingCF = is.netProfit
       .add(depreciationAddback)
       .add(arChange)
@@ -335,15 +358,23 @@ export class FinancialStatementsEngine {
       .add(apChange);
 
     // ─ الاستثمار ────────────────────────────────────────────────────────────
-    const capex = this._sumRange(current, '1400', '1499', 1).neg();
+    const capex = this._sumRangeSigned(current, '1400', '1499');
     const investingCF = capex;
 
     // ─ التمويل ──────────────────────────────────────────────────────────────
-    const debtChange = this._sumRange(current, '2600', '2699', 1).sub(this._sumRange(priorStart, '2600', '2699', 1));
+    const debtChange = this._sumRangeSigned(current, '2600', '2699');
     const financingCF = debtChange;
 
     const netChange   = operatingCF.add(investingCF).add(financingCF);
-    const openingCash = this._sumRange(priorStart, '1110', '1119', 1);
+
+    // Calculate opening cash (balance before from date in the current year)
+    let openingCash = new Decimal(0);
+    if (from.getTime() > periodStart.getTime()) {
+      const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+      const priorStart = await this._getBalances(tenantId, periodStart, priorTo, filters);
+      openingCash = this._sumRangeSigned(priorStart, '1110', '1119').neg();
+    }
+
     const closingCash = openingCash.add(netChange);
 
     const lines = [
@@ -372,9 +403,8 @@ export class FinancialStatementsEngine {
   ): Promise<IndirectCashFlowResult> {
     // ── Fetch income statement & balance data ─────────────────────────────
     const periodStart = new Date(from.getFullYear(), 0, 1);  // beginning of year
-    const [is, openingBal, closingBal] = await Promise.all([
+    const [is, closingBal] = await Promise.all([
       this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
-      this._getBalances(tenantId, periodStart, from, filters),
       this._getBalances(tenantId, from, to, filters),
     ]);
 
@@ -392,7 +422,7 @@ export class FinancialStatementsEngine {
 
     // ── Step 2: Non-cash adjustments ─────────────────────────────────────
     // Depreciation & Amortization
-    const depreciation = this._sumRange(closingBal, '5220', '5229', 1);
+    const depreciation = this._sumRangeSigned(closingBal, '5220', '5229').neg();
     lines.push({
       label:       'الاستهلاك والإطفاء',
       section:     'OPERATING',
@@ -403,8 +433,7 @@ export class FinancialStatementsEngine {
     });
 
     // Provisions changes (e.g., bad debt, warranty)
-    const provisions = this._sumRange(closingBal, '2400', '2499', 1)
-      .sub(this._sumRange(openingBal, '2400', '2499', 1));
+    const provisions = this._sumRangeSigned(closingBal, '2400', '2499');
     lines.push({
       label:       'تغيّر في المخصصات',
       section:     'OPERATING',
@@ -415,8 +444,9 @@ export class FinancialStatementsEngine {
     });
 
     // Unrealized FX Losses (add back) / Gains (subtract)
-    const fxDiff = this._sumRange(closingBal, '5410', '5419', 1)
-      .sub(this._sumRange(closingBal, '4910', '4919', 1));
+    const fxLosses = this._sumRangeSigned(closingBal, '5410', '5419').neg();
+    const fxGains = this._sumRangeSigned(closingBal, '4910', '4919');
+    const fxDiff = fxLosses.sub(fxGains);
     if (!fxDiff.isZero()) {
       lines.push({
         label:   'فروق العملة غير المحققة (صافي)',
@@ -431,8 +461,7 @@ export class FinancialStatementsEngine {
 
     // ── Step 3: Working Capital Changes ──────────────────────────────────
     // Δ Receivables: increase = cash used (negative)
-    const deltaAR = this._sumRange(closingBal, '1200', '1299', 1)
-      .sub(this._sumRange(openingBal, '1200', '1299', 1)).neg();
+    const deltaAR = this._sumRangeSigned(closingBal, '1200', '1299');
     lines.push({
       label:       'تغيّر في الذمم المدينة',
       section:     'OPERATING',
@@ -443,8 +472,7 @@ export class FinancialStatementsEngine {
     });
 
     // Δ Inventory: increase = cash used (negative)
-    const deltaInv = this._sumRange(closingBal, '1300', '1329', 1)
-      .sub(this._sumRange(openingBal, '1300', '1329', 1)).neg();
+    const deltaInv = this._sumRangeSigned(closingBal, '1300', '1329');
     lines.push({
       label:       'تغيّر في المخزون',
       section:     'OPERATING',
@@ -455,8 +483,7 @@ export class FinancialStatementsEngine {
     });
 
     // Δ Prepaid / Other Current Assets
-    const deltaPrepaid = this._sumRange(closingBal, '1340', '1399', 1)
-      .sub(this._sumRange(openingBal, '1340', '1399', 1)).neg();
+    const deltaPrepaid = this._sumRangeSigned(closingBal, '1340', '1399');
     if (!deltaPrepaid.isZero()) {
       lines.push({
         label:       'تغيّر في المدفوعات المقدمة وأصول أخرى',
@@ -468,8 +495,7 @@ export class FinancialStatementsEngine {
     }
 
     // Δ Payables (AP): increase = cash source (positive)
-    const deltaAP = this._sumRange(closingBal, '2100', '2199', 1)
-      .sub(this._sumRange(openingBal, '2100', '2199', 1));
+    const deltaAP = this._sumRangeSigned(closingBal, '2100', '2199');
     lines.push({
       label:       'تغيّر في الذمم الدائنة',
       section:     'OPERATING',
@@ -480,8 +506,7 @@ export class FinancialStatementsEngine {
     });
 
     // Δ Accruals / Other Current Liabilities
-    const deltaAccruals = this._sumRange(closingBal, '2300', '2399', 1)
-      .sub(this._sumRange(openingBal, '2300', '2399', 1));
+    const deltaAccruals = this._sumRangeSigned(closingBal, '2300', '2399');
     if (!deltaAccruals.isZero()) {
       lines.push({
         label:       'تغيّر في المستحقات الأخرى',
@@ -497,8 +522,7 @@ export class FinancialStatementsEngine {
 
     // ── Step 4: Investing Activities ──────────────────────────────────────
     // Asset acquisitions (CAPEX)
-    const capex = this._sumRange(closingBal, '1400', '1499', 1)
-      .sub(this._sumRange(openingBal, '1400', '1499', 1)).neg();
+    const capex = this._sumRangeSigned(closingBal, '1400', '1499');
     lines.push({
       label:       'شراء / التخلص من الأصول الثابتة (CAPEX)',
       section:     'INVESTING',
@@ -508,8 +532,7 @@ export class FinancialStatementsEngine {
     });
 
     // ROU Assets from IFRS 16 (if any)
-    const rouAssets = this._sumRange(closingBal, '1450', '1459', 1)
-      .sub(this._sumRange(openingBal, '1450', '1459', 1)).neg();
+    const rouAssets = this._sumRangeSigned(closingBal, '1450', '1459');
     if (!rouAssets.isZero()) {
       lines.push({
         label:       'أصول حق الاستخدام (IFRS 16)',
@@ -524,8 +547,7 @@ export class FinancialStatementsEngine {
 
     // ── Step 5: Financing Activities ─────────────────────────────────────
     // Long-term debt changes
-    const deltaLTD = this._sumRange(closingBal, '2500', '2699', 1)
-      .sub(this._sumRange(openingBal, '2500', '2699', 1));
+    const deltaLTD = this._sumRangeSigned(closingBal, '2500', '2699');
     lines.push({
       label:       'تغيّر في القروض طويلة الأجل',
       section:     'FINANCING',
@@ -535,8 +557,7 @@ export class FinancialStatementsEngine {
     });
 
     // Lease liability payments (IFRS 16 principal portion)
-    const leasePrincipal = this._sumRange(closingBal, '2610', '2619', 1)
-      .sub(this._sumRange(openingBal, '2610', '2619', 1)).neg();
+    const leasePrincipal = this._sumRangeSigned(closingBal, '2610', '2619');
     if (!leasePrincipal.isZero()) {
       lines.push({
         label:       'سداد أصل التزامات الإيجار (IFRS 16)',
@@ -548,8 +569,7 @@ export class FinancialStatementsEngine {
     }
 
     // Equity injections / Dividends
-    const equityChange = this._sumRange(closingBal, '3000', '3799', 1)
-      .sub(this._sumRange(openingBal, '3000', '3799', 1));
+    const equityChange = this._sumRangeSigned(closingBal, '3000', '3799');
     if (!equityChange.isZero()) {
       lines.push({
         label:       'تغيّر في حقوق الملكية (رأس مال / أرباح موزعة)',
@@ -564,9 +584,18 @@ export class FinancialStatementsEngine {
 
     // ── Step 6: Reconciliation ────────────────────────────────────────────
     const netChange  = operatingCF.add(investingCF).add(financingCF);
-    const openingCash = this._sumRange(openingBal, '1110', '1119', 1);
+
+    // Calculate opening cash (balance before from date in the current year)
+    let openingCash = new Decimal(0);
+    if (from.getTime() > periodStart.getTime()) {
+      const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+      const openingBal = await this._getBalances(tenantId, periodStart, priorTo, filters);
+      openingCash = this._sumRangeSigned(openingBal, '1110', '1119').neg();
+    }
+
+    const actualCashChange = this._sumRangeSigned(closingBal, '1110', '1119').neg();
     const closingCashCalc = openingCash.add(netChange);
-    const closingCashBS   = this._sumRange(closingBal, '1110', '1119', 1);
+    const closingCashBS   = openingCash.add(actualCashChange);
     const reconciliationDiff = closingCashCalc.sub(closingCashBS).abs();
     const isReconciled = reconciliationDiff.lte(new Decimal('0.01'));
 
@@ -605,12 +634,18 @@ export class FinancialStatementsEngine {
     const fromStr = from.toISOString().split('T')[0];
     const toStr = to.toISOString().split('T')[0];
 
-    const whereClause: any = {
+    const entryFilter: Prisma.JournalEntryWhereInput = {
+      status: { equals: 'posted', mode: 'insensitive' },
+      entryDate: { gte: fromStr, lte: toStr }
+    };
+
+    if (filters && filters.branchId !== undefined) {
+      entryFilter.branchId = filters.branchId;
+    }
+
+    const whereClause: Prisma.JournalLineWhereInput = {
       tenantId,
-      entry: {
-        status: { equals: 'posted', mode: 'insensitive' },
-        entryDate: { gte: fromStr, lte: toStr }
-      }
+      entry: entryFilter,
     };
 
     if (filters) {
@@ -618,7 +653,6 @@ export class FinancialStatementsEngine {
       if (filters.profitCenterId !== undefined) whereClause.profitCenterId = filters.profitCenterId;
       if (filters.projectId !== undefined) whereClause.projectId = filters.projectId;
       if (filters.segmentId !== undefined) whereClause.segmentId = filters.segmentId;
-      if (filters.branchId !== undefined) whereClause.entry.branchId = filters.branchId;
     }
 
     const rows = await prisma.journalLine.groupBy({
@@ -635,11 +669,11 @@ export class FinancialStatementsEngine {
       select: { id: true, code: true, nameEn: true, name: true },
     }).catch(() => []);
 
-    const nameMap = new Map(accounts.map((a: any) => [a.id, a.name || a.nameEn]));
-    const codeMap = new Map(accounts.map((a: any) => [a.id, a.code]));
+    const nameMap = new Map(accounts.map((a) => [a.id, a.name || a.nameEn]));
+    const codeMap = new Map(accounts.map((a) => [a.id, a.code]));
 
     return rows
-      .map((r: any) => {
+      .map((r) => {
         const debits  = new Decimal(r._sum.debit  ?? 0);
         const credits = new Decimal(r._sum.credit ?? 0);
         const code = codeMap.get(r.accountId) ?? '';
@@ -650,7 +684,7 @@ export class FinancialStatementsEngine {
         };
       })
       .filter(r => r.accountCode !== '')
-      .sort((a: any, b: any) => a.accountCode.localeCompare(b.accountCode));
+      .sort((a, b) => a.accountCode.localeCompare(b.accountCode));
   }
 
   // ──────────────────────────────────────────────────────────────────────────

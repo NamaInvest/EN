@@ -2,8 +2,8 @@
  * Unit Tests — Financial Statements Engine
  * تغطي: توازن الميزانية، صافي الربح، ميزان المراجعة، الأبعاد، وفحوصات الامتثال
  */
-import { Decimal } from '@prisma/client/runtime/library';
 import { FinancialStatementsEngine } from '../../lib/financial-statements-engine';
+import type { PrismaClient } from '@prisma/client';
 
 const makeJournalLine = (accountId: number, debit: number, credit: number) => ({
   accountId, _sum: { debit, credit },
@@ -36,7 +36,7 @@ const buildMockPrisma = (lines: ReturnType<typeof makeJournalLine>[]) => {
         { id: 5300, code: '5300', nameAr: 'مصروفات عمومية وإدارية', name: 'Admin Expenses' },
       ]),
     },
-  } as any;
+  } as unknown as PrismaClient;
 };
 
 const tenantId = 'test';
