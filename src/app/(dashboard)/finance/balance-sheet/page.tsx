@@ -206,11 +206,11 @@ export default function BalanceSheetPage() {
     return `${val.toLocaleString(isAr ? 'ar-SA' : 'en-US')} ر.س`;
   };
 
-  const exportCSV = () => {
+  const exportReport = (format: 'xlsx' | 'pdf') => {
     const token = localStorage.getItem("token") || "";
     const param = new URLSearchParams();
     param.set('type', 'BALANCE_SHEET');
-    param.set('format', 'csv');
+    param.set('format', format);
     if (dates.from) param.set('from', dates.from);
     if (dates.to) param.set('to', dates.to);
     if (selectedBranch) param.set('branchId', selectedBranch);
@@ -243,10 +243,16 @@ export default function BalanceSheetPage() {
           <input type="date" className="text-sm outline-none text-slate-600 bg-transparent" value={dates.to} onChange={e => setDates({...dates, to: e.target.value})} />
           <button onClick={fetchBalanceSheet} className="bg-indigo-600 hover:bg-indigo-700 transition-colors text-white font-semibold px-4 py-1.5 rounded-md text-xs ms-2">{t('pos.str_184')}</button>
           {data && (
-            <button onClick={exportCSV} className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
-              <Download size={14} />
-              {isAr ? 'تصدير' : 'CSV'}
-            </button>
+            <>
+              <button onClick={() => exportReport('xlsx')} className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+                <Download size={14} />
+                {isAr ? 'تصدير' : 'Excel'}
+              </button>
+              <button onClick={() => exportReport('pdf')} className="bg-rose-600 hover:bg-rose-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+                <Download size={14} />
+                PDF
+              </button>
+            </>
           )}
         </div>
       </div>

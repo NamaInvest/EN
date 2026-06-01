@@ -217,18 +217,18 @@ export default function ProfitLossPage() {
     return `${val.toLocaleString(isAr ? 'ar-SA' : 'en-US')} ر.س`;
   };
 
-  const exportCSV = () => {
+  const exportReport = (format: 'xlsx' | 'pdf') => {
     const token = localStorage.getItem("token") || "";
     const param = new URLSearchParams();
     param.set('type', 'INCOME_STATEMENT');
-    param.set('format', 'csv');
+    param.set('format', format);
     if (dates.from) param.set('from', dates.from);
     if (dates.to) param.set('to', dates.to);
     if (selectedBranch) param.set('branchId', selectedBranch);
     if (selectedCostCenter) param.set('costCenterId', selectedCostCenter);
     if (selectedProject) param.set('projectId', selectedProject);
     if (selectedSegment) param.set('segmentId', selectedSegment);
-    
+
     window.open(`/api/accounting/financial-statements?${param.toString()}&token=${token}`, '_blank');
   };
 
@@ -238,14 +238,14 @@ export default function ProfitLossPage() {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3 justify-start">
-            <TrendingUp className="w-8 h-8 text-indigo-600" /> 
+            <TrendingUp className="w-8 h-8 text-indigo-600" />
             {isAr ? '📈 قائمة الدخل' : '📈 Profit & Loss Statement'}
           </h1>
           <p className="text-slate-500 mt-2">
             {isAr ? 'قائمة دخل متوافقة مع IFRS/SOCPA مع هوامش الربح' : 'IFRS/SOCPA compliant P&L with margin analysis'}
           </p>
         </div>
-        
+
         {/* Date Pickers */}
         <div className="flex items-center gap-2 bg-white rounded-lg shadow-sm border px-3 py-2 border-slate-200 self-start md:self-auto">
           <Filter size={16} className="text-slate-400" />
@@ -254,10 +254,16 @@ export default function ProfitLossPage() {
           <input type="date" className="text-sm outline-none text-slate-600 bg-transparent" value={dates.to} onChange={e => setDates({...dates, to: e.target.value})} />
           <button onClick={fetchProfitLoss} className="bg-indigo-600 hover:bg-indigo-700 transition-colors text-white font-semibold px-4 py-1.5 rounded-md text-xs ms-2">{t('pos.str_184')}</button>
           {sections.length > 0 && (
-            <button onClick={exportCSV} className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
-              <Download size={14} />
-              {isAr ? 'تصدير' : 'CSV'}
-            </button>
+            <>
+              <button onClick={() => exportReport('xlsx')} className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+                <Download size={14} />
+                {isAr ? 'تصدير' : 'Excel'}
+              </button>
+              <button onClick={() => exportReport('pdf')} className="bg-rose-600 hover:bg-rose-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+                <Download size={14} />
+                PDF
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -267,9 +273,9 @@ export default function ProfitLossPage() {
         {/* Branch Select */}
         <div className="flex flex-col gap-1.5 text-right">
           <label className="text-xs font-bold text-slate-500">الفرع (Branch)</label>
-          <select 
+          <select
             className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-            value={selectedBranch} 
+            value={selectedBranch}
             onChange={e => setSelectedBranch(e.target.value)}
           >
             <option value="">كافة الفروع</option>
@@ -282,9 +288,9 @@ export default function ProfitLossPage() {
         {/* Cost Center Select */}
         <div className="flex flex-col gap-1.5 text-right">
           <label className="text-xs font-bold text-slate-500">مركز التكلفة (Cost Center)</label>
-          <select 
+          <select
             className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-            value={selectedCostCenter} 
+            value={selectedCostCenter}
             onChange={e => setSelectedCostCenter(e.target.value)}
           >
             <option value="">كافة مراكز التكلفة</option>
@@ -297,9 +303,9 @@ export default function ProfitLossPage() {
         {/* Project Select */}
         <div className="flex flex-col gap-1.5 text-right">
           <label className="text-xs font-bold text-slate-500">المشروع (Project)</label>
-          <select 
+          <select
             className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-            value={selectedProject} 
+            value={selectedProject}
             onChange={e => setSelectedProject(e.target.value)}
           >
             <option value="">كافة المشروعات</option>
@@ -312,9 +318,9 @@ export default function ProfitLossPage() {
         {/* Segment Select */}
         <div className="flex flex-col gap-1.5 text-right">
           <label className="text-xs font-bold text-slate-500">القطاع (Segment)</label>
-          <select 
+          <select
             className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-            value={selectedSegment} 
+            value={selectedSegment}
             onChange={e => setSelectedSegment(e.target.value)}
           >
             <option value="">كافة القطاعات</option>

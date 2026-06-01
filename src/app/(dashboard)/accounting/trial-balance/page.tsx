@@ -83,6 +83,22 @@ export default function TrialBalancePage() {
    }
  };
 
+ const exportReport = (format: 'xlsx' | 'pdf') => {
+   const token = localStorage.getItem("token") || "";
+   const param = new URLSearchParams();
+   param.set('type', 'TRIAL_BALANCE');
+   param.set('format', format);
+   if (dates.from) param.set('from', dates.from);
+   if (dates.to) param.set('to', dates.to);
+   if (selectedBranch) param.set('branchId', selectedBranch);
+   if (selectedCostCenter) param.set('costCenterId', selectedCostCenter);
+   if (selectedProject) param.set('projectId', selectedProject);
+   if (selectedSegment) param.set('segmentId', selectedSegment);
+   if (validateCompliance) param.set('validate', 'true');
+
+   window.open(`/api/accounting/financial-statements?${param.toString()}&token=${token}`, '_blank');
+ };
+
  const toggleNode = (id: number) => {
  const next = new Set(expandedNodes);
  if (next.has(id)) next.delete(id);
@@ -93,10 +109,10 @@ export default function TrialBalancePage() {
  // Build the hierarchical tree and compute parent totals
  const buildTree = (parentId: number = 0): any[] => {
  const children = accounts.filter(a => a.parentId === parentId);
- 
+
  return children.map((child: any) => {
  const descendants: any[] = buildTree(child.id);
- 
+
  // A parent's rolled-up debit and credit is its own explicit lines + all descendants' lines
  const rolledDebit = descendants.reduce((acc: any, d: any) => acc + d.rolledDebit, child.periodDebit || 0);
  const rolledCredit = descendants.reduce((acc: any, d: any) => acc + d.rolledCredit, child.periodCredit || 0);
@@ -114,7 +130,7 @@ export default function TrialBalancePage() {
 
  const renderRows = (nodes: any[], depth: number = 0) => {
  let result: any[] = [];
- 
+
  nodes.forEach(node => {
  const isExpanded = expandedNodes.has(node.id);
  const hasChildren = node.children && node.children.length > 0;
@@ -127,7 +143,7 @@ export default function TrialBalancePage() {
  {hasChildren ? (
  isExpanded ? <ChevronDown size={16} className="text-slate-500"/> : <ChevronRight size={16} className="text-slate-500"/>
  ) : <div className="w-4 h-4" />}
- 
+
  <span className={`font-mono ${isTopLevel ? 'font-bold text-slate-800' : 'text-slate-600'}`}>{node.code}</span>
  <span className={`${isTopLevel ? 'font-bold text-slate-800' : 'text-slate-700'}`}>{node.name}</span>
  </div>
@@ -164,7 +180,7 @@ export default function TrialBalancePage() {
         </h1>
         <p className="text-slate-500 mt-2">{t('fin.str_1720')}</p>
       </div>
-      
+
       {/* Date Pickers */}
       <div className="flex items-center gap-2 bg-white rounded-lg shadow-sm border px-3 py-2 border-slate-200">
         <Filter size={16} className="text-slate-400" />
@@ -172,6 +188,18 @@ export default function TrialBalancePage() {
         <span className="text-slate-300">-</span>
         <input type="date" className="text-sm outline-none text-slate-600 bg-transparent" value={dates.to} onChange={e => setDates({...dates, to: e.target.value})} />
         <button onClick={fetchTrialBalance} className="bg-indigo-600 hover:bg-indigo-700 transition-colors text-white font-semibold px-4 py-1.5 rounded-md text-xs ms-2">{t('pos.str_184')}</button>
+        {accounts.length > 0 && (
+          <>
+            <button onClick={() => exportReport('xlsx')} className="bg-emerald-600 hover:bg-emerald-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+              <Download size={14} />
+              {t('pos.str_190') || 'Excel'}
+            </button>
+            <button onClick={() => exportReport('pdf')} className="bg-rose-600 hover:bg-rose-700 transition-colors text-white font-semibold px-3 py-1.5 rounded-md text-xs flex items-center gap-1">
+              <Download size={14} />
+              PDF
+            </button>
+          </>
+        )}
       </div>
     </div>
 
@@ -180,9 +208,9 @@ export default function TrialBalancePage() {
       {/* Branch Select */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-slate-500">الفرع (Branch)</label>
-        <select 
+        <select
           className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-          value={selectedBranch} 
+          value={selectedBranch}
           onChange={e => setSelectedBranch(e.target.value)}
         >
           <option value="">كافة الفروع</option>
@@ -195,9 +223,9 @@ export default function TrialBalancePage() {
       {/* Cost Center Select */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-slate-500">مركز التكلفة (Cost Center)</label>
-        <select 
+        <select
           className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-          value={selectedCostCenter} 
+          value={selectedCostCenter}
           onChange={e => setSelectedCostCenter(e.target.value)}
         >
           <option value="">كافة مراكز التكلفة</option>
@@ -210,9 +238,9 @@ export default function TrialBalancePage() {
       {/* Project Select */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-slate-500">المشروع (Project)</label>
-        <select 
+        <select
           className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-          value={selectedProject} 
+          value={selectedProject}
           onChange={e => setSelectedProject(e.target.value)}
         >
           <option value="">كافة المشروعات</option>
@@ -225,9 +253,9 @@ export default function TrialBalancePage() {
       {/* Segment Select */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-slate-500">القطاع (Segment)</label>
-        <select 
+        <select
           className="text-sm border border-slate-200 rounded-lg p-2 bg-white outline-none focus:border-indigo-500 text-slate-700 transition"
-          value={selectedSegment} 
+          value={selectedSegment}
           onChange={e => setSelectedSegment(e.target.value)}
         >
           <option value="">كافة القطاعات</option>
@@ -240,11 +268,11 @@ export default function TrialBalancePage() {
       {/* Compliance Toggle */}
       <div className="flex flex-col justify-end">
         <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none bg-white border border-slate-200 rounded-lg p-2.5 hover:bg-slate-100 transition">
-          <input 
-            type="checkbox" 
-            className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" 
-            checked={validateCompliance} 
-            onChange={e => setValidateCompliance(e.target.checked)} 
+          <input
+            type="checkbox"
+            className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+            checked={validateCompliance}
+            onChange={e => setValidateCompliance(e.target.checked)}
           />
           <span className="font-semibold text-xs text-slate-700">تفعيل فحص الامتثال SOCPA</span>
         </label>
@@ -345,8 +373,8 @@ export default function TrialBalancePage() {
               <td className="px-4 py-4 text-left font-mono" dir="ltr">{totalCompanyDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               <td className="px-4 py-4 text-left font-mono" dir="ltr">{totalCompanyCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               <td className="px-4 py-4 text-center">
-                {isBalanced ? 
-                  <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded">{t('fin.str_1727')}</span> : 
+                {isBalanced ?
+                  <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded">{t('fin.str_1727')}</span> :
                   <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">{t('fin.str_1728')}</span>
                 }
               </td>
