@@ -15,6 +15,8 @@ jest.mock('./prisma', () => {
     journalEntry:  { findFirst: mkFn(), findUnique: mkFn(), findMany: mkFn(), create: mkFn(), update: mkFn(), count: mkFn() },
     journalLine:   { create: mkFn(), createMany: mkFn() },
     financialPeriod: { findUnique: mkFn() },
+    setting:       { findUnique: mkFn() },
+    financialPeriodModuleLock: { findUnique: mkFn() },
     fiscalPeriod:  { findUnique: mkFn(), findFirst: mkFn() },
     sequence:      { findFirst: mkFn(), upsert: mkFn() },
     $transaction:  jest.fn(async (fn: any) => typeof fn === 'function' ? fn(client) : Promise.all(fn)),
@@ -50,6 +52,10 @@ function setupSuccessfulMocks() {
   mp.sequence.findFirst.mockResolvedValue({ prefix: 'JE', currentValue: 10 });
   mp.sequence.upsert.mockResolvedValue({ currentValue: 11 });
   mp.financialPeriod.findUnique.mockResolvedValue(null);
+  mp.setting = mp.setting || { findUnique: jest.fn() };
+  mp.setting.findUnique.mockResolvedValue(null);
+  mp.financialPeriodModuleLock = mp.financialPeriodModuleLock || { findUnique: jest.fn() };
+  mp.financialPeriodModuleLock.findUnique.mockResolvedValue(null);
   mp.fiscalPeriod.findUnique.mockResolvedValue({ id: 1, status: 'open', startDate: new Date('2025-01-01'), endDate: new Date('2025-12-31') });
   mp.fiscalPeriod.findFirst.mockResolvedValue({ id: 1, status: 'open' });
 }

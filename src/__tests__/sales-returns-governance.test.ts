@@ -84,6 +84,9 @@ jest.mock('@/lib/prisma', () => {
     financialPeriod: {
       findUnique: jest.fn(),
     },
+    setting: {
+      findUnique: jest.fn(),
+    },
     financialPeriodModuleLock: {
       findUnique: jest.fn(),
     },
@@ -160,6 +163,7 @@ describe('Sales Returns Enterprise Governance (Phase F-04C)', () => {
       permissions: [],
     });
     prismaMock.financialPeriodModuleLock.findUnique.mockResolvedValue(null);
+    prismaMock.setting.findUnique.mockResolvedValue(null);
   });
 
   const buildValidBody = () => ({

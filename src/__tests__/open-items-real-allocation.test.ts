@@ -243,7 +243,8 @@ describe('Open Items POST Real Allocation API Endpoints (Phase OPEN-ITEMS-03)', 
         secureTenant,
         901,
         '42',
-        'Valid matching correction reason'
+        'Valid matching correction reason',
+        undefined
       );
     });
   });
