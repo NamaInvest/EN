@@ -792,3 +792,151 @@ export class FinancialStatementsEngine {
   }
 }
 
+export interface DisclosureNoteSection {
+  code: string;
+  title: string;
+  content: string;
+  relatedReports: string[];
+}
+
+export interface DisclosureNotesResult {
+  enabled: boolean;
+  standard: 'ifrs' | 'socpa';
+  language: 'ar' | 'en';
+  generatedAt: string;
+  sections: DisclosureNoteSection[];
+}
+
+export function generateDisclosureNotes(
+  reportType: 'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'CASH_FLOW' | 'TRIAL_BALANCE' | 'ALL',
+  from: Date,
+  to: Date,
+  language: 'ar' | 'en' = 'ar',
+  standard: 'ifrs' | 'socpa' = 'ifrs',
+  mode: 'summary' | 'detailed' = 'summary'
+): DisclosureNotesResult {
+  const generatedAt = new Date().toISOString();
+  const isAr = language === 'ar';
+
+  const sections: DisclosureNoteSection[] = [];
+
+  // Section 1: Basis of Preparation
+  sections.push({
+    code: 'BASIS_OF_PREPARATION',
+    title: isAr ? 'أساس إعداد القوائم المالية' : 'Basis of Financial Statements Preparation',
+    content: isAr
+      ? `تم إعداد هذه القوائم المالية وفقاً للمعايير الدولية للتقرير المالي المعتمدة في المملكة العربية السعودية (IFRS) والاصدارات والمعايير الأخرى المعتمدة من الهيئة السعودية للمراجعين والمحاسبين (SOCPA). يُطبق مبدأ الاستمرارية التاريخية في التقييم المحاسبي ما لم يُنص على خلاف ذلك.`
+      : `These financial statements have been prepared in accordance with International Financial Reporting Standards (IFRS) as endorsed in the Kingdom of Saudi Arabia, and other standards and pronouncements endorsed by the Saudi Organization for Chartered and Professional Accountants (SOCPA). The historical cost convention has been followed unless otherwise specified.`,
+    relatedReports: ['all']
+  });
+
+  // Section 2: Significant Accounting Policies
+  sections.push({
+    code: 'ACCOUNTING_POLICIES',
+    title: isAr ? 'السياسات المحاسبية الهامة' : 'Significant Accounting Policies',
+    content: isAr
+      ? `تتضمن السياسات المحاسبية الهامة المطبقة الثبات الكامل في التبويب والقياس المحاسبي عبر الفترات المالية المقارنة. يتم تسجيل المعاملات على أساس الاستحقاق المحاسبي الكامل لضمان عدالة وموثوقية العرض المالي.`
+      : `Significant accounting policies applied involve complete consistency in accounting classification and measurement across comparative financial periods. All transactions are recorded under the full accrual basis of accounting to ensure fair and reliable financial presentation.`,
+    relatedReports: ['all']
+  });
+
+  // Section 3: Revenue Recognition (relevant to Income Statement, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'INCOME_STATEMENT' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'REVENUE_RECOGNITION',
+      title: isAr ? 'سياسة الاعتراف بالإيراد' : 'Revenue Recognition Policy',
+      content: isAr
+        ? `يتم الاعتراف بالإيراد وفقاً للمعيار الدولي للتقرير المالي 15 (IFRS 15) عند انتقال السيطرة على السلع أو تقديم الخدمات للعميل، بموجب نموذج الخطوات الخمس وبمبلغ يعكس المقابل المتوقع استحقاقه.`
+        : `Revenue is recognized in accordance with IFRS 15 when control of goods or services is transferred to the customer, based on the five-step model and at an amount reflecting the consideration expected to be entitled.`,
+      relatedReports: ['income-statement']
+    });
+  }
+
+  // Section 4: Inventory Valuation (relevant to Balance Sheet, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'BALANCE_SHEET' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'INVENTORY_VALUATION',
+      title: isAr ? 'سياسة تقييم المخزون' : 'Inventory Valuation Policy',
+      content: isAr
+        ? `يُقاس المخزون بالتكلفة أو صافي القيمة القابلة للتحقق أيهما أقل (IAS 2). يتم احتساب تكلفة المخزون باستخدام طريقة المتوسط المرجح المتحرك وتشمل كافة التكاليف المباشرة للاقتناء والتهيئة.`
+        : `Inventory is measured at the lower of cost and net realizable value (IAS 2). Cost of inventory is determined using the moving weighted average method, including all direct acquisition and preparation costs.`,
+      relatedReports: ['balance-sheet']
+    });
+  }
+
+  // Section 5: Property, Plant & Equipment (relevant to Balance Sheet, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'BALANCE_SHEET' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'PROPERTY_PLANT_EQUIPMENT',
+      title: isAr ? 'الأصول الثابتة والاستهلاك' : 'Property, Plant & Equipment',
+      content: isAr
+        ? `تُقاس العقارات والآلات والمعدات بالتكلفة التاريخية مطروحاً منها الاستهلاك المتراكم وخسائر الهبوط المتراكمة (IAS 16). يتم احتساب الاستهلاك بطريقة القسط الثابت على الأعمار الإنتاجية المقدرة للأصول.`
+        : `Property, plant, and equipment are measured at historical cost less accumulated depreciation and accumulated impairment losses (IAS 16). Depreciation is calculated using the straight-line method over the estimated useful lives of the assets.`,
+      relatedReports: ['balance-sheet']
+    });
+  }
+
+  // Section 6: Receivables and Credit Risk (relevant to Balance Sheet, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'BALANCE_SHEET' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'RECEIVABLES_CREDIT_RISK',
+      title: isAr ? 'الذمم المدينة ومخاطر الائتمان' : 'Receivables and Credit Risk',
+      content: isAr
+        ? `تُسجل الذمم المدينة التجارية بالصافي بعد خصم مخصص الخسائر الائتمانية المتوقعة (ECL) وفقاً للمعيار الدولي للتقرير المالي 9 (IFRS 9). يعتمد قياس المخصص على مصفوفة المخصصات المبنية على فترات الاستحقاق والتأخر التاريخي.`
+        : `Trade receivables are stated net of expected credit losses (ECL) allowance in accordance with IFRS 9. The measurement of the allowance is based on a provision matrix built on aging categories and historical default rates.`,
+      relatedReports: ['balance-sheet']
+    });
+  }
+
+  // Section 7: Payables and Accruals (relevant to Balance Sheet, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'BALANCE_SHEET' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'PAYABLES_ACCRUALS',
+      title: isAr ? 'الذمم الدائنة والمستحقات' : 'Payables and Accruals',
+      content: isAr
+        ? `تُمثل الذمم الدائنة والمصاريف المستحقة التزامات غير مضمونة وغير مسعرة بفائدة، وتُقاس بالتكلفة المطفأة. تُعكس هذه البنود الالتزامات الفعلية القائمة بنهاية الفترة المالية مقابل الخدمات والمشتريات التشغيلية.`
+        : `Trade payables and accrued expenses represent unsecured, non-interest-bearing obligations, measured at amortized cost. These items reflect actual outstanding liabilities at the end of the financial period for operational services and purchases.`,
+      relatedReports: ['balance-sheet']
+    });
+  }
+
+  // Section 8: Foreign Currency (relevant to All)
+  sections.push({
+    code: 'FOREIGN_CURRENCY',
+    title: isAr ? 'العملات الأجنبية وفروقات العملة' : 'Foreign Currency Translation',
+    content: isAr
+      ? `يتم إعداد القوائم بالعملة الوظيفية (الريال السعودي). تُترجم الأرصدة والمعاملات بالعملات الأجنبية باستخدام أسعار الصرف السائدة في تاريخ الحركة، وتُسجل فروق الترجمة والتقييم في قائمة الدخل فوراً (IAS 21).`
+      : `Financial statements are presented in the functional currency (Saudi Riyal). Foreign currency transactions and balances are translated using prevailing exchange rates at transaction dates, and exchange gains or losses are recognized in the income statement (IAS 21).`,
+    relatedReports: ['all']
+  });
+
+  // Section 9: Cash and Cash Equivalents (relevant to Balance Sheet, Cash Flow, Trial Balance, All)
+  if (reportType === 'ALL' || reportType === 'BALANCE_SHEET' || reportType === 'CASH_FLOW' || reportType === 'TRIAL_BALANCE') {
+    sections.push({
+      code: 'CASH_CASH_EQUIVALENTS',
+      title: isAr ? 'النقد وما في حكمه' : 'Cash and Cash Equivalents',
+      content: isAr
+        ? `يشمل النقد وما في حكمه النقدية في الخزينة والأرصدة الجارية والودائع تحت الطلب لدى البنوك المحلية والخارجية (IAS 7) والتي لا تتجاوز فترات استحقاقها ثلاثة أشهر من تاريخ النشوء.`
+        : `Cash and cash equivalents comprise cash in hand, current accounts, and demand deposits with local and international banks (IAS 7) with original maturities of three months or less from date of inception.`,
+      relatedReports: ['balance-sheet', 'cash-flow']
+    });
+  }
+
+  // Section 10: Comparative Figures
+  sections.push({
+    code: 'COMPARATIVE_FIGURES',
+    title: isAr ? 'أرقام المقارنة والفترات المالية' : 'Comparative Figures and Financial Periods',
+    content: isAr
+      ? `تم عرض أرقام المقارنة المقابلة للفترة السابقة لتتوافق بالكامل مع تصنيف وعرض الفترة المالية الحالية لضمان قابلية المقارنة والتحليل المالي المتناسق، وذلك دعماً لمعيار العرض المالي الأول (IAS 1).`
+      : `Corresponding comparative prior period figures have been presented to conform fully to the current period's classification and presentation, supporting comparability and consistent financial analysis under IAS 1.`,
+    relatedReports: ['all']
+  });
+
+  return {
+    enabled: true,
+    standard,
+    language,
+    generatedAt,
+    sections: mode === 'summary' ? sections.slice(0, 3) : sections
+  };
+}

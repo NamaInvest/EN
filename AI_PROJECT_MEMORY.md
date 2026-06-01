@@ -522,3 +522,19 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Database / Prisma Schema**: Unchanged (no migrations, no db push).
 * **PM2**: `main-site`, `n1-main`, and `saas-app` all online and successfully reloaded with clean boot logs.
 * **Runtime Verification**: Local typecheck PASS, local prisma validate PASS, Jest targeted tests 7/7 PASS, local production build PASS. Remote deployment ff-only pull and server build PASS. Smoke tests curled on all domains returned healthy 200/401 and `/api/sales-returns?page=abc&take=-10` returned 401 instead of crashing (validated fallback safely to page=1, take=50). Zero database, schema, or financial period mutations occurred.
+
+### Phase: F-15 Multi-period Comparative Reporting (2026-06-01)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `4dfb8da8dc56cbe9db13cd6d0015ba0c3fa3b08e` (`feat(accounting): add multi-period financial statement comparisons`)
+* **Scope**:
+  - `src/app/api/accounting/financial-statements/route.ts`
+* **Tests**: `src/lib/__tests__/financial-statements-engine.test.ts` (10/10 passed).
+* **Deployment**: Smart, files-only deployment to Hetzner VPS (`46.4.188.170`) across all 3 active domains (`main-site`, `n1`, `n11`) with SSH-based backups.
+* **Test files uploaded to production**: NO
+* **SHA256 Checksums (100% Match Local & Production across all sites)**:
+  - `src/app/api/accounting/financial-statements/route.ts`: `2cad15501eaf1a76cfce3cbc7ddf2fc940085d201eee23c8d9fd8118001844e5`
+* **Database**: Unchanged (no migrations, no db push).
+* **Prisma Schema**: Unchanged.
+* **migrations/db push**: NO
+* **PM2**: `main-site`, `n1-main`, and `saas-app` all online and successfully restarted with the new runtime files.
+* **Runtime Verification / Smoke Tests**: Curling all public domains returned 200 OK, SIEM and settings endpoints on all sites returned 401 Unauthorized, and financial-statements endpoints returned 401 Unauthorized without crashing (no 500 errors). Zero leakage of secrets or tenant cross-contamination.

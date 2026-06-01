@@ -2,7 +2,7 @@
  * Unit Tests — Financial Statements Engine
  * تغطي: توازن الميزانية، صافي الربح، ميزان المراجعة، الأبعاد، وفحوصات الامتثال
  */
-import { FinancialStatementsEngine } from '../../lib/financial-statements-engine';
+import { FinancialStatementsEngine, generateDisclosureNotes } from '../../lib/financial-statements-engine';
 import type { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -180,6 +180,47 @@ describe('FinancialStatementsEngine', () => {
       const pri = new Decimal(0);
       const pct = calculateVariancePercent(cur, pri);
       expect(pct?.toNumber()).toBe(0);
+    });
+  });
+
+  describe('F-16 Financial Statement Notes & Disclosure Pack Invariants', () => {
+    const fromDate = new Date('2026-01-01');
+    const toDate = new Date('2026-12-31');
+
+    it('يجب إرجاع الإيضاحات باللغة العربية بشكل صحيح عند طلبها بالمعيار الدولي', () => {
+      const notes = generateDisclosureNotes('ALL', fromDate, toDate, 'ar', 'ifrs', 'detailed');
+      expect(notes.enabled).toBe(true);
+      expect(notes.standard).toBe('ifrs');
+      expect(notes.language).toBe('ar');
+      expect(notes.sections.length).toBeGreaterThan(0);
+
+      const firstSection = notes.sections.find(s => s.code === 'BASIS_OF_PREPARATION');
+      expect(firstSection).toBeDefined();
+      expect(firstSection?.title).toBe('أساس إعداد القوائم المالية');
+      expect(firstSection?.content).toContain('القوائم المالية');
+    });
+
+    it('يجب إرجاع الإيضاحات باللغة الإنجليزية بشكل صحيح عند طلبها بالمعيار الدولي', () => {
+      const notes = generateDisclosureNotes('ALL', fromDate, toDate, 'en', 'ifrs', 'detailed');
+      expect(notes.enabled).toBe(true);
+      expect(notes.standard).toBe('ifrs');
+      expect(notes.language).toBe('en');
+
+      const firstSection = notes.sections.find(s => s.code === 'BASIS_OF_PREPARATION');
+      expect(firstSection).toBeDefined();
+      expect(firstSection?.title).toBe('Basis of Financial Statements Preparation');
+      expect(firstSection?.content).toContain('International Financial Reporting Standards');
+    });
+
+    it('يجب تقليص الأقسام إلى 3 عند طلب نمط الملخص summary', () => {
+      const notes = generateDisclosureNotes('ALL', fromDate, toDate, 'ar', 'ifrs', 'summary');
+      expect(notes.sections.length).toBe(3);
+    });
+
+    it('يجب تصفية البنود غير الملائمة لنوع التقرير المحدد', () => {
+      const notesBS = generateDisclosureNotes('BALANCE_SHEET', fromDate, toDate, 'ar', 'ifrs', 'detailed');
+      const hasRevenueNote = notesBS.sections.some(s => s.code === 'REVENUE_RECOGNITION');
+      expect(hasRevenueNote).toBe(false); // Balance Sheet must not contain revenue notes
     });
   });
 });

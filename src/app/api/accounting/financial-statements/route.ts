@@ -21,7 +21,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute, RouteContext } from '@/lib/api/with-route';
 import { logAuditEvent } from '@/lib/audit-trail';
-import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
+import { FinancialStatementsEngine, generateDisclosureNotes } from '@/lib/financial-statements-engine';
 import type { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/lib/logger';
@@ -56,6 +56,12 @@ async function _GET(req: NextRequest, ctx: RouteContext) {
 
   const compareFromParam = searchParams.get('compareFrom');
   const compareToParam = searchParams.get('compareTo');
+
+  const includeNotesParam = searchParams.get('includeNotes');
+  const includeNotes = includeNotesParam === 'true';
+  const notesMode = (searchParams.get('notesMode') ?? 'summary') as 'summary' | 'detailed';
+  const notesLanguage = (searchParams.get('notesLanguage') ?? 'ar') as 'ar' | 'en';
+  const notesStandard = (searchParams.get('notesStandard') ?? 'ifrs') as 'ifrs' | 'socpa';
 
   const format   = (searchParams.get('format') ?? 'json').toLowerCase() as 'json' | 'xlsx' | 'pdf' | 'csv';
 
@@ -224,6 +230,10 @@ async function _GET(req: NextRequest, ctx: RouteContext) {
       log.warn('Cash flow failed', { error: msg });
       result.cashFlow = { error: msg };
     }
+  }
+
+  if (includeNotes) {
+    result.disclosureNotes = generateDisclosureNotes(type, from, to, notesLanguage, notesStandard, notesMode);
   }
 
   const generatedFrom = result.from as string;
