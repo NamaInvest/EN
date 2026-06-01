@@ -1400,6 +1400,7 @@ Table consolidation_groups {
   runs consolidation_runs [not null]
   members consolidation_member [not null]
   eliminationRules elimination_rule [not null]
+  eliminationRequests consolidation_elimination_requests [not null]
 }
 
 Table consolidation_runs {
@@ -5751,6 +5752,69 @@ Table open_item_matchings {
   deletedBy String
 }
 
+Table consolidation_elimination_requests {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  groupId Int [not null]
+  periodFrom DateTime [not null]
+  periodTo DateTime [not null]
+  periodKey String [not null]
+  status String [not null, default: 'DRAFT']
+  previewHash String [not null]
+  snapshotJson Json [not null]
+  totalDebit Decimal [not null]
+  totalCredit Decimal [not null]
+  isBalanced Boolean [not null, default: true]
+  postingReference String
+  reversalReference String
+  autoReverseDate DateTime
+  createdBy String [not null]
+  submittedBy String
+  cfoApprovedBy String
+  masterApprovedBy String
+  postedBy String
+  reversedBy String
+  rejectedBy String
+  rejectionReason String
+  journalEntryId Int
+  reversalJournalEntryId Int
+  createdAt DateTime [default: `now()`, not null]
+  submittedAt DateTime
+  cfoApprovedAt DateTime
+  masterApprovedAt DateTime
+  postedAt DateTime
+  reversedAt DateTime
+  rejectedAt DateTime
+  updatedAt DateTime [not null]
+  group consolidation_groups [not null]
+  approvals consolidation_elimination_approvals [not null]
+  postings consolidation_elimination_postings [not null]
+
+  indexes {
+    (tenantId, groupId, periodKey, postingReference) [unique]
+  }
+}
+
+Table consolidation_elimination_approvals {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  requestId String [not null]
+  actorId String [not null]
+  actorRole String [not null]
+  decision String [not null]
+  reason String
+  createdAt DateTime [default: `now()`, not null]
+  request consolidation_elimination_requests [not null]
+}
+
+Table consolidation_elimination_snapshots {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  requestId String [unique, not null]
+  payload Json [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
 Table users {
   id Int [pk, increment]
   username String [unique, not null]
@@ -6909,6 +6973,18 @@ Table treasury {
   deletedAt DateTime [note: '[SD]']
 }
 
+Table consolidation_elimination_postings {
+  id String [pk]
+  tenantId String [not null, note: '🔴 Tenant']
+  requestId String [not null]
+  journalEntryId Int [not null]
+  reversalEntryId Int
+  status String [not null, default: 'SUCCESS']
+  errorMessage String
+  postedAt DateTime [default: `now()`, not null]
+  request consolidation_elimination_requests [not null]
+}
+
 Ref: TrustedDevice.userId > users.id [delete: Cascade]
 
 Ref: products.categoryId > categories.id
@@ -7338,6 +7414,12 @@ Ref: open_item_matchings.purchaseInvoiceId > purchase_invoices.id [delete: Restr
 Ref: open_item_matchings.salesReturnId > sales_returns.id [delete: Restrict]
 
 Ref: open_item_matchings.treasuryId > treasury.id [delete: Restrict]
+
+Ref: consolidation_elimination_requests.groupId > consolidation_groups.id
+
+Ref: consolidation_elimination_approvals.requestId > consolidation_elimination_requests.id [delete: Cascade]
+
+Ref: consolidation_elimination_postings.requestId > consolidation_elimination_requests.id [delete: Cascade]
 
 Enum FinancialPeriodStatus {
   OPEN

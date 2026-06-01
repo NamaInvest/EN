@@ -4177,6 +4177,7 @@ model ConsolidationGroup {
   runs             ConsolidationRun[]
   members          ConsolidationMember[]
   eliminationRules EliminationRule[]
+  eliminationRequests ConsolidationEliminationRequest[]
 
   @@map("consolidation_groups")
 }
@@ -12230,3 +12231,95 @@ model OpenItemMatching {
   @@index([tenantId, purchaseReturnId, deletedAt])
   @@map("open_item_matchings")
 }
+
+// F-13E Consolidation Elimination Schema Implementation (Local Only)
+
+model ConsolidationEliminationRequest {
+  id                String                             @id @default(cuid())
+  tenantId          String                             @map("tenant_id")
+  groupId           Int                                @map("group_id")
+  periodFrom        DateTime                           @map("period_from")
+  periodTo          DateTime                           @map("period_to")
+  periodKey         String                             @map("period_key") // e.g. "2026-05"
+  status            String                             @default("DRAFT")  // DRAFT | SUBMITTED | CFO_APPROVED | MASTER_APPROVED | POSTING_READY | POSTING_IN_PROGRESS | POSTED | REVERSED | REJECTED | CANCELLED | FAILED
+  previewHash       String                             @map("preview_hash")
+  snapshotJson      Json                               @map("snapshot_json") // Stores proposed lines snapshot
+  totalDebit        Decimal                            @db.Decimal(20, 4) @map("total_debit")
+  totalCredit       Decimal                            @db.Decimal(20, 4) @map("total_credit")
+  isBalanced        Boolean                            @default(true) @map("is_balanced")
+  postingReference  String?                            @map("posting_reference")
+  reversalReference String?                            @map("reversal_reference")
+  autoReverseDate   DateTime?                          @map("auto_reverse_date")
+  
+  createdBy         String                             @map("created_by")
+  submittedBy       String?                            @map("submitted_by")
+  cfoApprovedBy     String?                            @map("cfo_approved_by")
+  masterApprovedBy  String?                            @map("master_approved_by")
+  postedBy          String?                            @map("posted_by")
+  reversedBy        String?                            @map("reversed_by")
+  rejectedBy        String?                            @map("rejected_by")
+  rejectionReason   String?                            @map("rejection_reason")
+  
+  journalEntryId    Int?                               @map("journal_entry_id")
+  reversalJournalEntryId Int?                          @map("reversal_journal_entry_id")
+  
+  createdAt         DateTime                           @default(now()) @map("created_at")
+  submittedAt       DateTime?                          @map("submitted_at")
+  cfoApprovedAt     DateTime?                          @map("cfo_approved_at")
+  masterApprovedAt  DateTime?                          @map("master_approved_at")
+  postedAt          DateTime?                          @map("posted_at")
+  reversedAt        DateTime?                          @map("reversed_at")
+  rejectedAt        DateTime?                          @map("rejected_at")
+  updatedAt         DateTime                           @updatedAt @map("updated_at")
+
+  group             ConsolidationGroup                 @relation(fields: [groupId], references: [id])
+  approvals         ConsolidationEliminationApproval[]
+  postings          ConsolidationEliminationPosting[]
+
+  @@unique([tenantId, groupId, periodKey, postingReference])
+  @@index([tenantId, groupId, periodKey])
+  @@map("consolidation_elimination_requests")
+}
+
+model ConsolidationEliminationApproval {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  requestId  String   @map("request_id")
+  actorId    String   @map("actor_id")
+  actorRole  String   @map("actor_role") // CFO | MASTER_ADMIN | SUPER_ADMIN
+  decision   String   @map("decision")   // APPROVED | REJECTED
+  reason     String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  request    ConsolidationEliminationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, requestId])
+  @@map("consolidation_elimination_approvals")
+}
+
+model ConsolidationEliminationSnapshot {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  requestId String   @unique @map("request_id")
+  payload   Json     @db.JsonB // Stores the full dryRunProposedEntries array
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("consolidation_elimination_snapshots")
+}
+
+model ConsolidationEliminationPosting {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  requestId       String   @map("request_id")
+  journalEntryId  Int      @map("journal_entry_id")
+  reversalEntryId Int?     @map("reversal_entry_id")
+  status          String   @default("SUCCESS") // SUCCESS | REVERSED | FAILED
+  errorMessage    String?  @map("error_message")
+  postedAt        DateTime @default(now()) @map("posted_at")
+
+  request         ConsolidationEliminationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, requestId])
+  @@map("consolidation_elimination_postings")
+}
+
