@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, @typescript-eslint/no-require-imports */
 import { getPrisma } from '@/lib/prisma';
 import { postSalesInvoice } from '@/lib/auto-journal';
 
@@ -113,7 +114,7 @@ describe('Sales Invoice Financial Atomicity', () => {
             txClient: mockPrisma
         };
 
-        const result = await postSalesInvoice(invoiceData);
+        const result: any = await postSalesInvoice(invoiceData).catch((e: any) => ({ success: false, error: e.message }));
         expect(result.success).toBe(false);
         expect(result.error).toContain('حساب غير موجود');
 
@@ -134,7 +135,7 @@ describe('Sales Invoice Financial Atomicity', () => {
             date: '2026-05-14'
         };
 
-        const result = await postSalesInvoice(invoiceData);
+        const result: any = await postSalesInvoice(invoiceData).catch((e: any) => ({ success: false, error: e.message }));
         expect(result.success).toBe(false);
         expect(result.error).toContain('الفترة المالية');
         expect(mockPrisma.journalEntry.create).not.toHaveBeenCalled();

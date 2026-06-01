@@ -1,17 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars */
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
-import { round2, validateMoney } from '@/lib/money';
 import { purchaseCreateSchema, purchasePaymentSchema } from '@/lib/validations';
 import { handleApiError } from '@/lib/api-handler';
 import { resolveStockAndBranch } from '@/lib/getDefaults';
 import { logFieldChanges, logDelete, auditContextFromRequest } from '@/lib/field-audit';
 import { getUserFromRequest, hasPermission } from '@/lib/auth';
 import { n } from '@/lib/decimal-utils';
-import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { withTransaction, runFinancialTx } from '@/lib/db/transaction';
+import { runFinancialTx } from '@/lib/db/transaction';
 import { reverseJournalByReference } from '@/lib/auto-journal';
 import { requireTenantId } from '@/lib/governance/tenant-guard';
 import { assertEditable } from '@/lib/document-state-machine';
@@ -110,8 +108,6 @@ async function _POST(request: Request) {
 
         const purchaseOrderId = body.purchaseOrderId ? Number(body.purchaseOrderId) : null;
         let calculatedPpv = 0;
-        let poTotalAmount = 0;
-        let poTotalQuantity = 0;
         let invoiceTotalQuantity = 0;
 
         if (purchaseOrderId && !isManual) {
@@ -128,8 +124,6 @@ async function _POST(request: Request) {
                         const qty = Number(item.quantity) || 1;
                         const linePpv = (invPrice - poPrice) * qty;
                         calculatedPpv += linePpv;
-                        poTotalAmount += poPrice * qty;
-                        poTotalQuantity += qty;
                     }
                     invoiceTotalQuantity += Number(item.quantity) || 1;
                 }

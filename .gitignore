@@ -65,6 +65,14 @@ graphify-out/
 public/downloads/*.exe
 *.exe
 
-.ai-brain/namain
 tmp/agent-scan-report-*.md
 scratch/
+
+# Prevent SSH keys leakage
+.ssh/
+id_rsa*
+*.key
+
+# Prevent planning/report leaks
+tmp/*
+!tmp/agent-scan-report.md

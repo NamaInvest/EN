@@ -21,12 +21,12 @@ const fs = require('fs');
 const path = require('path');
 
 // ─── Config ──────────────────────────────────────────────────────
-const keyPath = path.join(__dirname, '.ssh', 'id_rsa');
+const keyPath = process.env.SSH_KEY_PATH || path.join(__dirname, '.ssh', 'id_rsa');
 const hasKey = fs.existsSync(keyPath);
 const SSH_PASSWORD = process.env.SSH_PASSWORD;
 
 if (!SSH_PASSWORD && !hasKey) {
-    console.error("❌ Error: Neither SSH_PASSWORD environment variable nor .ssh/id_rsa private key is defined!");
+    console.error("❌ Error: Neither SSH_PASSWORD, SSH_KEY_PATH environment variables nor .ssh/id_rsa private key is defined!");
     process.exit(1);
 }
 
