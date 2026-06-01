@@ -297,4 +297,99 @@ describe('FinancialConsolidationEngine (F-13A) Unit Tests', () => {
     expect(apRow?.eliminationDebit.toNumber()).toBe(1500); // Debited by 1500 to bring to 0
     expect(apRow?.consolidatedNet.toNumber()).toBe(0); // Successfully eliminated!
   });
+
+  it('should successfully calculate F-13B mapping completeness, company branch validations, and intercompany matches', async () => {
+    // 1. Mock ConsolidationGroup and members with an elimination rule
+    mockPrisma.consolidationGroup.findFirst.mockResolvedValue({
+      id: groupId,
+      tenantId,
+      name: 'Nama Holding Group',
+      parentCompanyId: 1, // Parent A
+      baseCurrency: 'SAR',
+      isActive: true,
+      members: [
+        {
+          id: 'member-1',
+          tenantId,
+          groupId,
+          entityId: '2', // Subsidiary B
+          ownership: new Decimal(1.0),
+          consolidationMethod: 'FULL',
+          active: true,
+        },
+      ],
+      eliminationRules: [
+        {
+          id: 'rule-ar-ap',
+          tenantId,
+          groupId,
+          ruleName: 'AR/AP Offset Rule',
+          ruleType: 'INTERCOMPANY_AR_AP',
+          sourceAccount: '1210', // Intercompany Receivables
+          targetAccount: '2110', // Intercompany Payables
+          active: true,
+        },
+      ],
+    });
+
+    // 2. Mock Companies
+    mockPrisma.company.findFirst.mockImplementation(({ where }: any) => {
+      if (where.id === 1) return Promise.resolve({ id: 1, tenantId, name: 'Parent Company A' });
+      if (where.id === 2) return Promise.resolve({ id: 2, tenantId, name: 'Subsidiary Company B' });
+      return Promise.resolve(null);
+    });
+
+    // 3. Mock Branches
+    mockPrisma.branch.findMany.mockImplementation(({ where }: any) => {
+      if (where.companyId === 1) return Promise.resolve([{ id: 11, companyId: 1, name: 'Parent Branch' }]);
+      if (where.companyId === 2) return Promise.resolve([{ id: 22, companyId: 2, name: 'Sub Branch' }]);
+      return Promise.resolve([]);
+    });
+
+    // 4. Mock Accounts
+    mockPrisma.account.findMany.mockResolvedValue([
+      { id: 11, code: '1210', name: 'Intercompany Receivables', type: 'asset', parentId: null },
+      { id: 22, code: '2110', name: 'Intercompany Payables', type: 'liability', parentId: null },
+    ]);
+
+    // 5. Mock JournalLine balances (Receivable: 2000, Payable: 1500 -> Mismatch!)
+    mockPrisma.journalLine.groupBy.mockImplementation(({ where }: any) => {
+      const branchFilter = where.entry.branchId;
+      if (branchFilter && branchFilter.in && branchFilter.in.includes(11)) {
+        return Promise.resolve([
+          { accountId: 11, _sum: { debit: 2000, credit: 0 } },
+        ]);
+      }
+      if (branchFilter && branchFilter.in && branchFilter.in.includes(22)) {
+        return Promise.resolve([
+          { accountId: 22, _sum: { debit: 0, credit: 1500 } },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const engine = new FinancialConsolidationEngine(mockPrisma as any);
+    const result = await engine.consolidate(tenantId, groupId, fromDate, toDate);
+
+    // Verify F-13B extensions
+    expect(result.mappingCompletenessScore).toBeDefined();
+    expect(result.companyBranchValidations).toHaveLength(2);
+    expect(result.intercompanyMatches).toHaveLength(1);
+
+    // Validations assertions
+    expect(result.companyBranchValidations[0].status).toBe('VALID');
+    expect(result.companyBranchValidations[1].status).toBe('VALID');
+
+    // Intercompany match assertions (receivables absolute: 2000, payables absolute: 1500)
+    const match = result.intercompanyMatches[0];
+    expect(match.ruleName).toBe('AR/AP Offset Rule');
+    expect(match.receivableBalance.toNumber()).toBe(2000);
+    expect(match.payableBalance.toNumber()).toBe(1500);
+    expect(match.difference.toNumber()).toBe(500); // 2000 - 1500 = 500 mismatch
+    expect(match.status).toBe('MISMATCHED');
+
+    // Mapped completeness score calculation:
+    // baseScore: 2/2 = 100%. Deduct 10% per mismatch = 90%
+    expect(result.mappingCompletenessScore).toBe(90);
+  });
 });

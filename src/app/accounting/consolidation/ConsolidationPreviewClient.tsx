@@ -20,6 +20,29 @@ interface ConsolidatedRow {
   consolidatedNet: number;
 }
 
+interface IntercompanyMatch {
+  ruleName: string;
+  ruleType: string;
+  sourceAccount: string;
+  sourceAccountName: string;
+  targetAccount: string;
+  targetAccountName: string;
+  receivableBalance: number;
+  payableBalance: number;
+  difference: number;
+  eliminationAmount: number;
+  status: 'MATCHED' | 'MISMATCHED' | 'NO_BALANCE';
+}
+
+interface CompanyBranchValidation {
+  companyId: number;
+  companyName: string;
+  hasBranches: boolean;
+  branchCount: number;
+  hasTransactions: boolean;
+  status: 'VALID' | 'WARNING_NO_BRANCHES' | 'WARNING_NO_TRANSACTIONS';
+}
+
 interface ConsolidationData {
   groupId: number;
   groupName: string;
@@ -29,6 +52,10 @@ interface ConsolidationData {
   companies: Company[];
   isBalanced: boolean;
   generatedAt: string;
+  // F-13B extensions
+  mappingCompletenessScore: number;
+  intercompanyMatches: IntercompanyMatch[];
+  companyBranchValidations: CompanyBranchValidation[];
 }
 
 export default function ConsolidationPreviewClient() {
@@ -48,7 +75,7 @@ export default function ConsolidationPreviewClient() {
     return `${d.getFullYear()}-${month}-${day}`;
   });
 
-  const [activeTab, setActiveTab] = useState<'TRIAL_BALANCE' | 'INCOME_STATEMENT' | 'BALANCE_SHEET'>('TRIAL_BALANCE');
+  const [activeTab, setActiveTab] = useState<'TRIAL_BALANCE' | 'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'ELIMINATIONS_MAPPING'>('TRIAL_BALANCE');
   const [data, setData] = useState<ConsolidationData | null>(null);
 
   // Group options mock for dropdown (in real environment populated from groups API)
@@ -217,6 +244,10 @@ export default function ConsolidationPreviewClient() {
               <span style={{ fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
                 العملة الأساسية: <strong style={{ color: '#0f172a' }}>{data.baseCurrency}</strong>
               </span>
+              <span style={{ height: '14px', width: '1px', backgroundColor: '#cbd5e1' }} />
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#64748b' }}>
+                مؤشر اكتمال الربط: <strong style={{ color: '#4f46e5' }}>{data.mappingCompletenessScore ?? 100}%</strong>
+              </span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -244,7 +275,7 @@ export default function ConsolidationPreviewClient() {
               onClick={() => setActiveTab('INCOME_STATEMENT')}
               style={{ padding: '12px 20px', fontSize: '14px', fontWeight: '700', border: 'none', borderBottom: activeTab === 'INCOME_STATEMENT' ? '3px solid #4f46e5' : '3px solid transparent', backgroundColor: 'transparent', cursor: 'pointer', color: activeTab === 'INCOME_STATEMENT' ? '#4f46e5' : '#64748b', transition: 'all 0.2s' }}
             >
-              💰 قائمة الدخل الموحدة (أرباح وخسائر)
+              💰 قائمة الدخل الموحدة
             </button>
             <button
               onClick={() => setActiveTab('BALANCE_SHEET')}
@@ -252,65 +283,188 @@ export default function ConsolidationPreviewClient() {
             >
               🏛️ الميزانية العمومية الموحدة
             </button>
+            <button
+              onClick={() => setActiveTab('ELIMINATIONS_MAPPING')}
+              style={{ padding: '12px 20px', fontSize: '14px', fontWeight: '700', border: 'none', borderBottom: activeTab === 'ELIMINATIONS_MAPPING' ? '3px solid #4f46e5' : '3px solid transparent', backgroundColor: 'transparent', cursor: 'pointer', color: activeTab === 'ELIMINATIONS_MAPPING' ? '#4f46e5' : '#64748b', transition: 'all 0.2s' }}
+            >
+              🔄 الاستبعادات ومطابقة الحسابات البينية
+            </button>
           </div>
 
-          {/* Dynamic Table Card */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflowX: 'auto', marginBottom: '24px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px', minWidth: '800px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', width: '90px' }}>كود الحساب</th>
-                  <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155' }}>اسم الحساب</th>
-                  {data.companies.map(comp => (
-                    <th key={comp.id} style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', textAlign: 'left' }}>
-                      {comp.name} 
-                      <span style={{ display: 'block', fontSize: '10px', color: '#64748b', fontWeight: 'normal' }}>
-                        {comp.isParent ? 'الشركة القابضة' : `نسبة الملكية: ${(Number(comp.ownership) * 100).toFixed(0)}%`}
-                      </span>
-                    </th>
+          {activeTab === 'ELIMINATIONS_MAPPING' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Mapping Completeness Score Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '8px' }}>مؤشر اكتمال مطابقة المجموعة</div>
+                  <div style={{ fontSize: '28px', fontWeight: '800', color: '#4f46e5' }}>{data.mappingCompletenessScore ?? 100}%</div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>تكامل ربط الفروع وتوازن المعاملات البينية المقترنة.</p>
+                </div>
+
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '8px' }}>عدد قواعد الاستبعاد الفعالة</div>
+                  <div style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a' }}>{data.intercompanyMatches?.length ?? 0}</div>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>القواعد النشطة لمطابقة الأرصدة المدينة والدائنة.</p>
+                </div>
+              </div>
+
+              {/* Subsidiary Company health mapping validation */}
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>🔒 صحة وعزل الفروع التابعة للشركات</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                  {data.companyBranchValidations?.map(comp => (
+                    <div key={comp.companyId} style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontSize: '14px', color: '#0f172a' }}>{comp.companyName}</strong>
+                        {comp.status === 'VALID' ? (
+                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#dcfce7', color: '#15803d' }}>سليم</span>
+                        ) : comp.status === 'WARNING_NO_BRANCHES' ? (
+                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#fee2e2', color: '#b91c1c' }}>بلا فروع</span>
+                        ) : (
+                          <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#fef3c7', color: '#d97706' }}>بلا معاملات</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        <div>عدد الفروع المرتبطة: <strong>{comp.branchCount}</strong></div>
+                        <div>حالة النشاط المالي: <strong>{comp.hasTransactions ? 'نشط مالياً' : 'راكد'}</strong></div>
+                      </div>
+                    </div>
                   ))}
-                  <th style={{ padding: '12px 16px', fontWeight: '700', color: '#b45309', textAlign: 'left', backgroundColor: '#fffbeb' }}>استبعادات (مدين)</th>
-                  <th style={{ padding: '12px 16px', fontWeight: '700', color: '#b45309', textAlign: 'left', backgroundColor: '#fffbeb' }}>استبعادات (دائن)</th>
-                  <th style={{ padding: '12px 16px', fontWeight: '700', color: '#1e40af', textAlign: 'left', backgroundColor: '#eff6ff' }}>الصافي الموحد (SAR)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {getFilteredRows().map((row) => {
-                  // Style highlights for parent header rows (length of code < 4 usually)
-                  const isHeader = row.accountCode.length < 4;
-                  
-                  return (
-                    <tr 
-                      key={row.accountCode} 
-                      style={{ 
-                        borderBottom: '1px solid #f1f5f9', 
-                        backgroundColor: isHeader ? '#f8fafc' : '#ffffff',
-                        fontWeight: isHeader ? '700' : 'normal',
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      <td style={{ padding: '10px 16px', fontFamily: 'monospace', color: '#64748b', fontWeight: '600' }}>{row.accountCode}</td>
-                      <td style={{ padding: '10px 16px', color: isHeader ? '#0f172a' : '#334155' }}>{row.accountName}</td>
-                      {data.companies.map(comp => (
-                        <td key={comp.id} style={{ padding: '10px 16px', textAlign: 'left', color: '#334155' }}>
-                          {getFormatValue(row.balances[comp.id])}
+                </div>
+              </div>
+
+              {/* Detailed intercompany pairings grid */}
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>🔄 تفاصيل مطابقة وتوازن العمليات المحاسبية البينية</h3>
+                <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px', minWidth: '850px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155' }}>القاعدة والمحور البيني</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155' }}>حساب المدينين (AR)</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', textAlign: 'left' }}>رصيد المدينين</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155' }}>حساب الدائنين (AP)</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', textAlign: 'left' }}>رصيد الدائنين</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#1e40af', textAlign: 'left', backgroundColor: '#eff6ff' }}>قيمة الاستبعاد الآمن</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#b45309', textAlign: 'left', backgroundColor: '#fffbeb' }}>الفروقات غير المتوازنة</th>
+                        <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', textAlign: 'center' }}>الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.intercompanyMatches?.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>لا توجد معاملات أو أرصدة بينية نشطة في هذه الفترة.</td>
+                        </tr>
+                      ) : (
+                        data.intercompanyMatches?.map((match, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: '600' }}>
+                              {match.ruleName}
+                              <span style={{ display: 'block', fontSize: '10px', color: '#64748b', fontWeight: 'normal' }}>
+                                {match.ruleType === 'INTERCOMPANY_AR_AP' ? 'حسابات بينية ذمم' : 'إيرادات وتكاليف بينية'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#475569' }}>
+                              {match.sourceAccountName}
+                              <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>{match.sourceAccount}</span>
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'left', color: '#334155' }}>{getFormatValue(match.receivableBalance)}</td>
+                            <td style={{ padding: '12px 16px', color: '#475569' }}>
+                              {match.targetAccountName}
+                              <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>{match.targetAccount}</span>
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'left', color: '#334155' }}>{getFormatValue(match.payableBalance)}</td>
+                            <td style={{ padding: '12px 16px', textAlign: 'left', color: '#1e40af', backgroundColor: '#eff6ff', fontWeight: '700' }}>{getFormatValue(match.eliminationAmount)}</td>
+                            <td style={{ padding: '12px 16px', textAlign: 'left', color: '#b45309', backgroundColor: '#fffbeb', fontWeight: '700' }}>{getFormatValue(match.difference)}</td>
+                            <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                              {match.status === 'MATCHED' ? (
+                                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#dcfce7', color: '#15803d' }}>متطابق</span>
+                              ) : match.status === 'NO_BALANCE' ? (
+                                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#f1f5f9', color: '#64748b' }}>لا يوجد رصيد</span>
+                              ) : (
+                                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '9999px', backgroundColor: '#fee2e2', color: '#b91c1c' }}>غير متطابق</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Warnings and audits alerts */}
+              {data.intercompanyMatches?.some(m => m.status === 'MISMATCHED') && (
+                <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', padding: '16px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>⚠️</span>
+                  <div>
+                    <strong style={{ fontSize: '14px', display: 'block' }}>تنبيه بعدم توازن المعاملات البينية (Unbalanced Intercompany Matching):</strong>
+                    <span style={{ fontSize: '13px' }}>
+                      تم كشف اختلافات غير متطابقة في مطابقة أرصدة الحسابات البينية للشركات الشقيقة. يرجى مراجعة قيود التسوية أو تسريع ترحيل المعاملات العالقة قبل مرحلة الإغلاق النهائي.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Dynamic Table Card */
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflowX: 'auto', marginBottom: '24px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '13px', minWidth: '800px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', width: '90px' }}>كود الحساب</th>
+                    <th style={{ padding: '12px 16px', fontWeight: '700', color: '#334155' }}>اسم الحساب</th>
+                    {data.companies.map(comp => (
+                      <th key={comp.id} style={{ padding: '12px 16px', fontWeight: '700', color: '#334155', textAlign: 'left' }}>
+                        {comp.name} 
+                        <span style={{ display: 'block', fontSize: '10px', color: '#64748b', fontWeight: 'normal' }}>
+                          {comp.isParent ? 'الشركة القابضة' : `نسبة الملكية: ${(Number(comp.ownership) * 100).toFixed(0)}%`}
+                        </span>
+                      </th>
+                    ))}
+                    <th style={{ padding: '12px 16px', fontWeight: '700', color: '#b45309', textAlign: 'left', backgroundColor: '#fffbeb' }}>استبعادات (مدين)</th>
+                    <th style={{ padding: '12px 16px', fontWeight: '700', color: '#b45309', textAlign: 'left', backgroundColor: '#fffbeb' }}>استبعادات (دائن)</th>
+                    <th style={{ padding: '12px 16px', fontWeight: '700', color: '#1e40af', textAlign: 'left', backgroundColor: '#eff6ff' }}>الصافي الموحد (SAR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getFilteredRows().map((row) => {
+                    // Style highlights for parent header rows (length of code < 4 usually)
+                    const isHeader = row.accountCode.length < 4;
+                    
+                    return (
+                      <tr 
+                        key={row.accountCode} 
+                        style={{ 
+                          borderBottom: '1px solid #f1f5f9', 
+                          backgroundColor: isHeader ? '#f8fafc' : '#ffffff',
+                          fontWeight: isHeader ? '700' : 'normal',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        <td style={{ padding: '10px 16px', fontFamily: 'monospace', color: '#64748b', fontWeight: '600' }}>{row.accountCode}</td>
+                        <td style={{ padding: '10px 16px', color: isHeader ? '#0f172a' : '#334155' }}>{row.accountName}</td>
+                        {data.companies.map(comp => (
+                          <td key={comp.id} style={{ padding: '10px 16px', textAlign: 'left', color: '#334155' }}>
+                            {getFormatValue(row.balances[comp.id])}
+                          </td>
+                        ))}
+                        <td style={{ padding: '10px 16px', textAlign: 'left', color: '#b45309', backgroundColor: '#fffbeb', fontWeight: '600' }}>
+                          {getFormatValue(row.eliminationDebit)}
                         </td>
-                      ))}
-                      <td style={{ padding: '10px 16px', textAlign: 'left', color: '#b45309', backgroundColor: '#fffbeb', fontWeight: '600' }}>
-                        {getFormatValue(row.eliminationDebit)}
-                      </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'left', color: '#b45309', backgroundColor: '#fffbeb', fontWeight: '600' }}>
-                        {getFormatValue(row.eliminationCredit)}
-                      </td>
-                      <td style={{ padding: '10px 16px', textAlign: 'left', color: '#1e40af', backgroundColor: '#eff6ff', fontWeight: '700', fontSize: '14px' }}>
-                        {getFormatValue(row.consolidatedNet)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td style={{ padding: '10px 16px', textAlign: 'left', color: '#b45309', backgroundColor: '#fffbeb', fontWeight: '600' }}>
+                          {getFormatValue(row.eliminationCredit)}
+                        </td>
+                        <td style={{ padding: '10px 16px', textAlign: 'left', color: '#1e40af', backgroundColor: '#eff6ff', fontWeight: '700', fontSize: '14px' }}>
+                          {getFormatValue(row.consolidatedNet)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 

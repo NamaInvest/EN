@@ -37,6 +37,29 @@ export interface ConsolidatedRow {
   consolidatedNet: Decimal;
 }
 
+export interface IntercompanyMatch {
+  ruleName: string;
+  ruleType: string;
+  sourceAccount: string;
+  sourceAccountName: string;
+  targetAccount: string;
+  targetAccountName: string;
+  receivableBalance: Decimal;
+  payableBalance: Decimal;
+  difference: Decimal;
+  eliminationAmount: Decimal;
+  status: 'MATCHED' | 'MISMATCHED' | 'NO_BALANCE';
+}
+
+export interface CompanyBranchValidation {
+  companyId: number;
+  companyName: string;
+  hasBranches: boolean;
+  branchCount: number;
+  hasTransactions: boolean;
+  status: 'VALID' | 'WARNING_NO_BRANCHES' | 'WARNING_NO_TRANSACTIONS';
+}
+
 export interface ConsolidationResult {
   groupId: number;
   groupName: string;
@@ -46,6 +69,10 @@ export interface ConsolidationResult {
   companies: { id: number; name: string; isParent: boolean; ownership: Decimal }[];
   isBalanced: boolean;
   generatedAt: Date;
+  // F-13B extensions
+  mappingCompletenessScore: number;
+  intercompanyMatches: IntercompanyMatch[];
+  companyBranchValidations: CompanyBranchValidation[];
 }
 
 export class FinancialConsolidationEngine {
@@ -321,6 +348,112 @@ export class FinancialConsolidationEngine {
 
     const isBalanced = totalConsolidatedDebit.sub(totalConsolidatedCredit).abs().lt(1.0);
 
+    // ==================== F-13B Extensions ====================
+
+    // 6. Validate companies and branches
+    const companyBranchValidations: CompanyBranchValidation[] = [];
+    let validEntitiesCount = 0;
+
+    for (const comp of companiesList) {
+      const branches = await this.prisma.branch.findMany({
+        where: { companyId: comp.id, tenantId },
+        select: { id: true },
+      });
+      const branchIds = branches.map((b) => b.id);
+      const eb = entityBalances.find((e) => e.companyId === comp.id);
+      
+      let hasTransactions = false;
+      if (eb && eb.balances) {
+        for (const val of eb.balances.values()) {
+          if (val.abs().gt(0.01)) {
+            hasTransactions = true;
+            break;
+          }
+        }
+      }
+
+      const hasBranches = branchIds.length > 0;
+      let status: 'VALID' | 'WARNING_NO_BRANCHES' | 'WARNING_NO_TRANSACTIONS' = 'VALID';
+      if (!hasBranches) {
+        status = 'WARNING_NO_BRANCHES';
+      } else if (!hasTransactions) {
+        status = 'WARNING_NO_TRANSACTIONS';
+      } else {
+        status = 'VALID';
+        validEntitiesCount++;
+      }
+
+      companyBranchValidations.push({
+        companyId: comp.id,
+        companyName: comp.name,
+        hasBranches,
+        branchCount: branchIds.length,
+        hasTransactions,
+        status,
+      });
+    }
+
+    // 7. Compute Intercompany Matchings
+    const intercompanyMatches: IntercompanyMatch[] = [];
+    let mismatchedCount = 0;
+
+    for (const rule of group.eliminationRules) {
+      if (!rule.active) continue;
+      if (rule.ruleType === 'INTERCOMPANY_AR_AP' || rule.ruleType === 'INTERCOMPANY_REVENUE_COGS') {
+        const sourceAcc = rule.sourceAccount;
+        const targetAcc = rule.targetAccount;
+
+        if (sourceAcc && targetAcc) {
+          const sourceMeta = accountMetaMap.get(sourceAcc);
+          const targetMeta = accountMetaMap.get(targetAcc);
+
+          let totalSource = new Decimal(0);
+          let totalTarget = new Decimal(0);
+
+          for (const comp of companiesList) {
+            const sourceBal = rolledBalances.get(sourceAcc)?.[comp.id] || new Decimal(0);
+            const targetBal = rolledBalances.get(targetAcc)?.[comp.id] || new Decimal(0);
+
+            totalSource = totalSource.add(sourceBal);
+            totalTarget = totalTarget.add(targetBal);
+          }
+
+          const absSource = totalSource.abs();
+          const absTarget = totalTarget.abs();
+          const difference = absSource.sub(absTarget);
+          const eliminationAmount = Decimal.min(absSource, absTarget);
+
+          let status: 'MATCHED' | 'MISMATCHED' | 'NO_BALANCE' = 'NO_BALANCE';
+          if (absSource.isZero() && absTarget.isZero()) {
+            status = 'NO_BALANCE';
+          } else if (difference.abs().lt(0.1)) {
+            status = 'MATCHED';
+          } else {
+            status = 'MISMATCHED';
+            mismatchedCount++;
+          }
+
+          intercompanyMatches.push({
+            ruleName: rule.ruleName,
+            ruleType: rule.ruleType,
+            sourceAccount: sourceAcc,
+            sourceAccountName: sourceMeta?.name || 'حساب غير معروف',
+            targetAccount: targetAcc,
+            targetAccountName: targetMeta?.name || 'حساب غير معروف',
+            receivableBalance: absSource,
+            payableBalance: absTarget,
+            difference,
+            eliminationAmount,
+            status,
+          });
+        }
+      }
+    }
+
+    // 8. Compute Completeness Score
+    let baseScore = companiesList.length > 0 ? (validEntitiesCount / companiesList.length) * 100 : 100;
+    let mappingCompletenessScore = Math.max(0, Math.round(baseScore - mismatchedCount * 10));
+
     return {
       groupId: group.id,
       groupName: group.name,
@@ -335,6 +468,10 @@ export class FinancialConsolidationEngine {
       })),
       isBalanced,
       generatedAt: new Date(),
+      // F-13B extensions
+      mappingCompletenessScore,
+      intercompanyMatches,
+      companyBranchValidations,
     };
   }
 
