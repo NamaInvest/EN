@@ -1,5 +1,5 @@
 import React from 'react';
-import ConsolidationPreviewClient from './ConsolidationPreviewClient';
+import ConsolidationPreviewClient from '@/app/accounting/consolidation/ConsolidationPreviewClient';
 // Force TS cache refresh
 
 export const metadata = {
