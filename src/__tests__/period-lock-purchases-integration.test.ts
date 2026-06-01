@@ -122,6 +122,7 @@ const mockPrismaClient: any = {
   setting: {
     findFirst: jest.fn(),
     findMany: jest.fn(),
+    findUnique: jest.fn().mockImplementation(() => Promise.resolve({ value: 'true' })),
   },
   treasury: {
     deleteMany: jest.fn(),

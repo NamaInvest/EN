@@ -31,6 +31,9 @@ jest.mock('../lib/prisma', () => {
       fiscalPeriod: {
         findUnique: jest.fn(),
       },
+      setting: {
+        findUnique: jest.fn().mockImplementation(() => Promise.resolve({ value: 'true' })),
+      },
     },
   };
 });
@@ -381,27 +384,27 @@ describe('Period Lock Enforcement & Interlocking (F-04)', () => {
     it('should initialize SOCPA checklist tasks with correct tenantId and without taskCode crashes', async () => {
       (prisma as any).periodCloseChecklist.count.mockResolvedValue(0);
       (prisma as any).periodCloseTaskTemplate.findFirst.mockResolvedValue({ id: 1 });
-      (prisma as any).periodCloseChecklist.createMany.mockResolvedValue({ count: 14 });
+      (prisma as any).periodCloseChecklist.createMany.mockResolvedValue({ count: 16 });
 
       const count = await initPeriodCloseTasks(prisma, 12, 'tenant-A');
 
-      expect(count).toBe(14);
+      expect(count).toBe(16);
       expect((prisma as any).periodCloseChecklist.count).toHaveBeenCalledWith({
         where: { fiscalPeriodId: 12, tenantId: 'tenant-A' }
       });
 
       const createArgs = (prisma as any).periodCloseChecklist.createMany.mock.calls[0][0];
-      expect(createArgs.data).toHaveLength(14);
+      expect(createArgs.data).toHaveLength(16);
       expect(createArgs.data[0].tenantId).toBe('tenant-A');
-      expect(createArgs.data[0].taskName).toBe('تسوية الحسابات البنكية');
+      expect(createArgs.data[0].taskName).toBe('تجميد العمليات التجارية وتجميد الفواتير');
       expect(createArgs.data[0].taskCode).toBeUndefined(); // Verify no taskCode parameter is sent to DB
     });
 
     it('should dynamically map taskName back to taskCode in getPeriodCloseStatus response for the frontend', async () => {
       (prisma as any).fiscalPeriod.findUnique.mockResolvedValue({ id: 12, year: 2026, month: 5 });
       (prisma as any).periodCloseChecklist.findMany.mockResolvedValue([
-        { id: 101, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'تسوية الحسابات البنكية', sequence: 1, status: 'COMPLETED' },
-        { id: 102, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'تسوية دفتر الأستاذ المساعد AR', sequence: 2, status: 'PENDING' },
+        { id: 101, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'تسوية ومطابقة الحسابات البنكية', sequence: 3, status: 'COMPLETED' },
+        { id: 102, tenantId: 'tenant-A', fiscalPeriodId: 12, taskName: 'مطابقة دفتر الأستاذ المساعد للعملاء AR', sequence: 4, status: 'PENDING' },
       ]);
 
       const status = await getPeriodCloseStatus(prisma, 12, 'tenant-A');
@@ -426,7 +429,7 @@ describe('Period Lock Enforcement & Interlocking (F-04)', () => {
 
       expect(result.success).toBe(true);
       expect((prisma as any).periodCloseChecklist.updateMany).toHaveBeenCalledWith({
-        where: { fiscalPeriodId: 12, taskName: 'تسوية الحسابات البنكية', tenantId: 'tenant-A' },
+        where: { fiscalPeriodId: 12, taskName: 'تسوية ومطابقة الحسابات البنكية', tenantId: 'tenant-A' },
         data: expect.objectContaining({
           status: 'COMPLETED',
           owner: 'user-admin',

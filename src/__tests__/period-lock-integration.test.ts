@@ -64,6 +64,7 @@ jest.mock('../lib/prisma', () => {
     },
     setting: {
       findFirst: jest.fn(),
+      findUnique: jest.fn().mockImplementation(() => Promise.resolve({ value: 'true' })),
     },
     $queryRawUnsafe: jest.fn(),
     $executeRawUnsafe: jest.fn(),
@@ -135,7 +136,7 @@ describe('GL-02D1: Core Accounting Period Lock Integration Tests', () => {
       (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
         tenantId,
         period: '2026-05',
-        module: 'gl',
+        module: 'accounting',
         status: FinancialPeriodStatus.OPEN,
       });
 
@@ -158,7 +159,7 @@ describe('GL-02D1: Core Accounting Period Lock Integration Tests', () => {
           tenantId_period_module: {
             tenantId,
             period: '2026-05',
-            module: 'gl',
+            module: 'accounting',
           },
         },
       });
@@ -333,7 +334,7 @@ describe('GL-02D1: Core Accounting Period Lock Integration Tests', () => {
       (prisma.financialPeriodModuleLock.findUnique as any).mockResolvedValue({
         tenantId,
         period: '2026-05',
-        module: 'fx_revaluation',
+        module: 'accounting',
         status: FinancialPeriodStatus.SOFT_LOCKED,
       });
 
@@ -348,7 +349,7 @@ describe('GL-02D1: Core Accounting Period Lock Integration Tests', () => {
           tenantId_period_module: {
             tenantId,
             period: '2026-05',
-            module: 'fx_revaluation',
+            module: 'accounting',
           },
         },
       });

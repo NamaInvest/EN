@@ -62,6 +62,17 @@ const mockPrismaClient: any = {
       permissions: [] as any[],
     })),
   },
+  customer: {
+    findFirst: jest.fn().mockImplementation(() => Promise.resolve({
+      id: 1,
+      tenantId: 'tenant-A',
+      name: 'Test Customer',
+      creditLimit: 0,
+      balance: 0,
+      creditHold: false,
+      active: true
+    })),
+  },
   salesInvoice: {
     findUnique: jest.fn(),
     findFirst: jest.fn(),
@@ -114,6 +125,7 @@ const mockPrismaClient: any = {
   setting: {
     findFirst: jest.fn(),
     findMany: jest.fn(),
+    findUnique: jest.fn().mockImplementation(() => Promise.resolve({ value: 'true' })),
   },
   zATCARecord: {
     create: jest.fn(),
@@ -132,6 +144,7 @@ jest.mock('@/lib/prisma', () => {
   };
 
   return {
+    __esModule: true,
     default: mockPrismaClient,
     prisma: mockPrismaClient,
     getPrisma: jest.fn().mockReturnValue(mockPrismaClient),
