@@ -4,6 +4,7 @@
  */
 import { FinancialStatementsEngine } from '../../lib/financial-statements-engine';
 import type { PrismaClient } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 const makeJournalLine = (accountId: number, debit: number, credit: number) => ({
   accountId, _sum: { debit, credit },
@@ -144,6 +145,41 @@ describe('FinancialStatementsEngine', () => {
       
       expect(compliance.isTrialBalanceBalanced).toBe(false);
       expect(compliance.auditFindings.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('F-15 Multi-period Comparative Reporting Invariants', () => {
+    const calculateVariancePercent = (net: Decimal, priorNet: Decimal) => {
+      const varianceAmount = net.sub(priorNet);
+      return priorNet.isZero()
+        ? (net.isZero() ? new Decimal(0) : null)
+        : varianceAmount.div(priorNet.abs()).mul(100).toDecimalPlaces(1);
+    };
+
+    it('يجب حساب التغير والنسبة المئوية بشكل صحيح للأرصدة الموجبة والسالبة', () => {
+      const cur = new Decimal(150);
+      const pri = new Decimal(100);
+      const pct = calculateVariancePercent(cur, pri);
+      expect(pct?.toNumber()).toBe(50.0);
+
+      const curNegative = new Decimal(-150);
+      const priNegative = new Decimal(-100);
+      const pctNegative = calculateVariancePercent(curNegative, priNegative);
+      expect(pctNegative?.toNumber()).toBe(-50.0);
+    });
+
+    it('يجب تفادي أخطاء القسمة على صفر وإرجاع null عند وجود رصيد حالي فقط', () => {
+      const cur = new Decimal(100);
+      const pri = new Decimal(0);
+      const pct = calculateVariancePercent(cur, pri);
+      expect(pct).toBeNull();
+    });
+
+    it('يجب إرجاع 0 عند عدم وجود أي حركات في الفترتين', () => {
+      const cur = new Decimal(0);
+      const pri = new Decimal(0);
+      const pct = calculateVariancePercent(cur, pri);
+      expect(pct?.toNumber()).toBe(0);
     });
   });
 });

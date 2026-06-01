@@ -23,6 +23,7 @@ import { withRoute, RouteContext } from '@/lib/api/with-route';
 import { logAuditEvent } from '@/lib/audit-trail';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
 import type { PrismaClient } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/lib/logger';
 import { ExcelService, ExcelColumn } from '@/lib/excel-service';
 import { PDFService } from '@/lib/pdf-service';
@@ -50,7 +51,12 @@ async function _GET(req: NextRequest, ctx: RouteContext) {
   const tenantId = ctx.tenant;
   const type     = (searchParams.get('type') ?? 'ALL').toUpperCase() as
     'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'CASH_FLOW' | 'TRIAL_BALANCE' | 'ALL';
-  const compare  = searchParams.get('compare') !== 'false';
+  const compareParam = searchParams.get('compare');
+  const compare = compareParam === 'true';
+
+  const compareFromParam = searchParams.get('compareFrom');
+  const compareToParam = searchParams.get('compareTo');
+
   const format   = (searchParams.get('format') ?? 'json').toLowerCase() as 'json' | 'xlsx' | 'pdf' | 'csv';
 
   // Parse date range
@@ -66,9 +72,22 @@ async function _GET(req: NextRequest, ctx: RouteContext) {
     ? new Date(toParam + 'T23:59:59')
     : new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-  // Prior period (same duration, 1 year earlier)
-  const priorFrom = new Date(from); priorFrom.setFullYear(from.getFullYear() - 1);
-  const priorTo   = new Date(to);   priorTo.setFullYear(to.getFullYear() - 1);
+  // Prior period (same duration, 1 year earlier or explicitly requested)
+  const priorFrom = compareFromParam
+    ? new Date(compareFromParam)
+    : (() => {
+        const d = new Date(from);
+        d.setFullYear(from.getFullYear() - 1);
+        return d;
+      })();
+
+  const priorTo = compareToParam
+    ? new Date(compareToParam + 'T23:59:59')
+    : (() => {
+        const d = new Date(to);
+        d.setFullYear(to.getFullYear() - 1);
+        return d;
+      })();
 
   // Parse dimensional filters
   const filters: DimensionalFilters = {};
@@ -95,11 +114,73 @@ async function _GET(req: NextRequest, ctx: RouteContext) {
     generatedAt: now.toISOString(),
   };
 
+  if (compare) {
+    result.comparison = {
+      enabled: true,
+      mode: 'previous-period',
+      period: {
+        from: from.toISOString().split('T')[0],
+        to: to.toISOString().split('T')[0],
+      },
+      comparativePeriod: {
+        from: priorFrom.toISOString().split('T')[0],
+        to: priorTo.toISOString().split('T')[0],
+      }
+    };
+  }
+
   // ── Trial Balance ────────────────────────────────────────────────────────────
   if (type === 'ALL' || type === 'TRIAL_BALANCE') {
     try {
-      const tb = await engine.generateTrialBalance(tenantId, from, to, filters);
-      result.trialBalance = tb;
+      if (compare) {
+        const [currentTB, priorTB] = await Promise.all([
+          engine.generateTrialBalance(tenantId, from, to, filters),
+          engine.generateTrialBalance(tenantId, priorFrom, priorTo, filters)
+        ]);
+
+        const priorMap = new Map(priorTB.map(r => [r.accountCode, r]));
+        const allCodes = Array.from(new Set([
+          ...currentTB.map(r => r.accountCode),
+          ...priorTB.map(r => r.accountCode)
+        ])).sort((a, b) => a.localeCompare(b));
+
+        const mergedTB = allCodes.map(code => {
+          const cur = currentTB.find(r => r.accountCode === code);
+          const pri = priorMap.get(code);
+
+          const accountName = cur?.accountName ?? pri?.accountName ?? '';
+          const debits = cur?.debits ?? new Decimal(0);
+          const credits = cur?.credits ?? new Decimal(0);
+          const net = cur?.net ?? new Decimal(0);
+
+          const priorDebits = pri?.debits ?? new Decimal(0);
+          const priorCredits = pri?.credits ?? new Decimal(0);
+          const priorNet = pri?.net ?? new Decimal(0);
+
+          const varianceAmount = net.sub(priorNet);
+          const variancePercent = priorNet.isZero()
+            ? (net.isZero() ? new Decimal(0) : null)
+            : varianceAmount.div(priorNet.abs()).mul(100).toDecimalPlaces(1);
+
+          return {
+            accountCode: code,
+            accountName,
+            debits,
+            credits,
+            net,
+            priorDebits,
+            priorCredits,
+            priorNet,
+            varianceAmount,
+            variancePercent
+          };
+        });
+
+        result.trialBalance = mergedTB;
+      } else {
+        const tb = await engine.generateTrialBalance(tenantId, from, to, filters);
+        result.trialBalance = tb;
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       log.warn('Trial balance failed', { error: msg });
