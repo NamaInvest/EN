@@ -51,6 +51,20 @@ async function _GET(req: NextRequest) {
   const priorFrom = new Date(from); priorFrom.setFullYear(from.getFullYear() - 1);
   const priorTo   = new Date(to);   priorTo.setFullYear(to.getFullYear() - 1);
 
+  // Parse dimensional filters
+  const filters: any = {};
+  const costCenterId = searchParams.get('costCenterId');
+  const profitCenterId = searchParams.get('profitCenterId');
+  const projectId = searchParams.get('projectId');
+  const segmentId = searchParams.get('segmentId');
+  const branchId = searchParams.get('branchId');
+
+  if (costCenterId) filters.costCenterId = Number(costCenterId);
+  if (profitCenterId) filters.profitCenterId = Number(profitCenterId);
+  if (projectId) filters.projectId = Number(projectId);
+  if (segmentId) filters.segmentId = Number(segmentId);
+  if (branchId) filters.branchId = Number(branchId);
+
   const prismaClient = getPrisma(req as any);
   const prisma = prismaClient as unknown as PrismaClient;
   const engine = new FinancialStatementsEngine(prisma);
@@ -67,8 +81,8 @@ async function _GET(req: NextRequest) {
   if (type === 'ALL' || type === 'INCOME_STATEMENT') {
     try {
       result.incomeStatement = compare
-        ? await engine.generateIncomeStatement(tenantId, from, to, priorFrom, priorTo)
-        : await engine.generateIncomeStatement(tenantId, from, to);
+        ? await engine.generateIncomeStatement(tenantId, from, to, priorFrom, priorTo, filters)
+        : await engine.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters);
     } catch (e: any) {
       log.warn('Income statement failed', { error: e.message });
       result.incomeStatement = { error: e.message };
@@ -78,10 +92,9 @@ async function _GET(req: NextRequest) {
   // ── Balance Sheet ────────────────────────────────────────────────────────────
   if (type === 'ALL' || type === 'BALANCE_SHEET') {
     try {
-      // generateBalanceSheet(tenantId, from, to, priorFrom?, priorTo?)
       result.balanceSheet = compare
-        ? await engine.generateBalanceSheet(tenantId, from, to, priorFrom, priorTo)
-        : await engine.generateBalanceSheet(tenantId, from, to);
+        ? await engine.generateBalanceSheet(tenantId, from, to, priorFrom, priorTo, filters)
+        : await engine.generateBalanceSheet(tenantId, from, to, undefined, undefined, filters);
     } catch (e: any) {
       log.warn('Balance sheet failed', { error: e.message });
       result.balanceSheet = { error: e.message };
@@ -91,7 +104,7 @@ async function _GET(req: NextRequest) {
   // ── Cash Flow (IAS 7 Indirect) ───────────────────────────────────────────────
   if (type === 'ALL' || type === 'CASH_FLOW') {
     try {
-      const cf = await engine.generateIndirectCashFlow(tenantId, from, to);
+      const cf = await engine.generateIndirectCashFlow(tenantId, from, to, filters);
       result.cashFlow = cf;
     } catch (e: any) {
       log.warn('Cash flow failed', { error: e.message });
@@ -102,7 +115,7 @@ async function _GET(req: NextRequest) {
   // ── Trial Balance ────────────────────────────────────────────────────────────
   if (type === 'ALL' || type === 'TRIAL_BALANCE') {
     try {
-      const tb = await engine.generateTrialBalance(tenantId, from, to);
+      const tb = await engine.generateTrialBalance(tenantId, from, to, filters);
       result.trialBalance = tb;
     } catch (e: any) {
       log.warn('Trial balance failed', { error: e.message });

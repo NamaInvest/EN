@@ -129,7 +129,13 @@ export interface IndirectCashFlowResult {
   generatedAt:        Date;
 }
 
-// ─── Engine ───────────────────────────────────────────────────────────────────
+export interface DimensionalFilters {
+  costCenterId?: number;
+  profitCenterId?: number;
+  projectId?: number;
+  segmentId?: number;
+  branchId?: number;
+}
 
 export class FinancialStatementsEngine {
   constructor(private readonly prisma: PrismaClient) {}
@@ -141,22 +147,58 @@ export class FinancialStatementsEngine {
     tenantId: string,
     from: Date,
     to: Date,
+    filters?: DimensionalFilters,
   ): Promise<Map<string, Decimal>> {
-    const prisma = this.prisma as any;
+    const prisma = this.prisma;
+    const fromStr = from.toISOString().split('T')[0];
+    const toStr = to.toISOString().split('T')[0];
+
+    const whereClause: any = {
+      tenantId,
+      entry: {
+        status: { equals: 'posted', mode: 'insensitive' },
+        entryDate: { gte: fromStr, lte: toStr }
+      }
+    };
+
+    if (filters) {
+      if (filters.costCenterId !== undefined) whereClause.costCenterId = filters.costCenterId;
+      if (filters.profitCenterId !== undefined) whereClause.profitCenterId = filters.profitCenterId;
+      if (filters.projectId !== undefined) whereClause.projectId = filters.projectId;
+      if (filters.segmentId !== undefined) whereClause.segmentId = filters.segmentId;
+      if (filters.branchId !== undefined) whereClause.entry.branchId = filters.branchId;
+    }
+
     const rows = await prisma.journalLine.groupBy({
-      by: ['accountCode'],
-      where: {
-        tenantId,
-        journalEntry: { status: 'POSTED', date: { gte: from, lte: to } },
-      },
+      by: ['accountId'],
+      where: whereClause,
       _sum: { debit: true, credit: true },
-    }).catch(() => []);
+    }).catch((err) => {
+      log.error('Failed to query journalLine group by accountId', { error: err.message, tenantId });
+      return [];
+    });
 
     const map = new Map<string, Decimal>();
+    if (rows.length === 0) return map;
+
+    const accountIds = rows.map(r => r.accountId);
+    const accounts = await prisma.account.findMany({
+      where: { tenantId, id: { in: accountIds } },
+      select: { id: true, code: true },
+    }).catch(() => []);
+
+    const accountCodeMap = new Map<number, string>(accounts.map(a => [a.id, a.code]));
+
     for (const row of rows) {
-      if (!row.accountCode) continue;
-      const net = new Decimal(row._sum.credit ?? 0).sub(new Decimal(row._sum.debit ?? 0));
-      map.set(row.accountCode, net);
+      const code = accountCodeMap.get(row.accountId);
+      if (!code) continue;
+      
+      const debitVal = new Decimal(row._sum.debit ?? 0);
+      const creditVal = new Decimal(row._sum.credit ?? 0);
+      const net = creditVal.sub(debitVal); // Standard accounting net: credit - debit
+
+      const existing = map.get(code) || new Decimal(0);
+      map.set(code, existing.add(net));
     }
     return map;
   }
@@ -189,10 +231,11 @@ export class FinancialStatementsEngine {
     to: Date,
     priorFrom?: Date,
     priorTo?: Date,
+    filters?: DimensionalFilters,
   ): Promise<BalanceSheetResult> {
     const [current, prior] = await Promise.all([
-      this._getBalances(tenantId, from, to),
-      priorFrom && priorTo ? this._getBalances(tenantId, priorFrom, priorTo) : Promise.resolve(new Map<string, Decimal>()),
+      this._getBalances(tenantId, from, to, filters),
+      priorFrom && priorTo ? this._getBalances(tenantId, priorFrom, priorTo, filters) : Promise.resolve(new Map<string, Decimal>()),
     ]);
 
     const lines: FsLine[] = BS_MAPPING.map((m) => {
@@ -230,10 +273,11 @@ export class FinancialStatementsEngine {
     to: Date,
     priorFrom?: Date,
     priorTo?: Date,
+    filters?: DimensionalFilters,
   ): Promise<IncomeStatementResult> {
     const [current, prior] = await Promise.all([
-      this._getBalances(tenantId, from, to),
-      priorFrom && priorTo ? this._getBalances(tenantId, priorFrom, priorTo) : Promise.resolve(new Map<string, Decimal>()),
+      this._getBalances(tenantId, from, to, filters),
+      priorFrom && priorTo ? this._getBalances(tenantId, priorFrom, priorTo, filters) : Promise.resolve(new Map<string, Decimal>()),
     ]);
 
     const lines: FsLine[] = IS_MAPPING.map((m) => {
@@ -270,13 +314,14 @@ export class FinancialStatementsEngine {
     tenantId: string,
     from: Date,
     to: Date,
+    filters?: DimensionalFilters,
   ): Promise<CashFlowResult> {
     const [is, priorStart] = await Promise.all([
-      this.generateIncomeStatement(tenantId, from, to),
-      this._getBalances(tenantId, new Date(from.getFullYear(), 0, 1), from),
+      this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
+      this._getBalances(tenantId, new Date(from.getFullYear(), 0, 1), from, filters),
     ]);
 
-    const current = await this._getBalances(tenantId, from, to);
+    const current = await this._getBalances(tenantId, from, to, filters);
 
     // ─ التشغيل ─────────────────────────────────────────────────────────────
     const depreciationAddback = this._sumRange(current, '5220', '5229', 1);
@@ -323,13 +368,14 @@ export class FinancialStatementsEngine {
     tenantId: string,
     from: Date,
     to: Date,
+    filters?: DimensionalFilters,
   ): Promise<IndirectCashFlowResult> {
     // ── Fetch income statement & balance data ─────────────────────────────
     const periodStart = new Date(from.getFullYear(), 0, 1);  // beginning of year
     const [is, openingBal, closingBal] = await Promise.all([
-      this.generateIncomeStatement(tenantId, from, to),
-      this._getBalances(tenantId, periodStart, from),
-      this._getBalances(tenantId, from, to),
+      this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
+      this._getBalances(tenantId, periodStart, from, filters),
+      this._getBalances(tenantId, from, to, filters),
     ]);
 
     const netIncome = is.netProfit;
@@ -553,32 +599,162 @@ export class FinancialStatementsEngine {
     tenantId: string,
     from: Date,
     to: Date,
+    filters?: DimensionalFilters,
   ): Promise<{ accountCode: string; accountName: string; debits: Decimal; credits: Decimal; net: Decimal }[]> {
-    const prisma = this.prisma as any;
+    const prisma = this.prisma;
+    const fromStr = from.toISOString().split('T')[0];
+    const toStr = to.toISOString().split('T')[0];
+
+    const whereClause: any = {
+      tenantId,
+      entry: {
+        status: { equals: 'posted', mode: 'insensitive' },
+        entryDate: { gte: fromStr, lte: toStr }
+      }
+    };
+
+    if (filters) {
+      if (filters.costCenterId !== undefined) whereClause.costCenterId = filters.costCenterId;
+      if (filters.profitCenterId !== undefined) whereClause.profitCenterId = filters.profitCenterId;
+      if (filters.projectId !== undefined) whereClause.projectId = filters.projectId;
+      if (filters.segmentId !== undefined) whereClause.segmentId = filters.segmentId;
+      if (filters.branchId !== undefined) whereClause.entry.branchId = filters.branchId;
+    }
 
     const rows = await prisma.journalLine.groupBy({
-      by: ['accountCode'],
-      where: { tenantId, journalEntry: { status: 'POSTED', date: { gte: from, lte: to } } },
+      by: ['accountId'],
+      where: whereClause,
       _sum: { debit: true, credit: true },
     }).catch(() => []);
 
+    if (rows.length === 0) return [];
+
+    const accountIds = rows.map(r => r.accountId);
     const accounts = await prisma.account.findMany({
-      where: { tenantId },
-      select: { code: true, nameAr: true, name: true },
+      where: { tenantId, id: { in: accountIds } },
+      select: { id: true, code: true, nameEn: true, name: true },
     }).catch(() => []);
 
-    const nameMap = new Map(accounts.map((a: any) => [a.code, a.nameAr || a.name]));
+    const nameMap = new Map(accounts.map((a: any) => [a.id, a.name || a.nameEn]));
+    const codeMap = new Map(accounts.map((a: any) => [a.id, a.code]));
 
     return rows
       .map((r: any) => {
         const debits  = new Decimal(r._sum.debit  ?? 0);
         const credits = new Decimal(r._sum.credit ?? 0);
+        const code = codeMap.get(r.accountId) ?? '';
         return {
-          accountCode: r.accountCode ?? '',
-          accountName: nameMap.get(r.accountCode) ?? r.accountCode,
+          accountCode: code,
+          accountName: nameMap.get(r.accountId) ?? code,
           debits, credits, net: debits.sub(credits),
         };
       })
+      .filter(r => r.accountCode !== '')
       .sort((a: any, b: any) => a.accountCode.localeCompare(b.accountCode));
   }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // فحوصات الحوكمة والتدقيق والامتثال (Compliance & Audit Invariants)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async validateComplianceInvariants(
+    tenantId: string,
+    from: Date,
+    to: Date,
+  ): Promise<{
+    isTrialBalanceBalanced: boolean;
+    trialBalanceDifference: Decimal;
+    isCashFlowReconciled: boolean;
+    cashFlowDifference: Decimal;
+    areTemporaryAccountsClosed: boolean;
+    controlAccountsAuditPassed: boolean;
+    auditFindings: string[];
+  }> {
+    const findings: string[] = [];
+
+    // 1. فحص توازن ميزان المراجعة الإجمالي
+    const tb = await this.generateTrialBalance(tenantId, from, to);
+    let totalDebits = new Decimal(0);
+    let totalCredits = new Decimal(0);
+    for (const r of tb) {
+      totalDebits = totalDebits.add(r.debits);
+      totalCredits = totalCredits.add(r.credits);
+    }
+    const tbDiff = totalDebits.sub(totalCredits).abs();
+    const isTbBalanced = tbDiff.lte(new Decimal('0.01'));
+    if (!isTbBalanced) {
+      findings.push(`عدم توازن ميزان المراجعة الإجمالي بفرق قدره ${tbDiff.toFixed(2)} ريال.`);
+    }
+
+    // 2. فحص تطابق النقدية بين الميزانية والتدفقات النقدية
+    const bs = await this.generateBalanceSheet(tenantId, from, to);
+    const cf = await this.generateIndirectCashFlow(tenantId, from, to);
+
+    const cashInBS = bs.lines
+      .filter(l => l.section === 'CURRENT_ASSETS' && l.label.includes('النقدية'))
+      .reduce((s, l) => s.add(l.currentPeriod), new Decimal(0));
+
+    const cashInCF = cf.closingCash;
+    const cfDiff = cashInBS.sub(cashInCF).abs();
+    const isCfReconciled = cfDiff.lte(new Decimal('0.01'));
+    if (!isCfReconciled) {
+      findings.push(`عدم تطابق رصيد النقدية: الميزانية العمومية (${cashInBS.toFixed(2)}) ≠ التدفقات النقدية (${cashInCF.toFixed(2)}). الفرق: ${cfDiff.toFixed(2)} ريال.`);
+    }
+
+    // 3. التحقق من إقفال الحسابات المؤقتة بنهاية العام
+    const isYearEnd = to.getMonth() === 11 && to.getDate() === 31; // Dec 31
+    let areTempClosed = true;
+    if (isYearEnd) {
+      const tempBalances = await this._getBalances(tenantId, from, to);
+      let openTempAmount = new Decimal(0);
+      for (const [code, net] of tempBalances) {
+        if (code >= '4000' && code <= '5999') {
+          if (!net.isZero()) {
+            openTempAmount = openTempAmount.add(net.abs());
+          }
+        }
+      }
+      if (!openTempAmount.isZero()) {
+        areTempClosed = false;
+        findings.push(`وجود أرصدة غير مقفلة في حسابات الإيرادات والمصروفات المؤقتة بنهاية العام بإجمالي ${openTempAmount.toFixed(2)} ريال.`);
+      }
+    }
+
+    // 4. تتبع وفحص حركات الحسابات الرقابية
+    const manualEntriesOnControl = await this.prisma.journalLine.findMany({
+      where: {
+        tenantId,
+        entry: {
+          status: { equals: 'posted', mode: 'insensitive' },
+          entryDate: { gte: from.toISOString().split('T')[0], lte: to.toISOString().split('T')[0] },
+          reference: { startsWith: 'MANUAL-' }
+        },
+        account: {
+          code: {
+            in: ['1200', '1210', '1300', '2100', '2110']
+          }
+        }
+      },
+      include: {
+        entry: true,
+        account: true
+      }
+    }).catch(() => []);
+
+    const controlAccountsAuditPassed = manualEntriesOnControl.length === 0;
+    if (!controlAccountsAuditPassed) {
+      findings.push(`رصد عدد ${manualEntriesOnControl.length} قيد يدوي مباشر غير مصرح به على الحسابات الرقابية.`);
+    }
+
+    return {
+      isTrialBalanceBalanced: isTbBalanced,
+      trialBalanceDifference: tbDiff,
+      isCashFlowReconciled: isCfReconciled,
+      cashFlowDifference: cfDiff,
+      areTemporaryAccountsClosed: areTempClosed,
+      controlAccountsAuditPassed,
+      auditFindings: findings,
+    };
+  }
 }
+
