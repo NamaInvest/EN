@@ -339,7 +339,6 @@ export class FinancialStatementsEngine {
     to: Date,
     filters?: DimensionalFilters,
   ): Promise<CashFlowResult> {
-    const periodStart = new Date(from.getFullYear(), 0, 1);
     const [is, current] = await Promise.all([
       this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
       this._getBalances(tenantId, from, to, filters),
@@ -367,13 +366,11 @@ export class FinancialStatementsEngine {
 
     const netChange   = operatingCF.add(investingCF).add(financingCF);
 
-    // Calculate opening cash (balance before from date in the current year)
-    let openingCash = new Decimal(0);
-    if (from.getTime() > periodStart.getTime()) {
-      const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
-      const priorStart = await this._getBalances(tenantId, periodStart, priorTo, filters);
-      openingCash = this._sumRangeSigned(priorStart, '1110', '1119').neg();
-    }
+    // Calculate opening cash (balance before from date from epoch start to prior period)
+    const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+    const epochStart = new Date('2000-01-01');
+    const priorStart = await this._getBalances(tenantId, epochStart, priorTo, filters);
+    const openingCash = this._sumRangeSigned(priorStart, '1110', '1119').neg();
 
     const closingCash = openingCash.add(netChange);
 
@@ -402,7 +399,6 @@ export class FinancialStatementsEngine {
     filters?: DimensionalFilters,
   ): Promise<IndirectCashFlowResult> {
     // ── Fetch income statement & balance data ─────────────────────────────
-    const periodStart = new Date(from.getFullYear(), 0, 1);  // beginning of year
     const [is, closingBal] = await Promise.all([
       this.generateIncomeStatement(tenantId, from, to, undefined, undefined, filters),
       this._getBalances(tenantId, from, to, filters),
@@ -585,13 +581,11 @@ export class FinancialStatementsEngine {
     // ── Step 6: Reconciliation ────────────────────────────────────────────
     const netChange  = operatingCF.add(investingCF).add(financingCF);
 
-    // Calculate opening cash (balance before from date in the current year)
-    let openingCash = new Decimal(0);
-    if (from.getTime() > periodStart.getTime()) {
-      const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
-      const openingBal = await this._getBalances(tenantId, periodStart, priorTo, filters);
-      openingCash = this._sumRangeSigned(openingBal, '1110', '1119').neg();
-    }
+    // Calculate opening cash (balance before from date from epoch start to prior period)
+    const priorTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+    const epochStart = new Date('2000-01-01');
+    const openingBal = await this._getBalances(tenantId, epochStart, priorTo, filters);
+    const openingCash = this._sumRangeSigned(openingBal, '1110', '1119').neg();
 
     const actualCashChange = this._sumRangeSigned(closingBal, '1110', '1119').neg();
     const closingCashCalc = openingCash.add(netChange);

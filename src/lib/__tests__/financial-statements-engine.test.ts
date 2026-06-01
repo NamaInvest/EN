@@ -148,6 +148,33 @@ describe('FinancialStatementsEngine', () => {
     });
   });
 
+  describe('generateIndirectCashFlow', () => {
+    it('يجب احتساب النقدية الافتتاحية التراكمية بشكل صحيح من السنوات السابقة (F-11)', async () => {
+      const groupByMock = jest.fn().mockImplementation((args) => {
+        const entryDate = args.where?.entry?.entryDate;
+        if (entryDate && entryDate.gte === '2000-01-01' && entryDate.lte === '2024-12-31') {
+          return Promise.resolve([
+            makeJournalLine(1110, 50000, 0),
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const mockPrisma = {
+        journalLine: { groupBy: groupByMock },
+        account: {
+          findMany: jest.fn().mockResolvedValue([
+            { id: 1110, code: '1110', nameAr: 'نقدية وما في حكمها', name: 'Cash' },
+          ]),
+        },
+      } as unknown as PrismaClient;
+
+      const engine = new FinancialStatementsEngine(mockPrisma);
+      const cf = await engine.generateIndirectCashFlow(tenantId, from, to);
+      expect(cf.openingCash.toNumber()).toBe(50000);
+    });
+  });
+
   describe('F-15 Multi-period Comparative Reporting Invariants', () => {
     const calculateVariancePercent = (net: Decimal, priorNet: Decimal) => {
       const varianceAmount = net.sub(priorNet);
