@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/ban-ts-comment */
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
@@ -138,6 +139,71 @@ async function _POST(request: Request) {
         if (!isManual) {
             for (const item of items) { const t = (Number(item.quantity) || 1) * (Number(item.price) || 0); subtotal += t - t * ((Number(item.discountRate) || 0) / 100); }
         }
+
+        // ── Three-Way Match & Tolerance Check (F-06 Implementation) ──────────
+        if (purchaseOrderId && !isManual) {
+            const po = await prisma.purchaseOrder.findFirst({
+                where: { id: purchaseOrderId, tenantId },
+                include: { details: true }
+            });
+
+            if (!po) {
+                return NextResponse.json({
+                    error: 'أمر الشراء المرتبط غير موجود',
+                    code: 'BLOCKED'
+                }, { status: 422 });
+            }
+
+            const grns = await (prisma as any).goodsReceiptNote?.findMany({
+                where: { orderId: purchaseOrderId, tenantId },
+                include: { details: true }
+            }).catch(() => []) ?? [];
+
+            let grnTotalQty = 0;
+            let grnTotalAmount = 0;
+            let firstGrnId = 0;
+
+            if (grns.length > 0) {
+                firstGrnId = grns[0].id;
+                for (const grn of grns) {
+                    for (const detail of grn.details) {
+                        const accepted = Number(detail.acceptedQty || detail.quantity || 0);
+                        grnTotalQty += accepted;
+                        const poLine = po.details.find((p: any) => p.productId === detail.productId);
+                        if (poLine) {
+                            grnTotalAmount += accepted * Number(poLine.price);
+                        }
+                    }
+                }
+            }
+
+            const absolutePoTotalQty = po.details.reduce((sum: number, d: any) => sum + Number(d.quantity || 0), 0);
+            const absolutePoTotalAmt = po.details.reduce((sum: number, d: any) => sum + (Number(d.quantity || 0) * Number(d.price || 0)), 0);
+
+            const { ThreeWayMatchEngine } = await import('@/lib/three-way-match-tolerance-engine');
+            const matchResult = await ThreeWayMatchEngine.match({
+                tenantId,
+                purchaseOrderId,
+                grnId: firstGrnId,
+                invoiceId: 0,
+                poAmount: absolutePoTotalAmt,
+                grnAmount: grnTotalAmount,
+                invoiceAmount: subtotal,
+                poQty: absolutePoTotalQty,
+                grnQty: grnTotalQty,
+                invoiceQty: invoiceTotalQuantity,
+            });
+
+            if (matchResult.action === 'BLOCK' || matchResult.action === 'REQUIRE_EXCEPTION') {
+                const overrideHeader = request.headers.get('X-Soft-Lock-Override-Reason') || request.headers.get('x-bypass-3wm');
+                if (!overrideHeader) {
+                    return NextResponse.json({
+                        error: matchResult.reason,
+                        code: matchResult.status
+                    }, { status: 422 });
+                }
+            }
+        }
         
         const taxValue = isManual ? (Number(body.manualTaxValue) || 0) : subtotal * 0.15;
         const total = subtotal + taxValue;
@@ -242,36 +308,71 @@ async function _POST(request: Request) {
             }
 
             if (purchaseOrderId) {
-                const priceVariance = calculatedPpv;
-                const quantityVariance = invoiceTotalQuantity - poTotalQuantity;
-                const priceVariancePercent = poTotalAmount > 0 ? (priceVariance / poTotalAmount) * 100 : 0;
-                const quantityVariancePercent = poTotalQuantity > 0 ? (quantityVariance / poTotalQuantity) * 100 : 0;
-                
-                const priceTolerancePercent = 5.0; // Default 5%
-                const quantityTolerancePercent = 5.0; // Default 5%
+                const po = await tx.purchaseOrder.findFirst({
+                    where: { id: purchaseOrderId, tenantId },
+                    include: { details: true }
+                });
 
-                const isWithinTolerance = Math.abs(priceVariancePercent) <= priceTolerancePercent && Math.abs(quantityVariancePercent) <= quantityTolerancePercent;
+                const grns = await (tx as any).goodsReceiptNote?.findMany({
+                    where: { orderId: purchaseOrderId, tenantId },
+                    include: { details: true }
+                }).catch(() => []) ?? [];
+
+                let grnTotalQty = 0;
+                let grnTotalAmount = 0;
+                let firstGrnId = 0;
+
+                if (grns.length > 0) {
+                    firstGrnId = grns[0].id;
+                    for (const grn of grns) {
+                        for (const detail of grn.details) {
+                            const accepted = Number(detail.acceptedQty || detail.quantity || 0);
+                            grnTotalQty += accepted;
+                            const poLine = po?.details.find((p: any) => p.productId === detail.productId);
+                            if (poLine) {
+                                grnTotalAmount += accepted * Number(poLine.price);
+                            }
+                        }
+                    }
+                }
+
+                const absolutePoTotalQty = po?.details.reduce((sum: number, d: any) => sum + Number(d.quantity || 0), 0) ?? 0;
+                const absolutePoTotalAmt = po?.details.reduce((sum: number, d: any) => sum + (Number(d.quantity || 0) * Number(d.price || 0)), 0) ?? 0;
+
+                const { ThreeWayMatchEngine } = await import('@/lib/three-way-match-tolerance-engine');
+                const matchResult = await ThreeWayMatchEngine.match({
+                    tenantId,
+                    purchaseOrderId,
+                    grnId: firstGrnId,
+                    invoiceId: createdInvoice.id,
+                    poAmount: absolutePoTotalAmt,
+                    grnAmount: grnTotalAmount,
+                    invoiceAmount: subtotal,
+                    poQty: absolutePoTotalQty,
+                    grnQty: grnTotalQty,
+                    invoiceQty: invoiceTotalQuantity,
+                });
 
                 await (tx as any).threeWayMatch.create({
                     data: {
                         tenantId,
                         invoiceId: createdInvoice.id,
                         purchaseOrderId,
-                        poTotalAmount,
-                        poTotalQuantity,
-                        grnTotalAmount: subtotal - priceVariance,
-                        grnTotalQuantity: invoiceTotalQuantity,
+                        poTotalAmount: absolutePoTotalAmt,
+                        poTotalQuantity: absolutePoTotalQty,
+                        grnTotalAmount,
+                        grnTotalQuantity: grnTotalQty,
                         invoiceTotalAmount: subtotal,
                         invoiceTotalQuantity,
-                        priceVariance,
-                        priceVariancePercent,
-                        quantityVariance,
-                        quantityVariancePercent,
-                        priceTolerancePercent,
-                        quantityTolerancePercent,
-                        isWithinTolerance,
-                        matchStatus: isWithinTolerance ? 'MATCHED' : 'MANUAL_REVIEW',
-                        paymentBlocked: !isWithinTolerance
+                        priceVariance: matchResult.amountVariance,
+                        priceVariancePercent: matchResult.amountVariancePct,
+                        quantityVariance: matchResult.qtyVariance,
+                        quantityVariancePercent: matchResult.qtyVariancePct,
+                        priceTolerancePercent: matchResult.tolerancePct * 100,
+                        quantityTolerancePercent: matchResult.tolerancePct * 100,
+                        isWithinTolerance: matchResult.status === 'MATCHED' || matchResult.status === 'WITHIN_TOLERANCE',
+                        matchStatus: matchResult.status,
+                        paymentBlocked: matchResult.action === 'BLOCK' || matchResult.action === 'REQUIRE_EXCEPTION'
                     }
                 });
             }

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Three-Way Match Tolerance Engine (Partial Gap Fix)
+ * Three-Way Match Tolerance Engine (F-06 Implementation)
  * ══════════════════════════════════════════════════════════════════════════════
  * Extends 3-way-match with:
  *   1. Percentage + absolute tolerance rules per vendor/category
@@ -28,7 +29,16 @@ export interface ThreeWayMatchInput {
   toleranceAbsolute?: number;   // SAR absolute amount
 }
 
-export type MatchStatus = 'MATCHED' | 'WITHIN_TOLERANCE' | 'EXCEPTION_REQUIRED' | 'HARD_BLOCK';
+export type MatchStatus = 
+  | 'MATCHED' 
+  | 'WITHIN_TOLERANCE' 
+  | 'EXCEPTION_REQUIRED' 
+  | 'HARD_BLOCK'
+  | 'PRICE_DISCREPANCY'
+  | 'QTY_DISCREPANCY'
+  | 'AMOUNT_DISCREPANCY'
+  | 'PENDING_APPROVAL'
+  | 'BLOCKED';
 
 export interface ThreeWayMatchResult {
   tenantId:          string;
@@ -59,13 +69,40 @@ export class ThreeWayMatchEngine {
     const settings = await (prisma as any).setting?.findMany?.({
       where: {
         tenantId: input.tenantId,
-        key: { in: ['3wm_tolerance_pct', '3wm_tolerance_absolute'] },
+        key: { in: [
+          'PURCHASE_TOLERANCE_PERCENT',
+          'PURCHASE_TOLERANCE_AMOUNT',
+          'PURCHASE_TOLERANCE_REQUIRE_APPROVAL',
+          '3wm_tolerance_pct',
+          '3wm_tolerance_absolute'
+        ] },
       },
     }).catch(() => []) ?? [];
 
-    const settingsMap = Object.fromEntries(settings.map((s: any) => [s.key, parseFloat(s.value)]));
-    const tolerancePct      = input.tolerancePct      ?? settingsMap['3wm_tolerance_pct']      ?? DEFAULT_TOLERANCE_PCT;
-    const toleranceAbsolute = input.toleranceAbsolute ?? settingsMap['3wm_tolerance_absolute']  ?? DEFAULT_TOLERANCE_ABSOLUTE;
+    const settingsMap = Object.fromEntries(settings.map((s: any) => [s.key, s.value]));
+
+    // Parse percentage
+    let tolerancePct = input.tolerancePct;
+    if (tolerancePct === undefined) {
+      const pctVal = settingsMap['PURCHASE_TOLERANCE_PERCENT'] ?? settingsMap['3wm_tolerance_pct'];
+      if (pctVal !== undefined) {
+        const parsedPct = parseFloat(pctVal);
+        tolerancePct = parsedPct > 1 ? parsedPct / 100 : parsedPct;
+      } else {
+        tolerancePct = DEFAULT_TOLERANCE_PCT;
+      }
+    }
+
+    // Parse absolute amount
+    let toleranceAbsolute = input.toleranceAbsolute;
+    if (toleranceAbsolute === undefined) {
+      const absVal = settingsMap['PURCHASE_TOLERANCE_AMOUNT'] ?? settingsMap['3wm_tolerance_absolute'];
+      toleranceAbsolute = absVal !== undefined ? parseFloat(absVal) : DEFAULT_TOLERANCE_ABSOLUTE;
+    }
+
+    // Parse require approval
+    const requireApprovalVal = settingsMap['PURCHASE_TOLERANCE_REQUIRE_APPROVAL'];
+    const requireApproval = requireApprovalVal === 'true' || requireApprovalVal === '1';
 
     // Amount variance
     const amountVariance    = input.invoiceAmount - input.poAmount;
@@ -82,32 +119,48 @@ export class ThreeWayMatchEngine {
 
     const absoluteOk  = Math.abs(amountVariance) <= toleranceAbsolute;
     const pctOk       = amountVariancePct <= tolerancePct;
-    const qtyOk       = Math.abs(qtyVariance) <= input.grnQty * tolerancePct;
+    const qtyOk       = qtyVariance <= 0; // Quantity must not exceed what is received in GRN
     const hardBlock   = amountVariancePct > HARD_BLOCK_THRESHOLD;
 
-    if (amountVariance === 0 && qtyVariance === 0) {
+    if (!qtyOk) {
+      status = 'QTY_DISCREPANCY';
+      reason = `كمية الفاتورة (${input.invoiceQty}) أكبر من الكمية المستلمة في إذن الاستلام (${input.grnQty})`;
+      action = 'BLOCK';
+    } else if (hardBlock) {
+      status = 'BLOCKED';
+      reason = `فرق المبلغ يتجاوز حد المنع المطلق البالغ ${(HARD_BLOCK_THRESHOLD * 100).toFixed(0)}% (الفرق الفعلي: ${(amountVariancePct * 100).toFixed(1)}%)`;
+      action = 'BLOCK';
+    } else if (amountVariance === 0 && qtyVariance === 0) {
       status = 'MATCHED';
       reason = 'مطابقة كاملة — لا فروقات';
       action = 'AUTO_APPROVE';
-    } else if (hardBlock) {
-      status = 'HARD_BLOCK';
-      reason = `فرق يتجاوز ${(HARD_BLOCK_THRESHOLD * 100).toFixed(0)}% — يلزم مراجعة إدارية`;
-      action = 'BLOCK';
-    } else if ((absoluteOk || pctOk) && qtyOk) {
-      status = 'WITHIN_TOLERANCE';
-      reason = `الفرق ضمن هامش التسامح (${(tolerancePct * 100).toFixed(1)}% أو ${toleranceAbsolute} ر.س)`;
-      action = 'AUTO_APPROVE';
+    } else if (absoluteOk || pctOk) {
+      if (requireApproval) {
+        status = 'PENDING_APPROVAL';
+        reason = `الفرق ضمن هامش التسامح (${(tolerancePct * 100).toFixed(1)}% أو ${toleranceAbsolute} ر.س) ولكنه يتطلب موافقة إدارية`;
+        action = 'REQUIRE_EXCEPTION';
+      } else {
+        status = 'WITHIN_TOLERANCE';
+        reason = `الفرق ضمن هامش التسامح (${(tolerancePct * 100).toFixed(1)}% أو ${toleranceAbsolute} ر.س)`;
+        action = 'AUTO_APPROVE';
+      }
     } else {
-      status = 'EXCEPTION_REQUIRED';
-      reason = `فرق المبلغ: ${Math.abs(amountVariance).toFixed(2)} ر.س (${(amountVariancePct * 100).toFixed(1)}%) — يتجاوز الهامش`;
-      action = 'REQUIRE_EXCEPTION';
+      if (requireApproval) {
+        status = 'PENDING_APPROVAL';
+        reason = `فرق المبلغ يتجاوز هامش التسامح (${Math.abs(amountVariance).toFixed(2)} ر.س / ${(amountVariancePct * 100).toFixed(1)}%) ويتطلب موافقة إدارية`;
+        action = 'REQUIRE_EXCEPTION';
+      } else {
+        status = 'PRICE_DISCREPANCY';
+        reason = `فرق المبلغ يتجاوز هامش التسامح (${Math.abs(amountVariance).toFixed(2)} ر.س / ${(amountVariancePct * 100).toFixed(1)}%) ولم يتم تفعيل خيار الموافقة الاستثنائية`;
+        action = 'BLOCK';
+      }
     }
 
     // ZATCA compliance check (simplified)
-    const invoice = await (prisma as any).purchaseInvoice?.findUnique?.({
+    const invoice = input.invoiceId > 0 ? await (prisma as any).purchaseInvoice?.findUnique?.({
       where: { id: input.invoiceId },
       select: { invoiceNumber: true, date: true, vatNumber: true },
-    }).catch(() => null);
+    }).catch(() => null) : null;
 
     const zatcaCompliant = !!(invoice?.invoiceNumber && invoice?.date && invoice?.vatNumber);
 

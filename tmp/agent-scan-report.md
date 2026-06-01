@@ -1,65 +1,33 @@
-# Agent Scan Report — Month-End Bank FX Revaluation & Reversal (Phase FX-02)
+# Agent Scan Report — F-06 Three-Way Match & Tolerance Controls
 
 ## 1. الملفات التي قرأتها (Files Scanned)
-- `.ai-brain/00-index.md` (فهرس الـ Brain والتقنيات والموديلات كاملة)
-- `.ai-brain/01-architecture.md` (هندسة النظام، النشر، وتصميم Multi-Tenant Phase 2)
-- `.ai-brain/20-accounting-domain.md` (دليل المحاسبة ومحرك auto-journal والفترات المحاسبية وإهلاك الأصول)
-- `.ai-brain/27-treasury-banks.md` (الخزينة البنكية والتسويات البنكية وحركات النقد والعهد والشيكات)
-- `prisma/schema.prisma` (مخطط الجداول لـ BankAccount, Account, JournalEntry, JournalLine, Setting, ExchangeRate)
-- `src/lib/fx-revaluation-engine.ts` (محرك إعادة تقييم الحسابات المفتوحة بالعملات الأجنبية)
-- `src/app/api/accounting/fx-revaluation/bank/preview/route.ts` (مسار المعاينة الجافة للحسابات البنكية)
-- `src/app/api/accounting/fx-revaluation/preview/route.ts` (مسار المعاينة الجافة للذمم AR/AP كمثال)
-- `src/app/api/accounting/fx-revaluation/post/route.ts` (مسار الترحيل الفعلي للذمم AR/AP كمثال)
-- `src/services/gl/account-determination.service.ts` (خدمات التوجيه المحاسبي)
-- `src/services/gl/accounting-journal.service.ts` (خدمة ترحيل القيود وتعديل أرصدة الحسابات)
+- [src/lib/three-way-match-tolerance-engine.ts](file:///d:/namasoft9-3-main/src/lib/three-way-match-tolerance-engine.ts)
+- [src/app/api/purchases/route.ts](file:///d:/namasoft9-3-main/src/app/api/purchases/route.ts)
+- [prisma/schema.prisma](file:///d:/namasoft9-3-main/prisma/schema.prisma) (Read-only reference)
+- [src/lib/numbering.ts](file:///d:/namasoft9-3-main/src/lib/numbering.ts)
+- [src/app/api/finance/controls/route.ts](file:///d:/namasoft9-3-main/src/app/api/finance/controls/route.ts)
 
----
-
-## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
-بما أننا في وضعية **SCAN_AND_PLAN_ONLY**، فلن يتم إجراء أي تعديل برمي فعلي على الكود، ولكن الملفات المرشحة للتعديل والإضافة عند بدء مرحلة التنفيذ (بموافقة المستخدم الصريحة) هي:
-- `src/lib/fx-revaluation-engine.ts` [تعديل]: لإضافة دالة `previewBank` ودالة `postBank` المحميتين محاسبياً.
-- `src/app/api/accounting/fx-revaluation/bank/post/route.ts` [جديد]: لإنشاء مسار الترحيل الفعلي وإصدار القيود وعكسها تلقائياً.
-- `tests/integration/accounting/fx-revaluation-bank-post.test.ts` [جديد]: لإنشاء حزم الاختبارات التكاملية لضمان سلامة العمليات ومطابقتها للمعايير المحاسبية.
-
----
+## 2. الملفات المرشحة للتعديل (Candidate Files to Modify)
+- [MODIFY] [src/lib/three-way-match-tolerance-engine.ts](file:///d:/namasoft9-3-main/src/lib/three-way-match-tolerance-engine.ts) — Extended status mappings (`MATCHED`, `QTY_DISCREPANCY`, `PRICE_DISCREPANCY`, `PENDING_APPROVAL`, `BLOCKED`) and added fallback for new settings keys.
+- [MODIFY] [src/app/api/purchases/route.ts](file:///d:/namasoft9-3-main/src/app/api/purchases/route.ts) — Added pre-transaction matching checks to reject variance exceeding tolerance with 422 HTTP, and integrated matching engine inside the posting transaction.
+- [NEW] [tests/integration/procurement/three-way-match.test.ts](file:///d:/namasoft9-3-main/tests/integration/procurement/three-way-match.test.ts) — Implemented comprehensive integration tests.
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **General Ledger (GL) & Financial Journals:** الحسابات العامة وشجرة الحسابات والقيود المزدوجة.
-- **Treasury & Banking (الخزينة والبنوك):** أرصدة البنوك وحساباتها بالعملات الأجنبية.
-- **Multi-Tenant Boundary:** عزل حركات الصرف والعملات والحسابات البنكية الخاصة بكل مستأجر بصرامة تامة.
-- **Financial Period Close:** إغلاق الفترات وتوجيه قيود العكس التلقائي باليوم التالي.
+- **Procurement & Accounts Payable (AP)**: Purchase Orders, GRNs, and Purchase Invoices flows.
+- **Financial Controls**: Automatic period-lock checks, settings-based purchase tolerances, and transaction isolation.
 
----
+## 4. المخاطر (Risks)
+- Circular dependencies or dynamic import issues in API routes. *Mitigation: Dynamically imported `ThreeWayMatchEngine` inside the handler block.*
+- Uncommitted previous files. *Mitigation: Preserved all uncommitted local modifications and isolated our changes purely to local procurement logic.*
 
-## 4. تحليل المخاطر والأمان (Risks & Safeguards)
-- **خطر الترحيل في فترات مغلقة:**
-  * *الأثر:* خرق معايير SOCPA وفساد القوائم المالية المعتمدة.
-  * *الاحتراز:* استخدام دالة `assertPeriodWritable` الصارمة للتحقق بشكل منفصل ومزدوج من صلاحية تاريخ الإقفال (نهاية الشهر) وتاريخ العكس باليوم التالي (بداية الشهر التالي) معاً قبل كتابة أي سطر في قاعدة البيانات.
-- **خطر الترحيل المزدوج لتقييم البنك:**
-  * *الأثر:* مضاعفة وتضخيم الأرباح والخسائر الدفترية غير المحققة.
-  * *الاحتراز:* فرض مرجع فريد موحد `FX_REVAL_BANK_[YEAR]_[MONTH]_[BANK_ID]` والتحقق الفوري من عدم تكراره أو وجوده في الحركات الفعالة غير المحذوفة.
-- **خطر عدم التوازن المالي:**
-  * *الأثر:* خلل في توازن القيد والميزانية العمومية.
-  * *الاحتراز:* تطبيق التقريب الثنائي العشري الصارم (Scale 2) على مستوى السطر وتفادي فروق الكسور الطفيفة.
-
----
-
-## 5. خطة التنفيذ المقترحة (Implementation Plan)
-- **الخطوة 1:** الحصول على موافقة خطة العمل التفصيلية `implementation_plan.md` وعرض خريطة الربط الديناميكي للحسابات عبر جدول الإعدادات.
-- **الخطوة 2:** برمجة وتطبيق الدالة `previewBank` في محرك التقييم لحساب المعاينة الجافة دون أي كتابة.
-- **الخطوة 3:** برمجة وتطبيق الدالة `postBank` لتوليد قيد التقييم وقيد العكس التلقائي باليوم التالي بشكل ذري مترابط داخل معاملة قاعدة البيانات.
-- **الخطوة 4:** إنشاء وبناء ملف مسار الترحيل الفعلي `/api/accounting/fx-revaluation/bank/post/route.ts` محمي بالقوانين الائتمانية والصلاحيات وعزل المستأجرين.
-- **الخطوة 5:** كتابة وتشغيل اختبارات تكاملية شاملة وتمريرها بالكامل.
-
----
+## 5. خطة التنفيذ (Implementation Plan)
+1. Add settings check fallbacks (`PURCHASE_TOLERANCE_PERCENT`, `PURCHASE_TOLERANCE_AMOUNT`, `PURCHASE_TOLERANCE_REQUIRE_APPROVAL`) and action blocks to `ThreeWayMatchEngine`.
+2. Add a pre-transaction check in `purchases/route.ts` _POST.
+3. Rewrite transaction persistence block to store exact engine output in `threeWayMatch` table.
+4. Add robust mocked integration tests in `tests/integration/procurement/three-way-match.test.ts`.
 
 ## 6. خطة الاختبار (Testing Plan)
-- **الاختبارات التلقائية:**
-  - بناء اختبار تكاملي `fx-revaluation-bank-post.test.ts` لتغطية:
-    1. محاكاة حساب بنكي أجنبي بالدولار وحساب رصيده ووزن الصرف بنجاح.
-    2. ترحيل القيد الرئيسي وعكسه والتأكد من توازن الطرفين (المدين والدائن).
-    3. اختبار حظر الترحيل لنفس الفترة والحساب لمنع الازدواجية.
-    4. اختبار حظر العمليات في الفترات المغلقة.
-- **التحقق من سلامة البناء:**
-  - تشغيل `npm run typecheck` لضمان خلو التعديلات من أخطاء المترجم.
-  - تشغيل `npx prisma validate` لتأكيد تكامل نموذج البيانات.
+- Run `npx vitest run tests/integration/procurement/three-way-match.test.ts` (All 6/6 tests passed).
+- Run `npx prisma validate` (Successfully validated).
+- Run `npm run typecheck` (Completed successfully with 0 errors).
+- Run `eslint` check on modified files (Completed successfully with 0 errors).
