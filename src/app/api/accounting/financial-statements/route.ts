@@ -19,8 +19,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withRoute } from '@/lib/api/with-route';
-import { getPrisma } from '@/lib/prisma';
+import { withRoute, RouteContext } from '@/lib/api/with-route';
+import { logAuditEvent } from '@/lib/audit-trail';
 import { FinancialStatementsEngine } from '@/lib/financial-statements-engine';
 import type { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
@@ -44,10 +44,10 @@ interface StatementLine {
   priorPeriod?: unknown;
 }
 
-async function _GET(req: NextRequest) {
+async function _GET(req: NextRequest, ctx: RouteContext) {
   const { searchParams } = new URL(req.url);
 
-  const tenantId = searchParams.get('tenantId') ?? 'default';
+  const tenantId = ctx.tenant;
   const type     = (searchParams.get('type') ?? 'ALL').toUpperCase() as
     'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'CASH_FLOW' | 'TRIAL_BALANCE' | 'ALL';
   const compare  = searchParams.get('compare') !== 'false';
@@ -84,8 +84,7 @@ async function _GET(req: NextRequest) {
   if (segmentId) filters.segmentId = Number(segmentId);
   if (branchId) filters.branchId = Number(branchId);
 
-  const prismaClient = getPrisma(req as unknown as NextRequest);
-  const prisma = prismaClient as unknown as PrismaClient;
+  const prisma = ctx.prisma as unknown as PrismaClient;
   const engine = new FinancialStatementsEngine(prisma);
 
   const result: Record<string, unknown> = {
@@ -149,6 +148,8 @@ async function _GET(req: NextRequest) {
   const generatedFrom = result.from as string;
   const generatedTo = result.to as string;
   log.info('Financial statements generated', { tenantId, type, from: generatedFrom, to: generatedTo });
+
+  let response: Response;
 
   // ── EXPORT Excel (XLSX) ──────────────────────────────────────────────────────
   if (format === 'xlsx') {
@@ -216,16 +217,15 @@ async function _GET(req: NextRequest) {
       columns
     });
 
-    return new Response(new Uint8Array(excelBuffer) as unknown as BodyInit, {
+    response = new Response(new Uint8Array(excelBuffer) as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'Content-Disposition': `attachment; filename="${type.toLowerCase()}_${generatedTo}.xlsx"`,
       }
     });
   }
-
   // ── EXPORT PDF (Puppeteer HTML-to-PDF) ───────────────────────────────────────
-  if (format === 'pdf') {
+  else if (format === 'pdf') {
     const fmt = (n: unknown) => {
       const val = typeof n === 'object' && n !== null && 'toNumber' in n && typeof (n as { toNumber: unknown }).toNumber === 'function'
         ? (n as { toNumber: () => number }).toNumber()
@@ -370,16 +370,57 @@ async function _GET(req: NextRequest) {
 
     const pdfBuffer = await PDFService.generate(htmlContent, { format: 'A4' });
 
-    return new Response(new Uint8Array(pdfBuffer) as unknown as BodyInit, {
+    response = new Response(new Uint8Array(pdfBuffer) as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="${type.toLowerCase()}_${generatedTo}.pdf"`,
       }
     });
   }
-
   // Standard JSON response
-  return NextResponse.json(result);
+  else {
+    response = NextResponse.json(result);
+  }
+
+  // ── Audit Trail Logging ──────────────────────────────────────────────────────
+  try {
+    const filtersSummary = {
+      branchId: filters.branchId,
+      costCenterId: filters.costCenterId,
+      projectId: filters.projectId,
+      segmentId: filters.segmentId,
+    };
+
+    await logAuditEvent(prisma, {
+      tenantId: ctx.tenant,
+      userId: ctx.auth.userId || null,
+      action: 'EXECUTE',
+      entityType: 'FINANCIAL_REPORT',
+      entityId: type,
+      route: '/api/accounting/financial-statements',
+      metadata: {
+        reportType: type,
+        format,
+        from: from.toISOString().split('T')[0],
+        to: to.toISOString().split('T')[0],
+        compare,
+        filters: filtersSummary,
+        generatedAt: now.toISOString(),
+        hasExport: format !== 'json',
+        source: 'financial-statements-route',
+      },
+    });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    log.warn('Financial report audit trail failed', {
+      tenantId: ctx.tenant,
+      reportType: type,
+      format,
+      error: errorMsg,
+    });
+  }
+
+  return response;
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as unknown as NextRequest), { rateLimit: 'DEFAULT' });
+export const GET = withRoute(async (ctx) => _GET(ctx.req as unknown as NextRequest, ctx), { rateLimit: 'DEFAULT' });
