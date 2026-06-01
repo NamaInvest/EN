@@ -1,8 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Download, Filter, TrendingUp } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+
+interface FilterOption {
+  id: string | number;
+  name: string;
+  code?: string;
+}
+
+interface PLLine {
+  code: string;
+  name: string;
+  amount: number;
+  compare: number | null;
+}
+
+interface PLSection {
+  section: string;
+  lines: PLLine[];
+  total: number;
+}
+
+interface PLSummary {
+  totalRevenue: number;
+  grossProfit: number;
+  grossMargin: string;
+  ebit: number;
+  netIncome: number;
+}
 
 export default function ProfitLossPage() {
   const { lang: language, t } = useTranslation();
@@ -13,8 +40,8 @@ export default function ProfitLossPage() {
     to: new Date().toISOString().split('T')[0]
   });
   const [loading, setLoading] = useState(false);
-  const [sections, setSections] = useState<any[]>([]);
-  const [summary, setSummary] = useState<any>(null);
+  const [sections, setSections] = useState<PLSection[]>([]);
+  const [summary, setSummary] = useState<PLSummary | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   // Dimensional filtering states
@@ -23,17 +50,12 @@ export default function ProfitLossPage() {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("");
 
-  const [branches, setBranches] = useState<any[]>([]);
-  const [costCenters, setCostCenters] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [segments, setSegments] = useState<any[]>([]);
+  const [branches, setBranches] = useState<FilterOption[]>([]);
+  const [costCenters, setCostCenters] = useState<FilterOption[]>([]);
+  const [projects, setProjects] = useState<FilterOption[]>([]);
+  const [segments, setSegments] = useState<FilterOption[]>([]);
 
-  useEffect(() => {
-    fetchFilters();
-    fetchProfitLoss();
-  }, []);
-
-  async function fetchFilters() {
+  const fetchFilters = useCallback(async () => {
     try {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
@@ -52,9 +74,9 @@ export default function ProfitLossPage() {
     } catch (e) {
       console.error("Failed to load dimensional filters", e);
     }
-  }
+  }, []);
 
-  async function fetchProfitLoss() {
+  const fetchProfitLoss = useCallback(async () => {
     setLoading(true);
     setMsg(null);
     try {
@@ -73,8 +95,97 @@ export default function ProfitLossPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setSections(data.incomeStatement?.sections ?? []);
-        setSummary(data.incomeStatement ?? null);
+        const rawStatement = data.incomeStatement;
+
+        if (rawStatement && Array.isArray(rawStatement.lines)) {
+          const rawLines = rawStatement.lines;
+
+          // Helper to extract numeric value from Decimal or number/string serialization
+          const getVal = (val: unknown): number => {
+            if (val === null || val === undefined) return 0;
+            if (typeof val === 'object' && val !== null && 'toNumber' in val && typeof (val as { toNumber: unknown }).toNumber === 'function') {
+              return (val as { toNumber: () => number }).toNumber();
+            }
+            return Number(val);
+          };
+
+          // Define sections
+          const grouped: { [key: string]: PLLine[] } = {
+            REVENUE: [],
+            COGS: [],
+            OPEX: [],
+            OTHER: [],
+            TAX: []
+          };
+
+          rawLines.forEach((l: { section?: string; code?: string; label?: string; currentPeriod?: unknown; priorPeriod?: unknown }) => {
+            const sect = l.section;
+            const lineItem: PLLine = {
+              code: l.code || '',
+              name: l.label || '',
+              amount: getVal(l.currentPeriod),
+              compare: l.priorPeriod !== undefined && l.priorPeriod !== null ? getVal(l.priorPeriod) : null
+            };
+
+            if (sect === 'REVENUE') {
+              grouped.REVENUE.push(lineItem);
+            } else if (sect === 'COGS') {
+              grouped.COGS.push(lineItem);
+            } else if (sect === 'PAYROLL_EXP' || sect === 'OPEX' || sect === 'GENERAL_ADMIN') {
+              grouped.OPEX.push(lineItem);
+            } else if (sect === 'OTHER_INCOME' || sect === 'FINANCE_COSTS') {
+              grouped.OTHER.push(lineItem);
+            } else if (sect === 'ZAKAT_TAX') {
+              grouped.TAX.push(lineItem);
+            }
+          });
+
+          const calculatedSections: PLSection[] = [
+            {
+              section: isAr ? 'الإيرادات (Revenue)' : 'Revenue',
+              lines: grouped.REVENUE,
+              total: grouped.REVENUE.reduce((sum, item) => sum + item.amount, 0)
+            },
+            {
+              section: isAr ? 'تكلفة المبيعات (COGS)' : 'Cost of Goods Sold',
+              lines: grouped.COGS,
+              total: grouped.COGS.reduce((sum, item) => sum + item.amount, 0)
+            },
+            {
+              section: isAr ? 'المصروفات التشغيلية (Opex)' : 'Operating Expenses',
+              lines: grouped.OPEX,
+              total: grouped.OPEX.reduce((sum, item) => sum + item.amount, 0)
+            },
+            {
+              section: isAr ? 'إيرادات/مصروفات أخرى (Other)' : 'Other Income/Expenses',
+              lines: grouped.OTHER,
+              total: grouped.OTHER.reduce((sum, item) => sum + item.amount, 0)
+            },
+            {
+              section: isAr ? 'الزكاة والضرائب (Tax)' : 'Zakat & Tax',
+              lines: grouped.TAX,
+              total: grouped.TAX.reduce((sum, item) => sum + item.amount, 0)
+            }
+          ];
+
+          setSections(calculatedSections);
+
+          // Build summary structure
+          const rev = calculatedSections[0].total;
+          const gp = getVal(rawStatement.grossProfit);
+          const margin = rev === 0 ? '0%' : `${Math.round((gp / rev) * 1000) / 10}%`;
+
+          setSummary({
+            totalRevenue: rev,
+            grossProfit: gp,
+            grossMargin: margin,
+            ebit: getVal(rawStatement.operatingProfit),
+            netIncome: getVal(rawStatement.netProfit)
+          });
+        } else {
+          setSections([]);
+          setSummary(null);
+        }
       } else {
         setMsg("فشل جلب قائمة الدخل من السيرفر.");
       }
@@ -84,10 +195,25 @@ export default function ProfitLossPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [dates, selectedBranch, selectedCostCenter, selectedProject, selectedSegment, isAr]);
 
-  const fmtSAR = (n: any) => {
-    const val = typeof n === 'object' && n && 'toNumber' in n ? n.toNumber() : Number(n || 0);
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    fetchFilters();
+    fetchProfitLoss();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const fmtSAR = (n: number | string | { toNumber?: () => number } | null | undefined) => {
+    let val = 0;
+    if (n !== null && n !== undefined) {
+      if (typeof n === 'object' && n.toNumber && typeof n.toNumber === 'function') {
+        val = n.toNumber();
+      } else {
+        val = Number(n);
+      }
+    }
     return `${val.toLocaleString(isAr ? 'ar-SA' : 'en-US')} ر.س`;
   };
 
@@ -232,14 +358,14 @@ export default function ProfitLossPage() {
                 <th className="px-5 py-2.5 font-bold w-24">كود الحساب</th>
                 <th className="px-5 py-2.5 font-bold text-right">اسم الحساب</th>
                 <th className="px-5 py-2.5 font-bold text-left w-36">الرصيد الحالي</th>
-                {sec.lines.some((l: any) => l.compare !== null) && (
+                {sec.lines.some(l => l.compare !== null) && (
                   <th className="px-5 py-2.5 font-bold text-left w-36 text-slate-400">الفترة السابقة</th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sec.lines.map((a: any) => (
-                <tr key={a.code} className="hover:bg-slate-50/50 transition">
+              {sec.lines.map(a => (
+                <tr key={a.code + a.name} className="hover:bg-slate-50/50 transition">
                   <td className="px-5 py-3 font-mono text-slate-400 text-xs">{a.code}</td>
                   <td className="px-5 py-3 text-slate-700 font-semibold">{a.name}</td>
                   <td className="px-5 py-3 text-left font-bold text-slate-700 font-mono" dir="ltr">{fmtSAR(a.amount)}</td>
