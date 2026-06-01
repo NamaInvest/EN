@@ -261,7 +261,6 @@ export class ConsolidationEliminationPostingService {
             })),
           } as unknown as CreateJournalEntryDTO;
 
-          // @ts-expect-error - Internal transactional lead pass
           const je = await AccountingJournalService.createEntry(tx, eliminationDto);
           eliminationJeId = je.id;
 
@@ -283,7 +282,6 @@ export class ConsolidationEliminationPostingService {
               })),
             } as unknown as CreateJournalEntryDTO;
 
-            // @ts-expect-error - Internal transactional lead pass
             const revJe = await AccountingJournalService.createEntry(tx, reversalDto);
             reversalJeId = revJe.id;
           }
@@ -417,7 +415,6 @@ export class ConsolidationEliminationPostingService {
           })),
         } as unknown as CreateJournalEntryDTO;
 
-        // @ts-expect-error - Internal transactional lead pass
         const manualRevJe = await AccountingJournalService.createEntry(tx, manualRevDto);
         manualRevJeId = manualRevJe.id;
       }
