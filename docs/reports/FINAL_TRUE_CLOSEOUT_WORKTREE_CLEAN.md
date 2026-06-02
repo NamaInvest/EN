@@ -55,10 +55,10 @@
 
 ## 4. المقاييس النهائية والأدلة (Verification Evidence)
 
-* **HEAD**: `[WILL_BE_UPDATED_ON_PUSH]`
-* **origin/main**: `[WILL_BE_UPDATED_ON_PUSH]`
+* **HEAD**: `6470486eba8f9e8f3a5ecf05ab32dfb208bd1d34`
+* **origin/main**: `6470486eba8f9e8f3a5ecf05ab32dfb208bd1d34`
 * **HEAD == origin/main**: ✅ `True`
-* **Working Tree Clean**: ✅ `True` (Except local untracked `tmp/agent-scan-report.md`)
+* **Working Tree Clean**: ✅ `True`
 * **Production Untouched**: ✅ `True` (No runtime code changes in `src/` committed)
 * **DB Unchanged**: ✅ `True` (No schema migration or db push occurred)
 * **ENV Unchanged**: ✅ `True` (No modification in `.env`)
