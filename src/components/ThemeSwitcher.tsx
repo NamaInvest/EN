@@ -40,11 +40,11 @@ export default function ThemeSwitcher() {
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
 
-    const applyTheme = (themeId: string) => {
+    function applyTheme(themeId: string) {
         const root = document.documentElement;
         themes.forEach(th => root.classList.remove(th.id));
         if (themeId !== 'default') root.classList.add(themeId);
-    };
+    }
 
     const switchTheme = (themeId: string) => {
         setCurrentTheme(themeId);

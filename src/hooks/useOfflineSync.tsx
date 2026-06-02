@@ -9,37 +9,6 @@ export function useOfflineSync() {
     const [pendingCount, setPendingCount] = useState(0);
     const [isSyncing, setIsSyncing] = useState(false);
 
-    // Initial check
-    useEffect(() => {
-        setIsOffline(!navigator.onLine);
-
-        const handleOnline = () => {
-            setIsOffline(false);
-            toast.success('تمت استعادة الاتصال بالإنترنت', { position: 'top-left' });
-            syncPendingInvoices();
-        };
-        const handleOffline = () => {
-            setIsOffline(true);
-            toast.error('انقطع الاتصال بالإنترنت - يتم العمل على قاعدة البيانات المحلية', { position: 'top-left', duration: 5000 });
-        };
-
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
-
-        refreshPendingCount();
-        
-        // Auto sync every 1 minute if online
-        const interval = setInterval(() => {
-            if (navigator.onLine) syncPendingInvoices();
-        }, 60000);
-
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-            clearInterval(interval);
-        };
-    }, []);
-
     const refreshPendingCount = useCallback(async () => {
         if (typeof window === 'undefined' || !(window as any).electron) return;
         try {
@@ -100,6 +69,37 @@ export function useOfflineSync() {
             refreshPendingCount();
         }
     }, [isSyncing, refreshPendingCount]);
+
+    // Initial check
+    useEffect(() => {
+        setIsOffline(!navigator.onLine);
+
+        const handleOnline = () => {
+            setIsOffline(false);
+            toast.success('تمت استعادة الاتصال بالإنترنت', { position: 'top-left' });
+            syncPendingInvoices();
+        };
+        const handleOffline = () => {
+            setIsOffline(true);
+            toast.error('انقطع الاتصال بالإنترنت - يتم العمل على قاعدة البيانات المحلية', { position: 'top-left', duration: 5000 });
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        refreshPendingCount();
+        
+        // Auto sync every 1 minute if online
+        const interval = setInterval(() => {
+            if (navigator.onLine) syncPendingInvoices();
+        }, 60000);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+            clearInterval(interval);
+        };
+    }, [syncPendingInvoices, refreshPendingCount]);
 
     // Save invoice either remotely or locally
     const saveInvoiceWithSync = async (invoiceData: any, endpoint = '/api/pos') => {

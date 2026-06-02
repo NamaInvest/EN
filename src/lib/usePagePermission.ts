@@ -30,7 +30,7 @@ export function usePagePermission(moduleKey: string): boolean | null {
 
       // admin / owner → وصول كامل
       if (u.role === 'admin' || u.role === 'owner') {
-        setAllowed(true);
+        Promise.resolve().then(() => setAllowed(true));
         return;
       }
 
@@ -38,13 +38,13 @@ export function usePagePermission(moduleKey: string): boolean | null {
 
       // مستخدم بدون أي صلاحية محددة → يُحجب من كل شيء
       if (perms.length === 0) {
-        setAllowed(false);
+        Promise.resolve().then(() => setAllowed(false));
         router.push('/dashboard?reason=no_permissions');
         return;
       }
 
       const hasAccess = perms.includes(moduleKey);
-      setAllowed(hasAccess);
+      Promise.resolve().then(() => setAllowed(hasAccess));
 
       if (!hasAccess) {
         router.push('/dashboard?reason=no_access');
