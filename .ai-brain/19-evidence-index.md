@@ -62,10 +62,7 @@
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY.md` | تقرير إتمام نشر وتفعيل جسور المراقبة والتحليل على خادم الإنتاج ومطابقة Uptime. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION.md` | تقرير مراقبة الأداء والاستقرار بعد تفعيل جسور المراقبة وتأكيد استقرار PM2. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT.md` | تقرير الإغلاق النهائي والاعتماد لكامل مسار المراقبة والتحذير الأمني بنجاح كامل. | `VERIFIED_BY_REPORT` |
-
-
-
-
+| 2026-06-02 | `STAGING_E2E_ENVIRONMENT_READINESS_PLAN` | `docs/reports/STAGING_E2E_ENVIRONMENT_READINESS_PLAN.md` | تقرير خطة جاهزية بيئة الاستضافة التجريبية المعزولة لاختبارات الكتابة التجارية للموجة الثانية. | `VERIFIED_BY_REPORT` |
 
 
 
