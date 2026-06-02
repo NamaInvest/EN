@@ -682,5 +682,38 @@ DB: `UNTOUCHED`
 Production: `ONLINE_STABLE_CLOSED_SUCCESSFULLY`
 Next recommended gate: `NO_NEXT_GATE` (Global Completion)
 
+---
+
+## 2026-06-02 — Global Commercial Maturity Scan & Plan Status
+
+Status: `GLOBAL_COMMERCIAL_MATURITY_SCAN_COMPLETED`
+
+- **Commercial Track**: Initiated the new independent track for global product and commercial maturity (`ENTERPRISE_MARKET_READINESS_TRACK`).
+- **Gaps Swept**: Audited all 10 core business and usability gaps (E2E testing, Mobile UX, developer API documentation, Integration Marketplace, load tests, pentest readiness, UAT matrices, BI dashboards, operational manuals, and demo data sets).
+- **Execution Safeguards**: Confirmed zero live financial transactions, zero runtime mutations, and zero database changes.
+
+Runtime code: `UNTOUCHED`
+DB: `UNTOUCHED`
+Production: `ONLINE_STABLE`
+Next gate: `GO_FOR_E2E_PLAYWRIGHT_IMPLEMENTATION_PLAN_ONLY`
+
+---
+
+## 2026-06-02 — E2E Playwright Wave 1 Smoke Tests Status
+
+Status: `E2E_PLAYWRIGHT_WAVE1_COMPLETED`
+
+- **Wave 1 Complete**: Created, verified, and pushed 27 high-fidelity E2E tests covering Auth page, RBAC route guards, tenant isolation, and health metrics under Playwright.
+- **27/27 Tests Passed**: Fully passed 100% of parallel test runs across Chromium Desktop, Mobile Emulation, and RTL Localized projects.
+- **Turbopack Panic Mitigation**: Bypassed Windows-specific Turbopack PostCSS rust panics by starting Next.js dev server explicitly utilizing standard Webpack (`npx next dev --webpack`).
+- **WebKit Dependency Resolution**: Bypassed missing WebKit browser engine on Windows by configuring mobile emulation project to run on Chromium (`defaultBrowserType: 'chromium'`).
+- **i18n Health Route Isolation**: Resolved empty translation manifest panics on RTL projects by explicitly setting `Accept-Language: en-US` on backend API health checks.
+- **Hygiene Exclusions**: Updated `.gitignore` to prevent any local `test-results/` or HTML reports from staging.
+
+Runtime code: `UNTOUCHED` (Only test configs and E2E specs updated)
+DB: `UNTOUCHED`
+Production: `ONLINE_STABLE`
+Next gate: `GO_FOR_E2E_PLAYWRIGHT_WAVE2_COMMERCIAL_FLOWS_PLAN_ONLY`
+
 
 

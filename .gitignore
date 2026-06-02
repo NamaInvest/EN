@@ -81,3 +81,7 @@ tmp/*
 /coverage-custom/
 /docs/reports/coverage/
 /docs/reports/coverage-summary.json
+
+# Playwright test outputs
+/test-results/
+/playwright-report/
