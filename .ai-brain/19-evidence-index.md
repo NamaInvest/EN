@@ -79,13 +79,11 @@
 | 2026-06-02 | `P1_AUTOPILOT_IMPLEMENTATION_SCAN` | `docs/reports/full-project-audit/P1_AUTOPILOT_IMPLEMENTATION_SCAN.md` | تقرير الفحص الفني المبدئي والمخاطر ومصفوفة الحظر التشغيلية قبل الإصلاح. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `P1_AUTOPILOT_IMPLEMENTATION_REPORT` | `docs/reports/full-project-audit/P1_AUTOPILOT_IMPLEMENTATION_REPORT.md` | تقرير تنفيذ ومعالجة مشاكل P1 High والتحقق منها برمجياً محلياً وبنجاح كامل. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `P1_REMEDIATIONS_INTEGRATION_TEST` | `tests/integration/security/p1-remediations.test.ts` | اختبارات التكامل والأمان الخمسة للتحقق من سلامة معالجات الكرون، المصادقة والـ adjustments. | `VERIFIED_BY_TEST` |
-
-
-
-
-
-
-
+| 2026-06-02 | `P1_REMEDIATION_PUSH_GATE_REVIEW` | `docs/reports/full-project-audit/P1_REMEDIATION_PUSH_GATE_REVIEW.md` | تقرير مراجعة بوابة الدفع والـ Git وتأكيد خلو الكود من الأسرار. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_REMEDIATION_DEPLOY_GATE_REVIEW` | `docs/reports/full-project-audit/P1_REMEDIATION_DEPLOY_GATE_REVIEW.md` | تقرير مراجعة وتدقيق جاهزية النشر ومخططات التراجع والـ rollback. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_REMEDIATION_PRODUCTION_DEPLOY_REPORT` | `docs/reports/full-project-audit/P1_REMEDIATION_PRODUCTION_DEPLOY_REPORT.md` | تقرير إتمام النشر الإنتاجي المحدود Files-Only ومطابقة الـ Hash بنسبة 100%. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_REMEDIATION_POST_DEPLOY_OBSERVATION` | `docs/reports/full-project-audit/P1_REMEDIATION_POST_DEPLOY_OBSERVATION.md` | تقرير مراقبة الأداء واستقرار PM2 والـ Uptime وسجلات التطبيقات بعد النشر. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_REMEDIATION_FINAL_CLOSEOUT` | `docs/reports/full-project-audit/P1_REMEDIATION_FINAL_CLOSEOUT.md` | تقرير الإغلاق النهائي والاعتماد لكامل مسار معالجات P1 وتوطيد الذاكرة. | `VERIFIED_BY_REPORT` |
 
 ---
 

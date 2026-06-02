@@ -445,7 +445,37 @@
   - التقرير الختامي: تم إصدار وثيقتي `P1_AUTOPILOT_IMPLEMENTATION_SCAN.md` و `P1_AUTOPILOT_IMPLEMENTATION_REPORT.md` ودمجهما بالالتزام المحلي بنجاح.
 - **حالة البوابة**: `COMPLETED`
 
-- **Next Gate**: `GO_FOR_P1_REMEDIATION_PUSH_GATE_REVIEW_ONLY`
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_PUSH_GATE_REVIEW_ONLY`
+- **الإجراء المعتمد**: مراجعة الكوميت المحلي الخاص بإصلاحات P1 وتطابق الريموت وخلو الكود من الأسرار.
+- **دور معتمد الموافقة**: **Consensus Governance Board & CTO**
+- **حالة البوابة**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_PUSH_ONLY`
+- **الإجراء المعتمد**: تنفيذ git push origin main للالتزام المحلي المعتمد وإتمام المزامنة 100%.
+- **دور معتمد الموافقة**: **DevOps Lead Board**
+- **حالة البوابة**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_DEPLOY_GATE_REVIEW_ONLY`
+- **الإجراء المعتمد**: مراجعة جاهزية خطة وجدول النشر وإخضاع الملفات الـ 8 للفحوصات الصارمة وتحديد صمام أمان التراجع.
+- **دور معتمد الموافقة**: **CTO & SRE Architect**
+- **حالة البوابة**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_PRODUCTION_DEPLOY_ONLY`
+- **الإجراء المعتمد**: تنفيذ النشر المحدود Files-Only للمشروع على خادم Hetzner VPS وأخذ النسخ الاحتياطية ومطابقة SHA256 بنسبة 100%.
+- **دور معتمد الموافقة**: **Lead DevOps Board**
+- **حالة البوابة**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_POST_DEPLOY_OBSERVATION_ONLY`
+- **الإجراء المعتمد**: مراقبة الأداء واستقرار PM2 Uptime وسجلات التطبيقات بعد النشر وتمرير اختبارات الدخان.
+- **دور معتمد الموافقة**: **CTO & SRE Lead**
+- **حالة البوابة**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_P1_REMEDIATION_CLOSEOUT_ONLY`
+- **الإجراء المعتمد**: الإغلاق النهائي والتوثيقي لكامل مسار معالجات P1 وتوطيد وثائق الجلسات وذاكرة البورد وتحديث الـ Brain.
+- **دور معتمد الموافقة**: **Consensus Governance Board & CTO**
+- **حالة البوابة**: `COMPLETED`
+
+- **Next Gate**: `GO_FOR_P2_REMEDIATION_SCAN_AND_PLAN_ONLY`
 
 
 

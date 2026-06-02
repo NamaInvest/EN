@@ -82,16 +82,13 @@
 
 ## Next Recommended Action
 
-`GO_FOR_P1_REMEDIATION_PUSH_GATE_REVIEW_ONLY` (E2E_STAGING_READINESS_TRACK / P1_REMEDIATION_COMPLETED_AND_VERIFIED)
+`GO_FOR_P2_REMEDIATION_SCAN_AND_PLAN_ONLY` (E2E_STAGING_READINESS_TRACK / P1_REMEDIATION_FULLY_CLOSED)
 
 ### Reason
-تم إتمام وتطوير وتكامل الحلول الهندسية البرمجية للمشاكل المحورية عالية الخطورة (P1 High) بالكامل ونجاح تشغيل واختبار كامل الحالات بنسبة نجاح 100% (5/5 اختبارات تمر بنجاح تام وبدون أخطاء تجميع أو تعارضات).
+تم إتمام وإغلاق كافة معالجات المشاكل المحورية وعالية الخطورة P1 High بنجاح كامل وصفر فجوات أمنية أو برمجية أو أخطاء تجميع (ISS-01, ISS-02, ISS-03)، ومزامنة الكود للريموت ونشره للإنتاج بأمان تام.
 
-بناءً عليه، تم تجميد ووقف أي رفع برمج خارجي لحين صدور الموافقة الإدارية الصريحة على بوابة الدمع والـ Git Push:
-`GO_FOR_P1_REMEDIATION_PUSH_GATE_REVIEW_ONLY`
-
-البوابة التشغيلية القادمة المقررة هي:
-`GO_FOR_P1_REMEDIATION_PUSH_GATE_REVIEW_ONLY` (تتطلب مراجعة واعتماد P1 Push Review من المسؤولين).
+البوابة التشغيلية القادمة المقررة والموصى بها هي البدء في معالجة المشاكل متوسطة الخطورة P2:
+`GO_FOR_P2_REMEDIATION_SCAN_AND_PLAN_ONLY`
 
 
 
