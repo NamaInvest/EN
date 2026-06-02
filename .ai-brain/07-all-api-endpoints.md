@@ -1,7 +1,7 @@
 # 07 - توثيق جميع مسارات API بالتفصيل (All API Endpoints)
 
 > **إجمالي عدد ملفات route.ts:** 888
-> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-06-02T07:57:11.467Z
+> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-06-02T08:05:12.413Z
 
 ## 📂 `/api/accounting` (112 مسار)
 
@@ -4445,7 +4445,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `customer`, `setting`, `salesInvoice`
+- **جداول مستخدمة:** `posSession`, `customer`, `setting`, `salesInvoice`
 
 ### `/api/pos/pending-orders`
 - **Methods:** GET, POST
@@ -4489,7 +4489,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `customer`
+- **جداول مستخدمة:** `posSession`, `customer`
 
 ### `/api/pos/sessions/close`
 - **Methods:** POST
@@ -4497,6 +4497,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `posSession`
 
 ### `/api/pos/sessions/movement`
 - **Methods:** POST
@@ -4504,6 +4505,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `posSession`
 
 ### `/api/pos/sessions/open`
 - **Methods:** POST
