@@ -13,29 +13,85 @@ vi.mock('@/lib/auto-journal', () => ({
     postSalesPayment: vi.fn(),
 }));
 
-// Mock prisma
+// Mock prisma with inner mock definition to avoid hoisting TDZ issues
 vi.mock('@/lib/prisma', () => {
-    const mockPrisma: any = {
-        user: { findUnique: vi.fn().mockResolvedValue({ branchId: 1 }) },
-        salesInvoice: { create: vi.fn().mockResolvedValue({ id: 1, invoiceNo: 'INV-1', date: new Date() }), findFirst: vi.fn().mockResolvedValue(null), update: vi.fn() },
+    const mockPrismaInstance: any = {
+        user: { 
+            findUnique: vi.fn().mockResolvedValue({ branchId: 1 }),
+            findFirst: vi.fn().mockResolvedValue({ branchId: 1 })
+        },
+        salesInvoice: { 
+            create: vi.fn().mockResolvedValue({ id: 1, invoiceNo: 'INV-1', date: new Date() }), 
+            findFirst: vi.fn().mockResolvedValue(null), 
+            findUnique: vi.fn().mockResolvedValue({ id: 1, invoiceNo: 'INV-1', date: new Date(), remaining: 0, total: 100 }),
+            update: vi.fn() 
+        },
         salesInvoiceDetail: { create: vi.fn() },
-        customer: { findUnique: vi.fn().mockResolvedValue({ creditLimit: 0, balance: 0, name: 'Test' }) },
-        setting: { findUnique: vi.fn().mockResolvedValue(null), findMany: vi.fn().mockResolvedValue([]) },
-        product: { findUnique: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10 }), update: vi.fn() },
-        productUnit: { findMany: vi.fn().mockResolvedValue([{ id: 1, factor: 1, unitStock: 100 }]), update: vi.fn() },
+        customer: { 
+            findUnique: vi.fn().mockResolvedValue({ creditLimit: 0, balance: 0, name: 'Test', active: true }),
+            findFirst: vi.fn().mockResolvedValue({ creditLimit: 0, balance: 0, name: 'Test', active: true })
+        },
+        setting: { 
+            findUnique: vi.fn().mockResolvedValue(null), 
+            findFirst: vi.fn().mockResolvedValue(null),
+            findMany: vi.fn().mockResolvedValue([]) 
+        },
+        product: { 
+            findUnique: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10 }),
+            findFirst: vi.fn().mockResolvedValue({ currentStock: 100, buyPrice: 10 }),
+            update: vi.fn(),
+            updateMany: vi.fn()
+        },
+        productUnit: { 
+            findMany: vi.fn().mockResolvedValue([{ id: 1, factor: 1, unitStock: 100 }]), 
+            update: vi.fn() 
+        },
         productStock: { upsert: vi.fn() },
         stockMovement: { create: vi.fn() },
         recipe: { findFirst: vi.fn().mockResolvedValue(null) },
         auditLog: { create: vi.fn() },
         outboxEvent: { create: vi.fn() },
-        treasury: { create: vi.fn() },
-        $executeRaw: vi.fn()
+        treasury: { create: vi.fn().mockResolvedValue({ id: 1 }) },
+        openItem: {
+            findFirst: vi.fn().mockResolvedValue(null),
+            create: vi.fn().mockResolvedValue({ id: 1 }),
+            update: vi.fn()
+        },
+        financialPeriod: {
+            findUnique: vi.fn().mockResolvedValue({ status: 'OPEN' }),
+            findFirst: vi.fn().mockResolvedValue({ status: 'OPEN' })
+        },
+        financialPeriodModuleLock: {
+            findUnique: vi.fn().mockResolvedValue({ status: 'OPEN' }),
+            findFirst: vi.fn().mockResolvedValue({ status: 'OPEN' })
+        },
+        periodLockLog: {
+            create: vi.fn()
+        },
+        $executeRaw: vi.fn(),
+        $queryRawUnsafe: vi.fn().mockResolvedValue([{
+            id: 1,
+            code: 'INV',
+            current: 10,
+            prefix: 'INV-',
+            suffix: '',
+            pad_length: 6,
+            last_reset: null,
+            reset_frequency: 'yearly'
+        }]),
+        $executeRawUnsafe: vi.fn()
     };
-    mockPrisma.$transaction = vi.fn(async (cb: any) => typeof cb === 'function' ? cb(mockPrisma) : cb);
+    mockPrismaInstance.$transaction = vi.fn(async (cb: any) => typeof cb === 'function' ? cb(mockPrismaInstance) : cb);
+
     return {
-        getPrisma: vi.fn().mockReturnValue(mockPrisma)
+        getPrisma: vi.fn().mockReturnValue(mockPrismaInstance),
+        prisma: mockPrismaInstance,
+        default: mockPrismaInstance
     };
 });
+
+// Import the mocked instance for direct reference in the tests
+import { prisma as mockPrisma } from '@/lib/prisma';
 
 // Mock zatca
 vi.mock('@/lib/zatca', () => ({
@@ -74,7 +130,8 @@ vi.mock('@/lib/api/with-route', () => ({
     withRoute: (handler: any) => async (req: any, ctx: any) => {
         const { getUserFromRequest } = await import('@/lib/auth');
         const auth = (getUserFromRequest as any)(req);
-        return handler({ req, auth, tenant: auth?.tenantId, prisma: {} }, ctx);
+        const { prisma } = await import('@/lib/prisma');
+        return handler({ req, auth, tenant: auth?.tenantId, prisma }, ctx);
     }
 }));
 
