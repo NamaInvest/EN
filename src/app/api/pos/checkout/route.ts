@@ -64,6 +64,24 @@ async function _POST(req: NextRequest) {
         }
         // ────────────────────────────────────────────────────────────────────
 
+        // ── Cashier POS Session Check ───────────────────────────────────────
+        // يتحقق هذا الجزء من وجود وردية صندوق كاشير نشطة ومفتوحة للمستخدم الحالي تحت نفس المستأجر لمنع الفروقات المالية العالية بالصناديق.
+        const activeSession = await prisma.posSession.findFirst({
+            where: {
+                userId: auth.userId,
+                status: 'OPEN',
+                tenantId
+            }
+        });
+        if (!activeSession) {
+            return NextResponse.json({
+                success: false,
+                error: 'لا يمكن إتمام عملية الدفع: لا توجد وردية صندوق كاشير نشطة ومفتوحة حالياً لهذا المستخدم. يرجى فتح وردية أولاً.',
+                code: 'NO_ACTIVE_POS_SESSION'
+            }, { status: 400 });
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);

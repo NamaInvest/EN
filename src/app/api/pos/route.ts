@@ -80,6 +80,24 @@ async function _POST(req: NextRequest) {
         }
         // ────────────────────────────────────────────────────────────────────
 
+        // ── Cashier POS Session Check ───────────────────────────────────────
+        // يتحقق هذا الجزء من وجود وردية صندوق كاشير نشطة ومفتوحة للمستخدم الحالي تحت نفس المستأجر لمنع الفروقات المالية العالية بالصناديق.
+        const activeSession = await prisma.posSession.findFirst({
+            where: {
+                userId: Number(userId || auth?.userId),
+                status: 'OPEN',
+                tenantId: tenantString
+            }
+        });
+        if (!activeSession) {
+            return NextResponse.json({
+                success: false,
+                error: 'لا يمكن إتمام عملية الدفع: لا توجد وردية صندوق كاشير نشطة ومفتوحة حالياً لهذا المستخدم. يرجى فتح وردية أولاً.',
+                code: 'NO_ACTIVE_POS_SESSION'
+            }, { status: 400 });
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const idempotencyKey = req.headers.get('x-idempotency-key');
         if (!idempotencyKey) {
             return NextResponse.json({ error: "Missing x-idempotency-key header. Required for POS operations." }, { status: 400 });
