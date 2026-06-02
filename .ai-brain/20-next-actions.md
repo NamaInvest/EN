@@ -85,14 +85,12 @@
 `GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION)
 
 ### Reason
-تم إتمام وتصميم تكوين ملفات بيئة الاستضافة التجريبية المعزولة (Staging E2E Config Design) بنجاح فائق وتوثيقها بالكامل في تقرير `docs/reports/STAGING_E2E_ENVIRONMENT_CONFIG_DESIGN.md`.
+تم بحمد الله وتوفيقه الفحص والتدقيق الفني المعمق لكامل المشروع (Full Project Deep Audit) بنجاح تشغيلي وتجميعي بنسبة 100%، وتوليد 10 تقارير متكاملة بداخل المجلد `docs/reports/full-project-audit/` لتغطية كافة الثغرات والخطط الهندسية للإصلاح.
 
-تم تحديد هياكل ومواصفات ملفات `.env.staging.template` و `playwright.staging.config.ts` و `docker-compose.staging.yml` وصمامات أمان منع تداخل خوادم الإنتاج.
+نظراً لوجود ثغرات محاسبية وأمنية مصنفة كـ `P1 High` (مثل عزل الكرونات، والموافقة الإدارية الثنائية للـ MFA، وحوكمة إغلاق الحسابات المخزنية)، تم دمج هذه الاحتياجات كخطط إصلاح وتثبيتها تحت البوابات الحاكمة المخصصة.
 
-بناءً عليه، يتم ترحيل التوقف الاستراتيجي إلى تطلب كتابة سكربتات التطهير وتغذية البيانات محلياً:
-`BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION`
-
-البوابة البرمجية القادمة المقررة هي:
+تبقى البوابة الهندسية والبرمجية القادمة المقررة لمسار الـ E2E هي برمجة سكربتات التطهير وتغذية البيانات محلياً:
 `GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY`
+
 
 

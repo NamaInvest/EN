@@ -65,6 +65,17 @@
 | 2026-06-02 | `STAGING_E2E_ENVIRONMENT_READINESS_PLAN` | `docs/reports/STAGING_E2E_ENVIRONMENT_READINESS_PLAN.md` | تقرير خطة جاهزية بيئة الاستضافة التجريبية المعزولة لاختبارات الكتابة التجارية للموجة الثانية. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL` | `docs/reports/STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL.md` | تقرير اعتماد وتجهيز خطة إعداد بيئة الاستضافة التجريبية المعزولة لاختبارات الكتابة للموجة الثانية. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `STAGING_E2E_ENVIRONMENT_CONFIG_DESIGN` | `docs/reports/STAGING_E2E_ENVIRONMENT_CONFIG_DESIGN.md` | تقرير تصميم ملفات تكوين بيئة الاستضافة التجريبية المعزولة وصمامات أمان حماية الإنتاج. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_DEEP_AUDIT_SUMMARY` | `docs/reports/full-project-audit/FULL_PROJECT_DEEP_AUDIT_SUMMARY.md` | الخلاصة التنفيذية والنتائج التشغيلية العامة للفحص الشامل والعميق للمشروع. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_ISSUES_REGISTER` | `docs/reports/full-project-audit/FULL_PROJECT_ISSUES_REGISTER.md` | سجل المشاكل والفجوات التشغيلية لكامل المشروع ومستويات خطورتها. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_MODULE_GAP_MATRIX` | `docs/reports/full-project-audit/FULL_PROJECT_MODULE_GAP_MATRIX.md` | مصفوفة فجوات نضج الأنظمة والأقسام الـ 26 والفجوات المرصودة بها. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_SECURITY_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_SECURITY_AUDIT.md` | تقرير التدقيق الأمني وعزل الكيانات وحماية البيانات والـ RBAC والأسرار. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_FINANCIAL_GOVERNANCE_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_FINANCIAL_GOVERNANCE_AUDIT.md` | تقرير تدقيق الحوكمة والنزاهة المالية والمحاسبية وإغلاق الحسابات. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_UI_UX_MOBILE_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_UI_UX_MOBILE_AUDIT.md` | تقرير تدقيق الواجهات الرسومية والجوال ودعم التوجيه العربي والتجاوب. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_TESTING_QA_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_TESTING_QA_AUDIT.md` | تقرير تدقيق الجودة والتحقق والاختبارات الشاملة وموانع فحص الواجهات. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_PERFORMANCE_SRE_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_PERFORMANCE_SRE_AUDIT.md` | تقرير أداء وسعة استعلامات قاعدة البيانات وسجلات المراقبة والتحذير. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_NEXT_ACTIONS_ROADMAP` | `docs/reports/full-project-audit/FULL_PROJECT_NEXT_ACTIONS_ROADMAP.md` | خارطة الطريق المجدولة زمنياً للإصلاحات وخطوط بوابات العبور المقترحة. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `FULL_PROJECT_AUDIT_EXPORT_INDEX` | `docs/reports/full-project-audit/FULL_PROJECT_AUDIT_EXPORT_INDEX.md` | الفهرس المرجعي العام لكافة الوثائق البرمجية المصدرة للفحص المعمق. | `VERIFIED_BY_REPORT` |
+
 
 
 
