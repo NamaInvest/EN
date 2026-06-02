@@ -82,13 +82,16 @@
 
 ## Next Recommended Action
 
-`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_STAGING_E2E_ENVIRONMENT)
+`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_MANUAL_INFRA_APPROVAL)
 
 ### Reason
-تم إكمال خطة جاهزية بيئة الاستضافة التجريبية (Staging E2E Plan) بنجاح فائق وتوطيد كامل أبعادها الفنية والأمنية وخطة تنظيف وتطهير البيانات في تقرير `docs/reports/STAGING_E2E_ENVIRONMENT_READINESS_PLAN.md`.
+تم إقرار واعتماد وثيقة تجهيز خطة إعداد بيئة الاستضافة التجريبية المعزولة (Staging E2E Setup Approval) بنجاح كامل في تقرير `docs/reports/STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL.md`. 
 
-بسبب الحساسية الفائقة لاختبارات الموجة الثانية (Wave 2) التجارية والمالية التي تكتب بيانات على الصناديق والمخازن والقيود المحاسبية، يتم تعليق وحظر التقدم التشغيلي لحين اعتماد وتوفير بيئة الاستضافة التجريبية المعزولة:
-`BLOCKED_REQUIRES_STAGING_E2E_ENVIRONMENT`
+تم توثيق محددات نطاق الموافقة والممنوعات الصارمة وهيكلية بيانات الفحص التجريبية الافتراضية بنجاح وصمامات أمان حظر الكتابة على خادم الإنتاج.
 
-البوابة التخطيطية القادمة المقررة هي طلب الموافقة واعتماد خطة التجهيز المالي والتقني لتأسيس الخادم المعزول:
-`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL_ONLY`
+بناءً عليه، يتم ترحيل التوقف الاستراتيجي من الحاجة للاعتماد إلى بدء تخطيط إعداد الخادم والبنية التحتية التجريبية فعلياً:
+`BLOCKED_REQUIRES_MANUAL_INFRA_APPROVAL`
+
+البوابة التخطيطية القادمة المقررة هي:
+`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY`
+

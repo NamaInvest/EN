@@ -734,3 +734,26 @@ Production: `ONLINE_STABLE`
 Staging Readiness Plan: `STAGING_E2E_READINESS_PLAN_COMPLETED`
 
 Next gate: `GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL_ONLY`
+
+---
+
+## 2026-06-02 — E2E Staging Environment Setup Approval Status
+
+Status: `STAGING_E2E_SETUP_APPROVAL_COMPLETED`
+
+- Created the comprehensive environment setup approval report: `docs/reports/STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL.md` detailing all 14 required chapters, risk register, and proposed setup gates in professional terminology.
+- Documented clear approval scope (domains, isolated DB, isolated Redis, sandbox integrations, mock data).
+- Enforced strict "Explicit No-Go Items" to safeguard production.
+- Defined Staging architecture and Staging data model (mock SOCPA chart of accounts, branch, warehouse, POS register, products, granular RBAC mock accounts).
+- Established strict E2E write safety guards (fail fast if baseURL is production, baseURL matching, require E2E_ALLOW_WRITES=true).
+- Listed environment variables required for staging (names only).
+- Outlined a multi-stage progressive setup path.
+- State: `BLOCKED_REQUIRES_MANUAL_INFRA_APPROVAL` (Waiting for actual staging environment setup execution).
+
+Runtime code: `UNTOUCHED`
+DB: `UNTOUCHED`
+Production: `ONLINE_STABLE`
+Staging Setup Approval: `STAGING_E2E_SETUP_APPROVAL_COMPLETED`
+
+Next gate: `GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY`
+
