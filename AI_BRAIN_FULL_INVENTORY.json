@@ -1,0 +1,512 @@
+[
+  {
+    "path": ".ai-brain/00-index.md",
+    "sizeBytes": 19662,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "PRIMARY_SOURCE_OF_TRUTH"
+  },
+  {
+    "path": ".ai-brain/01-architecture.md",
+    "sizeBytes": 14347,
+    "classification": "ARCHITECTURE_DOC",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/01-current-state.md",
+    "sizeBytes": 9251,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "PRIMARY_SOURCE_OF_TRUTH"
+  },
+  {
+    "path": ".ai-brain/02-database.md",
+    "sizeBytes": 18658,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/02-global-readiness-roadmap.md",
+    "sizeBytes": 11434,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/03-auth-permissions.md",
+    "sizeBytes": 14732,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/03-quality-and-testing.md",
+    "sizeBytes": 6723,
+    "classification": "QUALITY_TESTING",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/04-api-and-tenant-isolation.md",
+    "sizeBytes": 5673,
+    "classification": "API_TENANT_ISOLATION",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/04-api-routes.md",
+    "sizeBytes": 18122,
+    "classification": "API_TENANT_ISOLATION",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/05-business-logic.md",
+    "sizeBytes": 23740,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/05-financial-governance.md",
+    "sizeBytes": 6475,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/06-project-rules.md",
+    "sizeBytes": 9150,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/06-security-and-compliance.md",
+    "sizeBytes": 7696,
+    "classification": "SECURITY_COMPLIANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/07-all-api-endpoints.md",
+    "sizeBytes": 178303,
+    "classification": "API_TENANT_ISOLATION",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/07-saudi-compliance.md",
+    "sizeBytes": 5691,
+    "classification": "SAUDI_COMPLIANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/08-database-models-full.md",
+    "sizeBytes": 597546,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/08-performance-and-scalability.md",
+    "sizeBytes": 5644,
+    "classification": "PERFORMANCE_SCALABILITY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/09-core-libraries.md",
+    "sizeBytes": 96670,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/09-devops-backup-rollback-dr.md",
+    "sizeBytes": 5291,
+    "classification": "DEVOPS_DR",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/10-frontend-pages.md",
+    "sizeBytes": 41072,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/10-product-ux-documentation.md",
+    "sizeBytes": 5180,
+    "classification": "PRODUCT_UX_DOCS",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/11-components.md",
+    "sizeBytes": 3509,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/11-global-erp-comparison.md",
+    "sizeBytes": 5953,
+    "classification": "GLOBAL_COMPARISON",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/12-customer-pilot-uat.md",
+    "sizeBytes": 6205,
+    "classification": "CUSTOMER_PILOT",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/12-dependencies.md",
+    "sizeBytes": 5718,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/13-config.md",
+    "sizeBytes": 13994,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/13-legal-trust-sales-readiness.md",
+    "sizeBytes": 4918,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/14-modules-map.md",
+    "sizeBytes": 19267,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/14-world-class-release-gate.md",
+    "sizeBytes": 7819,
+    "classification": "WORLD_CLASS_GATE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/15-approval-gates.md",
+    "sizeBytes": 10303,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "PRIMARY_SOURCE_OF_TRUTH"
+  },
+  {
+    "path": ".ai-brain/15-saudi-compliance.md",
+    "sizeBytes": 30218,
+    "classification": "SAUDI_COMPLIANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/16-risk-register.md",
+    "sizeBytes": 13526,
+    "classification": "RISK_REGISTER",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/16-troubleshooting.md",
+    "sizeBytes": 8778,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/17-gap-analysis.md",
+    "sizeBytes": 10634,
+    "classification": "GAP_REGISTER",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/17-gap-register.md",
+    "sizeBytes": 5699,
+    "classification": "GAP_REGISTER",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/18-decision-log.md",
+    "sizeBytes": 6863,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "PRIMARY_SOURCE_OF_TRUTH"
+  },
+  {
+    "path": ".ai-brain/18-environment.md",
+    "sizeBytes": 15037,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/19-claude-rules.md",
+    "sizeBytes": 8733,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/19-evidence-index.md",
+    "sizeBytes": 6059,
+    "classification": "EVIDENCE_INDEX",
+    "truthLevel": "PRIMARY_SOURCE_OF_TRUTH"
+  },
+  {
+    "path": ".ai-brain/20-accounting-domain.md",
+    "sizeBytes": 15147,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/20-next-actions.md",
+    "sizeBytes": 7198,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/21-sales-pos.md",
+    "sizeBytes": 12239,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/22-purchases.md",
+    "sizeBytes": 12266,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/23-inventory.md",
+    "sizeBytes": 13061,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/24-manufacturing.md",
+    "sizeBytes": 11266,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/25-hr-payroll.md",
+    "sizeBytes": 14065,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/26-assets.md",
+    "sizeBytes": 11759,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/27-treasury-banks.md",
+    "sizeBytes": 12877,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/28-ai-features.md",
+    "sizeBytes": 18301,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/29-electron-desktop.md",
+    "sizeBytes": 13312,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/30-master-ice.md",
+    "sizeBytes": 11541,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/31-cron-jobs.md",
+    "sizeBytes": 13048,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/32-webhooks-events.md",
+    "sizeBytes": 11193,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/33-relations-diagram.md",
+    "sizeBytes": 16824,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/34-lib-engines-catalog.md",
+    "sizeBytes": 23453,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/35-saudi-integrations.md",
+    "sizeBytes": 12442,
+    "classification": "SAUDI_COMPLIANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/36-ai-architecture.md",
+    "sizeBytes": 14689,
+    "classification": "ARCHITECTURE_DOC",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/37-scripts-inventory.md",
+    "sizeBytes": 8670,
+    "classification": "FINANCIAL_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/38-electron-internals.md",
+    "sizeBytes": 18113,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/39-vertical-solutions.md",
+    "sizeBytes": 25376,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/40-tests-quality.md",
+    "sizeBytes": 11359,
+    "classification": "QUALITY_TESTING",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/41-public-marketing.md",
+    "sizeBytes": 10795,
+    "classification": "PRODUCT_UX_DOCS",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/42-ui-components.md",
+    "sizeBytes": 15447,
+    "classification": "PRODUCT_UX_DOCS",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/43-prisma-seeds-migrations.md",
+    "sizeBytes": 14141,
+    "classification": "ARCHITECTURE_DOC",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/44-pwa-realtime.md",
+    "sizeBytes": 12855,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/45-error-monitoring.md",
+    "sizeBytes": 14102,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/46-state-machines.md",
+    "sizeBytes": 14762,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/47-glossary.md",
+    "sizeBytes": 16417,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/48-app-routes-map.md",
+    "sizeBytes": 12225,
+    "classification": "DOMAIN_MEMORY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/49-scenarios-real-world.md",
+    "sizeBytes": 42107,
+    "classification": "CUSTOMER_PILOT",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/50-how-to-guides.md",
+    "sizeBytes": 13880,
+    "classification": "CUSTOMER_PILOT",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/51-role-day-in-life.md",
+    "sizeBytes": 15317,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/52-decision-tables.md",
+    "sizeBytes": 12353,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/53-period-end-procedures.md",
+    "sizeBytes": 14284,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/54-common-mistakes.md",
+    "sizeBytes": 18269,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/55-disaster-recovery.md",
+    "sizeBytes": 11006,
+    "classification": "DEVOPS_DR",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/56-security-incidents.md",
+    "sizeBytes": 10864,
+    "classification": "SECURITY_COMPLIANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/57-data-migration.md",
+    "sizeBytes": 13311,
+    "classification": "OPERATIONAL_RUNBOOK",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/58-performance-tuning.md",
+    "sizeBytes": 13308,
+    "classification": "PERFORMANCE_SCALABILITY",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/59-api-sdk-integration.md",
+    "sizeBytes": 8623,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/60-templates-formats.md",
+    "sizeBytes": 17168,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/61-support-runbooks.md",
+    "sizeBytes": 12926,
+    "classification": "OPERATIONAL_RUNBOOK",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/62-future-roadmap.md",
+    "sizeBytes": 11728,
+    "classification": "UNKNOWN",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/63-brain-maintenance.md",
+    "sizeBytes": 10518,
+    "classification": "CORE_GOVERNANCE",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  },
+  {
+    "path": ".ai-brain/64-tenant-isolation-hardening.md",
+    "sizeBytes": 2728,
+    "classification": "API_TENANT_ISOLATION",
+    "truthLevel": "SECONDARY_SUPPORTING_DOC"
+  }
+]

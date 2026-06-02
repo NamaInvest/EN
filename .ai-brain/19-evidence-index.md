@@ -55,6 +55,13 @@
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_IMPLEMENTATION_PLAN` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_IMPLEMENTATION_PLAN.md` | مخطط وتصميم بنية المراقبة والتنبيهات المتقدمة وتصميم الجسور البرمجية الأربعة. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_IMPLEMENTATION_REPORT` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_IMPLEMENTATION_REPORT.md` | تقرير إتمام التطوير والدمج للجسور والحلول التشغيلية للمراقبة بنجاح وأمان كامل. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_LOCAL_VERIFICATION` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_LOCAL_VERIFICATION.md` | تقرير التحقق المحلي المتقدم لأنظمة المراقبة ونجاح اختبارات تكامل عزل المستأجرين بنسبة 100%. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_LOCAL_COMMIT` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_LOCAL_COMMIT.md` | تقرير الالتزام المحلي الموحد برسالة الالتزام المعتمدة المعيارية وتأكيد سلامة الكوميت. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_PUSH_GATE_REVIEW` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH_GATE_REVIEW.md` | تقرير مراجعة بوابة الدفع والـ Git وتأكيد خلو الكود من الأسرار وسلامة الريموت. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_PUSH` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH.md` | تقرير إتمام دفع التعديلات الملتزم بها للريموت وتطابق الفرع الرئيسي بنسبة 100%. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_GATE_REVIEW` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_GATE_REVIEW.md` | تقرير تدقيق جاهزية النشر على البيئة الإنتاجية وفرز نطاق الملفات المسموح بها وصفر هجرات. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY.md` | تقرير إتمام نشر وتفعيل جسور المراقبة والتحليل على خادم الإنتاج ومطابقة Uptime. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION.md` | تقرير مراقبة الأداء والاستقرار بعد تفعيل جسور المراقبة وتأكيد استقرار PM2. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT` | `docs/reports/OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT.md` | تقرير الإغلاق النهائي والاعتماد لكامل مسار المراقبة والتحذير الأمني بنجاح كامل. | `VERIFIED_BY_REPORT` |
 
 
 

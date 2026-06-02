@@ -143,6 +143,57 @@
 | 61 | [61-support-runbooks.md](./61-support-runbooks.md) | 15+ Support Runbook لحل المشاكل الشائعة |
 | 62 | [62-future-roadmap.md](./62-future-roadmap.md) | الخارطة المستقبلية + التقنيات القادمة + الـ Investment |
 | 63 | [63-brain-maintenance.md](./63-brain-maintenance.md) | كيف نحافظ على هذا الـ Brain حياً وحديثاً |
+| 64 | [64-tenant-isolation-hardening.md](./64-tenant-isolation-hardening.md) | دليل تقوية عزل المستأجرين في الكود والـ Database |
+
+### 🌍 ذاكرة الجاهزية العالمية وهندسة المؤسسات (Global Readiness & Enterprise Memory):
+
+| الملف المرجعي للجاهزية العالمية | موضوع الملف الفني والتشغيلي الموثق |
+| ---------------------------------- | ------------------------------------- |
+| [01-current-state.md](./01-current-state.md) | **حالة المشروع الحالية**: الالتزام النشط والأرقام المثبتة برمجياً وحظر النشر. |
+| [02-global-readiness-roadmap.md](./02-global-readiness-roadmap.md) | **خارطة الطريق العالمية**: المراحل الـ 13 المتعاقبة لتأهيل الكود والمحركات. |
+| [03-quality-and-testing.md](./03-quality-and-testing.md) | **جودة البيئة والاختبارات**: تكوين المترجم وحل خطأ `TS5011` وتوطيد Jest و Vitest. |
+| [04-api-and-tenant-isolation.md](./04-api-and-tenant-isolation.md) | **أمن الـ APIs وعزل المستأجرين**: غلاف `withRoute` ومساعد Prisma وتصنيفات الأمان. |
+| [05-financial-governance.md](./05-financial-governance.md) | **الحوكمة والنزاهة المالية**: مصفوفات الترحيل والعكس وحظر التكرار ولقطات الأرصدة. |
+| [06-security-and-compliance.md](./06-security-and-compliance.md) | **الأمن والخصوصية المؤسسية**: مصفوفة الـ RBAC والكوكيز ومخططات الاستجابة للحوادث. |
+| [07-saudi-compliance.md](./07-saudi-compliance.md) | **الامتثال والربط السعودي**: ZATCA Phase 2 والضرائب وحسابات GOSI و WPS و SIF وملفات الرواتب. |
+| [08-performance-and-scalability.md](./08-performance-and-scalability.md) | **الأداء العالي وقابلية التوسع**: قياس العمليات الـ 20 الكبرى وتحسين الاستعلامات والـ caching. |
+| [09-devops-backup-rollback-dr.md](./09-devops-backup-rollback-dr.md) | **العمليات والنسخ واستعادة البيانات**: بيئات التشغيل وخطة الكوارث واستعادة الخادم. |
+| [10-product-ux-documentation.md](./10-product-ux-documentation.md) | **تجربة المستخدم والتوثيق**: جودة RTL والكتيبات المخصصة والبيانات التجريبية المعيارية. |
+| [11-global-erp-comparison.md](./11-global-erp-comparison.md) | **المقارنة والتميز التنافسي**: تحليل مقارن مع SAP و NetSuite و Dynamics وخطة الفجوات. |
+| [12-customer-pilot-uat.md](./12-customer-pilot-uat.md) | **البرنامج التجريبي واختبارات UAT**: سيناريوهات فحص المستخدمين الميدانية وتواقيع القبول. |
+| [13-legal-trust-sales-readiness.md](./13-legal-trust-sales-readiness.md) | **الجاهزية القانونية والثقة**: اتفاقيات شروط الاستخدام والـ DPA ومستويات الـ SLA وعقود المجموعات. |
+| [14-world-class-release-gate.md](./14-world-class-release-gate.md) | **بوابة النجاح وحكم الإطلاق الكلي**: ميزان Go/No-Go وتصنيف الجاهزية الحالي. |
+| [15-approval-gates.md](./15-approval-gates.md) | **سجل بوابات الموافقات المخصصة**: تنظيم العبارات وتواقيع المدراء المسؤولين للمراحل. |
+| [16-risk-register.md](./16-risk-register.md) | **سجل وتخفيف المخاطر**: تفصيل المخاطر الـ 20 وقوة أدلتها وإجراءات وقايتها. |
+| [17-gap-register.md](./17-gap-register.md) | **سجل وحصر الفجوات الهيكلية**: تتبع الفجوات الـ 4 الأساسية للبنية البرمجية والتشغيلية. |
+| [18-decision-log.md](./18-decision-log.md) | **سجل القرارات المعمارية (ADR)**: تدوين القرارات وتوصية فصل Jest و Vitest. |
+| [19-evidence-index.md](./19-evidence-index.md) | **فهرس وسجل الأدلة البرمجية**: ربط وتوثيق كافة تقارير الجلسات وفحوصات الجودة. |
+| [20-next-actions.md](./20-next-actions.md) | **الخطوات والمهام الفورية القادمة**: معالجات المرحلة الأولى المحددة بوضوح وجداول العمل. |
+
+---
+
+## AI Skills
+
+- [nama-brain-governance](../.skills/nama-brain-governance/SKILL.md) — Brain governance and evidence registry updates.
+- [nama-qa-stabilization](../.skills/nama-qa-stabilization/SKILL.md) — Testing, coverage, Jest/Vitest, ESLint stabilization.
+- [nama-api-tenant-isolation](../.skills/nama-api-tenant-isolation/SKILL.md) — API protection and tenant isolation audit.
+- [nama-prisma-governance](../.skills/nama-prisma-governance/SKILL.md) — Prisma schema and DB governance audit.
+- [nama-security-compliance](../.skills/nama-security-compliance/SKILL.md) — Security, secret hygiene, and compliance evidence.
+
+---
+
+## Brain Governance Scripts
+
+- `scripts/brain/check-brain-consistency.ts` — Checks `.ai-brain` structure and risky claims.
+- `scripts/brain/validate-evidence-tags.ts` — Validates evidence tags.
+- `scripts/brain/update-current-state.ts` — Updates current state safely.
+- `scripts/brain/update-quality-status.ts` — Records quality/testing status.
+- `scripts/brain/update-gap-register.ts` — Updates gap register.
+- `scripts/brain/update-risk-register.ts` — Updates risk register.
+- `scripts/brain/update-decision-log.ts` — Updates ADR/decision log.
+- `scripts/brain/update-evidence-index.ts` — Updates evidence index.
+- `scripts/brain/update-approval-gates.ts` — Updates approval gates.
+- `scripts/brain/archive-old-reports.ts` — Indexes old reports without deleting them.
 
 ---
 

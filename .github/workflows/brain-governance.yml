@@ -1,0 +1,24 @@
+name: Brain Governance & Memory Audit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  audit-brain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Brain Consistency Check
+        run: npx tsx scripts/brain/check-brain-consistency.ts
+      - name: Run Evidence Tags Validation
+        run: npx tsx scripts/brain/validate-evidence-tags.ts

@@ -274,10 +274,60 @@
 - **Status**: `COMPLETED`
 
 - **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_LOCAL_COMMIT_ONLY`
-- **Authorized Action**: Safely compile git diff statistics, stage ONLY whitelisted observability files, and make a single structured local git commit.
-- **Status**: `LOCKED_PENDING_APPROVAL`
+- **الإجراء المعتمد**: حصر وتحديد الملفات المعدلة وإجراء الكوميت المحلي الموحد برسالة الالتزام المعتمدة المعيارية (`docs/reports/OBSERVABILITY_ALERTING_SETUP_LOCAL_COMMIT.md`).
+- **دور معتمد الموافقة**: **SRE & Security Governance Board**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير الالتزام المعتمد: تم توليد تقرير الالتزام المحلي الموحد `docs/reports/OBSERVABILITY_ALERTING_SETUP_LOCAL_COMMIT.md` باللغة العربية بالكامل.
+  - تفاصيل الالتزام: الالتزام المحلي رقم `0defad20` برأس الرسالة `feat(observability): add safe alerting telemetry bridges` متطابق ومثبت بنجاح.
+- **Status**: `COMPLETED`
 
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_PUSH_GATE_REVIEW_ONLY`
+- **الإجراء المعتمد**: فحص وتدقيق أمن الـ Git والتطابق والكوميتات المعلقة للتأكد الكامل من أمان الـ Push للإنتاج (`docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH_GATE_REVIEW.md`).
+- **دور معتمد الموافقة**: **SRE & Security Governance Board**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير مراجعة الدفع: تم توليد تقرير مراجعة بوابة الدفع والـ Git `docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH_GATE_REVIEW.md` باللغة العربية بالكامل.
+  - فحص أمن الدفع: تأكيد ahead بـ 1 التزام فقط، وخلو كامل للأسرار PII/Secrets.
+- **Status**: `COMPLETED`
 
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_PUSH_ONLY`
+- **الإجراء المعتمد**: تنفيذ الـ Git Push للفرع الرئيسي ريموت origin main وتأكيد سلامة التطابق 100% (`docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH.md`).
+- **دور معتمد الموافقة**: **SRE & Security Governance Board**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير الدفع الموحد: تم توليد `docs/reports/OBSERVABILITY_ALERTING_SETUP_PUSH.md` باللغة العربية بالكامل.
+  - تفاصيل الدفع: الالتزام رقم `0defad20` مطابق كلياً لـ origin/main.
+- **Status**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_GATE_REVIEW_ONLY`
+- **الإجراء المعتمد**: مراجعة جاهزية النشر على الإنتاج وتصفية الملفات المسموح بنقلها مع استبعاد ملفات التطوير والأسرار والذاكرة والتأكد من الصفر التعديلي لقاعدة البيانات (`docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_GATE_REVIEW.md`).
+- **دور معتمد الموافقة**: **CTO & Release Manager Board**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير مراجعة النشر: تم توليد `docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_GATE_REVIEW.md` باللغة العربية.
+  - سلامة المتغيرات وهيكلية الجداول: تأكيد الصفر التعديلي لقاعدة البيانات بنسبة 100%.
+- **Status**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY_ONLY`
+- **الإجراء المعتمد**: نشر الملفات الـ 3 المسموح بها برمجياً فقط (Files-only) على مخدم الإنتاج Fleet Server وإعادة تشغيل PM2 للتطبيق (`docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY.md`).
+- **دور معتمد الموافقة**: **CTO & SRE Lead Architect**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير النشر الفعلي: تم توليد `docs/reports/OBSERVABILITY_ALERTING_SETUP_PRODUCTION_DEPLOY.md`.
+  - فحوصات الدخان: نجاح استجابة homepage و api/health و 401 Unauthorized لـ sys/health و siem و metrics بنجاح.
+- **Status**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION_ONLY`
+- **الإجراء المعتمد**: مراقبة الأداء والاستقرار وسجلات PM2 بعد النشر وتأكيد كفاءة OTEL والرصد الأمني للIncident (`docs/reports/OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION.md`).
+- **دور معتمد الموافقة**: **CTO & SRE Lead Architect**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير المراقبة بعد النشر: تم توليد `docs/reports/OBSERVABILITY_ALERTING_SETUP_POST_DEPLOY_OBSERVATION.md`.
+  - زمن التشغيل المستمر: تشغيل العقد ONLINE لـ 113 ثانية بـ 0 restarts و 0% CPU.
+- **Status**: `COMPLETED`
+
+- **Approved Gate**: `GO_FOR_OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT_ONLY`
+- **الإجراء المعتمد**: الإغلاق النهائي والاعتماد لكامل مسار المراقبة والتحذير الأمني وتصفير الفجوات وتحديث سجلات الـ Brain للمشروع (`docs/reports/OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT.md`).
+- **دور معتمد الموافقة**: **CTO & SRE Governance Board**
+- **الأدلة الفنية والبرمجية**:
+  - تقرير الإغلاق النهائي: تم توليد `docs/reports/OBSERVABILITY_ALERTING_SETUP_FINAL_CLOSEOUT.md` باللغة العربية بالكامل.
+  - الرمز التشغيلي: إقرار الحالة كـ `OBSERVABILITY_ALERTING_SETUP_FULLY_COMPLETED`.
+- **Status**: `COMPLETED`
 
 - **Approved Gate**: `GO_FOR_INCIDENT_RESPONSE_RUNBOOK_ONLY`
 - **Authorized Action**: Locked behind separate approval gate. No active incident drills allowed in this plan phase.
