@@ -26,6 +26,13 @@ async function _GET(req: NextRequest) {
     const to = searchParams.get('to');
     const accountId = searchParams.get('accountId');
 
+    // Dynamic Pagination Parameters
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const defaultLimit = 100;
+    const maxLimit = 1000;
+    const limit = Math.min(maxLimit, Math.max(1, parseInt(searchParams.get('limit') || String(defaultLimit), 10)));
+    const skip = (page - 1) * limit;
+
     // Map dim param to JournalLine field + include relation
     const dimMap: Record<string, { field: string; include: string; nameField: string }> = {
         profitCenter: { field: 'profitCenterId', include: 'profitCenter', nameField: 'name' },
@@ -59,7 +66,9 @@ async function _GET(req: NextRequest) {
         }
 
         // Fetch lines with dimension + account info
-        const lines = await prisma.journalLine.findMany({ take: 100,
+        const lines = await prisma.journalLine.findMany({
+            take: limit,
+            skip: skip,
             where,
             select: {
                 [dimConfig.field]: true,
@@ -117,6 +126,11 @@ async function _GET(req: NextRequest) {
                 debit: Math.round(result.reduce((s: any, r: any) => s + r.totalDebit, 0) * 100) / 100,
                 credit: Math.round(result.reduce((s: any, r: any) => s + r.totalCredit, 0) * 100) / 100,
             },
+            pagination: {
+                page,
+                limit,
+                hasMore: lines.length === limit,
+            }
         });
     } catch (e: any) {
         log.error('src/app/api/reports/dimensional-gl/route.ts', { error: e instanceof Error ? e.message : e });

@@ -33,9 +33,25 @@ export class BOMEngine {
       where: { recipeId },
       include: { rawProduct: { select: { id: true, name: true, barcode: true } } },
     });
+    
+    if (ingredients.length === 0) return [];
+    
+    // Solve N+1: Batch fetch all child recipes for current ingredients in one query
+    const rawProductIds = ingredients.map(i => i.rawProductId);
+    const childRecipesList = await prisma.recipe.findMany({
+      where: { finishedProductId: { in: rawProductIds } },
+      select: { id: true, finishedProductId: true }
+    });
+    
+    // Map finishedProductId to recipe for O(1) memory lookup
+    const recipeMap = new Map<number, { id: number; finishedProductId: number }>();
+    for (const r of childRecipesList) {
+      recipeMap.set(r.finishedProductId, r);
+    }
+    
     const result = [];
     for (const i of ingredients) {
-      const childRecipe = await prisma.recipe.findFirst({ where: { finishedProductId: i.rawProductId } });
+      const childRecipe = recipeMap.get(i.rawProductId);
       const children = childRecipe ? await this.explode(childRecipe.id, depth + 1, maxDepth) : [];
       result.push({
         depth,

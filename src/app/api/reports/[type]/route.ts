@@ -16,6 +16,13 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
         const to = searchParams.get('to');
         const branchQuery = searchParams.get('branchId');
 
+        // Dynamic Pagination Parameters
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+        const defaultLimit = 100;
+        const maxLimit = 1000;
+        const limit = Math.min(maxLimit, Math.max(1, parseInt(searchParams.get('limit') || String(defaultLimit), 10)));
+        const skip = (page - 1) * limit;
+
         const auth = getUserFromRequest(request as any);
         const user = auth?.userId ? await prisma.user.findUnique({ where: { id: auth.userId }, select: { role: true, branchId: true } }) : null;
 
@@ -33,7 +40,9 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
 
         switch (type) {
             case 'sales': {
-                const invoices = await prisma.salesInvoice.findMany({ take: 100,
+                const invoices = await prisma.salesInvoice.findMany({
+                    take: limit,
+                    skip: skip,
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
                     include: { customer: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
@@ -43,10 +52,13 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 return NextResponse.json({
                     summary: { 'إجمالي المبيعات': totalSales, 'الضريبة': totalTax, 'عدد الفواتير': invoices.length },
                     data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'العميل': (i as any).customer?.name || 'نقدي', 'الإجمالي': i.total, 'الحالة': i.status })),
+                    pagination: { page, limit, hasMore: invoices.length === limit }
                 });
             }
             case 'purchases': {
-                const invoices = await prisma.purchaseInvoice.findMany({ take: 100,
+                const invoices = await prisma.purchaseInvoice.findMany({
+                    take: limit,
+                    skip: skip,
                     where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
                     include: { supplier: { select: { id: true, name: true, phone: true,  } } },
                     orderBy: { date: 'desc' },
@@ -55,30 +67,50 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 return NextResponse.json({
                     summary: { 'إجمالي المشتريات': total, 'عدد الفواتير': invoices.length },
                     data: invoices.map(i => ({ '#': i.invoiceNo, 'التاريخ': new Date(i.date).toLocaleDateString('en-GB'), 'المورد': (i as any).supplier?.name || '-', 'الإجمالي': i.total })),
+                    pagination: { page, limit, hasMore: invoices.length === limit }
                 });
             }
             case 'stock': {
-                const products = await prisma.product.findMany({ take: 100, where: { active: true }, include: { category: true, unit: true }, orderBy: { name: 'asc' } });
+                const products = await prisma.product.findMany({
+                    take: limit,
+                    skip: skip,
+                    where: { active: true },
+                    include: { category: true, unit: true },
+                    orderBy: { name: 'asc' }
+                });
                 const totalValue = products.reduce((s: number, p: any) => s + n(p.currentStock) * n(p.buyPrice), 0);
                 return NextResponse.json({
                     summary: { 'عدد المنتجات': products.length, 'قيمة المخزون': totalValue },
                     data: products.map(p => ({ 'المنتج': p.name, 'التصنيف': p.category?.name || '-', 'المخزون': n(p.currentStock), 'الوحدة': p.unit?.name || '', 'سعر الشراء': n(p.buyPrice), 'القيمة': n(p.currentStock) * n(p.buyPrice) })),
+                    pagination: { page, limit, hasMore: products.length === limit }
                 });
             }
             case 'expenses': {
-                const expenses = await prisma.expense.findMany({ take: 100, where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter }, orderBy: { date: 'desc' } });
+                const expenses = await prisma.expense.findMany({
+                    take: limit,
+                    skip: skip,
+                    where: { ...(hasDate ? { date: dateFilter } : {}), ...branchFilter },
+                    orderBy: { date: 'desc' }
+                });
                 const total = expenses.reduce((s: number, e: any) => s + n(e.amount), 0);
                 return NextResponse.json({
                     summary: { 'إجمالي المصروفات': total, 'عدد العمليات': expenses.length },
                     data: expenses.map(e => ({ 'التاريخ': new Date(e.date).toLocaleDateString('en-GB'), 'الفئة': e.category || '-', 'الوصف': e.description, 'المبلغ': e.amount })),
+                    pagination: { page, limit, hasMore: expenses.length === limit }
                 });
             }
             case 'customers': {
-                const customers = await prisma.customer.findMany({ take: 100, where: { active: true }, orderBy: { name: 'asc' } });
+                const customers = await prisma.customer.findMany({
+                    take: limit,
+                    skip: skip,
+                    where: { active: true },
+                    orderBy: { name: 'asc' }
+                });
                 const totalBalance = customers.reduce((s: number, c: any) => s + n(c.balance), 0);
                 return NextResponse.json({
                     summary: { 'عدد العملاء': customers.filter(c => c.type === 0).length, 'عدد الموردين': customers.filter(c => c.type === 1).length, 'إجمالي الأرصدة': totalBalance },
                     data: customers.map(c => ({ 'الاسم': c.name, 'الهاتف': c.phone || '-', 'النوع': c.type === 0 ? 'عميل' : c.type === 1 ? 'مورد' : 'كلاهما', 'الرصيد': c.balance })),
+                    pagination: { page, limit, hasMore: customers.length === limit }
                 });
             }
             case 'profit': {
@@ -167,10 +199,11 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 if (userId && userId !== 'all') where.userId = parseInt(userId);
 
                 const movements = await prisma.stockMovement.findMany({
+                    take: limit,
+                    skip: skip,
                     where,
                     include: { product: { select: { name: true } }, user: { select: { fullName: true } }, stock: { select: { name: true } } },
                     orderBy: { date: 'desc' },
-                    take: 500,
                 });
                 const typeLabels: Record<string, string> = { in: 'إدخال', out: 'إخراج', adjustment: 'تعديل', transfer: 'تحويل' };
                 return NextResponse.json({
@@ -185,6 +218,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                         'الوقت': new Date(m.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         'ملاحظات': m.notes || '-',
                     })),
+                    pagination: { page, limit, hasMore: movements.length === limit }
                 });
             }
             case 'least-selling': {
@@ -230,10 +264,11 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 if (userId && userId !== 'all') where.userId = parseInt(userId);
 
                 const invoices = await prisma.salesInvoice.findMany({
+                    take: limit,
+                    skip: skip,
                     where,
                     include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } },
                     orderBy: { date: 'desc' },
-                    take: 500,
                 });
                 const totalDiscount = invoices.reduce((s: number, i: any) => s + n(i.discountValue), 0);
                 return NextResponse.json({
@@ -248,6 +283,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                         'التاريخ': new Date(i.date).toLocaleDateString('en-GB'),
                         'الوقت': new Date(i.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                     })),
+                    pagination: { page, limit, hasMore: invoices.length === limit }
                 });
             }
             default:
