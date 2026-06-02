@@ -133,7 +133,23 @@ function deriveSeverity(
   return 'INFO';
 }
 
+const SENSITIVE_FIELDS = ['password', 'iban', 'nationalid', 'iqama', 'totp', 'secret', 'token', 'key'];
+
+function maskSensitiveFieldValues(fieldName: string, value: string | null): string | null {
+  if (!value) return null;
+  const lowerField = fieldName.toLowerCase();
+  
+  if (SENSITIVE_FIELDS.some(f => lowerField.includes(f))) {
+    if (lowerField.includes('iban')) {
+      return value.slice(0, 4) + '****************' + value.slice(-4);
+    }
+    return '[REDACTED_PII_LOG_SAFE]';
+  }
+  return value;
+}
+
 /**
+
  * يكتشف أنماط هجوم أو سلوك مشبوه من مجموعة أحداث.
  *
  * Detection rules:
@@ -465,8 +481,8 @@ async function handleGet(ctx: RouteContext): Promise<NextResponse> {
       for (const f of fieldAudits) {
         const metadata = {
           fieldName: f.fieldName,
-          oldValue: f.oldValue,
-          newValue: f.newValue,
+          oldValue: maskSensitiveFieldValues(f.fieldName, f.oldValue),
+          newValue: maskSensitiveFieldValues(f.fieldName, f.newValue),
         };
         events.push({
           id: `field:${f.id}`,
