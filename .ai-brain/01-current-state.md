@@ -757,3 +757,24 @@ Staging Setup Approval: `STAGING_E2E_SETUP_APPROVAL_COMPLETED`
 
 Next gate: `GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY`
 
+---
+
+## 2026-06-02 — E2E Staging Environment Config Design Status
+
+Status: `STAGING_E2E_CONFIG_DESIGN_COMPLETED`
+
+- Created the comprehensive environment config design report: `docs/reports/STAGING_E2E_ENVIRONMENT_CONFIG_DESIGN.md` detailing the isolated architecture and design of 4 configuration files.
+- Designed template `.env.staging.template` for staging variables including isolated PostgreSQL staging URL on port 5433, isolated Redis staging URL on port 6380, Clerk sandbox public and secret keys, and mock API variables.
+- Designed dedicated `playwright.staging.config.ts` config including the rigid Production Write Guard (fail fast if target baseURL points to production, require E2E_ALLOW_WRITES=true), customized mobile and desktop projects with Riyadh locale and timezone, and staging result directories.
+- Designed isolated `docker-compose.staging.yml` container specifications running PostgreSQL on port 5433 and Redis on port 6380, bound strictly to 127.0.0.1 for maximum network security.
+- Documented strict configuration safety matrix comparing production and staging components.
+- State: `BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION` (Waiting for writing database seed and data sanitization scripts locally).
+
+Runtime code: `UNTOUCHED`
+DB: `UNTOUCHED`
+Production: `ONLINE_STABLE`
+Staging Config Design: `STAGING_E2E_CONFIG_DESIGN_COMPLETED`
+
+Next gate: `GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY`
+
+

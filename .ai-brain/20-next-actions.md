@@ -82,16 +82,17 @@
 
 ## Next Recommended Action
 
-`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_MANUAL_INFRA_APPROVAL)
+`GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION)
 
 ### Reason
-تم إقرار واعتماد وثيقة تجهيز خطة إعداد بيئة الاستضافة التجريبية المعزولة (Staging E2E Setup Approval) بنجاح كامل في تقرير `docs/reports/STAGING_E2E_ENVIRONMENT_SETUP_APPROVAL.md`. 
+تم إتمام وتصميم تكوين ملفات بيئة الاستضافة التجريبية المعزولة (Staging E2E Config Design) بنجاح فائق وتوثيقها بالكامل في تقرير `docs/reports/STAGING_E2E_ENVIRONMENT_CONFIG_DESIGN.md`.
 
-تم توثيق محددات نطاق الموافقة والممنوعات الصارمة وهيكلية بيانات الفحص التجريبية الافتراضية بنجاح وصمامات أمان حظر الكتابة على خادم الإنتاج.
+تم تحديد هياكل ومواصفات ملفات `.env.staging.template` و `playwright.staging.config.ts` و `docker-compose.staging.yml` وصمامات أمان منع تداخل خوادم الإنتاج.
 
-بناءً عليه، يتم ترحيل التوقف الاستراتيجي من الحاجة للاعتماد إلى بدء تخطيط إعداد الخادم والبنية التحتية التجريبية فعلياً:
-`BLOCKED_REQUIRES_MANUAL_INFRA_APPROVAL`
+بناءً عليه، يتم ترحيل التوقف الاستراتيجي إلى تطلب كتابة سكربتات التطهير وتغذية البيانات محلياً:
+`BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION`
 
-البوابة التخطيطية القادمة المقررة هي:
-`GO_FOR_STAGING_E2E_ENVIRONMENT_SETUP_PLAN_ONLY`
+البوابة البرمجية القادمة المقررة هي:
+`GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY`
+
 
