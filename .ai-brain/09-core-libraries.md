@@ -1,7 +1,7 @@
 # 09 - المكتبات والأدوات الأساسية (Core Libraries & Utils)
 
-> **عدد الملفات في src/lib:** 554
-> **تم التوليد تلقائياً بتاريخ:** 2026-05-15T23:04:43.990Z
+> **عدد الملفات في src/lib:** 591
+> **تم التوليد تلقائياً بتاريخ:** 2026-06-02T07:57:11.696Z
 
 ## `src/lib/ab-testing.ts` (89 سطر)
 ### الثوابت المُصدّرة:
@@ -10,6 +10,13 @@
 ## `src/lib/account-hierarchy-engine.ts` (61 سطر)
 ### الفئات:
 - `AccountHierarchyEngine`
+
+## `src/lib/accounting/year-end-close.ts` (345 سطر)
+### الفئات:
+- `YearEndCloseEngine`
+### الواجهات (Interfaces):
+- `YearEndCloseValidation`
+- `ClosingJEResult`
 
 ## `src/lib/accounting-engine.ts` (100 سطر)
 ### الفئات:
@@ -41,6 +48,13 @@
 ## `src/lib/ai/ai-voice-engine.ts` (14 سطر)
 ### الفئات:
 - `AiVoiceEngine`
+
+## `src/lib/ai/context-manager.ts` (108 سطر)
+### الفئات:
+- `ContextManager`
+### الواجهات (Interfaces):
+- `ContextChunk`
+- `AllocatedContext`
 
 ## `src/lib/ai/multi-agent-engine.ts` (81 سطر)
 ### الفئات:
@@ -168,11 +182,9 @@
 ### الثوابت المُصدّرة:
 - `POST`
 
-## `src/lib/api/with-route.ts` (211 سطر)
+## `src/lib/api/with-route.ts` (393 سطر)
 ### الدوال المُصدّرة:
 - `withRoute(handler: RouteHandler, options: WithRouteOptions = {})`
-### الثوابت المُصدّرة:
-- `GET`
 ### الواجهات (Interfaces):
 - `RouteAuth`
 - `RouteContext`
@@ -196,7 +208,7 @@
 - `validatePositiveInt(value: unknown, fieldName = 'المعرّف')`
 - `requireFields(body: Record<string, unknown>, fields: string[])`
 
-## `src/lib/api-handler.ts` (200 سطر)
+## `src/lib/api-handler.ts` (216 سطر)
 ### الدوال المُصدّرة:
 - `withApiHandler(handler: RouteHandler, options: HandlerOptions = {})`
 - `handleApiError(error: unknown)`
@@ -233,10 +245,6 @@
 ### الفئات:
 - `ApprovalWorkflowEngine`
 
-## `src/lib/aps-engine.ts` (42 سطر)
-### الفئات:
-- `APSEngine`
-
 ## `src/lib/aps-scheduler.ts` (114 سطر)
 ### الفئات:
 - `APSScheduler`
@@ -272,7 +280,7 @@
 ### الواجهات (Interfaces):
 - `RevaluationRequest`
 
-## `src/lib/ats-engine.ts` (36 سطر)
+## `src/lib/ats-engine.ts` (42 سطر)
 ### الفئات:
 - `ATSEngine`
 
@@ -317,18 +325,12 @@
     soldQty: number
 )`
 
-## `src/lib/auto-journal.test.ts` (161 سطر)
+## `src/lib/auto-journal.test.ts` (170 سطر)
 
-## `src/lib/auto-journal.ts` (1353 سطر)
+## `src/lib/auto-journal.ts` (1240 سطر)
 ### الدوال المُصدّرة:
-- `postSalesInvoice(invoice: {
-    invoiceNo: number;
-    subtotal: number;
-    taxValue: number;)`
-- `postPurchaseInvoice(invoice: {
-    invoiceNo: number;
-    subtotal: number;
-    taxValue: number;)`
+- `postSalesInvoice(invoice: any)`
+- `postPurchaseInvoice(invoice: any)`
 - `postExpense(expense: {
     id: number;
     category: string;
@@ -502,7 +504,7 @@
 ### الفئات:
 - `BankStatementEngine`
 
-## `src/lib/bank-statement-importer.ts` (206 سطر)
+## `src/lib/bank-statement-importer.ts` (209 سطر)
 ### الفئات:
 - `BankStatementImporter`
 ### الواجهات (Interfaces):
@@ -553,7 +555,7 @@
 - `createTamaraSession({ amount, orderId, phone, items, customerName }: any, keys: any)`
 - `getTamaraOrderStatus(orderId: string, keys: any)`
 
-## `src/lib/bom-engine.ts` (70 سطر)
+## `src/lib/bom-engine.ts` (86 سطر)
 ### الفئات:
 - `BOMEngine`
 
@@ -650,9 +652,19 @@
 ### الواجهات (Interfaces):
 - `Chain`
 
+## `src/lib/chains/index.ts` (86 سطر)
+### الواجهات (Interfaces):
+- `ChainContext`
+
 ## `src/lib/chains/parallel/multi-report.chain.ts` (24 سطر)
 ### الثوابت المُصدّرة:
 - `multiReportChain`
+
+## `src/lib/chains/payment-run.chain.ts` (42 سطر)
+### الثوابت المُصدّرة:
+- `paymentRunChain`
+### الفئات:
+- `PaymentRunChain`
 
 ## `src/lib/chains/react/react-agent.ts` (56 سطر)
 ### الفئات:
@@ -720,7 +732,7 @@
 - `CommitmentType`
 - `CommitmentStatus`
 
-## `src/lib/comp-review-engine.ts` (28 سطر)
+## `src/lib/comp-review-engine.ts` (32 سطر)
 ### الفئات:
 - `CompReviewEngine`
 
@@ -731,7 +743,7 @@
 - `ComparativeLineItem`
 - `ComparativeFinancialStatement`
 
-## `src/lib/competency-engine.ts` (28 سطر)
+## `src/lib/competency-engine.ts` (30 سطر)
 ### الفئات:
 - `CompetencyEngine`
 
@@ -741,6 +753,23 @@
 - `searchSeeds(query: string)`
 ### الثوابت المُصدّرة:
 - `COMPLIANCE_KB_SEED`
+
+## `src/lib/consolidation-elimination-approval.ts` (355 سطر)
+### الفئات:
+- `ConsolidationEliminationApprovalService`
+### الواجهات (Interfaces):
+- `ConsolidationEliminationRequest`
+- `SubmitRequestInput`
+- `ApproveByCfoInput`
+- `ApproveByMasterAdminInput`
+- `RejectRequestInput`
+- `ValidateReadinessInput`
+
+## `src/lib/consolidation-elimination-posting.ts` (454 سطر)
+### الفئات:
+- `ConsolidationEliminationPostingService`
+### الواجهات (Interfaces):
+- `PostingPreviewResult`
 
 ## `src/lib/consolidation-engine.ts` (366 سطر)
 ### الفئات:
@@ -1142,7 +1171,7 @@
 ### الفئات:
 - `ESignatureEngine`
 
-## `src/lib/ess-engine.ts` (60 سطر)
+## `src/lib/ess-engine.ts` (59 سطر)
 ### الفئات:
 - `ESSEngine`
 
@@ -1160,9 +1189,14 @@
 - `ExcelColumn`
 - `ExportOptions`
 
-## `src/lib/expense-report-engine.ts` (37 سطر)
+## `src/lib/expense-report-engine.ts` (56 سطر)
 ### الفئات:
 - `ExpenseReportEngine`
+
+## `src/lib/feature-flags.ts` (73 سطر)
+### الدوال المُصدّرة:
+- `fetchFeatureFlags()`
+- `isEnabled(key: string, tenantId?: string, userId?: string)`
 
 ## `src/lib/few-shot-examples.ts` (89 سطر)
 ### الدوال المُصدّرة:
@@ -1245,13 +1279,30 @@
 ### الفئات:
 - `FinancialCloseEngine`
 
+## `src/lib/financial-consolidation-engine.ts` (696 سطر)
+### الفئات:
+- `FinancialConsolidationEngine`
+### الواجهات (Interfaces):
+- `EntityBalance`
+- `EliminationAdjustment`
+- `ConsolidatedRow`
+- `IntercompanyMatch`
+- `CompanyBranchValidation`
+- `ProposedLine`
+- `ProposedJournalEntry`
+- `DryRunResult`
+- `ConsolidationResult`
+
 ## `src/lib/financial-notes-engine.ts` (109 سطر)
 ### الفئات:
 - `FinancialNotesEngine`
 ### الواجهات (Interfaces):
 - `FinancialNote`
 
-## `src/lib/financial-statements-engine.ts` (585 سطر)
+## `src/lib/financial-statements-engine.ts` (937 سطر)
+### الدوال المُصدّرة:
+- `generateDisclosureNotes(
+  reportType: 'INCOME_STATEMENT' | 'BALANCE_SHEET' | 'CASH_FLOW' | 'TRIAL_BALA)`
 ### الفئات:
 - `FinancialStatementsEngine`
 ### الواجهات (Interfaces):
@@ -1261,6 +1312,9 @@
 - `CashFlowResult`
 - `IndirectCFLine`
 - `IndirectCashFlowResult`
+- `DimensionalFilters`
+- `DisclosureNoteSection`
+- `DisclosureNotesResult`
 
 ## `src/lib/fixed-assets-engine.ts` (216 سطر)
 ### الفئات:
@@ -1285,7 +1339,7 @@
 ### الفئات:
 - `FsNotesEngine`
 
-## `src/lib/fx-revaluation-engine.ts` (219 سطر)
+## `src/lib/fx-revaluation-engine.ts` (1507 سطر)
 ### الفئات:
 - `FXRevaluationEngine`
 ### الواجهات (Interfaces):
@@ -1551,7 +1605,7 @@
 ### الواجهات (Interfaces):
 - `GosiCalculationResult`
 
-## `src/lib/gosi-engine.ts` (193 سطر)
+## `src/lib/gosi-engine.ts` (210 سطر)
 ### الفئات:
 - `GOSIEngine`
 
@@ -1562,16 +1616,76 @@
 - `GOSIRegistration`
 - `EmployeeStatus`
 
+## `src/lib/governance/override-context.ts` (26 سطر)
+### الدوال المُصدّرة:
+- `buildOverrideContextFromRequest(
+  req: Request,
+  context: { tenantId: string; actorId: string; actorRole: stri)`
+
+## `src/lib/governance/period-lock.ts` (299 سطر)
+### الدوال المُصدّرة:
+- `assertPeriodWritable({
+  tenantId,
+  postingDate,
+  operationType,
+  module,
+  actor,
+  overrideConte)`
+### الفئات:
+- `PeriodLockViolation`
+### الواجهات (Interfaces):
+- `OverrideContext`
+- `AssertPeriodWritableOptions`
+
+## `src/lib/governance/tenant-guard.ts` (218 سطر)
+### الدوال المُصدّرة:
+- `normalizeTenantId(value?: string | number | null)`
+- `assertTenant(tenantId?: string | number | null)`
+- `isLegacyTenant(tenantSlug: string)`
+- `isSystemTenant(tenantSlug: string)`
+- `getRecordTenantId(tenantSlug: string, desktopMode = process.env.DESKTOP_MODE === 'true')`
+- `getTenantMode(tenantSlug: string, desktopMode = process.env.DESKTOP_MODE === 'true')`
+- `buildTenantContext(tenantSlug: string, source: string, extras: Partial<TenantContextInfo> = {})`
+- `requireTenantId(request: NextRequest | Request | { headers?: unknown; tenantId?: string | null })`
+- `validateTenantAccess(req: Request | NextRequest)`
+- `getAllowedTenantValues(context: TenantContextInfo)`
+- `requireTenantContext(req: NextRequest | Request | { headers?: unknown; tenantId?: string | null })`
+- `assertTenantAccess(req: Request | NextRequest, requiredTenantId?: string)`
+- `assertTenantContextMatch(input: TenantMatchInput)`
+- `assertTenantScopedOperation(
+  model: string,
+  operation: string,
+  args: unknown,
+  tenantId?: string
+)`
+### الثوابت المُصدّرة:
+- `TENANT_ISOLATION_ERROR`
+### الواجهات (Interfaces):
+- `TenantContextInfo`
+- `TenantMatchInput`
+### الأنواع (Types):
+- `TenantMode`
+- `TenantWhere`
+
 ## `src/lib/governance-engine.ts` (108 سطر)
 ### الفئات:
 - `GovernanceEngine`
 
-## `src/lib/gr-ir-clearing-engine.ts` (155 سطر)
+## `src/lib/gr-ir-clearing-engine.ts` (442 سطر)
 ### الفئات:
 - `GRIRClearingEngine`
 ### الواجهات (Interfaces):
 - `GRIRLine`
 - `GRIRReport`
+- `POGrinsDetail`
+- `POGrn`
+- `PODetail`
+- `POSupplier`
+- `POWithDetails`
+- `InvoiceDetail`
+- `InvoiceWithDetails`
+### الأنواع (Types):
+- `GRIRMatchStatus`
 
 ## `src/lib/hedge-accounting-engine.ts` (500 سطر)
 ### الفئات:
@@ -1602,6 +1716,17 @@
 ### الواجهات (Interfaces):
 - `EosCalculationParams`
 - `EosCalculationResult`
+
+## `src/lib/hr-scope.ts` (61 سطر)
+### الدوال المُصدّرة:
+- `getHrScope(auth: JWTPayload, tenantId: string, isEmployeeTable: boolean = false)`
+
+## `src/lib/i18n-helpers.ts` (52 سطر)
+### الدوال المُصدّرة:
+- `formatCurrency(amount: number, locale: string = 'ar-SA')`
+- `formatDate(date: Date | string, locale: string = 'ar-SA')`
+- `formatNumber(n: number, locale: string = 'ar-SA')`
+- `plural(word: string, count: number, lang: string = 'ar')`
 
 ## `src/lib/ic-elimination-engine.ts` (264 سطر)
 ### الفئات:
@@ -1801,7 +1926,7 @@
 ### الدوال المُصدّرة:
 - `callLLM(promptKey: string, vars: Record<string, any>, tenantId: string | null = null, en)`
 
-## `src/lib/lms-engine.ts` (47 سطر)
+## `src/lib/lms-engine.ts` (49 سطر)
 ### الفئات:
 - `LMSEngine`
 
@@ -1906,26 +2031,29 @@
 - `MudadPaymentStatus`
 - `MudadEmployerStatus`
 
-## `src/lib/mudad-compliance.ts` (193 سطر)
+## `src/lib/mudad-compliance.ts` (197 سطر)
 ### الدوال المُصدّرة:
 - `checkMudadCompliance(
-    prisma: PrismaClient
+    prisma: any,
+    tenantId: string
 )`
 - `updateMudadStatus(
-    prisma: PrismaClient,
+    prisma: any,
     employeeId: number,
-    status: string
-)`
+    status: string,
+    tenantId: )`
 - `bulkUpdateMudadStatus(
-    prisma: PrismaClient,
-    updates: Array<{ employeeId: number; status: st)`
+    prisma: any,
+    updates: Array<{ employeeId: number; status: string }>,)`
 - `getUnprotectedEmployees(
-    prisma: PrismaClient
+    prisma: any,
+    tenantId: string
 )`
 - `validateForMudad(employee: any)`
 - `generateMudadReport(
-    prisma: PrismaClient,
-    month: string // YYYY-MM
+    prisma: any,
+    month: string, // YYYY-MM
+    tenantId: string
 )`
 ### الأنواع (Types):
 - `MudadComplianceStatus`
@@ -2009,11 +2137,76 @@
 ### الثوابت المُصدّرة:
 - `NUMBERING_DEFAULTS`
 
-## `src/lib/observability/logger.ts` (63 سطر)
+## `src/lib/observability/correlation.ts` (68 سطر)
+### الدوال المُصدّرة:
+- `getCorrelationId()`
+- `generateTraceId()`
+- `generateSpanId()`
+- `getCorrelationHeaders()`
+- `buildCorrelationMeta()`
+
+## `src/lib/observability/diagnostics.ts` (381 سطر)
 ### الفئات:
+- `OperationalDiagnostics`
+### الواجهات (Interfaces):
+- `OutboxHealthReport`
+- `OverrideMonitoringReport`
+- `PeriodLockHealthReport`
+- `FinancialAuditGapReport`
+- `OperationalDiagnosticsReport`
+
+## `src/lib/observability/financial-trace.ts` (136 سطر)
+### الدوال المُصدّرة:
+- `traceOverrideUsed(
+  context: FinancialTraceContext & { traceId?: string; reason?: string }
+)`
+- `tracePeriodLockRejection(
+  context: FinancialTraceContext & {
+    rejectionCode: 'LOCKED' | 'MASTER_OVER)`
+### الواجهات (Interfaces):
+- `FinancialTraceContext`
+- `FinancialTraceResult`
+
+## `src/lib/observability/logger.ts` (292 سطر)
+### الثوابت المُصدّرة:
+- `logger`
 - `EnterpriseLogger`
 ### الواجهات (Interfaces):
-- `LogContext`
+- `StructuredLogPayload`
+
+## `src/lib/observability/request-context.ts` (64 سطر)
+### الدوال المُصدّرة:
+- `getRequestContext()`
+- `createChildContext(overrides: Partial<RequestContext>)`
+### الثوابت المُصدّرة:
+- `requestContextStore`
+### الواجهات (Interfaces):
+- `RequestContext`
+
+## `src/lib/observability/tenant-telemetry.ts` (178 سطر)
+### الدوال المُصدّرة:
+- `recordTenantViolation(
+  attemptedTenantId: string,
+  resource: string,
+  action: string,
+  extra?: Re)`
+- `logTenantProvisioning(
+  tenantId: string,
+  status: 'STARTED' | 'SUCCESS' | 'FAILED',
+  durationMs?: )`
+- `recordTenantOperation(
+  tenantId: string,
+  operationType: string,
+  module: string,
+  durationMs?: n)`
+- `recordTenantOverride(
+  tenantId: string,
+  module: string,
+  operationType: string,
+  actorId: strin)`
+- `getTenantRuntimeMetrics(tenantId: string)`
+- `getAllTenantRuntimeMetrics()`
+- `resetTenantMetrics(tenantId: string)`
 
 ## `src/lib/observability.ts` (127 سطر)
 ### الدوال المُصدّرة:
@@ -2039,7 +2232,7 @@
 ### الأنواع (Types):
 - `SyncActionType`
 
-## `src/lib/okr-engine.ts` (30 سطر)
+## `src/lib/okr-engine.ts` (33 سطر)
 ### الفئات:
 - `OKREngine`
 
@@ -2047,7 +2240,7 @@
 ### الفئات:
 - `OmnichannelEngine`
 
-## `src/lib/open-items-engine.ts` (276 سطر)
+## `src/lib/open-items-engine.ts` (289 سطر)
 ### الفئات:
 - `OpenItemsEngine`
 ### الواجهات (Interfaces):
@@ -2059,7 +2252,7 @@
 - `PartyType`
 - `DisputeResolution`
 
-## `src/lib/open-items.ts` (293 سطر)
+## `src/lib/open-items.ts` (305 سطر)
 ### الفئات:
 - `OpenItemsEngine`
 
@@ -2181,11 +2374,12 @@
     prisma: PrismaClient
 )`
 
-## `src/lib/period-close-engine.ts` (167 سطر)
+## `src/lib/period-close-engine.ts` (381 سطر)
 ### الدوال المُصدّرة:
 - `initPeriodCloseTasks(
   prisma: PrismaClient,
-  periodId: number
+  periodId: number,
+  tenantId: string
 )`
 - `completeTask(
   prisma:    PrismaClient,
@@ -2194,7 +2388,8 @@
   user)`
 - `getPeriodCloseStatus(
   prisma:   PrismaClient,
-  periodId: number
+  periodId: number,
+  tenantId?: string
 )`
 - `executeSoftClose(
   prisma:   PrismaClient,
@@ -2211,7 +2406,7 @@
 ### الأنواع (Types):
 - `StepCode`
 
-## `src/lib/period-close.ts` (127 سطر)
+## `src/lib/period-close.ts` (284 سطر)
 ### الفئات:
 - `PeriodCloseEngine`
 
@@ -2307,7 +2502,7 @@
 ### الأنواع (Types):
 - `TemplateField`
 
-## `src/lib/prisma-audit.ts` (121 سطر)
+## `src/lib/prisma-audit.ts` (202 سطر)
 ### الدوال المُصدّرة:
 - `applyAuditMiddleware(prisma: any)`
 
@@ -2321,18 +2516,19 @@
 )`
 - `hardDelete(prisma: any, model: string, where: any)`
 
-## `src/lib/prisma.ts` (335 سطر)
+## `src/lib/prisma.ts` (319 سطر)
 ### الدوال المُصدّرة:
 - `getDbUrl(tenant: string, isRead = false)`
 - `getClient(tenant: string, options: { read?: boolean } = {})`
-- `resolveTenant(req?: {
-    headers?: { get?: (k: string)`
-- `GET(req: NextRequest)`
-- `getPrisma(req?: Request | { headers?: unknown }, options: { read?: boolean } = {})`
+- `resolveTenantContext(req?: TenantRequest, options: ResolveTenantOptions = {})`
+- `resolveTenant(req?: TenantRequest, options: ResolveTenantOptions = {})`
+- `getPrisma(req?: Request | TenantRequest, options: { read?: boolean; requireTenant?: boolea)`
 ### الثوابت المُصدّرة:
 - `tenantContext`
 - `currentRequestStore`
 - `getTenantPrisma`
+### الواجهات (Interfaces):
+- `ResolveTenantOptions`
 
 ## `src/lib/privacy-filter.ts` (37 سطر)
 ### الدوال المُصدّرة:
@@ -2500,6 +2696,15 @@
     promptKey: string;
     promptVersion: numbe)`
 
+## `src/lib/prompts/router.ts` (73 سطر)
+### الثوابت المُصدّرة:
+- `promptRouter`
+### الفئات:
+- `PromptRouter`
+### الواجهات (Interfaces):
+- `PromptIntent`
+- `ModuleCatalog`
+
 ## `src/lib/prompts/system/compose.ts` (32 سطر)
 ### الدوال المُصدّرة:
 - `composeSystemPrompt(
@@ -2620,7 +2825,7 @@
 ### الفئات:
 - `QualityManagementEngine`
 
-## `src/lib/queue/index.ts` (207 سطر)
+## `src/lib/queue/index.ts` (237 سطر)
 ### الثوابت المُصدّرة:
 - `redisConnection`
 - `emailQueue`
@@ -2629,6 +2834,7 @@
 - `reportQueue`
 - `aiAuditQueue`
 - `systemReconciliationQueue`
+- `outboxRelayQueue`
 - `startWorkers`
 
 ## `src/lib/quotaGuard.test.ts` (101 سطر)
@@ -2906,10 +3112,7 @@
 ### الفئات:
 - `JournalValidationLayer`
 
-## `src/lib/security/tenant-guard.ts` (34 سطر)
-### الدوال المُصدّرة:
-- `assertTenant(tenantId?: string | null)`
-- `validateTenantAccess(req: Request | NextRequest)`
+## `src/lib/security/tenant-guard.ts` (20 سطر)
 
 ## `src/lib/security-headers.ts` (153 سطر)
 ### الدوال المُصدّرة:
@@ -2966,7 +3169,7 @@
 ### الفئات:
 - `ServiceSLAEngine`
 
-## `src/lib/services/accounting-journal.service.ts` (185 سطر)
+## `src/lib/services/accounting-journal.service.ts` (201 سطر)
 ### الفئات:
 - `AccountingJournalService`
 ### الأنواع (Types):
@@ -2979,15 +3182,37 @@
 - `JournalLineInput`
 - `CreateJournalInput`
 
+## `src/lib/services/hr/payroll.service.ts` (50 سطر)
+### الفئات:
+- `PayrollService`
+### الواجهات (Interfaces):
+- `PayrollRunPayload`
+### الأنواع (Types):
+- `FinancialTxClient`
+
 ## `src/lib/services/hr.service.ts` (145 سطر)
 ### الفئات:
 - `HRService`
 
 ## `src/lib/services/index.ts` (12 سطر)
 
-## `src/lib/services/inventory-adjustment.service.ts` (83 سطر)
+## `src/lib/services/inter-company.service.ts` (155 سطر)
+### الثوابت المُصدّرة:
+- `ICPayloadSchema`
+### الفئات:
+- `InterCompanyService`
+
+## `src/lib/services/inventory-adjustment.service.ts` (88 سطر)
 ### الفئات:
 - `InventoryAdjustmentService`
+
+## `src/lib/services/inventory-allocation.service.ts` (57 سطر)
+### الفئات:
+- `InventoryAllocationService`
+### الواجهات (Interfaces):
+- `InventoryAllocationPayload`
+### الأنواع (Types):
+- `InventoryTxClient`
 
 ## `src/lib/services/inventory.service.ts` (97 سطر)
 ### الفئات:
@@ -2998,25 +3223,81 @@
 ### الأنواع (Types):
 - `TxClient`
 
-## `src/lib/services/manufacturing.service.ts` (119 سطر)
+## `src/lib/services/manufacturing-aps.service.ts` (254 سطر)
+### الفئات:
+- `ManufacturingApsService`
+
+## `src/lib/services/manufacturing.service.ts` (176 سطر)
 ### الفئات:
 - `ManufacturingService`
+
+## `src/lib/services/open-items.service.ts` (949 سطر)
+### الفئات:
+- `OpenItemsService`
+### الواجهات (Interfaces):
+- `AllocationRequest`
+
+## `src/lib/services/outbox.service.ts` (97 سطر)
+### الفئات:
+- `OutboxService`
+### الواجهات (Interfaces):
+- `CreateOutboxEventInput`
+- `OutboxDiagnostics`
+### الأنواع (Types):
+- `TxClient`
 
 ## `src/lib/services/payroll.service.ts` (22 سطر)
 ### الفئات:
 - `PayrollService`
 
-## `src/lib/services/sales.service.ts` (155 سطر)
+## `src/lib/services/pharmacy.service.ts` (79 سطر)
+### الفئات:
+- `PharmacyPayloadSanitizer`
+- `PharmacyService`
+### الواجهات (Interfaces):
+- `SafePharmacyItemPayload`
+- `SafePharmacyPayload`
+### الأنواع (Types):
+- `PharmacyEventType`
+
+## `src/lib/services/pos-accountant.service.ts` (80 سطر)
+### الثوابت المُصدّرة:
+- `PosSyncPayloadSchema`
+### الفئات:
+- `PosAccountantService`
+
+## `src/lib/services/sales.service.ts` (157 سطر)
 ### الفئات:
 - `SalesService`
+
+## `src/lib/services/subledger-accounting.ts` (339 سطر)
+### الثوابت المُصدّرة:
+- `ACCOUNTS_SLA`
+### الفئات:
+- `SubledgerAccountingService`
+### الأنواع (Types):
+- `SLAPurchaseInvoiceDTO`
+- `SLASalesInvoiceDTO`
 
 ## `src/lib/services/transfer.service.ts` (59 سطر)
 ### الفئات:
 - `TransferService`
 
-## `src/lib/services/treasury-posting.service.ts` (81 سطر)
+## `src/lib/services/treasury-forecast.service.ts` (58 سطر)
+### الثوابت المُصدّرة:
+- `CashForecastPayloadSchema`
+### الفئات:
+- `TreasuryForecastService`
+
+## `src/lib/services/treasury-posting.service.ts` (195 سطر)
 ### الفئات:
 - `TreasuryPostingService`
+
+## `src/lib/services/wms-waves.service.ts` (206 سطر)
+### الفئات:
+- `WmsWavesService`
+### الأنواع (Types):
+- `PickTaskPreview`
 
 ## `src/lib/shift-schedule-engine.ts` (15 سطر)
 ### الفئات:
@@ -3180,6 +3461,14 @@
 ### الفئات:
 - `TaxRegimeEngine`
 
+## `src/lib/tax-validation.ts` (77 سطر)
+### الدوال المُصدّرة:
+- `validateTaxRate(
+  taxRate: number,
+  tenantId: string,
+  prisma: any
+)`
+
 ## `src/lib/telegram-bot.ts` (492 سطر)
 ### الدوال المُصدّرة:
 - `getBotToken()`
@@ -3192,6 +3481,8 @@
 ## `src/lib/telemetry.ts` (146 سطر)
 ### الثوابت المُصدّرة:
 - `telemetry`
+
+## `src/lib/tenant/tenant-guard.ts` (20 سطر)
 
 ## `src/lib/territory-engine.ts` (29 سطر)
 ### الفئات:
@@ -3207,7 +3498,7 @@
 ### الأنواع (Types):
 - `MatchStatus`
 
-## `src/lib/three-way-match-tolerance-engine.ts` (140 سطر)
+## `src/lib/three-way-match-tolerance-engine.ts` (193 سطر)
 ### الفئات:
 - `ThreeWayMatchEngine`
 ### الواجهات (Interfaces):
@@ -3293,6 +3584,12 @@
 ### الدوال المُصدّرة:
 - `usePagePermission(moduleKey: string)`
 
+## `src/lib/utils/safe-data.ts` (59 سطر)
+### الدوال المُصدّرة:
+- `toNumber(value: unknown, fallback = 0)`
+- `toStringValue(value: unknown, fallback = '')`
+- `hasArray(value: unknown)`
+
 ## `src/lib/utils.ts` (10 سطر)
 ### الدوال المُصدّرة:
 - `cn(...inputs: ClassValue[])`
@@ -3349,7 +3646,7 @@
 
 ## `src/lib/validations.test.ts` (170 سطر)
 
-## `src/lib/validations.ts` (247 سطر)
+## `src/lib/validations.ts` (248 سطر)
 ### الثوابت المُصدّرة:
 - `amountSchema`
 - `treasuryCreateSchema`
@@ -3478,7 +3775,7 @@
 ### الفئات:
 - `VendorPortalEngine`
 
-## `src/lib/vendor-scorecard.ts` (132 سطر)
+## `src/lib/vendor-scorecard.ts` (135 سطر)
 ### الفئات:
 - `VendorScorecardEngine`
 ### الأنواع (Types):
@@ -3491,12 +3788,6 @@
 ## `src/lib/vendor-statement.ts` (121 سطر)
 ### الفئات:
 - `VendorStatementEngine`
-
-## `src/lib/wave-picking.ts` (102 سطر)
-### الفئات:
-- `WavePickingEngine`
-### الأنواع (Types):
-- `PickTask`
 
 ## `src/lib/wbs-engine.ts` (127 سطر)
 ### الفئات:
@@ -3624,7 +3915,7 @@
 - `WPSValidationError`
 - `MudadSubmissionResult`
 
-## `src/lib/year-end-close.ts` (309 سطر)
+## `src/lib/year-end-close.ts` (315 سطر)
 ### الفئات:
 - `YearEndCloseEngine`
 ### الواجهات (Interfaces):
@@ -3771,31 +4062,43 @@
 
 ## `src/lib/__tests__/commission.test.ts` (87 سطر)
 
+## `src/lib/__tests__/consolidation-elimination-approval.test.ts` (452 سطر)
+
+## `src/lib/__tests__/consolidation-elimination-posting.test.ts` (293 سطر)
+
 ## `src/lib/__tests__/decimal-arithmetic.property.test.ts` (60 سطر)
 
 ## `src/lib/__tests__/dunning-engine-v2.test.ts` (143 سطر)
 
+## `src/lib/__tests__/financial-consolidation-engine.test.ts` (500 سطر)
+
 ## `src/lib/__tests__/financial-schemas.test.ts` (223 سطر)
 
-## `src/lib/__tests__/financial-statements-engine.test.ts` (91 سطر)
+## `src/lib/__tests__/financial-statements-engine.test.ts` (254 سطر)
 
 ## `src/lib/__tests__/fixed-asset-depreciation.test.ts` (92 سطر)
 
 ## `src/lib/__tests__/gosi-rates.test.ts` (49 سطر)
 
-## `src/lib/__tests__/idempotency.test.ts` (118 سطر)
+## `src/lib/__tests__/idempotency.test.ts` (108 سطر)
+
+## `src/lib/__tests__/observability-correlation.test.ts` (153 سطر)
+
+## `src/lib/__tests__/observability-diagnostics.test.ts` (244 سطر)
 
 ## `src/lib/__tests__/open-items-engine.test.ts` (145 سطر)
+
+## `src/lib/__tests__/outbox-diagnostics.test.ts` (78 سطر)
 
 ## `src/lib/__tests__/p1-services.test.ts` (124 سطر)
 
 ## `src/lib/__tests__/payroll-posting.test.ts` (91 سطر)
 
-## `src/lib/__tests__/purchase-atomicity.test.ts` (117 سطر)
+## `src/lib/__tests__/purchase-atomicity.test.ts` (134 سطر)
 
-## `src/lib/__tests__/sales-atomicity.test.ts` (152 سطر)
+## `src/lib/__tests__/sales-atomicity.test.ts` (169 سطر)
 
-## `src/lib/__tests__/tenant-isolation.test.ts` (112 سطر)
+## `src/lib/__tests__/tenant-isolation.test.ts` (97 سطر)
 
 ## `src/lib/__tests__/wht-service.test.ts` (77 سطر)
 
@@ -3805,7 +4108,7 @@
 
 ## `src/lib/__tests__/zatca-services.test.ts` (78 سطر)
 
-## `src/lib/i18n.tsx` (91 سطر)
+## `src/lib/i18n.tsx` (119 سطر)
 ### الدوال المُصدّرة:
 - `I18nProvider({ children }: { children: ReactNode })`
 - `useTranslation()`
@@ -3816,7 +4119,7 @@
 
 ## `src/lib/i18n_from_server.tsx` (7 سطر)
 
-## `src/lib/SettingsContext.tsx` (67 سطر)
+## `src/lib/SettingsContext.tsx` (73 سطر)
 ### الدوال المُصدّرة:
 - `SettingsProvider({ children }: { children: React.ReactNode })`
 - `useSettings()`

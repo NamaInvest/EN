@@ -1,8 +1,9 @@
 # 11 - مكونات واجهة المستخدم (UI Components)
 
-> **عدد مكونات الـ UI:** 61
+> **عدد مكونات الـ UI:** 69
 
 - `AICopilotButton.tsx` → AICopilotButton (117 سطر)
+- `CookieConsent.tsx` → CookieConsent (40 سطر)
 - `data/DataTable.tsx` → DataTable (227 سطر)
 - `DataTable.tsx` → DataTable (190 سطر)
 - `DesktopBanner.tsx` → DesktopBanner (335 سطر)
@@ -16,7 +17,7 @@
 - `gaps/CustomerPortal.tsx` → CustomerPortal (72 سطر)
 - `gaps/VendorPortal.tsx` → VendorPortal (74 سطر)
 - `GlobalAuthGuard.tsx` → GlobalAuthGuard (60 سطر)
-- `GlobalErrorBoundary.tsx` (39 سطر)
+- `GlobalErrorBoundary.tsx` (93 سطر)
 - `GlobalSearch.tsx` → GlobalSearch (111 سطر)
 - `HijriDate.tsx` → HijriDate (50 سطر)
 - `ice/IceSidebar.tsx` → IceSidebar (133 سطر)
@@ -33,8 +34,10 @@
 - `Providers.tsx` → Providers (13 سطر)
 - `QuotaModal.tsx` → QuotaModal (157 سطر)
 - `RiyalLogo.tsx` → RiyalLogo (21 سطر)
+- `security/PermissionGate.tsx` → PermissionGate (32 سطر)
+- `security/SensitiveValue.tsx` → SensitiveValue (70 سطر)
 - `SessionGuard.tsx` → SessionGuard (19 سطر)
-- `Sidebar.tsx` → Sidebar (1254 سطر)
+- `Sidebar.tsx` → Sidebar (1301 سطر)
 - `Skeleton.tsx` → Skeleton (41 سطر)
 - `states/Empty.tsx` → EmptyState, ErrorState, LoadingState (68 سطر)
 - `states/Error.tsx` → ErrorState (21 سطر)
@@ -52,6 +55,11 @@
 - `ui/data-table.tsx` → DataTable (201 سطر)
 - `ui/dialog.tsx` (123 سطر)
 - `ui/dropdown-menu.tsx` (202 سطر)
+- `ui/empty-state.tsx` → EmptyState (74 سطر)
+- `ui/EmptyState.tsx` → EmptyState (45 سطر)
+- `ui/FeatureDisabledPanel.tsx` → FeatureDisabledPanel (74 سطر)
+- `ui/HelpButton.tsx` → HelpButton (48 سطر)
+- `ui/InfoTooltip.tsx` → InfoTooltip (45 سطر)
 - `ui/input.tsx` (23 سطر)
 - `ui/label.tsx` (27 سطر)
 - `ui/mobile-layout.tsx` → MobileLayout (118 سطر)

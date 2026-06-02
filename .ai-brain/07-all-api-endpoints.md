@@ -1,9 +1,9 @@
 # 07 - توثيق جميع مسارات API بالتفصيل (All API Endpoints)
 
-> **إجمالي عدد ملفات route.ts:** 849
-> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-05-15T23:04:43.595Z
+> **إجمالي عدد ملفات route.ts:** 888
+> **تم التوليد تلقائياً من الكود الفعلي بتاريخ:** 2026-06-02T07:57:11.467Z
 
-## 📂 `/api/accounting` (99 مسار)
+## 📂 `/api/accounting` (112 مسار)
 
 ### `/api/accounting/accounts/init`
 - **Methods:** POST
@@ -183,6 +183,54 @@
 - **Rate Limit:** `FINANCIAL`
 - **التحقق:** Zod Schema ✅
 
+### `/api/accounting/consolidation/eliminations/dry-run`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
+### `/api/accounting/consolidation/eliminations/requests`
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+
+### `/api/accounting/consolidation/eliminations/requests/[id]/approve`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** لا (عام)
+- **Rate Limit:** `DEFAULT`
+
+### `/api/accounting/consolidation/eliminations/requests/[id]/post`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+
+### `/api/accounting/consolidation/eliminations/requests/[id]/posting-preview`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
+### `/api/accounting/consolidation/eliminations/requests/[id]/reject`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** لا (عام)
+- **Rate Limit:** `DEFAULT`
+
+### `/api/accounting/consolidation/eliminations/requests/[id]/reverse`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+
+### `/api/accounting/consolidation/preview`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
 ### `/api/accounting/consolidation/run`
 - **Methods:** POST
 - **حماية:** `withRoute` ✅
@@ -320,6 +368,13 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
+### `/api/accounting/financial-report-audit`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `auditLog`
+
 ### `/api/accounting/financial-statements`
 - **Methods:** GET
 - **حماية:** `withRoute` ✅
@@ -352,6 +407,34 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+
+### `/api/accounting/fx-revaluation/bank/post`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/accounting/fx-revaluation/bank/preview`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/accounting/fx-revaluation/post`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/accounting/fx-revaluation/preview`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/accounting/fx-revaluation/run`
 - **Methods:** POST
@@ -386,7 +469,6 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
-- **التحقق:** Zod Schema ✅
 
 ### `/api/accounting/intercompany`
 - **Methods:** GET, POST
@@ -622,6 +704,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `account`
 
 ### `/api/accounting/vat-return`
 - **Methods:** GET, POST
@@ -684,10 +767,10 @@
 
 ### `/api/accounting/year-end-close`
 - **Methods:** GET, POST
-- **حماية:** `withRoute` ✅
+- **حماية:** ⚠️ بدون حماية
 - **مصادقة مطلوبة:** نعم
-- **Rate Limit:** `FINANCIAL`
-- **التحقق:** Zod Schema ✅
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `auditLog`
 
 ## 📂 `/api/adjustments` (1 مسار)
 
@@ -698,7 +781,15 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 
-## 📂 `/api/admin` (14 مسار)
+## 📂 `/api/admin` (16 مسار)
+
+### `/api/admin/audit-logs`
+- **Methods:** GET
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `auditLog`
 
 ### `/api/admin/backups`
 - **Methods:** GET, POST
@@ -727,7 +818,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `ADMIN`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `customer`
+- **جداول مستخدمة:** `product`, `unit`, `stock`, `customer`, `salesInvoice`, `eventLog`, `q2CJourney`, `purchaseOrder`, `purchaseInvoice`, `p2PJourney`, `employee`, `h2RJourney`, `fiscalPeriod`, `fiscalYear`, `r2RJourney`, `salesOrder`, `o2DJourney`, `planToProduceJourney`, `a2RJourney`, `supportTicket`, `i2RJourney`
 
 ### `/api/admin/knowledge`
 - **Methods:** GET, POST
@@ -743,16 +834,6 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `ADMIN`
 - **جداول مستخدمة:** `promptUsageLog`
-
-### `/api/admin/outbox/diagnostics`
-- **Methods:** GET
-- **حماية:** `withRoute` ✅
-- **مصادقة مطلوبة:** نعم
-- **Roles:** `admin`, `owner`, `system_admin`
-- **Rate Limit:** `ADMIN`
-- **جداول مستخدمة:** `OutboxEvent`
-- **Tenant:** كل queries تستخدم `tenantId` صريح
-- **Payload Safety:** لا يتم اختيار أو إرسال `payload`
 
 ### `/api/admin/nodes/backup`
 - **Methods:** POST
@@ -788,6 +869,12 @@
 - **Rate Limit:** `ADMIN`
 - **جداول مستخدمة:** `sagaTransaction`, `eventLog`, `q2CJourney`, `p2PJourney`, `h2RJourney`, `r2RJourney`, `o2DJourney`, `planToProduceJourney`, `a2RJourney`, `i2RJourney`
 
+### `/api/admin/outbox/diagnostics`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `ADMIN`
+
 ### `/api/admin/prompts`
 - **Methods:** GET, POST
 - **حماية:** `withRoute` ✅
@@ -795,6 +882,13 @@
 - **Rate Limit:** `ADMIN`
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `promptTemplate`
+
+### `/api/admin/siem`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `ADMIN`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/admin/system-audit`
 - **Methods:** GET
@@ -922,7 +1016,7 @@
 ## 📂 `/api/ap` (3 مسار)
 
 ### `/api/ap/capture`
-- **Methods:** GET, POST
+- **Methods:** GET, POST, PATCH, DELETE
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
@@ -1057,7 +1151,7 @@
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `auditLog`
 
-## 📂 `/api/auth` (23 مسار)
+## 📂 `/api/auth` (24 مسار)
 
 ### `/api/auth/2fa/backup-codes`
 - **Methods:** POST
@@ -1166,6 +1260,14 @@
 - **Rate Limit:** `AUTH`
 - **جداول مستخدمة:** `user`
 
+### `/api/auth/mfa/recovery`
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `AUTH`
+- **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `mfaRecoveryRequest`, `user`, `auditLog`
+
 ### `/api/auth/mfa/regenerate-codes`
 - **Methods:** POST
 - **حماية:** `withRoute` ✅
@@ -1220,6 +1322,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** لا (عام)
 - **Rate Limit:** `AUTH`
+- **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `user`
 
 ## 📂 `/api/b2b` (3 مسار)
@@ -1403,7 +1506,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
-- **جداول مستخدمة:** `budget`
+- **جداول مستخدمة:** `budget`, `journalLine`
 
 ## 📂 `/api/budgets` (2 مسار)
 
@@ -1438,6 +1541,14 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `category`, `product`
+
+## 📂 `/api/chains` (1 مسار)
+
+### `/api/chains/[chain]`
+- **Methods:** POST
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
 
 ## 📂 `/api/check-env` (1 مسار)
 
@@ -1550,7 +1661,7 @@
 
 ### `/api/copa/allocations`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -1564,7 +1675,7 @@
 
 ### `/api/copa`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -1774,7 +1885,7 @@
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `setting`, `product`
 
-## 📂 `/api/cron` (29 مسار)
+## 📂 `/api/cron` (30 مسار)
 
 ### `/api/cron/approval-sla`
 - **Methods:** GET, POST
@@ -1891,6 +2002,13 @@
 - **حماية:** ⚠️ بدون حماية
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+
+### `/api/cron/rag-reindex`
+- **Methods:** GET
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `userAgreement`
 
 ### `/api/cron/recurring-billing`
 - **Methods:** POST
@@ -2038,7 +2156,14 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 
-## 📂 `/api/desktop` (1 مسار)
+## 📂 `/api/desktop` (2 مسار)
+
+### `/api/desktop/trial/verify`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** لا (عام)
+- **Rate Limit:** `AUTH`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/desktop/verify-license`
 - **Methods:** POST
@@ -2277,7 +2402,7 @@
 
 ### `/api/finance/aging`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2295,13 +2420,13 @@
 
 ### `/api/finance/aro`
 - **Methods:** POST, PUT
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/finance/asset-lifecycle`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `fixedAsset`
@@ -2323,7 +2448,7 @@
 
 ### `/api/finance/bad-debt`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2406,7 +2531,7 @@
 
 ### `/api/finance/cashflow`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2421,8 +2546,8 @@
 - **Methods:** GET
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
-- **Rate Limit:** `DEFAULT`
-- **جداول مستخدمة:** `user`, `customer`, `product`, `treasury`, `salesInvoice`, `expense`
+- **Rate Limit:** `FINANCIAL`
+- **جداول مستخدمة:** `salesInvoice`, `purchaseInvoice`, `customer`, `treasury`, `product`
 
 ### `/api/finance/checks`
 - **Methods:** GET, POST
@@ -2463,7 +2588,7 @@
 
 ### `/api/finance/contract-assets`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2476,13 +2601,13 @@
 
 ### `/api/finance/copa`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/finance/deferred-tax`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2516,7 +2641,7 @@
 
 ### `/api/finance/equity-statement`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2528,7 +2653,7 @@
 
 ### `/api/finance/fs-notes`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2562,7 +2687,7 @@
 
 ### `/api/finance/impairment`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2582,7 +2707,7 @@
 
 ### `/api/finance/multi-gaap`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2612,6 +2737,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `paymentRun`
 
 ### `/api/finance/payment-run/[id]/confirm`
@@ -2619,6 +2745,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `paymentRun`
 
 ### `/api/finance/payment-run/[id]`
@@ -2633,6 +2760,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `paymentRun`
 
 ### `/api/finance/payment-runs/propose`
@@ -2683,7 +2811,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `periodCloseChecklist`
+- **جداول مستخدمة:** `periodCloseChecklist`, `auditLog`
 
 ### `/api/finance/period-close/[id]/step`
 - **Methods:** PATCH
@@ -2740,13 +2868,13 @@
 
 ### `/api/finance/segments`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/finance/transfer-pricing`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2954,11 +3082,19 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
-## 📂 `/api/hr` (39 مسار)
+## 📂 `/api/help` (1 مسار)
+
+### `/api/help`
+- **Methods:** GET
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
+## 📂 `/api/hr` (41 مسار)
 
 ### `/api/hr/attendance/punch`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -2972,13 +3108,13 @@
 
 ### `/api/hr/comp-review`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/hr/competency`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3021,7 +3157,7 @@
 
 ### `/api/hr/ess`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3106,7 +3242,7 @@
 
 ### `/api/hr/lms`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3123,6 +3259,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/hr/mudad/wps/submit/[batchId]`
 - **Methods:** POST
@@ -3132,7 +3269,7 @@
 
 ### `/api/hr/okrs`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3169,7 +3306,7 @@
 
 ### `/api/hr/payroll/multi-country`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3189,21 +3326,34 @@
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `employeeEvaluation`, `employee`
 
+### `/api/hr/qiwa/contracts`
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
+
+### `/api/hr/qiwa`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
 ### `/api/hr/recruitment`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/hr/safety`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/hr/succession`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3463,7 +3613,7 @@
 
 ### `/api/inventory/reorder`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `product`
@@ -3501,6 +3651,15 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+
+## 📂 `/api/learn` (1 مسار)
+
+### `/api/learn/courses`
+- **Methods:** GET
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `trainingVideo`
 
 ## 📂 `/api/license` (1 مسار)
 
@@ -3577,9 +3736,10 @@
 
 ### `/api/manufacturing/aps`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/manufacturing/blockchain-trace`
 - **Methods:** GET
@@ -3590,7 +3750,7 @@
 
 ### `/api/manufacturing/bom`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3634,7 +3794,7 @@
 
 ### `/api/manufacturing/eco`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3655,13 +3815,13 @@
 
 ### `/api/manufacturing/mes`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/manufacturing/mes-oee`
 - **Methods:** GET
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3688,7 +3848,7 @@
 
 ### `/api/manufacturing/oee`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3800,13 +3960,13 @@
 
 ### `/api/manufacturing/sop`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/manufacturing/spc`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -3909,15 +4069,74 @@
 
 ### `/api/metrics`
 - **Methods:** GET
-- **حماية:** `withRoute` ✅
+- **حماية:** ⚠️ بدون حماية
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+
+## 📂 `/api/migration` (1 مسار)
+
+### `/api/migration/start`
+- **Methods:** POST
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `migrationRun`
 
 ## 📂 `/api/notifications` (1 مسار)
 
 ### `/api/notifications/stream`
 - **Methods:** GET
 - **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+
+## 📂 `/api/open-items` (7 مسار)
+
+### `/api/open-items/allocate/customer-allocation`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items/allocate/reversal`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items/allocate/supplier-allocation`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items/preview/customer-allocation`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items/preview/reversal`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items/preview/supplier-allocation`
+- **Methods:** POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `FINANCIAL`
+- **التحقق:** Zod Schema ✅
+
+### `/api/open-items`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -4007,10 +4226,17 @@
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `payrollInvoice`
 
-## 📂 `/api/pdpl` (3 مسار)
+## 📂 `/api/pdpl` (5 مسار)
 
 ### `/api/pdpl/breach`
 - **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
+
+### `/api/pdpl/breach/[id]`
+- **Methods:** GET, PATCH
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
@@ -4029,6 +4255,13 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
+### `/api/pdpl/dsr/[id]`
+- **Methods:** GET, PATCH
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
+
 ## 📂 `/api/pharmacy` (6 مسار)
 
 ### `/api/pharmacy/drug-interactions`
@@ -4045,7 +4278,6 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `product`
 
 ### `/api/pharmacy/insurance/journal`
 - **Methods:** POST
@@ -4186,7 +4418,13 @@
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `customer`, `leaseContract`
 
-## 📂 `/api/pos` (13 مسار)
+## 📂 `/api/pos` (14 مسار)
+
+### `/api/pos/accountant`
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
 
 ### `/api/pos/bnpl`
 - **Methods:** POST
@@ -4207,7 +4445,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
-- **جداول مستخدمة:** `setting`, `salesInvoice`
+- **جداول مستخدمة:** `customer`, `setting`, `salesInvoice`
 
 ### `/api/pos/pending-orders`
 - **Methods:** GET, POST
@@ -4228,7 +4466,8 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
-- **جداول مستخدمة:** `restaurantZone`, `restaurantTable`, `restaurantSession`, `waiterCall`
+- **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `restaurantZone`, `restaurantTable`, `auditLog`, `restaurantSession`, `waiterCall`
 
 ### `/api/pos/restaurant/kds`
 - **Methods:** GET, POST
@@ -4250,6 +4489,7 @@
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
+- **جداول مستخدمة:** `customer`
 
 ### `/api/pos/sessions/close`
 - **Methods:** POST
@@ -4293,9 +4533,9 @@
 
 ### `/api/procurement/ap-ocr`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
-- **Rate Limit:** `DEFAULT`
+- **Rate Limit:** `AI`
 
 ### `/api/procurement/auto-draft`
 - **Methods:** POST
@@ -4306,7 +4546,7 @@
 
 ### `/api/procurement/blanket-po`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -4320,13 +4560,13 @@
 
 ### `/api/procurement/dropship`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/procurement/reverse-auction`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -4362,13 +4602,13 @@
 
 ### `/api/procurement/rma`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/procurement/spend-analytics`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -4382,13 +4622,13 @@
 
 ### `/api/procurement/supplier-portal`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/procurement/vendor-onboarding`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -4575,13 +4815,19 @@
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `purchaseReturn`, `user`, `purchaseInvoice`
 
-## 📂 `/api/purchases` (16 مسار)
+## 📂 `/api/purchases` (17 مسار)
 
 ### `/api/purchases/drop-ship`
 - **Methods:** POST
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `FINANCIAL`
+
+### `/api/purchases/gr-ir-clear/preview`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
 
 ### `/api/purchases/grn`
 - **Methods:** GET, POST
@@ -4679,7 +4925,7 @@
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
-- **جداول مستخدمة:** `user`, `purchaseInvoice`
+- **جداول مستخدمة:** `user`, `purchaseInvoice`, `purchaseOrder`
 
 ### `/api/purchases/three-way-match`
 - **Methods:** GET, PUT
@@ -4724,7 +4970,7 @@
 - **Methods:** POST
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
-- **Rate Limit:** `DEFAULT`
+- **Rate Limit:** `FINANCIAL`
 - **التحقق:** Zod Schema ✅
 
 ## 📂 `/api/recurring-invoices` (1 مسار)
@@ -5669,6 +5915,15 @@
 - **مصادقة مطلوبة:** لا (عام)
 - **Rate Limit:** `PUBLIC`
 
+## 📂 `/api/test-runs` (1 مسار)
+
+### `/api/test-runs`
+- **Methods:** GET, POST
+- **حماية:** ⚠️ بدون حماية
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **جداول مستخدمة:** `testRun`
+
 ## 📂 `/api/test-tenant` (1 مسار)
 
 ### `/api/test-tenant`
@@ -5703,7 +5958,7 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 
-## 📂 `/api/treasury` (12 مسار)
+## 📂 `/api/treasury` (13 مسار)
 
 ### `/api/treasury/balance`
 - **Methods:** GET
@@ -5734,10 +5989,16 @@
 
 ### `/api/treasury/bank-statements`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `bankStatement`, `bankStatementLine`
+
+### `/api/treasury/cash-forecast`
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
 
 ### `/api/treasury/cash-position`
 - **Methods:** GET
@@ -6011,13 +6272,13 @@
 
 ### `/api/warehouse/cross-dock`
 - **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
 ### `/api/warehouse/slotting`
 - **Methods:** GET, POST
-- **حماية:** ⚠️ بدون حماية
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
 
@@ -6065,10 +6326,11 @@
 ## 📂 `/api/webhooks` (5 مسار)
 
 ### `/api/webhooks`
-- **Methods:** POST
-- **حماية:** ⚠️ بدون حماية
+- **Methods:** GET, POST
+- **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
 
 ### `/api/webhooks/salla`
 - **Methods:** POST
@@ -6108,7 +6370,7 @@
 - **Rate Limit:** `DEFAULT`
 - **جداول مستخدمة:** `user`, `approvalStep`, `approvalRequest`
 
-## 📂 `/api/wht` (2 مسار)
+## 📂 `/api/wht` (3 مسار)
 
 ### `/api/wht/calculate`
 - **Methods:** POST
@@ -6124,10 +6386,17 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 
+### `/api/wht/form14`
+- **Methods:** GET
+- **حماية:** `withRoute` ✅
+- **مصادقة مطلوبة:** نعم
+- **Rate Limit:** `DEFAULT`
+- **التحقق:** Zod Schema ✅
+
 ## 📂 `/api/wms` (1 مسار)
 
 ### `/api/wms/waves`
-- **Methods:** POST
+- **Methods:** GET, POST
 - **حماية:** `withRoute` ✅
 - **مصادقة مطلوبة:** نعم
 - **Rate Limit:** `DEFAULT`
@@ -6239,3 +6508,4 @@
 - **Rate Limit:** `DEFAULT`
 - **التحقق:** Zod Schema ✅
 - **جداول مستخدمة:** `salesInvoice`
+

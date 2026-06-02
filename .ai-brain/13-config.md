@@ -91,6 +91,15 @@ const nextConfig: NextConfig = {
     return config;
   },
 
+  async redirects() {
+    return [
+      { source: '/ar/:path*', destination: '/:path*', permanent: true },
+      { source: '/en/:path*', destination: '/:path*', permanent: true },
+      { source: '/ar', destination: '/', permanent: true },
+      { source: '/en', destination: '/', permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       // ── Security Headers (global) ─────────────────────────────────────────
@@ -189,7 +198,7 @@ export default withSentryConfig(nextConfig, {
 
 ## `.env.example`
 ```
-﻿# ──────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────
 # NamaSoft ERP — Environment Variables Template
 # Copy this file to .env and fill in real values.
 # NEVER commit .env to git — it's in .gitignore
@@ -271,6 +280,7 @@ WPS_BANK_CODE=your-wps-bank-code
 WHATSAPP_ACCESS_TOKEN=your-whatsapp-access-token
 WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
 WHATSAPP_VERIFY_TOKEN=your-webhook-verify-token
+
 
 ```
 

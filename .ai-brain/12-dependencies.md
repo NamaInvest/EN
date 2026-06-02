@@ -10,11 +10,11 @@
 - `npm run start` → `next start`
 - `npm run worker` → `tsx src/scripts/start_workers.ts`
 - `npm run start:whatsapp` → `tsx src/workers/whatsapp.ts`
-- `npm run lint` → `eslint`
+- `npm run lint` → `eslint src prisma tests __tests__ middleware.ts next.config.ts instrumentation.ts sentry.client.config.ts sentry.edge.config.ts sentry.server.config.ts`
 - `npm run db:generate` → `npx prisma generate`
 - `npm run db:push` → `npx prisma db push`
 - `npm run db:seed` → `npx tsx prisma/seed.ts`
-- `npm run db:setup` → `npx prisma db push && npx tsx prisma/seed.ts`
+- `npm run db:setup` → `npx prisma db push && npx tsx prisma/seed.ts && npx tsx src/scripts/setup-db-triggers.ts`
 - `npm run db:studio` → `npx prisma studio`
 - `npm run electron:dev` → `concurrently "node scripts/start-desktop.js" "wait-on http://localhost:3500 && electron ."`
 - `npm run electron:build` → `npm version patch --no-git-tag-version && node scripts/prebuild.js && cross-env ELECTRON_BUILD=1 next build && cross-env ELECTRON_BUILD=1 node scripts/clean-standalone.js && cross-env ELECTRON_BUILD=1 node scripts/protect-code.js && cross-env ELECTRON_BUILD=1 electron-builder --win`
@@ -22,20 +22,28 @@
 - `npm run electron:protect` → `node scripts/protect-code.js`
 - `npm run prepare` → `husky`
 - `npm run test` → `jest --passWithNoTests --forceExit`
-- `npm run test:unit` → `jest --testPathIgnorePatterns=financial-integration --passWithNoTests --forceExit`
+- `npm run test:unit` → `jest --selectProjects unit --passWithNoTests --forceExit`
 - `npm run test:e2e` → `cross-env TEST_BASE_URL=http://localhost:3000 jest --testPathPattern=financial-integration --runInBand --forceExit`
 - `npm run test:cov` → `jest --coverage --passWithNoTests --forceExit`
 - `npm run openapi` → `node scripts/generate-openapi.js`
 - `npm run audit:zod` → `node scripts/audit-zod.js`
+- `npm run audit:tenant` → `node scripts/audit-tenant-isolation.js`
 - `npm run typecheck` → `npx tsc --noEmit`
+- `npm run check:mojibake` → `node scripts/check-mojibake.js`
 - `npm run validate` → `npx tsc --noEmit && npx eslint src/ --max-warnings 0 && jest --passWithNoTests --forceExit`
 - `npm run db:migrate` → `npx prisma migrate deploy`
 - `npm run clean` → `rm -rf .next node_modules/.cache`
 - `npm run test:domain` → `jest --testPathPattern=tests/ --passWithNoTests --forceExit`
 - `npm run health` → `curl -s http://localhost:3000/api/health | npx -y prettier --parser json`
 - `npm run analyze` → `cross-env ANALYZE=true npm run build`
+- `npm run erd:generate` → `tsx scripts/generate-erd.ts`
+- `npm run test:integration` → `vitest run tests/integration/accounting tests/integration/treasury tests/integration/sales tests/integration/procurement tests/integration/security`
+- `npm run test:security` → `vitest run tests/security`
+- `npm run test:coverage` → `vitest run --coverage`
+- `npm run test:e2e:list` → `playwright test --list`
+- `npm run test:e2e:local` → `playwright test`
 
-## الحزم الأساسية (76 حزمة)
+## الحزم الأساسية (78 حزمة)
 - `@asteasolutions/zod-to-openapi`: ^8.5.0
 - `@clerk/localizations`: ^4.6.2
 - `@clerk/nextjs`: ^7.3.3
@@ -75,6 +83,7 @@
 - `exceljs`: ^4.4.0
 - `face-api.js`: ^0.22.2
 - `fast-xml-parser`: ^5.8.0
+- `gpt-tokenizer`: ^3.4.0
 - `iconv-lite`: ^0.7.2
 - `ioredis`: ^5.10.1
 - `jsonwebtoken`: ^9.0.3
@@ -100,6 +109,7 @@
 - `react-hook-form`: ^7.75.0
 - `react-hot-toast`: ^2.4.1
 - `react-organizational-chart`: ^2.2.1
+- `react-pdf`: ^10.4.1
 - `recharts`: ^3.8.1
 - `showdown`: ^2.1.0
 - `speakeasy`: ^2.0.0
@@ -113,10 +123,14 @@
 - `zatca-xml-js`: ^0.1.9
 - `zod`: ^4.4.3
 
-## حزم التطوير (46 حزمة)
+## حزم التطوير (55 حزمة)
 - `@electron/asar`: ^4.2.0
 - `@electron/rebuild`: ^4.0.4
 - `@playwright/test`: ^1.59.1
+- `@redocly/cli`: ^2.31.2
+- `@softwaretechnik/dbml-renderer`: ^1.0.31
+- `@storybook/react`: ^10.4.0
+- `@stryker-mutator/core`: ^9.6.1
 - `@tailwindcss/postcss`: ^4
 - `@testcontainers/postgresql`: ^11.14.0
 - `@testcontainers/redis`: ^11.14.0
@@ -141,15 +155,20 @@
 - `cross-env`: ^10.1.0
 - `electron`: ^42.0.1
 - `electron-builder`: ^26.8.1
-- `eslint`: ^10
+- `eslint`: ^9.39.4
 - `eslint-config-next`: 16.2.6
 - `fast-check`: ^4.7.0
 - `husky`: ^9.1.7
+- `i18next-parser`: ^9.0.2
+- `i18next-scanner`: ^4.6.0
 - `javascript-obfuscator`: ^5.4.2
 - `jest`: ^30.4.2
 - `jest-environment-jsdom`: ^30.4.1
 - `lint-staged`: ^17.0.4
+- `openapi-to-postmanv2`: ^6.0.1
+- `openapi-typescript`: ^7.13.0
 - `png-to-ico`: ^3.0.1
+- `prisma-dbml-generator`: ^0.12.0
 - `redis`: ^5.12.1
 - `sharp`: ^0.34.5
 - `tailwindcss`: ^4
