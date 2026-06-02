@@ -82,15 +82,17 @@
 
 ## Next Recommended Action
 
-`GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_LOCAL_SCRIPTS_IMPLEMENTATION)
+`GO_FOR_P1_FIX_APPROVAL_ONLY` (E2E_STAGING_READINESS_TRACK / BLOCKED_REQUIRES_MANUAL_P1_REMEDIATION_APPROVAL)
 
 ### Reason
-تم بحمد الله وتوفيقه الفحص والتدقيق الفني المعمق لكامل المشروع (Full Project Deep Audit) بنجاح تشغيلي وتجميعي بنسبة 100%، وتوليد 10 تقارير متكاملة بداخل المجلد `docs/reports/full-project-audit/` لتغطية كافة الثغرات والخطط الهندسية للإصلاح.
+تم إعداد خطة الإصلاح والمعالجة للمشاكل عالية الخطورة (P1 Fix Plan) بنجاح كامل في تقرير `docs/reports/full-project-audit/P1_FIX_PLAN.md` لتأمين عزل الكرونات، والتوقيع المشترك للـ MFA، وحماية الفترات المقفلة للمخازن.
 
-نظراً لوجود ثغرات محاسبية وأمنية مصنفة كـ `P1 High` (مثل عزل الكرونات، والموافقة الإدارية الثنائية للـ MFA، وحوكمة إغلاق الحسابات المخزنية)، تم دمج هذه الاحتياجات كخطط إصلاح وتثبيتها تحت البوابات الحاكمة المخصصة.
+بناءً عليه، يتم تعليق وحظر التقدم التشغيلي لحين صدور الموافقة الإدارية الصريحة على هذه الإصلاحات المقترحة:
+`BLOCKED_REQUIRES_MANUAL_P1_REMEDIATION_APPROVAL`
 
-تبقى البوابة الهندسية والبرمجية القادمة المقررة لمسار الـ E2E هي برمجة سكربتات التطهير وتغذية البيانات محلياً:
-`GO_FOR_STAGING_E2E_ENVIRONMENT_LOCAL_SCRIPTS_IMPLEMENTATION_ONLY`
+البوابة التشغيلية القادمة المقررة هي:
+`GO_FOR_P1_FIX_APPROVAL_ONLY`
+
 
 
 

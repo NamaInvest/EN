@@ -28,6 +28,8 @@
 | **8** | [FULL_PROJECT_PERFORMANCE_SRE_AUDIT.md](file:///d:/namasoft9-3-main/docs/reports/full-project-audit/FULL_PROJECT_PERFORMANCE_SRE_AUDIT.md) | أداء وسعة استعلامات قاعدة البيانات وسجلات المراقبة Winston. |
 | **9** | [FULL_PROJECT_NEXT_ACTIONS_ROADMAP.md](file:///d:/namasoft9-3-main/docs/reports/full-project-audit/FULL_PROJECT_NEXT_ACTIONS_ROADMAP.md) | خارطة الطريق المجدولة زمنياً للإصلاحات وخطوط بوابات العبور المقترحة. |
 | **10**| [FULL_PROJECT_AUDIT_EXPORT_INDEX.md](file:///d:/namasoft9-3-main/docs/reports/full-project-audit/FULL_PROJECT_AUDIT_EXPORT_INDEX.md) | الفهرس المرجعي الحالي لكافة الوثائق البرمجية المصدرة للفحص. |
+| **11**| [P1_FIX_PLAN.md](file:///d:/namasoft9-3-main/docs/reports/full-project-audit/P1_FIX_PLAN.md) | خطة الإصلاح والمعالجة التفصيلية للمشاكل المحورية عالية الخطورة. |
+
 
 ---
 

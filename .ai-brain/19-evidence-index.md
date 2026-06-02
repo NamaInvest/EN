@@ -75,6 +75,8 @@
 | 2026-06-02 | `FULL_PROJECT_PERFORMANCE_SRE_AUDIT` | `docs/reports/full-project-audit/FULL_PROJECT_PERFORMANCE_SRE_AUDIT.md` | تقرير أداء وسعة استعلامات قاعدة البيانات وسجلات المراقبة والتحذير. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `FULL_PROJECT_NEXT_ACTIONS_ROADMAP` | `docs/reports/full-project-audit/FULL_PROJECT_NEXT_ACTIONS_ROADMAP.md` | خارطة الطريق المجدولة زمنياً للإصلاحات وخطوط بوابات العبور المقترحة. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `FULL_PROJECT_AUDIT_EXPORT_INDEX` | `docs/reports/full-project-audit/FULL_PROJECT_AUDIT_EXPORT_INDEX.md` | الفهرس المرجعي العام لكافة الوثائق البرمجية المصدرة للفحص المعمق. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_FIX_PLAN` | `docs/reports/full-project-audit/P1_FIX_PLAN.md` | خطة الإصلاح والمعالجة التفصيلية للمشاكل المحورية عالية الخطورة P1. | `VERIFIED_BY_REPORT` |
+
 
 
 
