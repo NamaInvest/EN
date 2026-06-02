@@ -76,3 +76,8 @@ id_rsa*
 # Prevent planning/report leaks
 tmp/*
 !tmp/agent-scan-report.md
+
+# Test coverage outputs
+/coverage-custom/
+/docs/reports/coverage/
+/docs/reports/coverage-summary.json
