@@ -36,7 +36,11 @@
         "health": "curl -s http://localhost:3000/api/health | npx -y prettier --parser json",
         "analyze": "cross-env ANALYZE=true npm run build",
         "erd:generate": "tsx scripts/generate-erd.ts",
-        "test:integration": "vitest run tests/integration/accounting tests/integration/treasury tests/integration/sales tests/integration/procurement tests/integration/security"
+        "test:integration": "vitest run tests/integration/accounting tests/integration/treasury tests/integration/sales tests/integration/procurement tests/integration/security",
+        "test:security": "vitest run tests/security",
+        "test:coverage": "vitest run --coverage",
+        "test:e2e:list": "playwright test --list",
+        "test:e2e:local": "playwright test"
     },
     "prisma": {
         "seed": "npx tsx prisma/seed.ts"
@@ -177,5 +181,13 @@
         "typescript": "^6",
         "vitest": "^4.1.5",
         "wait-on": "^9.0.5"
+    },
+    "overrides": {
+        "serialize-javascript": "^7.0.5",
+        "xmldom": "npm:@xmldom/xmldom@^0.8.8",
+        "path-to-regexp": "^8.4.0",
+        "tmp": "^0.2.6",
+        "picomatch": "^2.3.2",
+        "js-cookie": "^3.0.7"
     }
 }
