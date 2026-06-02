@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import prisma, { withTenant } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'cron-daily-audit' });
@@ -37,107 +37,109 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
   }
 
-  // Build date range (yesterday by default)
-  const auditDate = date ? new Date(date) : new Date();
-  auditDate.setDate(auditDate.getDate() - 1);
-  const fromDate = new Date(auditDate);
-  fromDate.setHours(0, 0, 0, 0);
-  const toDate = new Date(auditDate);
-  toDate.setHours(23, 59, 59, 999);
+  return withTenant(tenantId, async () => {
+    // Build date range (yesterday by default)
+    const auditDate = date ? new Date(date) : new Date();
+    auditDate.setDate(auditDate.getDate() - 1);
+    const fromDate = new Date(auditDate);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(auditDate);
+    toDate.setHours(23, 59, 59, 999);
 
-  // 1. All audit logs for the period
-  const auditLogs = await (prisma as any).auditLog?.findMany?.({
-    where: {
+    // 1. All audit logs for the period
+    const auditLogs = await (prisma as any).auditLog?.findMany?.({
+      where: {
+        tenantId,
+        createdAt: { gte: fromDate, lte: toDate },
+      },
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 500,
+    }).catch(() => []) ?? [];
+
+    // 2. Categorize
+    const deletes      = auditLogs.filter((l: any) => l.action === 'DELETE');
+    const updates      = auditLogs.filter((l: any) => l.action === 'UPDATE');
+    const creates      = auditLogs.filter((l: any) => l.action === 'CREATE');
+    const highRisk     = deletes.filter((l: any) => HIGH_RISK_TABLES.includes(l.tableName));
+    const authChanges  = auditLogs.filter((l: any) =>
+      l.tableName === 'user' && l.diff && (l.diff.password || l.diff.role || l.diff.permissions)
+    );
+
+    // 3. High-value journal entries (check JournalEntry creates/updates)
+    const largeJournals = await (prisma as any).journalEntry?.findMany?.({
+      where: {
+        tenantId,
+        createdAt:  { gte: fromDate, lte: toDate },
+        totalDebit: { gte: LARGE_AMOUNT_THRESHOLD },
+      },
+      select: { id: true, date: true, description: true, totalDebit: true, reference: true, createdBy: true },
+      take: 20,
+    }).catch(() => []) ?? [];
+
+    // 4. Build digest summary
+    const digest = {
       tenantId,
-      createdAt: { gte: fromDate, lte: toDate },
-    },
-    include: { user: { select: { id: true, name: true, email: true } } },
-    orderBy: { createdAt: 'desc' },
-    take: 500,
-  }).catch(() => []) ?? [];
+      date:          auditDate.toISOString().split('T')[0],
+      summary: {
+        totalEvents:     auditLogs.length,
+        creates:         creates.length,
+        updates:         updates.length,
+        deletes:         deletes.length,
+        highRiskDeletes: highRisk.length,
+        authChanges:     authChanges.length,
+        largeJournals:   largeJournals.length,
+      },
+      alerts: {
+        highRiskDeletes: highRisk.map((l: any) => ({
+          table:   l.tableName,
+          recordId: l.recordId,
+          user:    l.user?.name ?? `User #${l.userId}`,
+          at:      l.createdAt,
+        })),
+        authChanges: authChanges.map((l: any) => ({
+          userId:  l.recordId,
+          user:    l.user?.name,
+          changes: Object.keys(l.diff ?? {}),
+          at:      l.createdAt,
+        })),
+        largeJournals: largeJournals.map((j: any) => ({
+          id:          j.id,
+          reference:   j.reference,
+          description: j.description,
+          amount:      Number(j.totalDebit),
+          createdBy:   j.createdBy,
+        })),
+      },
+      riskScore: calculateRiskScore(highRisk.length, authChanges.length, largeJournals.length),
+      generatedAt: new Date().toISOString(),
+    };
 
-  // 2. Categorize
-  const deletes      = auditLogs.filter((l: any) => l.action === 'DELETE');
-  const updates      = auditLogs.filter((l: any) => l.action === 'UPDATE');
-  const creates      = auditLogs.filter((l: any) => l.action === 'CREATE');
-  const highRisk     = deletes.filter((l: any) => HIGH_RISK_TABLES.includes(l.tableName));
-  const authChanges  = auditLogs.filter((l: any) =>
-    l.tableName === 'user' && l.diff && (l.diff.password || l.diff.role || l.diff.permissions)
-  );
+    // 5. Send Telegram notification if high risk
+    if (digest.riskScore >= 7) {
+      await sendTelegramAlert(tenantId, digest);
+    }
 
-  // 3. High-value journal entries (check JournalEntry creates/updates)
-  const largeJournals = await (prisma as any).journalEntry?.findMany?.({
-    where: {
+    // 6. Save digest snapshot
+    await (prisma as any).auditDigest?.create?.({
+      data: {
+        tenantId,
+        date:      auditDate,
+        summary:   JSON.stringify(digest.summary),
+        alerts:    JSON.stringify(digest.alerts),
+        riskScore: digest.riskScore,
+      },
+    }).catch(() => null);
+
+    log.info('Daily audit digest complete', {
       tenantId,
-      createdAt:  { gte: fromDate, lte: toDate },
-      totalDebit: { gte: LARGE_AMOUNT_THRESHOLD },
-    },
-    select: { id: true, date: true, description: true, totalDebit: true, reference: true, createdBy: true },
-    take: 20,
-  }).catch(() => []) ?? [];
-
-  // 4. Build digest summary
-  const digest = {
-    tenantId,
-    date:          auditDate.toISOString().split('T')[0],
-    summary: {
-      totalEvents:     auditLogs.length,
-      creates:         creates.length,
-      updates:         updates.length,
-      deletes:         deletes.length,
-      highRiskDeletes: highRisk.length,
-      authChanges:     authChanges.length,
-      largeJournals:   largeJournals.length,
-    },
-    alerts: {
-      highRiskDeletes: highRisk.map((l: any) => ({
-        table:   l.tableName,
-        recordId: l.recordId,
-        user:    l.user?.name ?? `User #${l.userId}`,
-        at:      l.createdAt,
-      })),
-      authChanges: authChanges.map((l: any) => ({
-        userId:  l.recordId,
-        user:    l.user?.name,
-        changes: Object.keys(l.diff ?? {}),
-        at:      l.createdAt,
-      })),
-      largeJournals: largeJournals.map((j: any) => ({
-        id:          j.id,
-        reference:   j.reference,
-        description: j.description,
-        amount:      Number(j.totalDebit),
-        createdBy:   j.createdBy,
-      })),
-    },
-    riskScore: calculateRiskScore(highRisk.length, authChanges.length, largeJournals.length),
-    generatedAt: new Date().toISOString(),
-  };
-
-  // 5. Send Telegram notification if high risk
-  if (digest.riskScore >= 7) {
-    await sendTelegramAlert(tenantId, digest);
-  }
-
-  // 6. Save digest snapshot
-  await (prisma as any).auditDigest?.create?.({
-    data: {
-      tenantId,
-      date:      auditDate,
-      summary:   JSON.stringify(digest.summary),
-      alerts:    JSON.stringify(digest.alerts),
+      date: digest.date,
+      events: digest.summary.totalEvents,
       riskScore: digest.riskScore,
-    },
-  }).catch(() => null);
+    });
 
-  log.info('Daily audit digest complete', {
-    tenantId,
-    date: digest.date,
-    events: digest.summary.totalEvents,
-    riskScore: digest.riskScore,
+    return NextResponse.json(digest);
   });
-
-  return NextResponse.json(digest);
 }
 
 function calculateRiskScore(highRiskDeletes: number, authChanges: number, largeJournals: number): number {

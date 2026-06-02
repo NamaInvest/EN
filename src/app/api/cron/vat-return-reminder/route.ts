@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withTenant } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log  = logger.child({ service: 'cron.vat-reminder' });
@@ -46,36 +46,38 @@ export async function POST(req: NextRequest) {
   for (const tenant of tenants) {
     const tenantId = String(tenant.id ?? tenant.code);
 
-    // Quick VAT estimate from current month invoices
-    const monthStart = new Date(year, month - 1, 1);
-    const monthEnd   = new Date(year, month, 0, 23, 59, 59);
+    await withTenant(tenantId, async () => {
+      // Quick VAT estimate from current month invoices
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd   = new Date(year, month, 0, 23, 59, 59);
 
-    const salesAgg = await p.salesInvoice?.aggregate?.({
-      _sum: { vatAmount: true, subtotal: true },
-      where: { tenantId, issueDate: { gte: monthStart, lte: monthEnd }, status: { in: ['POSTED','SENT','PAID'] } },
-    }).catch(() => null);
+      const salesAgg = await p.salesInvoice?.aggregate?.({
+        _sum: { vatAmount: true, subtotal: true },
+        where: { tenantId, issueDate: { gte: monthStart, lte: monthEnd }, status: { in: ['POSTED','SENT','PAID'] } },
+      }).catch(() => null);
 
-    const purchAgg = await p.purchaseInvoice?.aggregate?.({
-      _sum: { vatAmount: true },
-      where: { tenantId, date: { gte: monthStart, lte: monthEnd }, status: { in: ['POSTED','APPROVED','PAID'] } },
-    }).catch(() => null);
+      const purchAgg = await p.purchaseInvoice?.aggregate?.({
+        _sum: { vatAmount: true },
+        where: { tenantId, date: { gte: monthStart, lte: monthEnd }, status: { in: ['POSTED','APPROVED','PAID'] } },
+      }).catch(() => null);
 
-    const outputVAT = Number(salesAgg?._sum?.vatAmount ?? 0);
-    const inputVAT  = Number(purchAgg?._sum?.vatAmount ?? 0);
-    const estimatedNet = Math.round((outputVAT - inputVAT) * 100) / 100;
+      const outputVAT = Number(salesAgg?._sum?.vatAmount ?? 0);
+      const inputVAT  = Number(purchAgg?._sum?.vatAmount ?? 0);
+      const estimatedNet = Math.round((outputVAT - inputVAT) * 100) / 100;
 
-    results.push({ tenantId, estimatedVAT: estimatedNet, notified: true });
+      results.push({ tenantId, estimatedVAT: estimatedNet, notified: true });
 
-    // Create notification record
-    await p.notification?.create?.({
-      data: {
-        tenantId,
-        type:    'VAT_RETURN_REMINDER',
-        title:   `تذكير: إقرار ضريبة القيمة المضافة — ${period}`,
-        message: `الموعد النهائي للتقديم: ${deadline.toISOString().split('T')[0]} (${daysLeft} يوم متبقي)\nالضريبة المقدّرة: ${estimatedNet.toLocaleString('ar-SA')} ر.س`,
-        isRead:  false,
-      },
-    }).catch(() => null);
+      // Create notification record
+      await p.notification?.create?.({
+        data: {
+          tenantId,
+          type:    'VAT_RETURN_REMINDER',
+          title:   `تذكير: إقرار ضريبة القيمة المضافة — ${period}`,
+          message: `الموعد النهائي للتقديم: ${deadline.toISOString().split('T')[0]} (${daysLeft} يوم متبقي)\nالضريبة المقدّرة: ${estimatedNet.toLocaleString('ar-SA')} ر.س`,
+          isRead:  false,
+        },
+      }).catch(() => null);
+    });
   }
 
   // Telegram

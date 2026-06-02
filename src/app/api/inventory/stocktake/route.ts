@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { logger } from '@/lib/logger';
+import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
 
 const log = logger.child({ service: 'inventory.stocktake' });
 
@@ -25,9 +26,7 @@ export const GET = withRoute(async ({ prisma, auth }) => {
       take:    100,
     }) ?? [];
     return NextResponse.json(sessions);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+  } catch (e: any) { log.error(e); return NextResponse.json([], { status: 500 }); }
 }, { rateLimit: 'DEFAULT' });
 
 // POST — create stocktake session
@@ -36,11 +35,42 @@ export const POST = withRoute(async ({ req, prisma, auth }) => {
   const body     = await req.json().catch(() => ({}));
   const { stockId, reference, notes } = body;
 
+  const { buildOverrideContextFromRequest } = await import('@/lib/governance/override-context');
+  const overrideContext = buildOverrideContextFromRequest(req as any, {
+      tenantId,
+      actorId: String(auth.userId),
+      actorRole: auth.role
+  });
+
+  const inputDate = body.startDate || body.date || body.postingDate;
+  const resolvedPostingDate = inputDate ? new Date(inputDate) : new Date();
+
+  // ── Period Lock Enforcement ────────────────────────────────────────
+  try {
+    await assertPeriodWritable({
+      tenantId,
+      postingDate: resolvedPostingDate,
+      operationType: 'STOCKTAKE_SESSION_CREATE',
+      module: 'inventory',
+      actor: String(auth.userId),
+      overrideContext
+    });
+  } catch (err) {
+    if (err instanceof PeriodLockViolation) {
+      return NextResponse.json({
+        error: err.message,
+        code: err.code
+      }, { status: err.code === 'LOCKED' ? 409 : 422 });
+    }
+    throw err;
+  }
+  // ────────────────────────────────────────────────────────────────────
+
   try {
     const session = await (prisma as any).stocktake?.create({
       data: {
         tenantId, stockId: Number(stockId), reference,
-        notes, status: 'OPEN', startDate: new Date(),
+        notes, status: 'OPEN', startDate: resolvedPostingDate,
         createdBy: auth.userId,
       },
     }) ?? await (prisma as any).stockTakeSession?.create({

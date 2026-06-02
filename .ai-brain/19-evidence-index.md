@@ -76,6 +76,9 @@
 | 2026-06-02 | `FULL_PROJECT_NEXT_ACTIONS_ROADMAP` | `docs/reports/full-project-audit/FULL_PROJECT_NEXT_ACTIONS_ROADMAP.md` | خارطة الطريق المجدولة زمنياً للإصلاحات وخطوط بوابات العبور المقترحة. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `FULL_PROJECT_AUDIT_EXPORT_INDEX` | `docs/reports/full-project-audit/FULL_PROJECT_AUDIT_EXPORT_INDEX.md` | الفهرس المرجعي العام لكافة الوثائق البرمجية المصدرة للفحص المعمق. | `VERIFIED_BY_REPORT` |
 | 2026-06-02 | `P1_FIX_PLAN` | `docs/reports/full-project-audit/P1_FIX_PLAN.md` | خطة الإصلاح والمعالجة التفصيلية للمشاكل المحورية عالية الخطورة P1. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_AUTOPILOT_IMPLEMENTATION_SCAN` | `docs/reports/full-project-audit/P1_AUTOPILOT_IMPLEMENTATION_SCAN.md` | تقرير الفحص الفني المبدئي والمخاطر ومصفوفة الحظر التشغيلية قبل الإصلاح. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_AUTOPILOT_IMPLEMENTATION_REPORT` | `docs/reports/full-project-audit/P1_AUTOPILOT_IMPLEMENTATION_REPORT.md` | تقرير تنفيذ ومعالجة مشاكل P1 High والتحقق منها برمجياً محلياً وبنجاح كامل. | `VERIFIED_BY_REPORT` |
+| 2026-06-02 | `P1_REMEDIATIONS_INTEGRATION_TEST` | `tests/integration/security/p1-remediations.test.ts` | اختبارات التكامل والأمان الخمسة للتحقق من سلامة معالجات الكرون، المصادقة والـ adjustments. | `VERIFIED_BY_TEST` |
 
 
 

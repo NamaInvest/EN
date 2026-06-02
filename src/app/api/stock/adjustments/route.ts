@@ -88,10 +88,13 @@ async function _POST(req: Request) {
         });
 
         // ── Period Lock Enforcement ────────────────────────────────────────
+        const inputDate = body.date || body.postingDate || body.transactionDate || body.adjustmentDate || body.movementDate;
+        const resolvedPostingDate = inputDate ? new Date(inputDate) : new Date();
+
         try {
             await assertPeriodWritable({
                 tenantId,
-                postingDate: new Date(),
+                postingDate: resolvedPostingDate,
                 operationType: 'STOCK_ADJUSTMENT',
                 module: 'inventory',
                 actor: String(_auth?.userId || decoded.userId || 'SYSTEM'),

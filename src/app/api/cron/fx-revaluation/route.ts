@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FXRevaluationEngine } from '@/lib/fx-revaluation-engine';
+import { withTenant } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'cron-fx-revaluation' });
@@ -21,7 +22,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Run month-end FX revaluation (posts journal if not dryRun)
-  const result = await FXRevaluationEngine.monthEndRevaluation(tenantId, userId);
+  const result = await withTenant(tenantId, async () => {
+    return FXRevaluationEngine.monthEndRevaluation(tenantId, userId);
+  });
 
   log.info('FX revaluation cron complete', {
     tenantId,

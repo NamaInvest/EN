@@ -17,7 +17,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import prisma, { withTenant } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'zatca-batch' });
@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
   }
 
-  const result = await runZatcaBatch(tenantId, dryRun, forceRetry);
+  const result = await withTenant(tenantId, async () => {
+    return runZatcaBatch(tenantId, dryRun, forceRetry);
+  });
   const httpStatus = result.failed > 0 ? 207 : 200;  // 207 Multi-Status if partial failures
   return NextResponse.json(result, { status: httpStatus });
 }
