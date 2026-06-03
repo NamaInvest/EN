@@ -218,8 +218,9 @@ export const ragPipeline = {
     id: string,
     content: string,
     metadata: Record<string, unknown> = {},
-    tenantId = 'default'
+    tenantId: string
   ): Promise<{ chunkCount: number; embedded: boolean }> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach: tenantId is strictly required.');
     const prisma  = getPrisma();
     const chunks  = chunkText(content);
     let embedded  = false;
@@ -263,7 +264,8 @@ export const ragPipeline = {
     const start     = Date.now();
     const limit     = options.limit     ?? 6;
     const maxCtx    = options.maxContext ?? 3000;
-    const tenantId  = options.tenantId  ?? 'default';
+    const tenantId  = options.tenantId;
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach: tenantId is strictly required for RAG queries.');
     const useHybrid = options.hybrid    ?? true;
 
     // 1. Embed query
@@ -315,7 +317,8 @@ export const ragPipeline = {
   /**
    * Get RAG store stats for a tenant
    */
-  async stats(tenantId = 'default'): Promise<{ documents: number; chunks: number; embedded: number }> {
+  async stats(tenantId: string): Promise<{ documents: number; chunks: number; embedded: number }> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach: tenantId is strictly required.');
     const prisma = getPrisma();
     try {
       const [total, withEmbedding] = await Promise.all([

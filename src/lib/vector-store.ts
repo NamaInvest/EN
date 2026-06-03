@@ -42,6 +42,7 @@ export async function addDocumentToVectorMine(
     content: string,
     metadata: Record<string, any> = {}
 ): Promise<number> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach in vector-store: tenantId is strictly required.');
     const emb    = await getEmbeddings();
     const vector = await emb.embedQuery(content);
 
@@ -78,6 +79,7 @@ export async function searchVectorMine(
     query: string,
     topK = 5
 ): Promise<Array<{ id: number; title: string; content: string; score: number; metadata: any }>> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach in vector-store: tenantId is strictly required.');
     const emb         = await getEmbeddings();
     const queryVector = await emb.embedQuery(query);
     const prisma      = getPrisma();
@@ -123,6 +125,7 @@ export async function searchVectorMine(
  * RAG context builder — retrieves top-K documents and formats them as a context string.
  */
 export async function queryRAG(tenantId: string, userQuery: string): Promise<string> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach in vector-store: tenantId is strictly required.');
     const docs = await searchVectorMine(tenantId, userQuery, 3);
     let ctx = 'Here is the relevant company knowledge:\n\n';
     for (const [i, doc] of docs.entries()) {
@@ -144,6 +147,7 @@ export async function searchChunksPgVector(
     topK = 10,
     similarityThreshold = 0.7,
 ): Promise<Array<{ id: string; documentId: string; chunkText: string; metadata: any; similarity: number }>> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach in vector-store: tenantId is strictly required.');
     const emb         = await getEmbeddings();
     const queryVector = await emb.embedQuery(query);
     const prisma      = getPrisma();
@@ -177,6 +181,7 @@ export async function ingestDocumentChunks(
     documentId: string,
     text: string,
 ): Promise<number> {
+    if (!tenantId || tenantId === 'default') throw new Error('Tenant isolation breach in vector-store: tenantId is strictly required.');
     const CHUNK_SIZE   = 2000;   // ~500 tokens in chars (4 chars/token avg)
     const OVERLAP      = 200;    // ~50 tokens overlap
     const emb          = await getEmbeddings();

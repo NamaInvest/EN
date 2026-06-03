@@ -28,6 +28,9 @@ async function handler(ctx: any) {
 
   const { message, context: extraContext } = parsed.data;
   const tenantId = ctx.auth.tenantId as string;
+  if (!tenantId || tenantId === 'default') {
+    return NextResponse.json({ error: 'Tenant context required' }, { status: 403 });
+  }
 
   // 1. Retrieve relevant documents from pgvector
   const ragContext = await queryRAG(tenantId, message);

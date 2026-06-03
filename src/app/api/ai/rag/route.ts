@@ -18,6 +18,9 @@ async function _POST(req: Request) {
         if (!question) return NextResponse.json({ error: 'Question is required' }, { status: 400 });
 
         const tenantId = resolveTenant(req as any);
+        if (!tenantId || tenantId === 'default') {
+            return NextResponse.json({ error: 'Tenant context required' }, { status: 403 });
+        }
 
         // 1. Retrieve knowledge from VectorMine
         const contextStr = await queryRAG(tenantId, question);

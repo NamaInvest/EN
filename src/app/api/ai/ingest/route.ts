@@ -33,7 +33,10 @@ async function handler(ctx: any) {
   }
 
   const body      = await ctx.req.json().catch(() => ({}));
-  const tenantId  = (ctx.auth.tenantId as string) ?? 'default';
+  const tenantId  = ctx.auth.tenantId as string;
+  if (!tenantId || tenantId === 'default') {
+    return NextResponse.json({ error: 'Tenant ID missing or invalid in auth context' }, { status: 403 });
+  }
 
   // ── Bulk mode ────────────────────────────────────────────────────────────────
   if ('documents' in body) {
