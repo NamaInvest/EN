@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Building2, Phone, FileText, MapPin, ChevronRight, ChevronLeft, CheckCircle, Loader2, Globe, Layers,  } from 'lucide-react';
+import { validateSubdomainCandidate } from '@/lib/tenant/reserved-subdomains';
 
 // ── Business Domain Options (English only) ──────────────────────────────────
 const BUSINESS_DOMAINS = [
@@ -134,6 +135,11 @@ export default function CompanyInfoPage() {
         }, 600);
     }, [companyNameAr]);
 
+    // ── Sync: companyNameEn → previewSubdomain ───────────────────────────
+    useEffect(() => {
+        setPreviewSubdomain(toSlug(companyNameEn));
+    }, [companyNameEn]);
+
     // ── Auto-Translate: city (AR) → cityEn ────────────────────────────────
     useEffect(() => {
         if (!city.trim()) { setCityEn(''); return; }
@@ -186,6 +192,13 @@ export default function CompanyInfoPage() {
         if (s === 1) {
             if (!companyNameAr.trim()) return 'اسم المنشأة بالعربية مطلوب.';
             if (!companyNameEn.trim()) return 'اسم المنشأة بالإنجليزية مطلوب (يُملأ تلقائياً أو يمكن كتابته يدوياً).';
+
+            const slugCandidate = toSlug(companyNameEn);
+            const validation = validateSubdomainCandidate(slugCandidate);
+            if (!validation.valid) {
+                return validation.message;
+            }
+
             if (!businessDomain) return 'مجال العمل مطلوب.';
             if (!mobile.trim()) return 'رقم الهاتف مطلوب.';
             if (!/^\d{10}$/.test(mobile)) return 'رقم الهاتف يجب أن يتكون من 10 أرقام بالضبط.';

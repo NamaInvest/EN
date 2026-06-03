@@ -4,6 +4,7 @@ import { createHmac } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { validateSubdomainCandidate } from '@/lib/tenant/reserved-subdomains';
 
 const log = logger.child({ service: 'tenant/provision' });
 
@@ -371,7 +372,30 @@ async function _POST(req: Request) {
         const { Client } = require(mod);
 
         let subdomain: string = body.subdomain;
+
+        // If subdomain is passed directly in the body, validate it immediately
+        if (subdomain) {
+            const earlyValidation = validateSubdomainCandidate(subdomain);
+            if (!earlyValidation.valid) {
+                return NextResponse.json({
+                    success: false,
+                    message: earlyValidation.message,
+                    error: earlyValidation.code
+                }, { status: 400 });
+            }
+        }
+
         if (!subdomain) {
+            // Validate the base slug before connecting via SSH
+            const baseValidation = validateSubdomainCandidate(baseSlug);
+            if (!baseValidation.valid) {
+                return NextResponse.json({
+                    success: false,
+                    message: baseValidation.message,
+                    error: baseValidation.code
+                }, { status: 400 });
+            }
+
             subdomain = await new Promise((resolve, reject) => {
                 const conn = new Client();
                 conn.on('ready', () => {
@@ -400,6 +424,16 @@ async function _POST(req: Request) {
 
         if (!subdomain) {
             return NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.' }, { status: 500 });
+        }
+
+        // Final backend enforcement gate right before SSH setup and DB writes
+        const finalValidation = validateSubdomainCandidate(subdomain);
+        if (!finalValidation.valid) {
+            return NextResponse.json({
+                success: false,
+                message: finalValidation.message,
+                error: finalValidation.code
+            }, { status: 400 });
         }
 
         // ─── Step B: إنشاء DB وتطبيق Schema عبر SSH ─────────────────────────
