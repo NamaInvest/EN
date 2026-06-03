@@ -115,6 +115,7 @@ describe('Provisioning Worker Guards & Fail-Closed Protection Tests', () => {
       vi.stubEnv('CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED', 'true');
       vi.stubEnv('CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV', 'production');
       vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('CUSTOMER_ONBOARDING_ALLOWLIST', 'test-subdomain');
 
       const result = validateRealWriteAllowed('test-subdomain', 'run_123');
       expect(result.allowed).toBe(true);
@@ -126,6 +127,7 @@ describe('Provisioning Worker Guards & Fail-Closed Protection Tests', () => {
       vi.stubEnv('CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED', 'true');
       vi.stubEnv('CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV', 'production');
       vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('CUSTOMER_ONBOARDING_ALLOWLIST', 'test-subdomain');
 
       const resultNoRun = validateRealWriteAllowed('test-subdomain', '');
       expect(resultNoRun.allowed).toBe(false);
@@ -158,6 +160,7 @@ describe('Provisioning Worker Guards & Fail-Closed Protection Tests', () => {
       vi.stubEnv('CUSTOMER_ONBOARDING_WORKER_DRY_RUN', 'false');
       vi.stubEnv('CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED', 'true');
       vi.stubEnv('CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV', 'production');
+      vi.stubEnv('CUSTOMER_ONBOARDING_ALLOWLIST', 'subdomain-test');
       vi.stubEnv('NODE_ENV', 'production');
 
       const payload = {

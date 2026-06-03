@@ -12,6 +12,7 @@ export function isQueueEnabled(): boolean {
 export interface ProvisioningQueueAdapter {
   enqueueProvisioningJob(payload: ProvisioningPayload): Promise<ProvisioningJobState>;
   getProvisioningJobStatus(runId: string): Promise<ProvisioningJobState | null>;
+  getProvisioningJobPayload(runId: string): Promise<ProvisioningPayload | null>;
   retryProvisioningJob(runId: string): Promise<boolean>;
   cancelProvisioningJob(runId: string): Promise<boolean>;
   listProvisioningJobs(): Promise<ProvisioningJobState[]>;
@@ -50,6 +51,11 @@ export class InMemoryProvisioningQueueAdapter implements ProvisioningQueueAdapte
   async getProvisioningJobStatus(runId: string): Promise<ProvisioningJobState | null> {
     const job = this.jobs.get(runId);
     return job ? { ...job.state } : null;
+  }
+
+  async getProvisioningJobPayload(runId: string): Promise<ProvisioningPayload | null> {
+    const job = this.jobs.get(runId);
+    return job ? { ...job.payload } : null;
   }
 
   async retryProvisioningJob(runId: string): Promise<boolean> {

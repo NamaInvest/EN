@@ -65,67 +65,7 @@ export interface GuardResult {
  * Ensures the system fails closed by default.
  */
 export function validateRealWriteAllowed(subdomain: string, runId: string): GuardResult {
-  // 1. Runtime Kill Switch
-  if (process.env.CUSTOMER_ONBOARDING_KILL_SWITCH === 'true') {
-    return {
-      allowed: false,
-      code: 'KILL_SWITCH_ACTIVE',
-      message: 'تم تفعيل مفتاح الإيقاف الطارئ (Kill Switch). المعالجة الحقيقية معطلة بالكامل.',
-    };
-  }
-
-  // 2. Queue & Worker Activation Check
-  if (!isWorkerEnabled()) {
-    return {
-      allowed: false,
-      code: 'WORKER_DISABLED',
-      message: 'عامل التأسيس الخلفي (Worker) معطل حالياً في هذا النطاق.',
-    };
-  }
-
-  // 3. Dry-Run Check (Strict safety default)
-  if (isDryRunEnabled()) {
-    return {
-      allowed: false,
-      code: 'DRY_RUN_ENABLED',
-      message: 'وضع المحاكاة (Dry-Run) مفعل. الكتابة الفعلية في قاعدة البيانات محظورة.',
-    };
-  }
-
-  // 4. Real Writes Feature Flag
-  if (!isRealWritesEnabled()) {
-    return {
-      allowed: false,
-      code: 'REAL_WRITES_DISABLED',
-      message: 'الكتابة الحقيقية غير مصرح بها حالياً عبر إعدادات النظام.',
-    };
-  }
-
-  // 5. Env Matching & Production Fail-Closed
-  const currentEnv = process.env.NODE_ENV || 'production'; // Fallback to production to be safe
-  const allowedEnv = getAllowedEnv();
-  if (currentEnv !== allowedEnv) {
-    return {
-      allowed: false,
-      code: 'ENVIRONMENT_MISMATCH',
-      message: `البيئة الحالية (${currentEnv}) لا تتطابق مع البيئة المصرح بها للتأسيس الحقيقي (${allowedEnv}).`,
-    };
-  }
-
-  // 6. Explicit Allowlist Check (Optional)
-  const allowlistEnv = process.env.CUSTOMER_ONBOARDING_ALLOWLIST;
-  if (allowlistEnv) {
-    const allowedSubdomains = allowlistEnv.split(',').map(s => s.trim().toLowerCase());
-    if (!allowedSubdomains.includes(subdomain.toLowerCase())) {
-      return {
-        allowed: false,
-        code: 'SUBDOMAIN_NOT_ALLOWED',
-        message: 'النطاق الفرعي المطلوب غير مدرج في قائمة النطاقات المسموح لها بالتأسيس الحقيقي حالياً.',
-      };
-    }
-  }
-
-  // 7. Base Param Validation
+  // 1. Base Param Validation
   if (!runId) {
     return {
       allowed: false,
@@ -139,6 +79,72 @@ export function validateRealWriteAllowed(subdomain: string, runId: string): Guar
       allowed: false,
       code: 'SUBDOMAIN_REQUIRED',
       message: 'اسم النطاق الفرعي مطلوب لإتمام عملية الفحص.',
+    };
+  }
+
+  // 2. Runtime Kill Switch
+  if (process.env.CUSTOMER_ONBOARDING_KILL_SWITCH === 'true') {
+    return {
+      allowed: false,
+      code: 'KILL_SWITCH_ACTIVE',
+      message: 'تم تفعيل مفتاح الإيقاف الطارئ (Kill Switch). المعالجة الحقيقية معطلة بالكامل.',
+    };
+  }
+
+  // 3. Queue & Worker Activation Check
+  if (!isWorkerEnabled()) {
+    return {
+      allowed: false,
+      code: 'WORKER_DISABLED',
+      message: 'عامل التأسيس الخلفي (Worker) معطل حالياً في هذا النطاق.',
+    };
+  }
+
+  // 4. Dry-Run Check (Strict safety default)
+  if (isDryRunEnabled()) {
+    return {
+      allowed: false,
+      code: 'DRY_RUN_ENABLED',
+      message: 'وضع المحاكاة (Dry-Run) مفعل. الكتابة الفعلية في قاعدة البيانات محظورة.',
+    };
+  }
+
+  // 5. Real Writes Feature Flag
+  if (!isRealWritesEnabled()) {
+    return {
+      allowed: false,
+      code: 'REAL_WRITES_DISABLED',
+      message: 'الكتابة الحقيقية غير مصرح بها حالياً عبر إعدادات النظام.',
+    };
+  }
+
+  // 6. Env Matching & Production Fail-Closed
+  const currentEnv = process.env.NODE_ENV || 'production'; // Fallback to production to be safe
+  const allowedEnv = getAllowedEnv();
+  if (currentEnv !== allowedEnv) {
+    return {
+      allowed: false,
+      code: 'ENVIRONMENT_MISMATCH',
+      message: `البيئة الحالية (${currentEnv}) لا تتطابق مع البيئة المصرح بها للتأسيس الحقيقي (${allowedEnv}).`,
+    };
+  }
+
+  // 7. Explicit Allowlist Check (Strict Single-Tenant Enforcement - Mandatory)
+  const allowlistEnv = process.env.CUSTOMER_ONBOARDING_ALLOWLIST;
+  if (!allowlistEnv) {
+    return {
+      allowed: false,
+      code: 'SUBDOMAIN_NOT_ALLOWED',
+      message: 'قائمة النطاقات الفرعية المسموح بها غير متوفرة. التأسيس الحقيقي محظور تلقائياً (Fail-Closed).',
+    };
+  }
+
+  const allowedSubdomains = allowlistEnv.split(',').map(s => s.trim().toLowerCase());
+  if (!allowedSubdomains.includes(subdomain.toLowerCase())) {
+    return {
+      allowed: false,
+      code: 'SUBDOMAIN_NOT_ALLOWED',
+      message: 'النطاق الفرعي المطلوب غير مدرج في قائمة النطاقات المسموح لها بالتأسيس الحقيقي حالياً.',
     };
   }
 

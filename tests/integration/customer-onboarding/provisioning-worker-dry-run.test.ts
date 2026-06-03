@@ -44,12 +44,14 @@ describe('Provisioning Worker Dry-Run Tests', () => {
     const originalDryRun = process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN;
     const originalWrites = process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED;
     const originalAllowedEnv = process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV;
+    const originalAllowlist = process.env.CUSTOMER_ONBOARDING_ALLOWLIST;
     const originalNodeEnv = process.env.NODE_ENV;
 
     process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED = 'true';
     process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN = 'false';
     process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED = 'true';
     process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV = 'production';
+    process.env.CUSTOMER_ONBOARDING_ALLOWLIST = 'try-real-subdomain';
     (process.env as any).NODE_ENV = 'production';
 
     try {
@@ -66,6 +68,7 @@ describe('Provisioning Worker Dry-Run Tests', () => {
       process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN = originalDryRun;
       process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED = originalWrites;
       process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV = originalAllowedEnv;
+      process.env.CUSTOMER_ONBOARDING_ALLOWLIST = originalAllowlist;
       (process.env as any).NODE_ENV = originalNodeEnv;
     }
   });

@@ -2,7 +2,11 @@ import { getProvisioningQueueAdapter } from './provisioning-queue';
 import { ProvisioningJobState, ProvisioningJobStep } from './provisioning-job-types';
 import { validateSubdomainCandidate } from './reserved-subdomains';
 import { logger } from '@/lib/logger';
-import { isWorkerEnabled, validateRealWriteAllowed } from './provisioning-guard';
+import { isWorkerEnabled, validateRealWriteAllowed, isDryRunEnabled, acquireProvisioningLock } from './provisioning-guard';
+import { Client } from 'pg';
+import { exec } from 'child_process';
+import { PrismaClient } from '@prisma/client';
+import { seedCompanyData } from '@/app/api/tenant/provision/route';
 
 const log = logger.child({ service: 'tenant/provisioning-worker' });
 
@@ -29,6 +33,267 @@ export interface DryRunResult {
   timeline: DryRunStepResult[];
   errorMessage?: string;
   errorCode?: string;
+}
+
+function getDbUrl(tenant: string): string {
+  const base = process.env.DATABASE_URL;
+  if (!base) throw new Error('DATABASE_URL is required');
+  return base.replace(/\/([^/?]+)(\?|$)/, `/${tenant}_db$2`);
+}
+
+function getMasterDbUrl(): string {
+  const base = process.env.DATABASE_URL;
+  if (!base) throw new Error('DATABASE_URL is required');
+  if (process.env.NODE_ENV === 'test') {
+    return base;
+  }
+  return base.replace(/\/([^/?]+)(\?|$)/, `/n11_db$2`);
+}
+
+function getPostgresRootUrl(): string {
+  const base = process.env.DATABASE_URL;
+  if (!base) throw new Error('DATABASE_URL is required');
+  return base.replace(/\/([^/?]+)(\?|$)/, `/postgres$2`);
+}
+
+export async function executeRealProvisioningStep(
+  step: ProvisioningJobStep,
+  subdomain: string,
+  runId: string,
+  correlationId: string
+): Promise<Omit<DryRunStepResult, 'startedAt' | 'finishedAt' | 'durationMs'>> {
+  
+  if (step === 'VALIDATE_REQUEST') {
+    const validation = validateSubdomainCandidate(subdomain);
+    if (!validation.valid) {
+      throw { message: validation.message, code: validation.code };
+    }
+    const guard = validateRealWriteAllowed(subdomain, runId);
+    if (!guard.allowed) {
+      throw { message: guard.message, code: guard.code };
+    }
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: 'Security Guards Validation',
+      message: 'تم التحقق من الحواجز الأمنية وصلاحية النطاق للعمل الفعلي.',
+      warnings: [],
+    };
+  }
+
+  if (step === 'RESERVE_SUBDOMAIN') {
+    const masterPrisma = new PrismaClient({ datasources: { db: { url: getMasterDbUrl() } } });
+    const existing = await masterPrisma.tenantAccount.findUnique({ where: { subdomain } });
+    await masterPrisma.$disconnect();
+    if (existing) {
+      throw { message: 'اسم النطاق الفرعي محجوز بالفعل في الماستر.', code: 'SUBDOMAIN_ALREADY_EXISTS' };
+    }
+    acquireProvisioningLock(subdomain);
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: 'n11_db.TenantAccount check & local locks',
+      message: `تم التحقق من عدم حجز النطاق وتأمين القفل للعميل: ${subdomain}`,
+      warnings: [],
+    };
+  }
+
+  if (step === 'CREATE_TENANT_RECORD') {
+    const dbName = `${subdomain.toLowerCase()}_db`;
+    const client = new Client({ connectionString: getPostgresRootUrl() });
+    await client.connect();
+    const res = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+    if (res.rowCount === 0) {
+      await client.query(`CREATE DATABASE "${dbName}"`);
+      try {
+        await client.query(`ALTER DATABASE "${dbName}" OWNER TO n11_db`);
+        await client.query(`GRANT ALL PRIVILEGES ON DATABASE "${dbName}" TO n11_db`);
+      } catch (ownerErr: any) {
+        log.warn(`[CREATE_TENANT_RECORD] Failed to alter owner to n11_db, ignoring: ${ownerErr.message}`);
+      }
+    }
+    await client.end();
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: `PostgreSQL database: ${dbName}`,
+      message: 'تم إنشاء قاعدة البيانات الفيزيائية للعميل بنجاح.',
+      warnings: [],
+    };
+  }
+
+  if (step === 'VERIFY_SCHEMA') {
+    const dbUrl = getDbUrl(subdomain);
+    await new Promise<void>((resolve, reject) => {
+      exec('npx prisma db push --schema=prisma/schema.prisma --accept-data-loss', {
+        env: { ...process.env, DATABASE_URL: dbUrl }
+      }, (error: any, stdout: any, stderr: any) => {
+        if (error) {
+          reject({ message: `Prisma schema push failed: ${stderr || error.message}`, code: 'SCHEMA_PUSH_FAILED' });
+        } else {
+          resolve();
+        }
+      });
+    });
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: `PostgreSQL schema: ${subdomain}_db`,
+      message: 'تم تطبيق جداول المخطط وتأكيد المزامنة لقاعدة بيانات العميل.',
+      warnings: [],
+    };
+  }
+
+  if (step === 'SEED_INITIAL_DATA') {
+    const adapter = getProvisioningQueueAdapter();
+    const payload = await adapter.getProvisioningJobPayload(runId);
+    if (!payload) {
+      throw { message: 'تعذر العثور على حمولة الطلب في الطابور للتأسيس الفعلي.', code: 'PAYLOAD_NOT_FOUND' };
+    }
+    const seedResult = await seedCompanyData({
+      subdomain,
+      companyNameAr: payload.tenantName,
+      companyNameEn: payload.tenantName,
+      vatNumber: '',
+      crnNumber: '',
+      mobile: '',
+      city: 'الرياض',
+      district: '',
+      address: '',
+      buildingNo: '',
+      postalCode: '',
+      businessDomain: '',
+      branchName: 'الفرع الرئيسي',
+      zatcaBranchNameEn: 'Main Branch',
+      zatcaCityEn: 'Riyadh',
+      clerkEmail: payload.ownerEmail,
+      password: payload.password || 'admin7773',
+      adminName: payload.ownerName,
+      username: payload.username,
+    });
+    if (!seedResult.ok) {
+      throw { message: `فشل زرع البيانات المحاسبية ودليل SOCPA: ${seedResult.error}`, code: 'SEED_DATA_FAILED' };
+    }
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: `PostgreSQL seed: SOCPA CoA on ${subdomain}_db`,
+      message: 'تم زرع دليل الحسابات والبيانات الافتراضية للشركة.',
+      warnings: [],
+    };
+  }
+
+  if (step === 'CREATE_OWNER_USER' || step === 'CREATE_DEFAULT_ROLES' || step === 'CONFIGURE_SUBDOMAIN') {
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: 'Skip (seeded in previous step)',
+      message: `تم تنفيذ الخطوة (${step}) تلقائياً مع خطوة بذر البيانات المحاسبية.`,
+      warnings: [],
+    };
+  }
+
+  if (step === 'VERIFY_TENANT_HEALTH') {
+    const dbUrl = getDbUrl(subdomain);
+    const tenantPrisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
+    try {
+      await tenantPrisma.user.findFirst();
+    } catch (e: any) {
+      throw { message: `فشل الاتصال بقاعدة بيانات العميل: ${e.message}`, code: 'HEALTH_CHECK_FAILED' };
+    } finally {
+      await tenantPrisma.$disconnect();
+    }
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: false,
+      writeTarget: 'None',
+      message: 'تم فحص الاستجابة والاتصال بقاعدة بيانات العميل بنجاح.',
+      warnings: [],
+    };
+  }
+
+  if (step === 'MARK_READY') {
+    const adapter = getProvisioningQueueAdapter();
+    const payload = await adapter.getProvisioningJobPayload(runId);
+    if (!payload) {
+      throw { message: 'تعذر العثور على حمولة الطلب في الطابور للتأسيس الفعلي.', code: 'PAYLOAD_NOT_FOUND' };
+    }
+    const masterPrisma = new PrismaClient({ datasources: { db: { url: getMasterDbUrl() } } });
+    const account = await masterPrisma.tenantAccount.upsert({
+      where: { userEmail: payload.ownerEmail },
+      update: {
+        subdomain,
+        status: 'active',
+        orgName: payload.tenantName,
+        vatNumber: '',
+        subscriptionStatus: 'trial',
+        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+      create: {
+        userEmail: payload.ownerEmail,
+        orgName: payload.tenantName,
+        vatNumber: '',
+        subdomain,
+        status: 'active',
+        subscriptionStatus: 'trial',
+        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await masterPrisma.desktopLicense.create({
+      data: {
+        licenseKey: `TRIAL-${subdomain}-${Date.now()}`,
+        tenantAccountId: account.id,
+        status: 'trial',
+        trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        companyNameAr: payload.tenantName,
+        contactEmail: payload.ownerEmail,
+        activatedAt: new Date(),
+      }
+    });
+    await masterPrisma.$disconnect();
+    return {
+      provisioningRunId: runId,
+      correlationId,
+      step,
+      status: 'COMPLETED',
+      dryRun: false,
+      wouldWrite: true,
+      writeTarget: 'n11_db.TenantAccount & n11_db.DesktopLicense records',
+      message: 'تم تفعيل حساب المستأجر بالكامل وإصدار رخصة ديسكتوب تجريبية.',
+      warnings: [],
+    };
+  }
+
+  throw new Error(`Unknown step: ${step}`);
 }
 
 export function validateWorkerDryRunInput(subdomain: string): { valid: boolean; code: string; message: string } {
@@ -231,7 +496,7 @@ export async function runProvisioningWorkerDryRun(
         startedAt,
         finishedAt,
         durationMs: finishedAt.getTime() - startedAt.getTime(),
-      });
+      } as DryRunStepResult);
     } catch (err: any) {
       const finishedAt = new Date();
       timeline.push({
@@ -273,7 +538,7 @@ export async function runProvisioningWorkerDryRun(
 export class InMemoryProvisioningWorker {
   private intervalId: NodeJS.Timeout | null = null;
   private isProcessing = false;
-  private stepDelayMs = 50; // simulated step execution delay
+  private stepDelayMs = 50;
 
   start() {
     if (this.intervalId) return;
@@ -285,7 +550,6 @@ export class InMemoryProvisioningWorker {
     
     log.info('[InMemoryWorker] Starting background provisioning worker...');
     
-    // Poll the queue every 100ms for PENDING or RETRYING jobs
     this.intervalId = setInterval(async () => {
       if (this.isProcessing) return;
       
@@ -333,7 +597,6 @@ export class InMemoryProvisioningWorker {
     const runId = job.runId;
     log.info(`[InMemoryWorker] Starting job ${runId} for subdomain ${job.subdomain}`);
 
-    // Steps list in order
     const steps: ProvisioningJobStep[] = [
       'VALIDATE_REQUEST',
       'RESERVE_SUBDOMAIN',
@@ -347,7 +610,6 @@ export class InMemoryProvisioningWorker {
       'MARK_READY',
     ];
 
-    // Transition to active processing status
     adapter.__updateJobState(runId, {
       status: 'PROVISIONING',
       startedAt: new Date(),
@@ -359,13 +621,11 @@ export class InMemoryProvisioningWorker {
       const step = steps[i];
       adapter.__updateJobState(runId, { currentStep: step });
 
-      // Simulated step execution delay
       await new Promise(resolve => setTimeout(resolve, this.stepDelayMs));
 
       try {
-        await this.executeStep(step, job.subdomain);
+        await this.executeStep(step, job.subdomain, runId);
         
-        // Log step completion to timeline
         adapter.__updateJobState(runId, {}, [
           { step, status: 'COMPLETED' }
         ]);
@@ -382,11 +642,10 @@ export class InMemoryProvisioningWorker {
         }, [
           { step, status: 'FAILED' }
         ]);
-        return; // Stop processing this job
+        return;
       }
     }
 
-    // Mark job as READY upon complete success
     adapter.__updateJobState(runId, {
       status: 'READY',
       currentStep: 'MARK_READY',
@@ -398,8 +657,17 @@ export class InMemoryProvisioningWorker {
     log.info(`[InMemoryWorker] Job ${runId} completed successfully!`);
   }
 
-  private async executeStep(step: ProvisioningJobStep, subdomain: string): Promise<void> {
-    // 1. Validation Step
+  private async executeStep(step: ProvisioningJobStep, subdomain: string, runId: string): Promise<void> {
+    const isReal = !isDryRunEnabled();
+
+    if (isReal) {
+      const res = await executeRealProvisioningStep(step, subdomain, runId, runId);
+      if (res.status === 'FAILED') {
+        throw new Error(res.message);
+      }
+      return;
+    }
+
     if (step === 'VALIDATE_REQUEST') {
       const validation = validateSubdomainCandidate(subdomain);
       if (!validation.valid) {
@@ -409,7 +677,6 @@ export class InMemoryProvisioningWorker {
       }
     }
 
-    // 2. Simulated failure triggers for testing and retry checks
     if (step === 'CREATE_TENANT_RECORD' && subdomain.includes('fail-db')) {
       const err = new Error('تعذر إعداد قاعدة البيانات للمستأجر (خطأ محاكاة).') as any;
       err.code = 'DATABASE_CREATION_FAILED';
@@ -427,12 +694,9 @@ export class InMemoryProvisioningWorker {
       err.code = 'HEALTH_CHECK_FAILED';
       throw err;
     }
-
-    // All other steps are simulated as instant passes
   }
 }
 
-// Singleton worker instance
 let workerInstance: InMemoryProvisioningWorker | null = null;
 
 export function startProvisioningWorker() {

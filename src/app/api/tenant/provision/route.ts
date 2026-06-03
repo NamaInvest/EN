@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { validateSubdomainCandidate } from '@/lib/tenant/reserved-subdomains';
 import { acquireProvisioningLock, releaseProvisioningLock } from '@/lib/tenant/provisioning-guard';
+import { seedSocpaCoA } from '@/lib/seed-socpa-coa';
 
 
 const log = logger.child({ service: 'tenant/provision' });
@@ -119,7 +120,7 @@ async function runDbSetupViaSsh(subdomain: string): Promise<{ ok: boolean; log: 
 }
 
 // ─── Seed company data directly via Prisma (no SSH) ──────────────────────────
-async function seedCompanyData(params: {
+export async function seedCompanyData(params: {
     subdomain: string;
     companyNameAr: string;
     companyNameEn: string;
@@ -277,7 +278,6 @@ async function seedCompanyData(params: {
         }
 
         // Seed Chart of Accounts
-        const { seedSocpaCoA } = require('@/lib/seed-socpa-coa');
         await seedSocpaCoA(params.subdomain, prisma);
 
         return { ok: true };
