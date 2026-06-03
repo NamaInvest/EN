@@ -365,6 +365,32 @@ async function _POST(req: Request) {
             );
         }
 
+        // If Onboarding Queue is enabled, enqueue the job and return immediately
+        const { isQueueEnabled, getProvisioningQueueAdapter } = require('@/lib/tenant/provisioning-queue');
+        if (isQueueEnabled()) {
+            const runId = 'run_' + Math.random().toString(36).substring(2, 15);
+            const adapter = getProvisioningQueueAdapter();
+            await adapter.enqueueProvisioningJob({
+                provisioningRunId: runId,
+                tenantName: companyNameAr,
+                requestedSubdomain: body.subdomain || toSlug(companyNameEnFromClient || companyNameAr || 'company'),
+                ownerName: adminName || companyNameAr,
+                ownerEmail: clerkEmail || '',
+                locale: 'ar',
+                source: 'WEB_APP',
+                correlationId: runId,
+                createdAt: new Date(),
+                password,
+                username,
+            });
+            return NextResponse.json({
+                success: true,
+                runId,
+                status: 'PENDING',
+                message: 'تم تسجيل طلب التأسيس وبدء معالجته في الخلفية.',
+            });
+        }
+
         // Initialize Master Prisma for early checks
         masterPrisma = new PrismaClient({
             datasources: { db: { url: getDbUrl('n11') } },
