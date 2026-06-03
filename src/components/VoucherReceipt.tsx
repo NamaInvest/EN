@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from "@/lib/i18n";
@@ -76,7 +76,7 @@ export default function VoucherReceipt({ voucherData, autoPrint = false, onClose
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="UTF-8">
-        <title>ط³ظ†ط¯ ظ‚ط¨ط¶</title>
+        <title>سند قبض</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Noto Sans Arabic:wght@400;600;800&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
