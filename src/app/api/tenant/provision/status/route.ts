@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getProvisioningQueueAdapter, isQueueEnabled } from '@/lib/tenant/provisioning-queue';
+import { isWorkerEnabled, isRealWritesEnabled } from '@/lib/tenant/provisioning-guard';
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
@@ -26,7 +27,6 @@ async function _GET(req: Request) {
     const queueState = await adapter.getProvisioningJobStatus(runId);
 
     if (queueState) {
-      const { isWorkerEnabled, isRealWritesEnabled } = require('@/lib/tenant/provisioning-guard');
       const timeline = await adapter.getProvisioningTimeline(runId);
       return NextResponse.json({
         success: true,
@@ -45,7 +45,6 @@ async function _GET(req: Request) {
     });
 
     if (dbRun) {
-      const { isWorkerEnabled, isRealWritesEnabled } = require('@/lib/tenant/provisioning-guard');
       return NextResponse.json({
         success: true,
         source: 'database',

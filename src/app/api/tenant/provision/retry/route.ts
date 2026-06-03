@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
+import { isWorkerEnabled } from '@/lib/tenant/provisioning-guard';
 import { getProvisioningQueueAdapter, isQueueEnabled } from '@/lib/tenant/provisioning-queue';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
@@ -31,7 +32,6 @@ async function _POST(req: Request) {
     log.info(`[retry] Requested retry for runId: ${runId}`);
 
     // Fail closed if onboarding queue or background worker is disabled
-    const { isWorkerEnabled } = require('@/lib/tenant/provisioning-guard');
     if (!isQueueEnabled()) {
       return NextResponse.json({
         success: false,
