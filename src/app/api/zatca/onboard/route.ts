@@ -22,7 +22,7 @@ async function _POST(request: NextRequest) {
     const prisma = getPrisma(request);
     try {
         const auth = getUserFromRequest(request as any);
-        if (!auth) return NextResponse.json({ error: 'ط؛ظٹط± ظ…طµط±ط­' }, { status: 403 });
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
         
         const isAdmin = ['admin', 'owner'].includes(auth.role) || await hasPermission(auth.userId, 'admin', prisma);
         if (!isAdmin) return NextResponse.json({ error: 'صلاحيات المدير مطلوبة' }, { status: 403 });
@@ -53,7 +53,7 @@ async function _POST(request: NextRequest) {
         }
 
         if (action === 'onboard') {
-            if (!otp) return NextResponse.json({ error: 'ظٹط±ط¬ظ‰ ط¥ط¯ط®ط§ظ„ ط±ظ…ط² OTP' }, { status: 400 });
+            if (!otp) return NextResponse.json({ error: 'يرجى إدخال رمز OTP' }, { status: 400 });
 
             // Get company settings
             const settings = await prisma.setting.findMany({ take: 100,
@@ -183,13 +183,13 @@ async function _POST(request: NextRequest) {
             } catch (onboardErr: any) {
                 log.error('ZATCA Onboarding Error', { message: onboardErr.message, stack: onboardErr.stack });
                 return NextResponse.json({ 
-                    error: `ظپط´ظ„ ط§ظ„طھظپط¹ظٹظ„: ${onboardErr.message}`,
+                    error: `فشل التفعيل: ${onboardErr.message}`,
                     details: onboardErr.stack
                 }, { status: 500 });
             }
         }
 
-        return NextResponse.json({ error: 'ط¥ط¬ط±ط§ط، ط؛ظٹط± ظ…ط¹ط±ظˆظپ' }, { status: 400 });
+        return NextResponse.json({ error: 'إجراء غير معروف' }, { status: 400 });
     } catch (error: any) {
         log.error('ZATCA Onboard API error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

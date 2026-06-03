@@ -32,7 +32,7 @@ async function _POST(request: NextRequest) {
         const token = String(body.token || '').trim();
 
         if (!userId || !token) {
-            return NextResponse.json({ error: 'ط¨ظٹط§ظ†ط§طھ ط؛ظٹط± طµط§ظ„ط­ط©' }, { status: 400 });
+            return NextResponse.json({ error: 'بيانات غير صالحة' }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({
@@ -93,7 +93,7 @@ async function _POST(request: NextRequest) {
         return response;
     } catch (e: any) {
         log.error('[2FA Login]', e);
-        return NextResponse.json({ error: 'ظپط´ظ„ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„' }, { status: 500 });
+        return NextResponse.json({ error: 'فشل تسجيل الدخول' }, { status: 500 });
     }
 }
 
