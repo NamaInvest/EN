@@ -26,11 +26,14 @@ async function _GET(req: Request) {
     const queueState = await adapter.getProvisioningJobStatus(runId);
 
     if (queueState) {
+      const { isWorkerEnabled, isRealWritesEnabled } = require('@/lib/tenant/provisioning-guard');
       const timeline = await adapter.getProvisioningTimeline(runId);
       return NextResponse.json({
         success: true,
         source: 'queue_adapter',
         queueEnabled: isQueueEnabled(),
+        workerEnabled: isWorkerEnabled(),
+        realWritesEnabled: isRealWritesEnabled(),
         state: queueState,
         timeline,
       });
@@ -42,10 +45,13 @@ async function _GET(req: Request) {
     });
 
     if (dbRun) {
+      const { isWorkerEnabled, isRealWritesEnabled } = require('@/lib/tenant/provisioning-guard');
       return NextResponse.json({
         success: true,
         source: 'database',
         queueEnabled: isQueueEnabled(),
+        workerEnabled: isWorkerEnabled(),
+        realWritesEnabled: isRealWritesEnabled(),
         state: {
           runId: dbRun.id,
           subdomain: dbRun.subdomain,

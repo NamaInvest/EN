@@ -2,6 +2,7 @@ import { getProvisioningQueueAdapter } from './provisioning-queue';
 import { ProvisioningJobState, ProvisioningJobStep } from './provisioning-job-types';
 import { validateSubdomainCandidate } from './reserved-subdomains';
 import { logger } from '@/lib/logger';
+import { isWorkerEnabled, validateRealWriteAllowed } from './provisioning-guard';
 
 const log = logger.child({ service: 'tenant/provisioning-worker' });
 
@@ -194,6 +195,10 @@ export async function runProvisioningWorkerDryRun(
   options: { realWrites?: boolean } = {}
 ): Promise<DryRunResult> {
   if (options.realWrites) {
+    const guard = validateRealWriteAllowed(payload.requestedSubdomain, payload.provisioningRunId);
+    if (!guard.allowed) {
+      throw { message: guard.message, code: guard.code };
+    }
     throw new Error('REAL_PROVISIONING_WORKER_DISABLED');
   }
 
@@ -272,11 +277,24 @@ export class InMemoryProvisioningWorker {
 
   start() {
     if (this.intervalId) return;
+    
+    if (!isWorkerEnabled()) {
+      log.warn('[InMemoryWorker] Background provisioning worker is disabled in configurations.');
+      return;
+    }
+    
     log.info('[InMemoryWorker] Starting background provisioning worker...');
     
     // Poll the queue every 100ms for PENDING or RETRYING jobs
     this.intervalId = setInterval(async () => {
       if (this.isProcessing) return;
+      
+      if (!isWorkerEnabled()) {
+        log.warn('[InMemoryWorker] Provisioning worker has been dynamically disabled. Stopping polling.');
+        this.stop();
+        return;
+      }
+      
       await this.processPendingJobs();
     }, 100);
   }
@@ -290,6 +308,7 @@ export class InMemoryProvisioningWorker {
   }
 
   private async processPendingJobs() {
+    if (!isWorkerEnabled()) return;
     this.isProcessing = true;
     try {
       const adapter = getProvisioningQueueAdapter() as any;

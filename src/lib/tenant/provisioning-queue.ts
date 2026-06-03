@@ -1,11 +1,12 @@
 import { ProvisioningPayload, ProvisioningJobState, ProvisioningRunStatus, ProvisioningJobStep } from './provisioning-job-types';
 import { logger } from '@/lib/logger';
+import { isQueueEnabled as getIsQueueEnabled } from './provisioning-guard';
 
 const log = logger.child({ service: 'tenant/provisioning-queue' });
 
 // Global Feature Flag configuration check
 export function isQueueEnabled(): boolean {
-  return process.env.CUSTOMER_ONBOARDING_QUEUE_ENABLED === 'true';
+  return getIsQueueEnabled();
 }
 
 export interface ProvisioningQueueAdapter {

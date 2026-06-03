@@ -30,6 +30,24 @@ async function _POST(req: Request) {
     const { runId } = _parsed.data;
     log.info(`[retry] Requested retry for runId: ${runId}`);
 
+    // Fail closed if onboarding queue or background worker is disabled
+    const { isWorkerEnabled } = require('@/lib/tenant/provisioning-guard');
+    if (!isQueueEnabled()) {
+      return NextResponse.json({
+        success: false,
+        error: 'QUEUE_DISABLED',
+        message: 'نظام طابور التأسيس معطل حالياً.',
+      }, { status: 403 });
+    }
+
+    if (!isWorkerEnabled()) {
+      return NextResponse.json({
+        success: false,
+        error: 'WORKER_DISABLED',
+        message: 'عامل التأسيس الخلفي معطل حالياً.',
+      }, { status: 403 });
+    }
+
     // 1. Try to retry via the queue adapter
     const adapter = getProvisioningQueueAdapter();
     const isRetried = await adapter.retryProvisioningJob(runId);

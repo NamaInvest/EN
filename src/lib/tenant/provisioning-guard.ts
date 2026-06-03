@@ -25,3 +25,127 @@ export function releaseProvisioningLock(subdomain: string): void {
   const normalized = subdomain.toLowerCase().trim();
   provisioningLocks.delete(normalized);
 }
+
+// ─── Feature Flags & Env Config (Strict Fail-Closed Defaults) ───────────────
+
+export function isQueueEnabled(): boolean {
+  return process.env.CUSTOMER_ONBOARDING_QUEUE_ENABLED === 'true';
+}
+
+export function isWorkerEnabled(): boolean {
+  return process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED === 'true';
+}
+
+export function isDryRunEnabled(): boolean {
+  // Defaults to true (simulation only) unless explicitly set to 'false'
+  return process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN !== 'false';
+}
+
+export function isRealWritesEnabled(): boolean {
+  return process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED === 'true';
+}
+
+export function getAllowedEnv(): string {
+  return process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV || 'development';
+}
+
+export function getMaxConcurrency(): number {
+  const val = parseInt(process.env.CUSTOMER_ONBOARDING_WORKER_MAX_CONCURRENCY || '1', 10);
+  return isNaN(val) ? 1 : val;
+}
+
+export interface GuardResult {
+  allowed: boolean;
+  code: string;
+  message: string;
+}
+
+/**
+ * Multi-layer security guard that validates permissions before executing any real provisioning writes.
+ * Ensures the system fails closed by default.
+ */
+export function validateRealWriteAllowed(subdomain: string, runId: string): GuardResult {
+  // 1. Runtime Kill Switch
+  if (process.env.CUSTOMER_ONBOARDING_KILL_SWITCH === 'true') {
+    return {
+      allowed: false,
+      code: 'KILL_SWITCH_ACTIVE',
+      message: 'تم تفعيل مفتاح الإيقاف الطارئ (Kill Switch). المعالجة الحقيقية معطلة بالكامل.',
+    };
+  }
+
+  // 2. Queue & Worker Activation Check
+  if (!isWorkerEnabled()) {
+    return {
+      allowed: false,
+      code: 'WORKER_DISABLED',
+      message: 'عامل التأسيس الخلفي (Worker) معطل حالياً في هذا النطاق.',
+    };
+  }
+
+  // 3. Dry-Run Check (Strict safety default)
+  if (isDryRunEnabled()) {
+    return {
+      allowed: false,
+      code: 'DRY_RUN_ENABLED',
+      message: 'وضع المحاكاة (Dry-Run) مفعل. الكتابة الفعلية في قاعدة البيانات محظورة.',
+    };
+  }
+
+  // 4. Real Writes Feature Flag
+  if (!isRealWritesEnabled()) {
+    return {
+      allowed: false,
+      code: 'REAL_WRITES_DISABLED',
+      message: 'الكتابة الحقيقية غير مصرح بها حالياً عبر إعدادات النظام.',
+    };
+  }
+
+  // 5. Env Matching & Production Fail-Closed
+  const currentEnv = process.env.NODE_ENV || 'production'; // Fallback to production to be safe
+  const allowedEnv = getAllowedEnv();
+  if (currentEnv !== allowedEnv) {
+    return {
+      allowed: false,
+      code: 'ENVIRONMENT_MISMATCH',
+      message: `البيئة الحالية (${currentEnv}) لا تتطابق مع البيئة المصرح بها للتأسيس الحقيقي (${allowedEnv}).`,
+    };
+  }
+
+  // 6. Explicit Allowlist Check (Optional)
+  const allowlistEnv = process.env.CUSTOMER_ONBOARDING_ALLOWLIST;
+  if (allowlistEnv) {
+    const allowedSubdomains = allowlistEnv.split(',').map(s => s.trim().toLowerCase());
+    if (!allowedSubdomains.includes(subdomain.toLowerCase())) {
+      return {
+        allowed: false,
+        code: 'SUBDOMAIN_NOT_ALLOWED',
+        message: 'النطاق الفرعي المطلوب غير مدرج في قائمة النطاقات المسموح لها بالتأسيس الحقيقي حالياً.',
+      };
+    }
+  }
+
+  // 7. Base Param Validation
+  if (!runId) {
+    return {
+      allowed: false,
+      code: 'RUN_ID_REQUIRED',
+      message: 'معرف تشغيل العملية (runId) مطلوب لإثبات صحة الطلب.',
+    };
+  }
+
+  if (!subdomain) {
+    return {
+      allowed: false,
+      code: 'SUBDOMAIN_REQUIRED',
+      message: 'اسم النطاق الفرعي مطلوب لإتمام عملية الفحص.',
+    };
+  }
+
+  return {
+    allowed: true,
+    code: '',
+    message: 'التأسيس الحقيقي مسموح به ومصرح به.',
+  };
+}
+

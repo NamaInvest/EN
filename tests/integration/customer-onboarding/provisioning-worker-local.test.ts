@@ -4,7 +4,11 @@ import { startProvisioningWorker, stopProvisioningWorker } from '@/lib/tenant/pr
 describe('Provisioning Worker Local Integration Tests', () => {
   const adapter = getProvisioningQueueAdapter();
 
+  let originalWorkerEnabled: string | undefined;
+
   beforeAll(() => {
+    originalWorkerEnabled = process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED;
+    process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED = 'true';
     // Start background worker
     startProvisioningWorker();
   });
@@ -12,6 +16,11 @@ describe('Provisioning Worker Local Integration Tests', () => {
   afterAll(() => {
     // Stop background worker
     stopProvisioningWorker();
+    if (originalWorkerEnabled === undefined) {
+      delete process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED;
+    } else {
+      process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED = originalWorkerEnabled;
+    }
   });
 
   it('automatically processes a pending job and marks it as READY for valid subdomain', async () => {

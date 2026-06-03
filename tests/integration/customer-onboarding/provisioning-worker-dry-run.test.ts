@@ -40,14 +40,34 @@ describe('Provisioning Worker Dry-Run Tests', () => {
   });
 
   it('rejects execution when real writes options are passed', async () => {
-    const payload = {
-      provisioningRunId: 'run_try_real',
-      requestedSubdomain: 'try-real-subdomain',
-    };
+    const originalWorker = process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED;
+    const originalDryRun = process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN;
+    const originalWrites = process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED;
+    const originalAllowedEnv = process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV;
+    const originalNodeEnv = process.env.NODE_ENV;
 
-    await expect(runProvisioningWorkerDryRun(payload, { realWrites: true }))
-      .rejects
-      .toThrow('REAL_PROVISIONING_WORKER_DISABLED');
+    process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED = 'true';
+    process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN = 'false';
+    process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED = 'true';
+    process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV = 'production';
+    (process.env as any).NODE_ENV = 'production';
+
+    try {
+      const payload = {
+        provisioningRunId: 'run_try_real',
+        requestedSubdomain: 'try-real-subdomain',
+      };
+
+      await expect(runProvisioningWorkerDryRun(payload, { realWrites: true }))
+        .rejects
+        .toThrow('REAL_PROVISIONING_WORKER_DISABLED');
+    } finally {
+      process.env.CUSTOMER_ONBOARDING_WORKER_ENABLED = originalWorker;
+      process.env.CUSTOMER_ONBOARDING_WORKER_DRY_RUN = originalDryRun;
+      process.env.CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED = originalWrites;
+      process.env.CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV = originalAllowedEnv;
+      (process.env as any).NODE_ENV = originalNodeEnv;
+    }
   });
 
   it('fails early and returns FAILED status if subdomain validation fails', async () => {
