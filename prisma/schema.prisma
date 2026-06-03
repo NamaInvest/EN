@@ -3365,8 +3365,42 @@ model TenantAccount {
 
   desktopLicenses DesktopLicense[]
   featureFlags    TenantFeatureFlag[]
+  provisioningRuns TenantProvisioningRun[]
 
   @@map("tenant_accounts")
+}
+
+// ==================== 101.1 Tenant Provisioning Status Tracking ====================
+model TenantProvisioningRun {
+  id                        String    @id @default(cuid())
+  tenantAccountId           Int?      @map("tenant_account_id")
+  tenantAccount             TenantAccount? @relation(fields: [tenantAccountId], references: [id], onDelete: SetNull)
+  subdomain                 String
+  databaseName              String?   @map("database_name")
+  status                    String    @default("PENDING")
+  currentStep               String?   @map("current_step")
+  attemptNo                 Int       @default(1) @map("attempt_no")
+  requestId                 String?   @map("request_id")
+  createdByClerkUserId      String?   @map("created_by_clerk_user_id")
+  createdByEmail            String?   @map("created_by_email")
+  startedAt                 DateTime? @map("started_at")
+  completedAt               DateTime? @map("completed_at")
+  failedAt                  DateTime? @map("failed_at")
+  lastRetryAt               DateTime? @map("last_retry_at")
+  lastErrorCode             String?   @map("last_error_code")
+  lastErrorMessageSanitized String?   @map("last_error_message_sanitized")
+  lastErrorDetailsJson      Json?     @map("last_error_details_json")
+  metadata                  Json?
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@index([subdomain])
+  @@index([status])
+  @@index([requestId])
+  @@index([tenantAccountId])
+  @@index([createdByClerkUserId])
+  @@index([createdAt])
+  @@map("tenant_provisioning_runs")
 }
 
 // ==================== 102. Desktop Licensing ====================

@@ -47,6 +47,7 @@
     "out",
     "stories",
     "tests/a11y",
-    "scripts"
+    "scripts",
+    "tmp"
   ]
 }

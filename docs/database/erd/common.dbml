@@ -6502,6 +6502,7 @@ Table tenant_accounts {
   userQuota Int [default: 1]
   desktopLicenses desktop_licenses [not null]
   featureFlags tenant_feature_flags [not null]
+  provisioningRuns tenant_provisioning_runs [not null]
 }
 
 Table tenant_feature_flags {

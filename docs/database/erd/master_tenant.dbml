@@ -247,6 +247,30 @@ Table document_archives {
   creator users
 }
 
+Table tenant_provisioning_runs {
+  id String [pk]
+  tenantAccountId Int
+  tenantAccount tenant_accounts
+  subdomain String [not null]
+  databaseName String
+  status String [not null, default: 'PENDING']
+  currentStep String
+  attemptNo Int [not null, default: 1]
+  requestId String
+  createdByClerkUserId String
+  createdByEmail String
+  startedAt DateTime
+  completedAt DateTime
+  failedAt DateTime
+  lastRetryAt DateTime
+  lastErrorCode String
+  lastErrorMessageSanitized String
+  lastErrorDetailsJson Json
+  metadata Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
 Table tenant_feature_flags {
   id Int [pk, increment]
   tenantId String [not null, default: 'default', note: '🔴 Tenant']
@@ -1031,6 +1055,7 @@ Table tenant_accounts {
   userQuota Int [default: 1]
   desktopLicenses desktop_licenses [not null]
   featureFlags tenant_feature_flags [not null]
+  provisioningRuns tenant_provisioning_runs [not null]
 }
 
 Table desktop_licenses {
@@ -1298,6 +1323,8 @@ Ref: request_for_quotations.userId > users.id
 Ref: goods_receipt_notes.receivedBy > users.id
 
 Ref: sys_alerts.userId > users.id
+
+Ref: tenant_provisioning_runs.tenantAccountId > tenant_accounts.id [delete: Set Null]
 
 Ref: tenant_feature_flags.tenantAccountId > tenant_accounts.id
 
