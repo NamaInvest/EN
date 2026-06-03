@@ -74,7 +74,10 @@ async function _GET(req: Request) {
     }, { status: 404 });
 
   } catch (err: any) {
-    log.error(`[status] Error checking provisioning status:`, err);
+    log.error(`[status] Error checking provisioning status:`, {
+      message: err?.message,
+      stack: err?.stack,
+    });
     return NextResponse.json({
       success: false,
       error: 'INTERNAL_ERROR',

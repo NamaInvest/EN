@@ -98,7 +98,10 @@ async function _POST(req: Request) {
     }, { status: 404 });
 
   } catch (err: any) {
-    log.error(`[retry] Error retrying provisioning job:`, err);
+    log.error(`[retry] Error retrying provisioning job:`, {
+      message: err?.message,
+      stack: err?.stack,
+    });
     return NextResponse.json({
       success: false,
       error: 'INTERNAL_ERROR',
