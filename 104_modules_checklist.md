@@ -1,113 +1,237 @@
-# قائمة مراجعة وحدات نما إنفست (104 Module Checklist)
+# قائمة مراجعة وحدات نما إنفست (Dynamic Modules Checklist)
 
-هذا هو السجل الحصري والنهائي للـ 104 وحدة برمجية في منصة نما إنفست. تم إعداد هذا الجدول للمراجعة مع الخبراء والتأكد من إغلاق جميع المتطلبات التشغيلية في النظام.
+هذا هو السجل الديناميكي الشامل لوحدات منصة Nama Invest ERP المحدث بناءً على مسارات النظام الفعلية (تمت ترقيته من 104 وحدة إلى مسح شامل يكشف عن مئات الأقسام). 
+تم إعداد هذا الجدول للمراجعة مع الخبراء والتأكد من تغطية جميع المتطلبات التشغيلية المكتشفة.
 
-| م | الفئة (Category) | اسم الوحدة (Module) | الحالة (Status) | الوظيفة الأساسية (Core Function) |
+| م | القسم الرئيسي | الأقسام الفرعية المكتشفة | الحالة | عدد الشاشات/الخدمات |
 |---|---|---|---|---|
-| 1 | 💼 المحاسبة (Finance) | إدارة شجرة الحسابات (GL) | 🟢 مكتملة | بناء الأدلة المحاسبية من الأصول للخصوم والمصروفات. |
-| 2 | 💼 المحاسبة (Finance) | قيود اليومية التلقائية | 🟢 مكتملة | تسجيل القيد المزدوج فورياً لأي حركات بيع أو شراء أو جرد. |
-| 3 | 💼 المحاسبة (Finance) | قيود اليومية اليدوية | 🟢 مكتملة | السماح للمحاسبين بإدخال التسويات والإقفالات يدوياً. |
-| 4 | 💼 المحاسبة (Finance) | ميزان المراجعة (Live Trial Balance) | 🟢 مكتملة | تتبع اتزان الأرصدة المدنية والدائنة لحظياً. |
-| 5 | 💼 المحاسبة (Finance) | قائمة الدخل | 🟢 مكتملة | تجميع إيرادات ومصروفات النظام لمعرفة الربح والخسارة. |
-| 6 | 💼 المحاسبة (Finance) | الميزانية العمومية | 🟢 مكتملة | دمج المركز المالي النهائي في تقرير هيكلي. |
-| 7 | 💼 المحاسبة (Finance) | الاعتمادات المستندية (LCs) | 🟢 مكتملة | تغطية دورة الاستيراد الدولي والربط من البنوك. |
-| 8 | 💼 المحاسبة (Finance) | مراكز التكلفة (Cost Centers) | 🟢 مكتملة | توزيع المصروفات والإيرادات على المشاريع وتتبع ربحيتها. |
-| 9 | 💼 المحاسبة (Finance) | الأصول الثابتة (Fixed Assets) | 🟢 مكتملة | إضافة لوحات المعدات والمركبات إلى السجلات المالية. |
-| 10 | 💼 المحاسبة (Finance) | إهلاكات الأصول التلقائي | 🟢 مكتملة | احتساب نسبة قسط الإهلاك السنوي للأصل وتكوين القيد. |
-| 11 | 💵 المبيعات (Sales) | فاتورة ضريبية ZATCA | 🟢 مكتملة | التشفير والتخزين وإرسال الـ API للمرحلة الثانية من الزكاة. |
-| 12 | 💵 المبيعات (Sales) | فاتورة مبسطة (POS) | 🟢 مكتملة | البيع السريع لعملاء التجزئة بطباعة باركود الاستجابة (B2C). |
-| 13 | 💵 المبيعات (Sales) | نقاط البيع السحابية (Web POS) | 🟢 مكتملة | واجهة مبسطة تعمل عبر التابلت وشاشات اللمس. |
-| 14 | 💵 المبيعات (Sales) | إدارة العملاء | 🟢 مكتملة | قواعد البيانات الكاملة للعملاء والحد الائتماني المسموح به. |
-| 15 | 💵 المبيعات (Sales) | أوامر المبيعات (Sales Orders) | 🟢 مكتملة | حجوزات البيع الآجلة للشركات (B2B). |
-| 16 | 💵 المبيعات (Sales) | عروض الأسعار (Quotations) | 🟢 مكتملة | إرسال عروض احترافية بمدة صلاحية واسم المندوب. |
-| 17 | 💵 المبيعات (Sales) | مرتجعات المبيعات (Credit Note) | 🟢 مكتملة | الرد الكامل للكميات والضريبة ضمن قيود الزكاة المسموحة. |
-| 18 | 💵 المبيعات (Sales) | مذكرات التسليم (Delivery Notes) | 🟢 مكتملة | السند التنفيذي لخروج البضاعة للمستودع بلا قيمة مالية. |
-| 19 | 💵 المبيعات (Sales) | نظام ولاء العملاء (Loyalty) | 🟢 مكتملة | كسب واستبدال النقاط الشرائية للعملاء بالتبادل. |
-| 20 | 💵 المبيعات (Sales) | بيع الأقساط (Installments) | 🟢 مكتملة | فك الفاتورة على أقساط ودفعات بكسور شهرية. |
-| 21 | 📦 المشتريات (Purchases) | فاتورة المشتريات (الموردين) | 🟢 مكتملة | إنشاء دينيات المشتريات، وإضافة الضريبة للمدخلات. |
-| 22 | 📦 المشتريات (Purchases) | أوامر الشراء (Purchase Orders) | 🟢 مكتملة | إنشاء مستند قانوني لطلب بضاعة من المورد المحلي/الدولي. |
-| 23 | 📦 المشتريات (Purchases) | طلبات توفير المواد (Requisitions) | 🟢 مكتملة | رفع الأقسام لاحتياجهم للمنتج إلى الإدارة المالية. |
-| 24 | 📦 المشتريات (Purchases) | عروض الأسعار من الموردين (RFQ) | 🟢 مكتملة | طلب وتقييم وتسعيرة المناقصات قبل الترسية. |
-| 25 | 📦 المشتريات (Purchases) | إيصال البضاعة (GRN) | 🟢 مكتملة | إثبات استلام الأصناف من المورد (بصلاحيات الجمارك أو الكمية). |
-| 26 | 📦 المشتريات (Purchases) | مصاريف التوريد (Landed Costs) | 🟢 مكتملة | توزيع تكاليف (الشحن/الجمارك) على تكلفة الصنف بالوزن/القيمة. |
-| 27 | 📦 المشتريات (Purchases) | مرتجعات المشتريات (Debit Note) | 🟢 مكتملة | إرجاع الأصناف للمورد وإغلاق التسوية الحسابية. |
-| 28 | 🏭 المخزون (Inventory) | إدارة الفروع والمستودعات | 🟢 مكتملة | بناء الهيكل الشجري للمستودعات وربطها بالفروع النشطة. |
-| 29 | 🏭 المخزون (Inventory) | بطاقة الصنف (Product Master) | 🟢 مكتملة | التعريف الأساسي (صورة، باركود، سعر شراء، بيع، باركود مزدوج). |
-| 30 | 🏭 المخزون (Inventory) | تعدد وحدات القياس | 🟢 مكتملة | حبة، درزينة، كرتون، وربط معاملات التحويل للصنف الواحد. |
-| 31 | 🏭 المخزون (Inventory) | إدارة الرقم التسلسلي (Serial No) | 🟢 مكتملة | التتبع الدقيق للقطع الإلكترونية والضمان. |
-| 32 | 🏭 المخزون (Inventory) | دفعات الإنتاج (Batches/FEFO) | 🟢 مكتملة | تواريخ الصلاحية لقطاعات الأدوية والأغذية. |
-| 33 | 🏭 المخزون (Inventory) | التحويل المخزني (Transfers) | 🟢 مكتملة | ترحيل البضائع بين الفروع والمستودعات بسلام. |
-| 34 | 🏭 المخزون (Inventory) | التسويات المخزنية (Adjustments) | 🟢 مكتملة | تسوية المفقودات وحالات التلف بقيد محاسبي مباشر للإهلاك. |
-| 35 | 🏭 المخزون (Inventory) | الجرد الآني | 🟢 مكتملة | استعراض الأرصدة اللحظية للصنف في جميع المستودعات. |
-| 36 | 🏭 المخزون (Inventory) | جرد الرؤية الحاسوبية (AI Vision) | 🟢 مكتملة | التعرف السريع على الأرفف المخزنية لتقليل مجهود الحصر. |
-| 37 | 🏭 المخزون (Inventory) | نظام الرفوف (Racks/Bins) | 🟢 مكتملة | تقسيم المستودع لزوايا وفصل كل منتج بباركود مكاني. |
-| 38 | 💳 الخزينة والبنوك | شجرة الحسابات البنكية | 🟢 مكتملة | إضافة الحسابات وأرصدتها الافتتاحية للمنشأة. |
-| 39 | 💳 الخزينة والبنوك | سندات القبض والدفع | 🟢 مكتملة | الصرف والاستلام النقدي وتوليد إشعارات PDF رسمية. |
-| 40 | 💳 الخزينة والبنوك | الشيكات أوراق القبض (Notes Receivable) | 🟢 مكتملة | إدارة دورة الشيك من (محفظة، برسم التحصيل، والمحصل). |
-| 41 | 💳 الخزينة والبنوك | الشيكات أوراق الدفع (Notes Payable) | 🟢 مكتملة | إدارة التزامات الإيجارات والشيكات الصادرة. |
-| 42 | 💳 الخزينة والبنوك | التسويات البنكية (Bank Reconciliation) | 🟢 مكتملة | مقارنة كشف البنك الخارجي مع حركات السيستم لاستنتاج الفروق. |
-| 43 | 💳 الخزينة والبنوك | العُهد النقدية (Petty Cash) | 🟢 مكتملة | تمويل واستعاضة وتصفية عهد المندوبين والموظفين. |
-| 44 | 👥 الموارد البشرية (HR) | السجل الوظيفي | 🟢 مكتملة | تسجيل الهوية، جواز السفر، الإيبان، ونهاية العقد. |
-| 45 | 👥 الموارد البشرية (HR) | كشوفات المرتبات (Salaries) | 🟢 مكتملة | تعريف الأساسي، بدلات السكن/النقل، واستقطاع التأمينات والغياب. |
-| 46 | 👥 الموارد البشرية (HR) | إدارة السلف والخصومات | 🟢 مكتملة | خصم تلقائي شهري من الراتب حتى اكتمال وتسوية السلفة. |
-| 47 | 👥 الموارد البشرية (HR) | أجهزة البصمة والمناوبات | 🟢 مكتملة | نظام الورديات وتسجيل (شفت صباحي/مسائي) وتوليد الفروقات. |
-| 48 | 👥 الموارد البشرية (HR) | حضور AI (ميزة الوجه) | 🟢 مكتملة | تقنية Face-ID للتعرف على الموظف وتسجيل حضوره بالكاميرا. |
-| 49 | 👥 الموارد البشرية (HR) | طلبات الإجازة | 🟢 مكتملة | تقديم واعتماد إجازات الموظفين السنوية والطارئة (بخصم أو بدونه). |
-| 50 | 👥 الموارد البشرية (HR) | هيكل التقييم (Evaluations) | 🟢 مكتملة | فحص مؤشرات الأداء (KPIs) الربع السنوية وإقرار الترقيات. |
-| 51 | 👥 الموارد البشرية (HR) | دورات التدريب | 🟢 مكتملة | توثيق برامج تدريب الموظفين وتحميل ملفات الشهادات. |
-| 52 | 👥 الموارد البشرية (HR) | بوابات التوظيف | 🟢 مكتملة | استقبال السير الذاتية وتمريرها لمراحل المقابلة والاستقطاب. |
-| 53 | ⚙️ المصانع والـ MRP | وصفات التصنيع (BOM) | 🟢 مكتملة | تركيب مقادير الصنف بدقة الجرام لحساب التكلفة التجميعية. |
-| 54 | ⚙️ المصانع والـ MRP | أوامر ألتصنيع (Work Orders) | 🟢 مكتملة | إصدار التكليف للآلة وإثبات عدد المنتج التام المطلوب. |
-| 55 | ⚙️ المصانع والـ MRP | تتبع الفاقد (Wastage) | 🟢 مكتملة | تسجيل الفوارق بين الوصفة الدفترية والخسارة التشغيلية عند الحرق. |
-| 56 | ⚙️ المصانع والـ MRP | إدارة المعدات وإهلاكها | 🟢 مكتملة | تسجيل ساعات عمل الآلة وتحميل التكلفة على أمر التصنيع. |
-| 57 | ⚙️ المصانع والـ MRP | الفحص والجودة (Quality) | 🟢 مكتملة | فحص خروج خط الإنتاج واعتماده لتخزينه في البضاعة التامة المتاحة. |
-| 58 | 🚚 الأسطول والحركة | شجرة المركبات وتأميناتها | 🟢 مكتملة | تسجيل الشاحنة بكسور الرخص وتحديث العداد (Odometer). |
-| 59 | 🚚 الأسطول والحركة | إدارة الرحلات وتوجيه المناديب | 🟢 مكتملة | إعطاء المندوب مسار رحلة وتحديد الفعاليات مع العملاء باليوم والوقت. |
-| 60 | 🚚 الأسطول والحركة | كروت الوقود | 🟢 مكتملة | تدوين مصروف الوقود وربطه بالمحرك الخاص بعهد الشاحنات. |
-| 61 | 🚚 الأسطول والحركة | مواعيد الصيانة الدورية | 🟢 مكتملة | فحص غيارات الزيوت أوتوماتيكياً عبر عدادات الأميال. |
-| 62 | 📊 إدارة المشاريع والهندسة | بطاقة المشروع والمهام | 🟢 مكتملة | تفكيك المشروع لمراحل عمل (WBS) بمتتبع للإنجاز. |
-| 63 | 📊 إدارة المشاريع والهندسة | مصاريف وإيرادات المشروع | 🟢 مكتملة | مركز التكلفة المرتبط للمشروع للوصول لأرباح البناء والإنشاءات. |
-| 64 | ⚖️ التأجير والعقارات | إدراة الأصول المؤجرة | 🟢 مكتملة | بناء الهيكل العنقودي للوحدة (العمارة، الطابق، الشقة). |
-| 65 | ⚖️ التأجير والعقارات | عقود الإيجار | 🟢 مكتملة | تأجير الوحدة بعقد نظامي وتوثيق بيانات المستفيد والمقدم المالي. |
-| 66 | ⚖️ التأجير والعقارات | دفعات الإيجار المتتالية | 🟢 مكتملة | إصدار فواتير شهرية/سنوية أوتوماتيكياً واستحقاق الأقساط. |
-| 67 | ⚖️ التأجير والعقارات | الشؤون القانونية وسند الأمر | 🟢 مكتملة | تسجيل الملاحقات، سندات الأمر من ناجز لتعقب أموال المنشأة. |
-| 68 | ⚖️ التأجير والعقارات | خطابات الضمان المالي | 🟢 مكتملة | توثيق الضمانات البتدائية للتامينات. |
-| 69 | 🔐 الأمن والموافقات | شجرة الصلاحيات (Roles) | 🟢 مكتملة | تقسيم المستخدمين لمستويات (مبصر، منفذ، مراجع، مدير). |
-| 70 | 🔐 الأمن والموافقات | أذونات دقيقة للمستخدمين | 🟢 مكتملة | تتبع 4 أذونات لكل شاشة (عرض، إنشاء، تعديل، حذف). |
-| 71 | 🔐 الأمن والموافقات | قواعد الموافقات (Approval Rules) | 🟢 مكتملة | حجز الفاتورة بانتظار الاعتماد اليدوي للمبالغ الكبيرة من الحسابات. |
-| 72 | 🔐 الأمن والموافقات | تاريخ الأحداث (Audit Logs) | 🟢 مكتملة | تسجيل وحفظ كل ضغطة وطلب وحذف لأي موظف مع التوقيت الدقيق. |
-| 73 | 🤖 الذكاء الاصطناعي | تقرير مدقق CFO الآلي | 🟢 مكتملة | استنتاج الحالة المالية بكبسة زر وتحليل المصاريف والارباح بالذكاء الاصطناعي. |
-| 74 | 🤖 الذكاء الاصطناعي | المساعد Copilot | 🟢 مكتملة | محادثة دردشة تفاعلية لطلب البيانات وسحب المعلومات اللحظية والإجابة. |
-| 75 | 🤖 الذكاء الاصطناعي | تحليل تزوير البنوك | 🟢 مكتملة | مقارنة إيصالات المحولات والتدقيق بالـ OCR لرصد التلاعب المالي المحتمل. |
-| 76 | 🤖 الذكاء الاصطناعي | قراءة فواتير المشتريات ضوئياً | 🟢 مكتملة | تخرين تفاصيل الفاتورة من ملفات الـ PDF وسحب الكميات وتجهيز الفاتورة. |
-| 77 | 🏫 التعليم والمعاهد | بطاقة التسجيل للطلبة | 🟢 مكتملة | قبول ملف الطالب وواليه وإرفاق معلوماته لعملية النقل للـ CRM بفعالية. |
-| 78 | 🏫 التعليم والمعاهد | الفصول والمناهج | 🟢 مكتملة | توزيع الحصص لترتيب القاعات وإدارة طاقة الاستيعاب للتقسيم الأكاديمي. |
-| 79 | 🏫 التعليم والمعاهد | استحقاق الرسوم الدراسية الأوتوماتيكي | 🟢 مكتملة | إضافة مديونية الطالب مباشرة مع تجديد العقد بشكل منتظم. |
-| 80 | 🌐 النوافذ الرقمية | بوابة B2B للعملاء | 🟢 مكتملة | سماح العميل بتسجيل دخوله وتفقد أرصدته وإصدار الفواتير وطباعتها. |
-| 81 | 🌐 النوافذ الرقمية | بوابة الأهالي للمدارس | 🟢 مكتملة | صفحة تسجيل واستعراض المدفوعات من جانب أولياء الأمور وتسويتها. |
-| 82 | 🛠️ الصيانة والإصلاح | بطاقات صيانة الأجهزة المعطلة | 🟢 مكتملة | استلام جهاز معيب ووصفة مشاكله وتحديد التسعيرة. |
-| 83 | 🛠️ الصيانة والإصلاح | استهلاك المحول لأوامر الصيانة | 🟢 مكتملة | فحص قطع غيار التصليح واعتمادها لزيادة تكلفتها على الفاتورة قبل العميل. |
-| 84 | 📱 الـ B2C التسويقي | الكوبونات وأكواد الخصم | 🟢 مكتملة | توليد رمز خصم صالح للاستخدام مع تحديد حده الأقصى وأقل مبيعات. |
-| 85 | 📱 الـ B2C التسويقي | الهدايا والعروض الترويجية | 🟢 مكتملة | برامج ومبادرات (اشتري 하나 واحصل على الثاني) من نفس أو فئة أخرى. |
-| 86 | 📱 الـ B2C التسويقي | بطاقات الهدايا (Gift Cards) | 🟢 مكتملة | طباعة واستبدال البطاقات الرقمية مسبقة الدفع عبر المحلات لترويج الأعمال. |
-| 87 | ⚙️ إعدادات النظام | متعدد الفروع | 🟢 مكتملة | العمل ضمن كيان موحد بهوية ضريبية مركزية ولكن تفرع في المدن وأرصدة الدخل. |
-| 88 | ⚙️ إعدادات النظام | الإعداد المستقل للضريبة | 🟢 مكتملة | وضع المعامل الضريبي 15٪ والتطبيق للمنتج (غير الخاضع للضريبة/المعفى). |
-| 89 | ⚙️ إعدادات النظام | العملات المزدوجة والمقاصة | 🟢 مكتملة | بيع الفاتورة بالريال وتسوية الحسابات عبر شراء البضاعة بالدولار من المستورد. |
-| 90 | ⚙️ إعدادات النظام | واجهة المستخدم المتقدمة | 🟢 مكتملة | دعم الثيمات الفاتحة، وتعديل الهوية، وتغيير اللغة من النظام مباشرة بدون إعادة بناء. |
-| 91 | 🏥 الطبية (Pharma) | تنبيهات وشيكة الانتهاء | 🟢 مكتملة | تحذير مبرمج للأصناف التي تفصلها مدة عن عدم إمكانية ترحيلها للثلاجة. |
-| 92 | 🏥 الطبية (Pharma) | البدائل العلاجية | 🟢 مكتملة | تحديد البنادول كبديل للباندريكس لتسهيل اقتراحها للصيادلة حال الغياب. |
-| 93 | 🍽️ المطاعم (Restaurants) | الطاولات وإدارتها | 🟢 مكتملة | طباعة الطلبات، وتقسيم المطبخ، ومراقبة حجوزات الصالة بالمدة والإخلاء. |
-| 94 | 🍽️ المطاعم (Restaurants) | شاشة المطبخ (KDS) | 🟢 مكتملة | تحويل الطلب فور دفع العميل عبر التابلت الداخلي للطباخ لاختصار الورق. |
-| 95 | 🛒 التجزئة الكبرى | دعم جهاز الباروكد الـ Scanner | 🟢 مكتملة | ربط الـ DOM للبحث المباشر عن الكود وإدراج الصنف أوتوماتيكم بطرفة عين للعميل بالسرعة. |
-| 96 | 🛒 التجزئة الكبرى | الدرج النقدي وملحقاته | 🟢 مكتملة | تتبع العجز/الفائض عند إقفال الدرج اليومي وضبط العهده للموظف عبر الشيفت بضغطات. |
-| 97 | 🛡️ خدمات الوكالة | بوابة التسجيل السحابي | 🟢 مكتملة | موقع مركزي لإنشاء نسخ الداتابيز للفضاءات المتسأجرة من العميل تلقائيًا (Zero-touch). |
-| 98 | 🛡️ خدمات الوكالة | الاشتراكات والفواتير | 🟢 مكتملة | إدراج الفواتير والبوابات ووقف النطاق الخاص بالشركة في حال انتهاء العقد الشهري للـ Saas. |
-| 99 | 📈 التحليل المتقدم | الإحصائيات الحية | 🟢 مكتملة | شاشات بيانات متطوره برسوم المبيعات وحركات التداول مع البنوك لتشيك الربحية يومي. |
-| 100| 📈 التحليل المتقدم | إشعارات واتساب | 🟢 مكتملة | استلام إخطارات للزبون، أو الإشراف لفاتورة مبعوثة لتحديث المسارات الحرة مع الـ API الخارجي. |
-| 101| 📈 التحليل المتقدم | قراءة كشف البنك الذكية | 🟢 مكتملة | رفع كشف بنك من الراجحي بملف واستيراده وتوزيع المبالغ للمستفيد والمصروف بصيغة آليہ لتخفيف العبء. |
-| 102| 🔗 التكامل والربط | الـ Webhook مع الطرف الثالث | 🟢 مكتملة | إنشاء مستند تصديري للإشعارات وربطه بطبقات أُخرى مثل أنظمة الرسائل البرمجية الفردية للموردين. |
-| 103| 🔗 التكامل والربط | ربط الفاتورة الزكوية B2G | 🟢 مكتملة | الإرسال عبر مخرجات الستيم والمشاركة بصيغة XML المتوافقة بشكل فوري لمؤسسة الزكاة عبر الخادم. |
-| 104| 🔗 التكامل والربط | تصدير التقارير المتنوعة | 🟢 مكتملة | التصدير لملفات بصيغة Excel / PDF للمشاركات الخارجية للحكم المالي عبر كل شاشة داخل النظام. |
+| 1 | 💼 المحاسبة (accounting) | aging-report, allocations, bank-reconciliation, banks, collection-workflow, c... | 🟢 مكتملة | 163 | 
+| 2 | 💼 الإدارة العامة (admin) | bi-builder, chains, compliance, compliance-dashboard, e2e-tester, feature-fla... | 🟢 مكتملة | 41 | 
+| 3 | 💼 affiliates (affiliates) | main | 🟡 UI Only | 1 | 
+| 4 | 💼 ai (ai) | bank-fraud, demand-forecast, nlq, sales-coach, bank-reconciliation, cfo, chat... | 🟢 مكتملة | 17 | 
+| 5 | 💼 ai-auditor (ai-auditor) | main | 🟢 مكتملة | 2 | 
+| 6 | 💼 ai-bank (ai-bank) | main | 🟡 UI Only | 1 | 
+| 7 | 💼 ai-cfo (ai-cfo) | main, report | 🟢 مكتملة | 3 | 
+| 8 | 💼 ai-copilot (ai-copilot) | main | 🟡 UI Only | 1 | 
+| 9 | 💼 ai-scm (ai-scm) | main | 🟡 UI Only | 1 | 
+| 10 | 💼 ap (ap) | capture, match, three-way-match, main | 🟢 مكتملة | 6 | 
+| 11 | 💼 approvals (approvals) | inbox, main, [id] | 🟢 مكتملة | 7 | 
+| 12 | 💼 assets (assets) | main, depreciate, leases | 🟢 مكتملة | 12 | 
+| 13 | 💼 attendance (attendance) | main, face-id | 🟢 مكتملة | 3 | 
+| 14 | 💼 audit (audit) | field-trail | 🟢 مكتملة | 2 | 
+| 15 | 💼 audit-logs (audit-logs) | main | 🟢 مكتملة | 2 | 
+| 16 | 💼 banks (banks) | main, import, reconciliation, [id] | 🟢 مكتملة | 6 | 
+| 17 | 💼 barcode (barcode) | main | 🟡 UI Only | 1 | 
+| 18 | 💼 batches (batches) | main, expiry, [id] | 🟢 مكتملة | 4 | 
+| 19 | 💼 bi (bi) | dashboard, budget-variance, cube, kpis | 🟢 مكتملة | 4 | 
+| 20 | 💼 bookings (bookings) | calendar, main, invoice | 🟢 مكتملة | 4 | 
+| 21 | 💼 branches (branches) | main | 🟢 مكتملة | 2 | 
+| 22 | 💼 calendar (calendar) | main | 🟡 UI Only | 1 | 
+| 23 | 💼 clinic (clinic) | appointments, erx, lab | 🟢 مكتملة | 6 | 
+| 24 | 💼 cmms (cmms) | main, work-orders, schedules | 🟢 مكتملة | 4 | 
+| 25 | 💼 com (com) | rules | 🟢 مكتملة | 2 | 
+| 26 | 💼 compliance (compliance) | audits, pdpl, risks, rules | 🟢 مكتملة | 7 | 
+| 27 | 💼 contracts (contracts) | main, templates, alerts, renewals | 🟢 مكتملة | 6 | 
+| 28 | 💼 copa (copa) | main, allocations, characteristics, value-fields | 🟢 مكتملة | 5 | 
+| 29 | 💼 coupons (coupons) | main, validate, [id] | 🟢 مكتملة | 4 | 
+| 30 | 💼 cpq (cpq) | main | 🟢 مكتملة | 2 | 
+| 31 | 💼 credit-check (credit-check) | main | 🟢 مكتملة | 2 | 
+| 32 | 💼 crm (crm) | campaigns, customer360, cx-nps, kanban, key-accounts, leads, opportunities, m... | 🟢 مكتملة | 32 | 
+| 33 | 💼 customers (customers) | main, [id] | 🟢 مكتملة | 8 | 
+| 34 | 💼 لوحة التحكم (dashboard) | main | 🟢 مكتملة | 2 | 
+| 35 | 💼 dms (dms) | main | 🟢 مكتملة | 2 | 
+| 36 | 💼 docs (docs) | main, [slug], openapi.json | 🟢 مكتملة | 4 | 
+| 37 | 💼 documents (documents) | main, transition, [id] | 🟢 مكتملة | 4 | 
+| 38 | 💼 ecommerce (ecommerce) | dashboard, stores, orders, sync | 🟢 مكتملة | 5 | 
+| 39 | 💼 employees (employees) | main, [id] | 🟢 مكتملة | 3 | 
+| 40 | 💼 enterprise (enterprise) | fleet, legal, mrp, portfolio, projects, property, quality, quality-management... | 🟢 مكتملة | 22 | 
+| 41 | 💼 esign (esign) | main | 🟢 مكتملة | 2 | 
+| 42 | 💼 events (events) | main, registrations | 🟢 مكتملة | 3 | 
+| 43 | 💼 expenses (expenses) | main | 🟢 مكتملة | 2 | 
+| 44 | 💼 field-service (field-service) | main, orders | 🟢 مكتملة | 3 | 
+| 45 | 💼 finance (finance) | allocation, assets, bad-debt, balance-sheet, bank-recon, budget-control, budg... | 🟢 مكتملة | 104 | 
+| 46 | 💼 fiscal-periods (fiscal-periods) | main | 🟢 مكتملة | 2 | 
+| 47 | 💼 fixed-assets (fixed-assets) | main, [id] | 🟢 مكتملة | 4 | 
+| 48 | 💼 fleet (fleet) | fuel, maintenance, main, tracking, trips, advanced | 🟢 مكتملة | 9 | 
+| 49 | 💼 fng (fng) | allocations, budgets, petty-cash-funds | 🟢 مكتملة | 5 | 
+| 50 | 💼 fsm (fsm) | dispatch, main, tasks, complete, tickets | 🟢 مكتملة | 5 | 
+| 51 | 💼 fx (fx) | main | 🟢 مكتملة | 2 | 
+| 52 | 💼 gift-cards (gift-cards) | main, [id] | 🟢 مكتملة | 3 | 
+| 53 | 💼 الموارد البشرية (hr) | ai-enrollment, attendance, documents, eos, evaluations, expense-reports, gosi... | 🟢 مكتملة | 76 | 
+| 54 | 💼 installments (installments) | main | 🟢 مكتملة | 2 | 
+| 55 | 💼 inv (inv) | serials | 🟢 مكتملة | 2 | 
+| 56 | 💼 المخزون (inventory) | abc-analysis, ai-vision, delivery-notes, movements, main, picking, quality-co... | 🟢 مكتملة | 39 | 
+| 57 | 💼 knowledge (knowledge) | articles, categories | 🟢 مكتملة | 3 | 
+| 58 | 💼 learn (learn) | main, courses | 🟢 مكتملة | 2 | 
+| 59 | 💼 lms (lms) | courses | 🟢 مكتملة | 2 | 
+| 60 | 💼 logistics (logistics) | carriers, freight | 🟢 مكتملة | 4 | 
+| 61 | 💼 loyalty (loyalty) | main, [customerId] | 🟢 مكتملة | 3 | 
+| 62 | 💼 maintenance (maintenance) | main, preventive | 🟢 مكتملة | 4 | 
+| 63 | 💼 manufacturing (manufacturing) | aps, blockchain-trace, bom, boms, capa, capacity, digital-twin, labor-efficie... | 🟢 مكتملة | 75 | 
+| 64 | 💼 marketing (marketing) | analytics | 🟡 UI Only | 1 | 
+| 65 | 💼 payments (payments) | main, charge | 🟢 مكتملة | 2 | 
+| 66 | 💼 payroll (payroll) | main, wps, calculate, provisions, runs, [id] | 🟢 مكتملة | 21 | 
+| 67 | 💼 pdpl (pdpl) | main, breach, dsr | 🟢 مكتملة | 6 | 
+| 68 | 💼 pharmacy (pharmacy) | drug-interact, manager, main, drug-interactions, drugs, insurance, patients, ... | 🟢 مكتملة | 9 | 
+| 69 | 💼 planning (planning) | main, slots | 🟢 مكتملة | 2 | 
+| 70 | 💼 portal (portal) | main, customer, messages, users, vendor | 🟢 مكتملة | 5 | 
+| 71 | 💼 نقاط البيع (pos) | accountant, offline, main, bnpl, checkout, pending-orders, products, restaura... | 🟢 مكتملة | 17 | 
+| 72 | 💼 pos-dashboard (pos-dashboard) | main | 🟡 UI Only | 1 | 
+| 73 | 💼 pos-demo (pos-demo) | main | 🟡 UI Only | 1 | 
+| 74 | 💼 price-quotes (price-quotes) | main | 🟢 مكتملة | 2 | 
+| 75 | 💼 procurement (procurement) | contracts, price-comparison, rfq, spend-analytics, supplier-contracts, vendor... | 🟢 مكتملة | 25 | 
+| 76 | 💼 products (products) | main, export, import, [id] | 🟢 مكتملة | 5 | 
+| 77 | 💼 profile (profile) | security | 🟡 UI Only | 1 | 
+| 78 | 💼 projects (projects) | main, advanced, evm, milestones, phases, resources, risks, time-entries | 🟢 مكتملة | 15 | 
+| 79 | 💼 promotions (promotions) | main | 🟢 مكتملة | 2 | 
+| 80 | 💼 purchase-orders (purchase-orders) | main, [id] | 🟢 مكتملة | 5 | 
+| 81 | 💼 purchase-returns (purchase-returns) | main | 🟢 مكتملة | 2 | 
+| 82 | 💼 المشتريات (purchases) | grn, landed-cost, letters-of-credit, matching, options, orders, main, requisi... | 🟢 مكتملة | 33 | 
+| 83 | 💼 quality (quality) | inspections, ncrs, main, calibration, stats | 🟢 مكتملة | 5 | 
+| 84 | 💼 rebates (rebates) | main | 🟢 مكتملة | 2 | 
+| 85 | 💼 receipt-vouchers (receipt-vouchers) | main | 🟡 UI Only | 1 | 
+| 86 | 💼 recurring-invoices (recurring-invoices) | main | 🟢 مكتملة | 2 | 
+| 87 | 💼 rem (rem) | installments, leases, main | 🟢 مكتملة | 5 | 
+| 88 | 💼 rent (rent) | main | 🟢 مكتملة | 2 | 
+| 89 | 💼 rental (rental) | agreements, returns | 🟢 مكتملة | 3 | 
+| 90 | 💼 التقارير (reports) | 104-modules, 73-modules, aging, allocations, bi-cube, budget-variance, builde... | 🟢 مكتملة | 31 | 
+| 91 | 💼 restaurant-pos (restaurant-pos) | main | 🟡 UI Only | 1 | 
+| 92 | 💼 restaurant-tables (restaurant-tables) | main | 🟡 UI Only | 1 | 
+| 93 | 💼 salaries (salaries) | main | 🟢 مكتملة | 2 | 
+| 94 | 💼 المبيعات (sales) | analytics, atp-simulator, cash-application, commissions, cpq, debit-notes, de... | 🟢 مكتملة | 52 | 
+| 95 | 💼 sales-returns (sales-returns) | main | 🟢 مكتملة | 2 | 
+| 96 | 💼 school (school) | attendance, dashboard, exams, main, schedule, stages, transport | 🟢 مكتملة | 8 | 
+| 97 | 💼 scm (scm) | main | 🟡 UI Only | 1 | 
+| 98 | 💼 الإعدادات (settings) | approvals, bpm, company, currencies, custom-fields, dashboard-builder, import... | 🟢 مكتملة | 43 | 
+| 99 | 💼 shifts (shifts) | monitor, main | 🟢 مكتملة | 3 | 
+| 100 | 💼 shipping (shipping) | main | 🟢 مكتملة | 2 | 
+| 101 | 💼 shl (shl) | classes, students | 🟢 مكتملة | 4 | 
+| 102 | 💼 shopfloor (shopfloor) | main | 🟡 UI Only | 1 | 
+| 103 | 💼 smart-transfers (smart-transfers) | main | 🟢 مكتملة | 2 | 
+| 104 | 💼 stock (stock) | adjustments, movements, main | 🟢 مكتملة | 6 | 
+| 105 | 💼 stock-transfers (stock-transfers) | main | 🟢 مكتملة | 2 | 
+| 106 | 💼 stocktake (stocktake) | main, vision | 🟢 مكتملة | 4 | 
+| 107 | 💼 subscriptions (subscriptions) | main, plans, cancel, process-renewals, subscribe | 🟢 مكتملة | 7 | 
+| 108 | 💼 supply-chain (supply-chain) | rfx-auction, vendor-onboarding | 🟢 مكتملة | 4 | 
+| 109 | 💼 support (support) | help-desk, sla | 🟡 UI Only | 2 | 
+| 110 | 💼 sys (sys) | alerts, health, desktop-crash | 🟢 مكتملة | 5 | 
+| 111 | 💼 tax (tax) | main, vat-returns, wht, zakat, zatca-onboard | 🟢 مكتملة | 6 | 
+| 112 | 💼 treasury (treasury) | bank-recon, bank-reconciliation, cash-flow, cash-forecast, cash-position, che... | 🟢 مكتملة | 29 | 
+| 113 | 💼 v3 (v3) | clinic, construction, distribution, manufacturing, master, realestate, restau... | 🟢 مكتملة | 51 | 
+| 114 | 💼 vacations (vacations) | main | 🟢 مكتملة | 2 | 
+| 115 | 💼 vat (vat) | main, categories | 🟢 مكتملة | 2 | 
+| 116 | 💼 vendor-portal (vendor-portal) | main | 🟢 مكتملة | 2 | 
+| 117 | 💼 vendor-ratings (vendor-ratings) | main | 🟢 مكتملة | 2 | 
+| 118 | 💼 warehouses (warehouses) | alerts, fifo, map, options, main, analytics, wms, [id] | 🟢 مكتملة | 9 | 
+| 119 | 💼 warranty (warranty) | main, check | 🟢 مكتملة | 2 | 
+| 120 | 💼 whatsapp-hub (whatsapp-hub) | main | 🟡 UI Only | 1 | 
+| 121 | 💼 wht (wht) | main, calculate, form14 | 🟢 مكتملة | 4 | 
+| 122 | 💼 wms (wms) | waves | 🟢 مكتملة | 2 | 
+| 123 | 💼 zakat (zakat) | main, assessments | 🟢 مكتملة | 6 | 
+| 124 | 💼 ZATCA (zatca) | main, generate-request, late-submissions, onboard, qr, reverse-charge, test, xml | 🟢 مكتملة | 17 | 
+| 125 | 💼 _ice_archive (_ice_archive) | main | 🟡 UI Only | 1 | 
+| 126 | 💼 accounts (accounts) | main | 🔵 Backend | 1 | 
+| 127 | 💼 adjustments (adjustments) | main | 🔵 Backend | 1 | 
+| 128 | 💼 ar (ar) | credit, dunning, main | 🔵 Backend | 3 | 
+| 129 | 💼 المصادقة (auth) | 2fa, auto-login, find-tenant-by-email, login, login-by-email, me, mfa, sso, s... | 🟢 مكتملة | 25 | 
+| 130 | 💼 b2b (b2b) | checkout, login, shop | 🟢 مكتملة | 5 | 
+| 131 | 💼 bnpl (bnpl) | create-session, status, tabby, tamara | 🔵 Backend | 4 | 
+| 132 | 💼 budgeting (budgeting) | encumbrance, variance | 🔵 Backend | 2 | 
+| 133 | 💼 budgets (budgets) | main, scenarios | 🔵 Backend | 2 | 
+| 134 | 💼 categories (categories) | main, [id] | 🔵 Backend | 2 | 
+| 135 | 💼 chains (chains) | [chain] | 🔵 Backend | 1 | 
+| 136 | 💼 check-env (check-env) | main | 🔵 Backend | 1 | 
+| 137 | 💼 cron (cron) | approval-sla, ar-collection-dunning, backup, contract-expiry, contracts, cycl... | 🔵 Backend | 30 | 
+| 138 | 💼 customer (customer) | table | 🟢 مكتملة | 2 | 
+| 139 | 💼 delivery-platforms (delivery-platforms) | main | 🔵 Backend | 1 | 
+| 140 | 💼 desktop (desktop) | trial, verify-license | 🔵 Backend | 2 | 
+| 141 | 💼 email (email) | main | 🔵 Backend | 1 | 
+| 142 | 💼 explain (explain) | main | 🔵 Backend | 1 | 
+| 143 | 💼 gaps (gaps) | abc-costing, anomaly, esg, evm, forecast-v2 | 🔵 Backend | 5 | 
+| 144 | 💼 grn (grn) | main | 🔵 Backend | 1 | 
+| 145 | 💼 health (health) | main | 🔵 Backend | 1 | 
+| 146 | 💼 help (help) | main | 🔵 Backend | 1 | 
+| 147 | 💼 ice (ice) | admin, auth, backup, desktop-licenses, desktop-register, license, subscriptio... | 🟢 مكتملة | 28 | 
+| 148 | 💼 integrations (integrations) | mudad | 🔵 Backend | 1 | 
+| 149 | 💼 license (license) | verify | 🔵 Backend | 1 | 
+| 150 | 💼 manifest (manifest) | main | 🔵 Backend | 1 | 
+| 151 | 💼 master (master) | main | 🟢 مكتملة | 2 | 
+| 152 | 💼 master-panel (master-panel) | auth, deploy, licenses, servers, login, main | 🟢 مكتملة | 6 | 
+| 153 | 💼 master-panel-data (master-panel-data) | main | 🔵 Backend | 1 | 
+| 154 | 💼 metrics (metrics) | main | 🔵 Backend | 1 | 
+| 155 | 💼 migration (migration) | start | 🔵 Backend | 1 | 
+| 156 | 💼 notifications (notifications) | stream | 🔵 Backend | 1 | 
+| 157 | 💼 open-items (open-items) | allocate, preview, main | 🔵 Backend | 7 | 
+| 158 | 💼 openapi (openapi) | main | 🔵 Backend | 1 | 
+| 159 | 💼 packaging-units (packaging-units) | main | 🔵 Backend | 1 | 
+| 160 | 💼 platform (platform) | dms, encryption, esignature, forms, ipaas, localization, reports, sso, webhooks | 🔵 Backend | 9 | 
+| 161 | 💼 portals (portals) | parent, tenant | 🟢 مكتملة | 4 | 
+| 162 | 💼 product-stocks (product-stocks) | location | 🔵 Backend | 1 | 
+| 163 | 💼 public (public) | call-waiter, menu, order, table | 🔵 Backend | 4 | 
+| 164 | 💼 purchasing (purchasing) | three-way-match | 🔵 Backend | 1 | 
+| 165 | 💼 restaurant (restaurant) | pos, table, main | 🟢 مكتملة | 5 | 
+| 166 | 💼 sales-orders (sales-orders) | main, [id] | 🔵 Backend | 2 | 
+| 167 | 💼 saudi (saudi) | mudad, nitaqat, qiwa, saudization | 🔵 Backend | 5 | 
+| 168 | 💼 search (search) | semantic | 🔵 Backend | 1 | 
+| 169 | 💼 service (service) | sla | 🔵 Backend | 1 | 
+| 170 | 💼 shipments (shipments) | delivery-notes, main | 🔵 Backend | 2 | 
+| 171 | 💼 stock-movements (stock-movements) | main | 🔵 Backend | 1 | 
+| 172 | 💼 subscription-status (subscription-status) | main | 🔵 Backend | 1 | 
+| 173 | 💼 system (system) | comments, dashboard-builder, dms, import-export, kanban, notifications, numbe... | 🔵 Backend | 12 | 
+| 174 | 💼 telegram (telegram) | process, webhook | 🔵 Backend | 2 | 
+| 175 | 💼 tenant (tenant) | check-status, create, hidden-modules, provision, seed-company, status, trial-... | 🔵 Backend | 7 | 
+| 176 | 💼 test (test) | main | 🔵 Backend | 1 | 
+| 177 | 💼 test-runs (test-runs) | main | 🔵 Backend | 1 | 
+| 178 | 💼 test-tenant (test-tenant) | main | 🔵 Backend | 1 | 
+| 179 | 💼 test-translation (test-translation) | main | 🔵 Backend | 1 | 
+| 180 | 💼 translate (translate) | main | 🔵 Backend | 1 | 
+| 181 | 💼 transliterate (transliterate) | main | 🔵 Backend | 1 | 
+| 182 | 💼 units (units) | main | 🔵 Backend | 1 | 
+| 183 | 💼 upload (upload) | main | 🔵 Backend | 1 | 
+| 184 | 💼 المستخدمون والصلاحيات (users) | main | 🔵 Backend | 1 | 
+| 185 | 💼 v2 (v2) | sales | 🔵 Backend | 1 | 
+| 186 | 💼 vendors (vendors) | scorecard, [id] | 🔵 Backend | 2 | 
+| 187 | 💼 version (version) | main | 🔵 Backend | 1 | 
+| 188 | 💼 warehouse (warehouse) | cross-dock, slotting | 🔵 Backend | 2 | 
+| 189 | 💼 webhooks (webhooks) | main, salla, zid, [id] | 🔵 Backend | 6 | 
+| 190 | 💼 whatsapp (whatsapp) | interactive | 🔵 Backend | 1 | 
+| 191 | 💼 work-shifts (work-shifts) | main | 🔵 Backend | 1 | 
+| 192 | 💼 api-docs (api-docs) | main | 🟡 UI Only | 1 | 
+| 193 | 💼 auto-login (auto-login) | main | 🟡 UI Only | 1 | 
+| 194 | 💼 billing-expired (billing-expired) | main | 🟡 UI Only | 1 | 
+| 195 | 💼 company-info (company-info) | main | 🟡 UI Only | 1 | 
+| 196 | 💼 company-setup (company-setup) | main | 🟡 UI Only | 1 | 
+| 197 | 💼 design1 (design1) | main | 🟡 UI Only | 1 | 
+| 198 | 💼 design2 (design2) | main | 🟡 UI Only | 1 | 
+| 199 | 💼 design3 (design3) | main | 🟡 UI Only | 1 | 
+| 200 | 💼 design4 (design4) | main | 🟡 UI Only | 1 | 
+| 201 | 💼 factory (factory) | main | 🟡 UI Only | 1 | 
+| 202 | 💼 features (features) | main | 🟡 UI Only | 1 | 
+| 203 | 💼 invoice (invoice) | [id] | 🟡 UI Only | 1 | 
+| 204 | 💼 kiosk (kiosk) | attendance | 🟡 UI Only | 1 | 
+| 205 | 💼 login (login) | main | 🟡 UI Only | 1 | 
+| 206 | 💼 menu (menu) | [tableId] | 🟡 UI Only | 1 | 
+| 207 | 💼 home (home) | main | 🟡 UI Only | 1 | 
+| 208 | 💼 pricing (pricing) | main | 🟡 UI Only | 1 | 
+| 209 | 💼 qr-menu (qr-menu) | [token] | 🟡 UI Only | 1 | 
+| 210 | 💼 retail (retail) | main | 🟡 UI Only | 1 | 
+| 211 | 💼 sentry-example-page (sentry-example-page) | main | 🟡 UI Only | 1 | 
+| 212 | 💼 shop (shop) | main | 🟡 UI Only | 1 | 
+| 213 | 💼 sign-in (sign-in) | [[...sign-in]] | 🟡 UI Only | 1 | 
+| 214 | 💼 sign-up (sign-up) | [[...sign-up]] | 🟡 UI Only | 1 | 
+| 215 | 💼 sso-callback (sso-callback) | main | 🟡 UI Only | 1 | 
+| 216 | 💼 test-i18n (test-i18n) | main | 🟡 UI Only | 1 | 
+| 217 | 💼 trust (trust) | main | 🟡 UI Only | 1 | 
+| 218 | 💼 ~offline (~offline) | main | 🟡 UI Only | 1 | 
+| 219 | 💼 fa (fa) | main | ⚪ خدمة/أخرى | 1 | 
+| 220 | 💼 gl (gl) | main | ⚪ خدمة/أخرى | 1 | 
+| 221 | 💼 gosi (gosi) | main | ⚪ خدمة/أخرى | 4 | 
+| 222 | 💼 index (index) | main | ⚪ خدمة/أخرى | 1 | 
+| 223 | 💼 payables (payables) | main | ⚪ خدمة/أخرى | 5 | 
+| 224 | 💼 receivables (receivables) | main | ⚪ خدمة/أخرى | 5 | 
+| 225 | 💼 reporting (reporting) | main | ⚪ خدمة/أخرى | 12 | 
+| 226 | 💼 shared (shared) | main | ⚪ خدمة/أخرى | 3 | 
+
 
 > [!NOTE]
-> هذا المانيفست الوظيفي يُثبت أن منصة *نما إنفست* تعتمد على هيكل مؤسسي يتعدى الـ ERP التقليدي، وتحتل مكانة كمزود خدمة سحابي رائد متصلاً بكل الهيئات الحكومية (بما فيها المرحلة الثانية للزكاة).
+> يثبت هذا السجل المحدث ديناميكياً أن المنصة تتجاوز الـ 104 وحدة برمجية لتشمل 226 قسماً رئيسياً موزعاً على مئات الخدمات والواجهات والمكاتب الخلفية.

@@ -1,0 +1,9 @@
+# تصنيف الفجوات (Taxonomy)
+
+تم تصنيف الفجوات في النظام كالتالي:
+- UI_ONLY_NO_API
+- UI_ONLY_API_EXISTS_NOT_CONNECTED
+- BACKEND_ONLY_NO_UI
+- PLACEHOLDER_OR_DISABLED
+- RBAC_MISSING
+- FINANCIAL_GOVERNANCE_RISK
