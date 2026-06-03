@@ -37,12 +37,15 @@ export default function CustomerTablePage({ params }: { params: Promise<{ qrToke
     const [selectedCat, setSelectedCat] = useState('all');
 
     useEffect(() => {
-        // Fetch table details using the token
         const fetchTable = async () => {
             try {
                 const res = await fetch(`/api/customer/table/${qrToken}`);
+                if (res.status === 401 || res.status === 403) {
+                    toast.error('غير مصرح لك بالوصول');
+                    return;
+                }
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && data.table && typeof data.table === 'object') {
                     setTableData(data.table);
                 } else {
                     toast.error('لم يتم العثور على الطاولة');
@@ -54,14 +57,13 @@ export default function CustomerTablePage({ params }: { params: Promise<{ qrToke
             }
         };
 
-        // Fetch products and categories dynamically
         const fetchMenu = async () => {
             try {
                 const res = await fetch('/api/pos/products');
                 const data = await res.json();
                 if (data.success) {
-                    setProducts(data.products || []);
-                    setCategories(data.categories || []);
+                    setProducts(Array.isArray(data.products) ? data.products : []);
+                    setCategories(Array.isArray(data.categories) ? data.categories : []);
                 }
             } catch (e) {
                 console.error('Failed to load menu products:', e);

@@ -40,7 +40,8 @@ export default function VendorOnboardingPage() {
 
   const [data, setData] = useState<VendorOnboardingData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  
+  const [error, setError] = useState<string | null>(null);
+  const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -53,33 +54,39 @@ export default function VendorOnboardingPage() {
 
   const fetchVendorData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    setIsUnauthorized(false);
     try {
       const res = await fetch(`/api/supply-chain/vendor-onboarding`);
+      if (res.status === 401 || res.status === 403) {
+         setIsUnauthorized(true);
+         return;
+      }
+      if (!res.ok) throw new Error('Failed to fetch data');
       const json = await res.json();
-      if (json.success) {
-        setData(json.data);
+      
+      const payload = json && typeof json === "object"
+        ? json.data && typeof json.data === "object"
+          ? json.data
+          : json
+        : null;
+        
+      if (payload) {
+         payload.vendors = Array.isArray(payload.vendors) ? payload.vendors : [];
+         payload.summary = payload.summary || { totalPending: 0, totalApproved: 0, totalRejected: 0, highRiskVendors: 0 };
+         setData(payload as VendorOnboardingData);
       } else {
-        // Fallback demo data
-        setDemoData();
+         setError('Invalid response format');
       }
     } catch (err) {
       console.error(err);
-      setDemoData();
+      setError(_t('حدث خطأ أثناء جلب البيانات', 'Error fetching data'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lang]);
 
-  const setDemoData = () => {
-    setData({
-       asOfDate: new Date().toISOString(),
-       summary: { totalPending: 3, totalApproved: 45, totalRejected: 12, highRiskVendors: 2 },
-       vendors: [
-          { vendorId: 'VND-001', vendorName: 'شركة التقنية الحديثة', category: 'IT Services', yearsInBusiness: 5, financialScore: 85, qualityScore: 90, docs: [{ docType: 'CR', isUploaded: true, isValid: true }, { docType: 'ZATCA_CERT', isUploaded: true, isValid: true }], overallRiskScore: 15, approvalStatus: 'PENDING_REVIEW' },
-          { vendorId: 'VND-002', vendorName: 'مؤسسة التوريدات السريعة', category: 'Logistics', yearsInBusiness: 2, financialScore: 45, qualityScore: 60, docs: [{ docType: 'CR', isUploaded: true, isValid: true }, { docType: 'MUDAD', isUploaded: true, isValid: false }], overallRiskScore: 80, approvalStatus: 'PROBATION' },
-       ]
-    });
-  };
+  // Demo data fallback removed for production safety
 
   useEffect(() => {
     fetchVendorData();
@@ -256,7 +263,20 @@ export default function VendorOnboardingPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading ? (
+              {isUnauthorized ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-red-500">
+                    <div className="font-bold">{_t('غير مصرح لك بالوصول لهذه البيانات', 'Unauthorized access')}</div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-red-500">
+                    <div className="font-bold">{error}</div>
+                    <button onClick={fetchVendorData} className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg">{_t('إعادة المحاولة', 'Retry')}</button>
+                  </td>
+                </tr>
+              ) : loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3" />

@@ -42,6 +42,8 @@ export default function RFxAuctionPage() {
 
   const [data, setData] = useState<RFxAuctionData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isUnauthorized, setIsUnauthorized] = useState<boolean>(false);
   
   // UI State
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,34 +57,39 @@ export default function RFxAuctionPage() {
 
   const fetchRFxData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    setIsUnauthorized(false);
     try {
       const res = await fetch(`/api/supply-chain/rfx-auction`);
+      if (res.status === 401 || res.status === 403) {
+         setIsUnauthorized(true);
+         return;
+      }
+      if (!res.ok) throw new Error('Failed to fetch data');
       const json = await res.json();
-      if (json.success) {
-        setData(json.data);
+      
+      const payload = json && typeof json === "object"
+        ? json.data && typeof json.data === "object"
+          ? json.data
+          : json
+        : null;
+        
+      if (payload) {
+         payload.auctions = Array.isArray(payload.auctions) ? payload.auctions : [];
+         payload.summary = payload.summary || { activeAuctionsCount: 0, totalTargetSpend: 0, projectedSavings: 0, bidsReceived: 0 };
+         setData(payload as RFxAuctionData);
       } else {
-        setDemoData();
+         setError('Invalid response format');
       }
     } catch (err) {
       console.error(err);
-      setDemoData();
+      setError(_t('حدث خطأ أثناء جلب البيانات', 'Error fetching data'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lang]);
 
-  const setDemoData = () => {
-    setData({
-       asOfDate: new Date().toISOString(),
-       summary: { activeAuctionsCount: 2, totalTargetSpend: 1500000, projectedSavings: 320000, bidsReceived: 18 },
-       auctions: [
-          { id: 'RFX-2024-001', itemName: 'أجهزة حاسب آلي (لابتوبات)', quantity: 200, targetPrice: 800000, auctionEndTime: '2024-12-01', status: 'ACTIVE', bestBidAmount: 720000, savings: 80000, bids: [{ vendorName: 'شركة التقنية', bidAmount: 720000, deliveryDays: 14, qualityScore: 90, submissionTime: '', isWinning: true }] },
-          { id: 'RFX-2024-002', itemName: 'أثاث مكتبي للمقر الجديد', quantity: 50, targetPrice: 250000, auctionEndTime: '2024-11-20', status: 'CLOSED', bestBidAmount: 210000, savings: 40000, bids: [{ vendorName: 'روائع الأثاث', bidAmount: 210000, deliveryDays: 7, qualityScore: 85, submissionTime: '', isWinning: true }] },
-          { id: 'RFX-2024-003', itemName: 'سيارات نقل مبرد (دبابات)', quantity: 10, targetPrice: 1200000, auctionEndTime: '2024-12-15', status: 'ACTIVE', bestBidAmount: 1150000, savings: 50000, bids: [{ vendorName: 'الوكيل الحصري للسيارات', bidAmount: 1150000, deliveryDays: 30, qualityScore: 95, submissionTime: '', isWinning: true }] },
-       ]
-    });
-  };
-
+  // Demo data fallback removed for production safety
   useEffect(() => {
     fetchRFxData();
   }, [fetchRFxData]);
@@ -253,7 +260,20 @@ export default function RFxAuctionPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading ? (
+              {isUnauthorized ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-red-500">
+                    <div className="font-bold">{_t('غير مصرح لك بالوصول لهذه البيانات', 'Unauthorized access')}</div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-red-500">
+                    <div className="font-bold">{error}</div>
+                    <button onClick={fetchRFxData} className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg">{_t('إعادة المحاولة', 'Retry')}</button>
+                  </td>
+                </tr>
+              ) : loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3" />
