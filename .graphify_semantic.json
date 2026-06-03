@@ -1,0 +1,104 @@
+{
+  "nodes": [
+    {
+      "id": "system_master_prompt",
+      "label": "Master AI System Prompt",
+      "file_type": "document",
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "zatca_compliance",
+      "label": "ZATCA E-Invoice Phase 2",
+      "file_type": "rationale",
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "tenant_isolation",
+      "label": "Multi-Tenant Isolation Policy",
+      "file_type": "rationale",
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "gosi_payroll",
+      "label": "GOSI Payroll Compliance",
+      "file_type": "rationale",
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "socpa_accounting",
+      "label": "SOCPA Accounting Standards",
+      "file_type": "rationale",
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "system_master_prompt",
+      "target": "zatca_compliance",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "system_master_prompt",
+      "target": "tenant_isolation",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "system_master_prompt",
+      "target": "gosi_payroll",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "system_master_prompt",
+      "target": "socpa_accounting",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/lib/prompts/system.master.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
