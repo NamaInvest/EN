@@ -26,6 +26,15 @@ export async function register() {
             logger.error({}, '[Instrumentation] Failed to start BullMQ workers', { error: error.message });
         }
 
+        // ── 2.5 Onboarding Background Worker ────────────────────────────
+        try {
+            const { startProvisioningWorker } = await import('./src/lib/tenant/provisioning-worker');
+            startProvisioningWorker();
+            logger.info({}, '[Instrumentation] Onboarding background worker initialized');
+        } catch (error: any) {
+            logger.error({}, '[Instrumentation] Failed to start onboarding worker', { error: error.message });
+        }
+
         // ── 3. EventBus Handlers ─────────────────────────────────────────
         try {
             const { EventBus } = await import('./src/lib/event-bus');

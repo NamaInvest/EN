@@ -1,35 +1,35 @@
-# Customer Onboarding Phase 4E — Real Worker Implementation Plan Report
+# خطة تنفيذ المعالج الحقيقي لتهيئة العملاء (المرحلة 4E)
 
-## 1. Summary Dashboard
+## 1. لوحة معلومات الملخص (Summary Dashboard)
 
 * **FINAL_STATUS:** `CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_IMPLEMENTATION_PLAN_COMPLETED`
 * **REPORT_PATH:** `tmp/customer-onboarding-phase4e-real-worker-implementation-plan-report.md`
-* **MODE:** `PLAN_ONLY_NO_CODE`
-* **CODE_CHANGED:** `NO_RUNTIME_CODE_CHANGE`
-* **DB_CHANGED:** `NO`
-* **SQL_EXECUTED:** `NO`
-* **PRISMA_SCHEMA_CHANGED:** `NO`
-* **MIGRATION_CREATED:** `NO`
-* **DEPLOY:** `NO`
-* **PRODUCTION_TOUCHED:** `NO`
-* **WORKER_ACTIVE:** `NO`
-* **QUEUE_ACTIVE:** `NO`
-* **FEATURE_FLAG_CHANGED:** `NO`
-* **REAL_WRITES:** `NO`
-* **SECRET_HYGIENE:** `PASS`
+* **MODE:** `PLAN_ONLY_NO_CODE` (خطة فقط دون تعديل كود)
+* **CODE_CHANGED:** `NO_RUNTIME_CODE_CHANGE` (لا يوجد تعديل على الكود التنفيذي)
+* **DB_CHANGED:** `NO` (لا يوجد تغيير في قاعدة البيانات)
+* **SQL_EXECUTED:** `NO` (لم يتم تشغيل أي SQL)
+* **PRISMA_SCHEMA_CHANGED:** `NO` (لم يتغير مخطط بريزما)
+* **MIGRATION_CREATED:** `NO` (لم يتم إنشاء أي هجرة)
+* **DEPLOY:** `NO` (لا يوجد نشر)
+* **PRODUCTION_TOUCHED:** `NO` (لم يتم لمس بيئة الإنتاج)
+* **WORKER_ACTIVE:** `NO` (المعالج معطل)
+* **QUEUE_ACTIVE:** `NO` (الطابور معطل)
+* **FEATURE_FLAG_CHANGED:** `NO` (أعلام الميزات لم تتغير)
+* **REAL_WRITES:** `NO` (لا توجد كتابة حقيقية)
+* **SECRET_HYGIENE:** `PASS` (نظافة الأسرار والبيانات السرية سليمة)
 * **NEXT_RECOMMENDED_APPROVAL:** `GO_FOR_CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_LOCAL_GUARDS_IMPLEMENTATION_ONLY`
 
 ---
 
-## 2. Current Baseline & Files Reviewed
+## 2. الأساس الحالي والملفات التي تمت مراجعتها (Current Baseline & Files Reviewed)
 
-### Git Baseline Info
-* **Current Branch:** `main`
-* **HEAD Commit:** `937c3f2f095aebab659d18325b8aefd79c866ebf` (feat(onboarding): add dry-run provisioning worker)
-* **Origin/Main Commit:** `937c3f2f095aebab659d18325b8aefd79c866ebf`
-* **Workspace Status:** Clean runtime codebase. Only temporary report document files are modified/created.
+### معلومات أساس Git
+* **الفرع الحالي:** `main`
+* **التزام HEAD:** `937c3f2f095aebab659d18325b8aefd79c866ebf` (feat(onboarding): add dry-run provisioning worker)
+* **التزام Origin/Main:** `937c3f2f095aebab659d18325b8aefd79c866ebf`
+* **حالة مساحة العمل:** نظيفة تماماً. تم تعديل وإنشاء ملفات التقارير التوثيقية المؤقتة فقط.
 
-### Files Reviewed (Read-Only Mode)
+### الملفات التي تمت مراجعتها (وضع القراءة فقط)
 * [src/lib/tenant/provisioning-worker.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-worker.ts)
 * [src/lib/tenant/provisioning-queue.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-queue.ts)
 * [src/lib/tenant/provisioning-job-types.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-job-types.ts)
@@ -44,310 +44,291 @@
 
 ---
 
-## 3. Implementation Phases
+## 3. مراحل التنفيذ التدريجي (Implementation Phases)
 
-We divide the path to live activation into 14 progressive, gated steps to ensure maximum safety and prevent premature real writes:
+قمنا بتقسيم مسار التفعيل الحقيقي إلى 14 خطوة تدريجية ومحمية ببوابات أمان لضمان السلامة القصوى ومنع أي عمليات كتابة غير مصرح بها:
 
 ```mermaid
 graph TD
-    A[Phase A: Plan] --> B[Phase B: Local Guards]
-    B --> C[Phase C: Local Tests]
-    C --> D[Phase D: Commit Gate]
-    D --> E[Phase E: Push Gate]
-    E --> F[Phase F: Deploy Gate]
-    F --> G[Phase G: Deploy Disabled Worker]
-    G --> H[Phase H: Staging Dry-Run]
-    H --> I[Phase I: Staging Real Writes]
-    I --> J[Phase J: Prod Disabled Deploy]
-    J --> K[Phase K: Prod Dry-Run Observation]
-    K --> L[Phase L: Internal Tenant Live Write]
-    L --> M[Phase M: Beta Activation]
-    M --> N[Phase N: General Activation]
+    A[مرحلة أ: الخطة والمراجعة] --> B[مرحلة ب: الحمايات المحلية]
+    B --> C[مرحلة ج: الاختبارات المحلية]
+    C --> D[مرحلة د: بوابة الالتزام]
+    D --> E[مرحلة هـ: بوابة الدفع]
+    E --> F[مرحلة و: بوابة النشر]
+    F --> G[مرحلة ز: نشر المعالج معطلاً]
+    G --> H[مرحلة ح: المحاكاة ببيئة Staging]
+    H --> I[مرحلة ط: الكتابة ببيئة Staging]
+    I --> J[مرحلة ي: النشر المعطل بالإنتاج]
+    J --> K[مرحلة ك: مراقبة المحاكاة بالإنتاج]
+    K --> L[مرحلة ل: كتابة مستأجر فحص بالإنتاج]
+    L --> M[مرحلة م: التفعيل التجريبي المحدود]
+    M --> N[مرحلة ن: التفعيل الكامل العام]
 ```
 
-### Phase 4E-A: Real Worker Implementation Plan Only
-* **Objective:** Produce this design/implementation plan report, outlining all configurations, guards, and safety layers.
-* **Scope:** No code changes allowed.
+### المرحلة 4E-A: خطة تنفيذ المعالج الحقيقي فقط
+* **الهدف:** إنتاج تقرير التصميم وخطة التنفيذ الحالية لتحديد كافة الإعدادات والضوابط الأمنية.
+* **النطاق:** لا يُسمح بتعديل الكود.
 
-### Phase 4E-B: Local Real-Write Guards Implementation
-* **Objective:** Write the logic for the real database execution and validation checks locally, keeping all feature flags disabled by default.
-* **Scope:** Modify worker code to include SSH-less Prisma transactions, Redlock, and feature flag safety checks.
+### المرحلة 4E-B: تنفيذ حمايات الكتابة الحقيقية محلياً
+* **الهدف:** كتابة منطق التحقق والتحقق من قاعدة البيانات محلياً مع إبقاء أعلام التفعيل معطلة افتراضياً.
+* **النطاق:** تعديل كود المعالج لتشمل الفحص الآمن للمستأجرين وأوامر الحماية.
 
-### Phase 4E-C: Local Tests
-* **Objective:** Build unit and integration tests confirming that guards block live database commands when flags are off, and execute correctly when flags are explicitly enabled in test setups.
-* **Scope:** Add test files in `tests/integration/customer-onboarding/`.
+### المرحلة 4E-C: الاختبارات المحلية
+* **الهدف:** بناء اختبارات وحدة وتكامل تؤكد حظر الأوامر عند تعطيل الأعلام، وتسمح بالمرور عند تفعيلها بشكل صريح في بيئة الاختبار.
+* **النطاق:** إضافة ملفات الاختبار في المجلد `tests/integration/customer-onboarding/`.
 
-### Phase 4E-D: Commit Gate
-* **Objective:** Perform a rigorous review of local changes, lint checks, type check rules (`npm run typecheck`), and secure a local Git commit.
-* **Scope:** Local git branch state review.
+### المرحلة 4E-D: بوابة الالتزام (Commit Gate)
+* **الهدف:** إجراء مراجعة دقيقة للتغييرات المحلية والتحقق من الأنواع ولنت الكود عبر `npm run typecheck` والالتزام محلياً بـ Git.
+* **النطاق:** مراجعة حالة الالتزام المحلي للفرع.
 
-### Phase 4E-E: Push Gate
-* **Objective:** Verify matching HEAD and upstream origin. Secure remote push of code behind disabled flags.
-* **Scope:** Git push to origin/main.
+### المرحلة 4E-E: بوابة الدفع (Push Gate)
+* **الهدف:** التحقق من تطابق HEAD والفرع البعيد ودفع الكود بأمان خلف أعلام معطلة.
+* **النطاق:** دفع الكود إلى `origin/main`.
 
-### Phase 4E-F: Deploy Gate
-* **Objective:** Staging/Production build and smoke test assessment on staging prior to deployment sync.
-* **Scope:** SSH connectivity and validation runs.
+### المرحلة 4E-F: بوابة النشر (Deploy Gate)
+* **الهدف:** تقييم عملية البناء في خادم التجربة والتأكد من نجاح الفحوصات الأولية.
+* **النطاق:** فحص الاتصال وقدرات التشغيل.
 
-### Phase 4E-G: Deploy Disabled Worker Only
-* **Objective:** Deploy worker runtime files with environment flags explicitly disabled (`CUSTOMER_ONBOARDING_WORKER_ENABLED=false`).
-* **Scope:** Running `node deploy.js` for worker files only.
+### المرحلة 4E-G: نشر المعالج في وضع التعطيل
+* **الهدف:** نشر ملفات المعالج مع ضبط المتغير البيئي صراحة على التعطيل `CUSTOMER_ONBOARDING_WORKER_ENABLED=false`.
+* **النطاق:** تشغيل `node deploy.js` لمزامنة كود المعالج فقط.
 
-### Phase 4E-H: Staging Dry-Run Activation
-* **Objective:** Activate the worker process on the staging server in simulation mode (`CUSTOMER_ONBOARDING_WORKER_DRY_RUN=true`).
-* **Scope:** PM2 daemon monitoring and logging validation.
+### المرحلة 4E-H: تفعيل معالج المحاكاة في بيئة Staging
+* **الهدف:** تشغيل المعالج الخلفي في بيئة التجربة (Staging) مع إبقائه في وضع المحاكاة الصامتة `CUSTOMER_ONBOARDING_WORKER_DRY_RUN=true`.
+* **النطاق:** مراقبة عمليات PM2 وسجلات الأخطاء.
 
-### Phase 4E-I: Staging Limited Real Writes
-* **Objective:** Test database generation and setup scripts on the staging PostgreSQL instance.
-* **Scope:** Verify staging database `${subdomain}_db` creation.
+### المرحلة 4E-I: تفعيل الكتابة المحدودة في بيئة Staging
+* **الهدف:** اختبار إنشاء قاعدة البيانات ورفع المخطط الفعلي على قاعدة بيانات خادم التجربة Staging PostgreSQL.
+* **النطاق:** التحقق من تفعيل الهيكل البرمجي ونقل قاعدة البيانات `${subdomain}_db`.
 
-### Phase 4E-J: Production Disabled Deploy
-* **Objective:** Deploy worker code files to production VPS with all live features turned off in environment configs.
-* **Scope:** Production environment configuration audit.
+### المرحلة 4E-J: النشر المعطل ببيئة الإنتاج
+* **الهدف:** نشر ملفات الكود للإنتاج مع إبقاء كافة الميزات المتصلة بالمعالج معطلة في الإعدادات البيئية للموقع الفعلي.
+* **النطاق:** مراجعة وتدقيق تكوين ملف البيئة للإنتاج.
 
-### Phase 4E-K: Production Dry-Run Observation
-* **Objective:** Turn on worker in dry-run mode on production to verify BullMQ queue connectivity and CPU behaviors under load without writing to databases.
-* **Scope:** Production PM2 logging.
+### المرحلة 4E-K: مراقبة معالج المحاكاة بالإنتاج
+* **الهدف:** تفعيل المعالج بوضع المحاكاة (Dry-Run) بالإنتاج للتحقق من الاتصال بـ Redis وثبات استهلاك CPU.
+* **النطاق:** متابعة سجلات ومؤشرات خادم الإنتاج PM2.
 
-### Phase 4E-L: Internal Test Tenant Real Write
-* **Objective:** Activate real writes strictly for specific, pre-configured internal test subdomains on production.
-* **Scope:** Restricting active writes using subdomain string comparisons in the guard.
+### المرحلة 4E-L: كتابة مستأجر فحص حقيقي بالإنتاج
+* **الهدف:** تمكين الكتابة الفعلية فقط وحصرياً لنطاق فرعي محدد سلفاً لأغراض الفحص والاختبار (مثل `test-company`).
+* **النطاق:** تقييد الأعلام وتطبيق مقارنات النصوص في محرك التحقق.
 
-### Phase 4E-M: Beta Activation
-* **Objective:** Permit onboarding for a controlled set of 5 external customers under direct developer supervision.
-* **Scope:** Live onboarding monitoring.
+### المرحلة 4E-M: التفعيل التجريبي المحدود (Beta)
+* **الهدف:** السماح بالتهيئة التلقائية لخمسة عملاء من المسجلين بالنسخة التجريبية تحت الإشراف المباشر للفريق البرمجي.
+* **النطاق:** مراقبة العمليات الحية وتحليل الأداء.
 
-### Phase 4E-N: General Activation Gate
-* **Objective:** Fully deprecate legacy synchronous provisioning logic, routing all onboarding signups through the background worker pipeline.
-* **Scope:** Default production activation.
+### المرحلة 4E-N: بوابة التفعيل العام والكامل
+* **الهدف:** الاستغناء النهائي عن المسار المتزامن القديم، وإدارة كافة طلبات التهيئة عبر المعالج الخلفي وطابور BullMQ بصورة دائمة.
+* **النطاق:** التفعيل العمومي الافتراضي.
 
 ---
 
-## 4. Implementation Scope Plan
+## 4. نطاق التعديلات البرمجية المقترحة (Implementation Scope Plan)
 
-The following files are candidate targets for modification in upcoming execution phases:
+الملفات التالية مرشحة للتعديل خلال خطوات التنفيذ القادمة:
 
 ### `src/lib/tenant/provisioning-worker.ts`
-* **Updates:** 
-  - Integrate real database execution methods replacing the mock `executeStepDryRun`.
-  - Add logic to connect to PostgreSQL admin and run schema creation commands.
-  - Implement SSH-less seeding inside PostgreSQL via local PrismaClient context.
-  - Incorporate the BullMQ background consumer thread.
+* **التحديثات:**
+  - دمج عمليات التنفيذ الفعلي لقاعدة البيانات بدلاً من الدالة الوهمية `executeStepDryRun`.
+  - إضافة منطق الاتصال بمدير PostgreSQL وإنشاء قواعد البيانات برمجياً.
+  - تطبيق التأسيس الداخلي دون الحاجة لاتصالات SSH باستخدام عميل Prisma المحلي.
 
 ### `src/lib/tenant/provisioning-queue.ts`
-* **Updates:**
-  - Define the `BullMQProvisioningQueueAdapter` which interfaces with the Redis server.
-  - Implement jobs queuing via `bullmq` FlowProducer / Queue structures.
+* **التحديثات:**
+  - تعريف فئة `BullMQProvisioningQueueAdapter` للتواصل المباشر مع Redis.
+  - دعم إدارة الوظائف باستخدام بنية BullMQ (FlowProducer / Queue).
 
 ### `src/lib/tenant/provisioning-job-types.ts`
-* **Updates:**
-  - Standardize error detail shapes, error metadata JSON structures, and tracking payload schemas.
+* **التحديثات:**
+  - توحيد أشكال تفاصيل الأخطاء وهياكل البيانات التتبعية JSON.
 
 ### `src/app/api/tenant/provision/route.ts`
-* **Updates:**
-  - Replace current SSH-based execution with BullMQ queuing commands if queue flag is enabled.
+* **التحديثات:**
+  - استبدال المسار القديم القائم على SSH بطلب طابور BullMQ في حال تفعيل أعلام الميزة.
 
 ### `src/app/api/tenant/provision/status/route.ts`
-* **Updates:**
-  - Query status directly from the BullMQ queue state registry before checking the master database.
+* **التحديثات:**
+  - قراءة حالة العملية مباشرة من سجل طابور BullMQ قبل الانتقال لفحص قاعدة البيانات الأساسية.
 
 ### `src/app/api/tenant/provision/retry/route.ts`
-* **Updates:**
-  - Permit super-administrators to re-queue failed database runs back into BullMQ.
-
-### Future Admin Dashboard Pages & APIs
-* **New Files:** `src/app/admin/onboarding/page.tsx`, `src/app/api/admin/onboarding/retry/route.ts`
+* **التحديثات:**
+  - السماح لمدير النظام الفائق بإعادة توجيه الوظائف الفاشلة إلى الطابور.
 
 ---
 
-## 5. Feature Flag Implementation Plan
+## 5. خطة تفعيل أعلام الميزات وتكوين البيئة (Feature Flags)
 
-To guarantee system stability, environment configurations must be strictly partitioned. Every environment flag must default to a production-safe state:
+لضمان سلامة واستقرار النظام، تم تصميم أعلام الميزات لتعود افتراضياً للوضع الآمن (مغلق) في حال غياب التكوين البيئي:
 
-| Feature Flag | Type | Default (Prod-Safe) | Purpose |
+| علم الميزة (Feature Flag) | النوع | الوضع الافتراضي الآمن | الغرض والأثر |
 | :--- | :--- | :--- | :--- |
-| `CUSTOMER_ONBOARDING_QUEUE_ENABLED` | Boolean | `false` | Routes incoming HTTP requests to BullMQ instead of the synchronous legacy system. |
-| `CUSTOMER_ONBOARDING_WORKER_ENABLED` | Boolean | `false` | Initiates the PM2 background worker listening thread. |
-| `CUSTOMER_ONBOARDING_WORKER_DRY_RUN` | Boolean | `true` | Forces the worker process to mock commands instead of writing to databases. |
-| `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` | Boolean | `false` | Authorizes the execution of physical `CREATE DATABASE` and prisma seed commands. |
-| `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV` | String | `"development"` | Enforces validation checks restricting worker runtimes to permitted environments. |
-| `CUSTOMER_ONBOARDING_WORKER_MAX_CONCURRENCY` | Integer | `1` | Restricts parallel job processing count to protect CPU and IO resources. |
+| `CUSTOMER_ONBOARDING_QUEUE_ENABLED` | Boolean | `false` | توجيه طلبات التهيئة القادمة عبر طابور BullMQ بدلاً من المسار القديم. |
+| `CUSTOMER_ONBOARDING_WORKER_ENABLED` | Boolean | `false` | تشغيل خيط الاستماع الخلفي للمعالج عبر PM2. |
+| `CUSTOMER_ONBOARDING_WORKER_DRY_RUN` | Boolean | `true` | إجبار المعالج على تنفيذ خطوات محاكاة صورية دون كتابة فعلية. |
+| `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` | Boolean | `false` | السماح بالتنفيذ المادي لأوامر `CREATE DATABASE` وبذر مخطط بريزما. |
+| `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV` | String | `"development"` | حظر تشغيل المعالج إلا في بيئات عمل مطابقة تماماً للقيمة المسجلة. |
+| `CUSTOMER_ONBOARDING_WORKER_MAX_CONCURRENCY` | Integer | `1` | تحديد عدد العمليات المتوازية لحماية معالج السيرفر من الارتفاع المفاجئ. |
 
 ---
 
-## 6. Real Write Guard Plan
+## 6. تصميم حواجز الأمان لمنع التعديل العشوائي (Real Write Guard Plan)
 
-A central security middleware, `verifyRealWritePermission()`, will validate every transaction. Operations will throw a hard error and transition to `FAILED` unless:
+ستقوم دالة الحماية المركزية `verifyRealWritePermission()` بالتحقق من كل عملية وتمنعها تماماً في حال غياب المعايير التالية:
 
-1. **System Permission Configuration:**
+1. **إعدادات الصلاحيات:**
    * `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED === true`
    * `CUSTOMER_ONBOARDING_WORKER_DRY_RUN === false`
-2. **Environment Conformity Check:**
-   * Node process environment must match `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV` (e.g. production, staging).
-3. **Execution Context Identification:**
-   * The `provisioningRunId` must exist and be registered in the master `TenantProvisioningRun` database table.
-4. **Collision and Sanitization Checks:**
-   * Subdomain format must pass standard criteria (e.g., alphanumeric, 3-20 chars).
-   * Subdomain must not be in the operational reserved keywords set (`RESERVED_SUBDOMAINS`).
-   * PostgreSQL database name `${subdomain}_db` must not already exist in the database server metadata.
-5. **Session and Entity Integrity:**
-   * Subdomain and userEmail must not be registered in the master `TenantAccount` registry.
-6. **Financial Protection Guard:**
-   * Under no circumstances can the worker execute write commands targeting accounting entries or posting transactions in a tenant's database context. Seeding is strictly restricted to template metadata (Chart of Accounts skeleton).
-7. **Secret Sanitization:**
-   * All logging procedures must strip out password hashes, SSO secrets, and database access tokens before writing messages.
+2. **مطابقة البيئة التشغيلية:**
+   * يجب أن تطابق بيئة التشغيل لـ Node القيمة المسجلة في `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV`.
+3. **التحقق من سياق الطلب:**
+   * يجب أن يكون المعرف الفرعي للعملية `provisioningRunId` مسجلاً بالفعل في جدول `TenantProvisioningRun` بقاعدة البيانات الرئيسية.
+4. **فحوصات التداخل والتطهير:**
+   * تطابق اسم النطاق الفرعي مع شروط الهيكل البرمجي (نصوص وأرقام فقط، بطول 3 إلى 20 حرفاً).
+   * التحقق من عدم تطابق الاسم مع الكلمات المحجوزة للنظام `RESERVED_SUBDOMAINS`.
+   * عدم وجود قاعدة بيانات نشطة تحمل نفس الاسم `${subdomain}_db` في محرك PostgreSQL.
+5. **سلامة بيانات المستأجر والبريد الإلكتروني:**
+   * عدم تسجيل البريد أو النطاق مسبقاً في جدول الحسابات الفعلي `TenantAccount`.
+6. **حماية النطاق المحاسبي المالي:**
+   * يُحظر تماماً على معالج التهيئة كتابة أي قيود يومية، أو ترحيل حسابات مالية في قاعدة بيانات المستأجر. يتم اقتصار التهيئة على البنية الهيكلية لجدول الحسابات (SOCPA CoA) فقط كقالب استرشادي.
+7. **سلامة وأمن الأسرار:**
+   * تصفية كلمات المرور، ورموز الربط، والشهادات الرقمية من سجلات المخرجات لتجنب تسريبها.
 
 ---
 
-## 7. DB Transaction Plan
+## 7. تصميم التأسيس داخل معاملات معزولة (DB Transaction Plan)
 
-Live setups will be performed inside isolated database transaction boundaries:
+يتم تنفيذ خطوات كتابة البيانات لتهيئة المستأجر الجديد داخل حدود معاملات قاعدة بيانات معزولة ومحمية:
 
 ```mermaid
 sequenceDiagram
-    participant Worker as Background Worker
-    participant MasterDB as Master DB (n11_db)
-    participant Postgres as PG Server
-    participant TenantDB as Tenant DB (subdomain_db)
+    participant Worker as المعالج الخلفي
+    participant MasterDB as قاعدة البيانات الرئيسية (n11_db)
+    participant Postgres as خادم PostgreSQL
+    participant TenantDB as قاعدة بيانات المستأجر الجديد (subdomain_db)
 
-    Worker->>MasterDB: Transition status to PROVISIONING
-    Worker->>Postgres: CREATE DATABASE [subdomain]_db
-    Worker->>Postgres: Grant privileges to n11_db user
-    Worker->>TenantDB: Execute Prisma DB Push schema
-    Worker->>TenantDB: Begin transaction (Seed settings & SOCPA template)
-    TenantDB-->>Worker: Commit seed data
-    Worker->>TenantDB: Create default Cashier & Administrator User
-    Worker->>MasterDB: Create trial TenantAccount & DesktopLicense
-    Worker->>MasterDB: Transition status to READY
+    Worker->>MasterDB: تحديث حالة الطلب إلى PROVISIONING
+    Worker->>Postgres: إنشاء قاعدة بيانات مادية CREATE DATABASE
+    Worker->>Postgres: منح الصلاحيات لبريزما ومستخدم التطبيق
+    Worker->>TenantDB: تنفيذ دفع مخطط الجداول Prisma DB Push
+    Worker->>TenantDB: بدء معاملة (بذر الإعدادات ودليل الحسابات SOCPA)
+    TenantDB-->>Worker: تأكيد المعاملة وحفظ البيانات الأساسية
+    Worker->>TenantDB: إنشاء الحساب الإداري الافتراضي والمستخدم المالي
+    Worker->>MasterDB: تسجيل الحساب الحقيقي TenantAccount وترخيص البرنامج
+    Worker->>MasterDB: تحديث حالة الطلب النهائية إلى READY
 ```
 
-1. **Master DB Updates:** Log progression states inside `TenantProvisioningRun`. Update attempt counters.
-2. **Database Provisioning:** Establish the database client connection context. Execute safe native PostgreSQL connection creation commands.
-3. **Tenant Schema Application:** Issue `npx prisma db push` commands with scoped database URLs (`DATABASE_URL="${base_url}/${subdomain}_db"`).
-4. **Isolated Seeding Transaction:** Seed template data within a single transaction scope on the newly generated tenant database.
-5. **User Context Generation:** Write default roles and Admin users. Passwords must be hashed using `bcryptjs` beforehand.
-6. **Registration Log:** Set the tenant's master registration record `TenantAccount` to `active`. Create corresponding default license keys in `DesktopLicense`.
+1. **تحديث السجل الرئيسي:** تدوين مراحل التطور داخل جدول `TenantProvisioningRun`.
+2. **إنشاء قاعدة البيانات:** إنشاء الاتصال الإداري وتشغيل أوامر التأسيس المادية على خادم PostgreSQL.
+3. **تطبيق مخطط بريزما:** تشغيل أوامر `npx prisma db push` مع توجيه الرابط لقاعدة البيانات المنشأة حديثاً.
+4. **البذر المعزول:** ملء جداول المستأجر بالقيم التأسيسية والإعدادات الافتراضية داخل إطار معاملة موحدة (Transaction).
+5. **إنشاء المستخدم الإداري:** إضافة المستخدم الأساسي للنظام بعد تشفير كلمة المرور الخاصة به مسبقاً بخوارزمية `bcryptjs`.
+6. **سجل الترخيص المالي:** تنشيط ترخيص المستأجر `DesktopLicense` وتحديث حالته لـ `active` في قاعدة البيانات الرئيسية.
 
 ---
 
-## 8. Idempotency Plan
+## 8. تصميم معالجة العمليات المكررة وتفادي السباق (Idempotency Plan)
 
-To avoid race conditions and double provisioning:
-
-* **Redis Lock (Redlock):** A distributed lock is acquired on keys `lock:provision:runId` and `lock:provision:subdomain` at worker startup, with a strict 10-minute timeout.
-* **Deterministic Job Identifiers:** The `provisioningRunId` acts as the unique BullMQ job name, ensuring duplicate messages are ignored.
-* **Run ID Continuity:** All generated assets (Tenant Database, Owner ID, and License Key) are linked directly to `provisioningRunId`.
-* **State Check Recovery:** If a step fails, the worker examines `TenantProvisioningRun.currentStep` to resume from the last failed checkpoint instead of restarting database creation.
+لمنع حدوث عمليات تهيئة مزدوجة أو تداخل في الموارد:
+* **الأقفال الموزعة لـ Redis:** قفل حصري عبر مفاتيح `lock:provision:runId` و `lock:provision:subdomain` بمهلة صلاحية 10 دقائق كحد أقصى.
+* **معرفات الوظيفة الفريدة:** يُستخدم معرف الطلب `runId` كاسم لوظيفة BullMQ لمنع تكرار معالجة نفس الرسالة في حال تكرارها.
+* **متابعة خطوة الإخفاق:** عند تعثر خطوة معينة، يقرأ المعالج قيمة `TenantProvisioningRun.currentStep` ليستأنف العمل من نقطة التوقف بدلاً من إعادة محاولة التأسيس بالكامل من البداية.
 
 ---
 
-## 9. Failure Handling Plan
+## 9. خطة معالجة الأخطاء والإخفاق (Failure Handling Plan)
 
-We design specific handlers for each point of failure:
-
-* **Validation Failure:** Update status to `FAILED`. Do not queue. Mark `lastErrorCode = 'INVALID_INPUT'`.
-* **Subdomain Conflict:** Update status to `FAILED`. Prevent automated retries to avoid loops.
-* **Database Setup Failure:** Transition to `FAILED`. Increment attempt counter. If attempts > 3, transition status to `NEEDS_MANUAL_REVIEW`.
-* **Seed Failure:** Log errors, keep database shell intact, set status to `FAILED` for administrator investigation.
-* **Owner Creation Failure:** Stop flow, log security warnings, set state to `FAILED`.
-* **Health Check Failure:** Attempt minor retry loop. If health response remains offline, mark state as `FAILED`.
-* **Retry Exhaustion:** Auto-escalate status to `NEEDS_MANUAL_REVIEW`. Send notification events.
+تم وضع معالجات أخطاء محددة لكل مرحلة:
+* **فشل التحقق:** تحويل الحالة إلى `FAILED` وكتابة رمز الخطأ `INVALID_INPUT` دون المحاولة مجدداً.
+* **تداخل النطاقات:** الإيقاف الفوري وتحويل الحالة لـ `FAILED` لمنع حدوث حلقات إعادة تشغيل تلقائية غير ضرورية.
+* **فشل إنشاء قاعدة البيانات:** تحويل الحالة لـ `FAILED` وزيادة عدد المحاولات بمقدار 1. وفي حال تجاوز 3 محاولات، تتحول الحالة تلقائياً لـ `NEEDS_MANUAL_REVIEW`.
+* **فشل التأسيس الداخلي:** تسجيل تفاصيل الخطأ بأمان وإبقاء هيكل قاعدة البيانات متاحاً للمراجعة من قبل المطورين.
+* **تجاوز مهلة المحاولات:** التصعيد التلقائي للحالة إلى `NEEDS_MANUAL_REVIEW` لإرسال تنبيه برمجي فوري.
 
 ---
 
-## 10. Compensation Plan
+## 10. خطة الإجراءات التعويضية والتنظيف (Compensation Plan)
 
-To maintain auditing integrity and prevent database corruption:
-
-* **No Automatic Drops:** The system will **never** automatically execute `DROP DATABASE` command on failure. This ensures logs and database states remain available for debugging.
-* **Orphan Status Management:** When a job fails, the subdomain lock is retained for 30 minutes, after which it is released only if the tenant account is marked as `failed` or `cancelled`.
-* **Manual Cleanup Interface:** Super-administrators can execute a manual "Force Cancel" command via the admin dashboard, which explicitly runs the cleanup script:
-  * `DROP DATABASE IF EXISTS <subdomain>_db`
-  * Deletes `TenantAccount` and matching `DesktopLicense` records.
-  * Updates `TenantProvisioningRun` status to `CANCELLED`.
-
----
-
-## 11. Testing Plan
-
-Tests will be created locally under `tests/integration/customer-onboarding/` using mock database interfaces:
-
-1. **Default Deny Check:** Test that running the worker without variables throws `REAL_PROVISIONING_WORKER_DISABLED`.
-2. **Flag Dependency Verification:** Confirm that if `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` is false, database connection contexts do not execute writes.
-3. **Dry-Run Safety Test:** Validate that dry-run returns the complete timeline without generating database tables.
-4. **Idempotency Duplicate Rejection:** Verify that queueing identical `runId` or `subdomain` returns `PROVISIONING_IN_PROGRESS`.
-5. **Reserved Subdomain Rejection:** Confirm that trying to register `admin` or `portal` is rejected with `RESERVED_SUBDOMAIN`.
-6. **Failed Step Transitions:** Assert status progresses correctly through validation, database setup, seeding, and activation.
-7. **Secret Hygiene Verification:** Review test runs logs to verify password parameters are not stored in telemetry.
+لضمان الاحتفاظ بسجلات التدقيق وحماية البيانات:
+* **منع الحذف التلقائي لقواعد البيانات:** لن يقوم المعالج الخلفي تلقائياً بتدمير أو حذف قواعد البيانات التي تفشل أثناء التهيئة. هذا يتيح للمطورين فرصة تحليل البنية وتحديد مكمن الخلل الفني.
+* **إدارة الأقفال المعلقة:** يبقى القفل الحصري للمستأجر معلقاً لمدة 30 دقيقة بعد الفشل قبل تحريره، لضمان عدم تمرير طلب آخر بشكل عشوائي.
+* **واجهة تحكم للمشرف:** تتيح لوحة إدارة ICE للتحكم الفائق خيار "إلغاء وتنظيف يدوي" يقوم صراحة بالتالي:
+  - تشغيل `DROP DATABASE IF EXISTS <subdomain>_db`.
+  - إلغاء الحسابات المرتبطة وتراخيص العرض وتطهير أقفال Redis الموزعة.
+  - تحويل حالة الطلب لـ `CANCELLED`.
 
 ---
 
-## 12. Deploy Plan
+## 11. خطة الاختبار والتأكيد الفني (Testing Plan)
 
-The deployment pipeline is designed around a multi-gate sync policy:
-
-```
-[Local Code Check] ──> [Git Commit Check] ──> [Staging Run (FF=off)] 
-                                                      │
-[Beta Activation] <── [Prod Run (Dry-Run)] <── [Prod Deploy (FF=off)]
-```
-
-1. **Local Validation:** Run typecheck, linting, and vitest runs locally.
-2. **Git Baseline Verification:** Assure local changes are fully committed and matching remote repository state.
-3. **Staging Deploy:** Deploy files to staging VPS. Set flags to dry-run first. Perform live staging runs.
-4. **Production Deploy (FF=Off):** Use `node deploy.js --files-only` to deploy files, ensuring `CUSTOMER_ONBOARDING_WORKER_ENABLED=false`.
-5. **Production Dry-Run:** Set `CUSTOMER_ONBOARDING_WORKER_ENABLED=true` but keep `CUSTOMER_ONBOARDING_WORKER_DRY_RUN=true`.
-6. **Controlled Live Write:** Verify execution with a single test subdomain, then proceed to Beta customer activation.
+تُكتب الاختبارات محلياً في مجلد `tests/integration/customer-onboarding/` باستخدام قواعد فحص افتراضية معزولة:
+1. **فحص الرفض الافتراضي:** التأكد من إطلاق استثناء `REAL_PROVISIONING_WORKER_DISABLED` في حال غياب الأعلام.
+2. **فحص حظر الكتابة:** التأكد من عدم قيام المعالج بكتابة أي بيانات مادية عند إيقاف علم الكتابة الحقيقية.
+3. **فحص سلامة المحاكاة:** التأكد من توليد مسار التاريخ والخطوات بالكامل دون كتابة فعلية في وضع Dry-run.
+4. **فحص تكرار الطلبات:** إرسال طلبين متطابقين بنفس المعرف في نفس اللحظة والتحقق من رفض الطلب الثاني برمز الاستجابة `PROVISIONING_IN_PROGRESS`.
+5. **فحص النطاقات المحجوزة:** التحقق من رفض محاولات تسجيل أسماء مثل `admin` أو `portal` برمز الخطأ `RESERVED_SUBDOMAIN`.
+6. **فحص سلامة السجلات وسرية البيانات:** التأكد من عدم كتابة كلمات المرور في سجلات أداء الاختبار.
 
 ---
 
-## 13. Rollback & Kill Switch Plan
+## 12. خطة ومسار النشر الآمن (Deploy Plan)
 
-In case of a production issue (e.g. server latency, database lock escalation):
-
-* **Environment Variable Override:** Change environment configs to `CUSTOMER_ONBOARDING_WORKER_ENABLED=false` or `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED=false`.
-* **Daemon Process Termination:** Execute `pm2 stop provisioning-worker` on the server immediately.
-* **Queue Pause Command:** Send command to BullMQ to pause job processing.
-* **Manual Audit Execution:** Review the status database. Clean up any stuck database registrations manually using the super-administrator control panel.
-* **No Destructive Rollover:** The system will never drop databases automatically during rollback.
-
----
-
-## 14. Monitoring Plan
-
-A dashboard will visualize worker telemetry:
-
-* **Queue Metrics:** Monitor BullMQ active, pending, completed, and failed job lengths.
-* **Worker Status:** Heartbeat signals indicating worker daemon health.
-* **Process Speeds:** Average execution durations logged per step (e.g. database creation vs seeding times).
-* **Alert Triggers:** Notifications sent when a run status transitions to `NEEDS_MANUAL_REVIEW` or is stuck in `PROVISIONING` for longer than 10 minutes.
+* **التحقق المحلي:** تشغيل فحوصات تكوين الأنواع ولنت الأكواد للتأكد من خلو المشروع من التحذيرات.
+* **التحقق من أساس Git:** مقارنة الالتزام المحلي والبعيد والتأكد من مطابقة الفرع الرئيسي.
+* **النشر لخادم التجربة (Staging):** نقل وتحديث ملفات المعالج على خادم التجربة، وتفعيله بوضع المحاكاة لاختبار سلامة طوابير BullMQ.
+* **النشر للإنتاج (الوضع المعطل):** استخدام `node deploy.js` لمزامنة الكود مع التأكد من إيقاف أعلام التشغيل `CUSTOMER_ONBOARDING_WORKER_ENABLED=false`.
+* **تفعيل المحاكاة بالإنتاج:** تشغيل المعالج مع تفعيل المحاكاة صراحة `CUSTOMER_ONBOARDING_WORKER_DRY_RUN=true`.
+* **الكتابة المحدودة:** تهيئة مستأجر تجريبي وحيد فعلي بالإنتاج، ومتابعة نجاح التأسيس، ثم الانتقال لفتح التفعيل التجريبي للعملاء.
 
 ---
 
-## 15. Admin Dashboard Plan
+## 13. خطة الطوارئ والتراجع الفوري ومفتاح الإيقاف (Rollback & Kill Switch Plan)
 
-The onboarding interface inside the ICE administration panel will present:
-
-* **Onboarding Runs Log:** A paginated table showing `runId`, `subdomain`, `email`, `status`, and `createdAt`.
-* **Timeline Detailed Inspector:** Renders every step's status (`PENDING`, `COMPLETED`, `FAILED`) and execution durations.
-* **Action Controls:**
-  * **Retry Button:** Permits admins to re-enqueue a failed job.
-  * **Cancel & Cleanup Button:** Executes database dropping commands and frees reservation tags.
-* **Health Panel:** Visualizes active background worker health metrics.
+عند مواجهة أي تدهور في أداء الخادم أو أخطاء بالإنتاج:
+* **مفتاح الإيقاف الطارئ:** تغيير قيمة الأعلام البرمجية فوراً إلى `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED=false` أو `CUSTOMER_ONBOARDING_WORKER_ENABLED=false`.
+* **إيقاف عملية PM2:** تنفيذ `pm2 stop provisioning-worker` على خوادم الإنتاج لوقف تشغيل محرك المعالجة الخلفية فوراً.
+* **إيقاف مؤقت للطوابير:** إرسال أمر تعليق المهام إلى BullMQ.
+* **معالجة التراكمات يدوياً:** الدخول المباشر للوحة الإشراف للتعامل مع الطلبات العالقة أو معالجة الأثر المادي لقواعد البيانات بشكل آمن دون تشغيل أوامر إزالة آلية مدمرة.
 
 ---
 
-## 16. Security Review
+## 14. خطة مراقبة العمليات وتحليل الأداء (Monitoring Plan)
 
-* **Path and Input Sanitization:** Subdomains are sanitized to lowercase alphanumeric strings.
-* **Query Scoping:** Status APIs resolve query requests using validated payload bodies rather than query strings.
-* **Privileged Gateways:** Administration actions (retry/cleanup) require Clerk-authenticated master admin credentials.
-* **Error Sanitization:** Error logs output structural indicators rather than full SQL dumps or path listings.
+يتم تمثيل بيانات التتبع للمعالج في لوحة المشرفين:
+* **مؤشرات الطابور:** تمثيل حي لعدد المهام المنجزة، المعلقة، والنشطة داخل BullMQ.
+* **نبضات قلب العملية:** مؤشرات تؤكد سلامة دوران المعالج الخلفي واتصاله بـ Redis.
+* **أوقات استجابة الخطوات:** رصد متوسط المدة الزمنية لكل خطوة (إنشاء قاعدة بيانات مقابل بذر الإعدادات) لاكتشاف أي اختناقات في الأداء.
+* **تنبيهات التصعيد:** إرسال رسائل فورية للمشرفين عند انتقال أي وظيفة لحالة `NEEDS_MANUAL_REVIEW`.
 
 ---
 
-## 17. Secret Hygiene Review
+## 15. تصميم لوحة التحكم الإدارية لتهيئة المستأجرين (Admin Dashboard Plan)
 
-* **Verification:** `PASS`
-* Config strings and command templates use placeholders (e.g., `PGPASSWORD="[PASSWORD]"`).
-* No developer tokens, credentials, or private keys are exposed in report structures.
+تضم لوحة تحكم ICE للمسؤولين:
+* **سجل التهيئة التلقائية:** جدول يعرض تفاصيل الطلبات، المعرفات، البريد الإلكتروني للحساب، حالة العملية الحالية وتاريخ التأسيس.
+* **مفتش المخطط الزمني:** واجهة تفصيلية تستعرض حالة كل خطوة والمدة الزمنية التي استغرقتها.
+* **أدوات التحكم:**
+  - **زر إعادة المحاولة:** يتيح للمشرفين إعادة إدراج الطلبات الفاشلة للطابور مجدداً.
+  - **زر التنظيف والتدمير:** يزيل قاعدة البيانات الفاشلة ويقوم بتنظيف تراخيص الاستخدام وتحرير أقفال النطاقات.
+
+---
+
+## 16. المراجعة والتدقيق الأمني (Security Review)
+
+* **تطهير المدخلات:** يتم التحقق الصارم من أسماء النطاقات الفرعية وتنقيتها من الرموز الخاصة والمسافات.
+* **الحد من نطاق الاستعلام:** تستعلم واجهة التحقق من الحالة من جسم الطلب المشفر ولا تدعم معاملات الرابط المكشوفة لمنع القراءة العشوائية.
+* **حماية الصلاحيات:** تُقيد أدوات الإلغاء وإعادة المحاولة بالمشرفين المعتمدين والموثقين ببيانات Clerk.
+* **تقنين السجلات:** يتم حظر إدراج هياكل SQL الكاملة أو استثناءات الرموز البرمجية الخام في مخرجات المراقبة العامة.
+
+---
+
+## 17. مراجعة نظافة الأسرار البرمجية (Secret Hygiene Review)
+
+* **التحقق الفني:** `PASS`
+* جميع عناوين التكوين وأوامر الاتصال تستعين بنماذج استرشادية مبهمة (مثل `DATABASE_URL="postgresql://[USER]:[PASS]@[HOST]:[PORT]/[DB]"`).
+* لم يتم كشف أو تضمين أي كلمات مرور حقيقية أو شهادات أمان في تقارير النظام أو المستندات المرافقة.
+
+---
+
+## 18. الخطوة التالية الموصى بها للموافقة
+
+**NEXT_RECOMMENDED_APPROVAL:** `GO_FOR_CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_LOCAL_GUARDS_IMPLEMENTATION_ONLY`

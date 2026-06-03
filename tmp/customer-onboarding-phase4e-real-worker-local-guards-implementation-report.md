@@ -1,12 +1,12 @@
-# Customer Onboarding Phase 4E — Local Guards Implementation Report
+# تقرير تنفيذ الحمايات المحلية للمعالج الحقيقي لتهيئة العملاء (المرحلة 4E)
 
-## 1. Summary Dashboard
+## 1. لوحة معلومات الملخص (Summary Dashboard)
 
 * **FINAL_STATUS:** `CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_LOCAL_GUARDS_IMPLEMENTATION_COMPLETED`
 * **REPORT_PATH:** `tmp/customer-onboarding-phase4e-real-worker-local-guards-implementation-report.md`
-* **MODE:** `LOCAL_IMPLEMENTATION_ONLY`
-* **CODE_CHANGED:** `YES`
-  * **Modified Files:**
+* **MODE:** `LOCAL_IMPLEMENTATION_ONLY` (التنفيذ المحلي فقط)
+* **CODE_CHANGED:** `YES` (تم تعديل الكود)
+  * **الملفات المعدلة:**
     - [src/lib/tenant/provisioning-guard.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-guard.ts)
     - [src/lib/tenant/provisioning-worker.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-worker.ts)
     - [src/lib/tenant/provisioning-queue.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-queue.ts)
@@ -14,25 +14,25 @@
     - [src/app/api/tenant/provision/status/route.ts](file:///d:/namasoft9-3-main/src/app/api/tenant/provision/status/route.ts)
     - [tests/integration/customer-onboarding/provisioning-worker-dry-run.test.ts](file:///d:/namasoft9-3-main/tests/integration/customer-onboarding/provisioning-worker-dry-run.test.ts)
     - [tests/integration/customer-onboarding/provisioning-worker-local.test.ts](file:///d:/namasoft9-3-main/tests/integration/customer-onboarding/provisioning-worker-local.test.ts)
-  * **New Files:**
+  * **الملفات الجديدة:**
     - [tests/integration/customer-onboarding/provisioning-worker-guards.test.ts](file:///d:/namasoft9-3-main/tests/integration/customer-onboarding/provisioning-worker-guards.test.ts)
-* **DB_CHANGED:** `NO`
-* **SQL_EXECUTED:** `NO`
-* **PRISMA_SCHEMA_CHANGED:** `NO`
-* **MIGRATION_CREATED:** `NO`
-* **DEPLOY:** `NO`
-* **PRODUCTION_TOUCHED:** `NO`
-* **WORKER_ACTIVE:** `NO`
-* **QUEUE_ACTIVE:** `NO`
-* **FEATURE_FLAG_CHANGED:** `NO_PRODUCTION_FLAG_CHANGED`
-* **REAL_WRITES:** `BLOCKED_BY_DEFAULT`
-* **SECRET_HYGIENE:** `PASS`
-* **TESTS:** `PASS` (28 integration tests passed successfully)
+* **DB_CHANGED:** `NO` (لا يوجد تغيير في قاعدة البيانات)
+* **SQL_EXECUTED:** `NO` (لم يتم تشغيل أي SQL)
+* **PRISMA_SCHEMA_CHANGED:** `NO` (لم يتغير مخطط بريزما)
+* **MIGRATION_CREATED:** `NO` (لم يتم إنشاء أي هجرة)
+* **DEPLOY:** `NO` (لم يتم النشر)
+* **PRODUCTION_TOUCHED:** `NO` (لم يتم لمس بيئة الإنتاج)
+* **WORKER_ACTIVE:** `NO` (المعالج الخلفي معطل)
+* **QUEUE_ACTIVE:** `NO` (الطابور معطل)
+* **FEATURE_FLAG_CHANGED:** `NO_PRODUCTION_FLAG_CHANGED` (لم تتغير أعلام ميزات الإنتاج)
+* **REAL_WRITES:** `BLOCKED_BY_DEFAULT` (الكتابة الفعلية محظورة افتراضياً)
+* **SECRET_HYGIENE:** `PASS` (نظافة السجلات والبيانات السرية سليمة)
+* **TESTS:** `PASS` (نجاح 28 اختبار تكامل بنجاح)
 * **NEXT_RECOMMENDED_APPROVAL:** `GO_FOR_CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_LOCAL_GUARDS_COMMIT_GATE_REVIEW_ONLY`
 
 ---
 
-## 2. Files Scanned & Reviewed
+## 2. الملفات المفحوصة والمراجعة (Files Scanned & Reviewed)
 
 * [src/lib/tenant/provisioning-job-types.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-job-types.ts)
 * [src/lib/tenant/reserved-subdomains.ts](file:///d:/namasoft9-3-main/src/lib/tenant/reserved-subdomains.ts)
@@ -42,76 +42,76 @@
 
 ---
 
-## 3. Implemented Security Protections (Local Guards)
+## 3. وسائل الحماية الأمنية المطبقة (Implemented Security Protections)
 
-We have constructed a multi-layered, fail-closed protection suite in `src/lib/tenant/provisioning-guard.ts` containing the following guards:
+قمنا ببناء مجموعة حماية متعددة المستويات ومغلقة افتراضياً (Fail-closed) في الملف `src/lib/tenant/provisioning-guard.ts` تشمل الحمايات التالية:
 
-1. **ENV Guard:** Enforces that the execution environment (`process.env.NODE_ENV`) matches the authorized target (`CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV`). If not matched, write operations are rejected with code `ENVIRONMENT_MISMATCH`.
-2. **Feature Flag Guard:** Prevents database configuration commands unless `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` is explicitly configured to `'true'`.
-3. **Runtime Kill Switch:** An instant override flag (`CUSTOMER_ONBOARDING_KILL_SWITCH === 'true'`) that blocks all background worker job executions.
-4. **Queue Activation Guard:** Enforces `isQueueEnabled()` checks on API router routes.
-5. **Worker Mode Guard:** Ensures background queue checking returns early and stops processing if `isWorkerEnabled()` is not active.
-6. **Dry-Run Default Guard:** Forces the worker to mock transactions (`CUSTOMER_ONBOARDING_WORKER_DRY_RUN !== 'false'`) unless simulation mode is explicitly disabled in configs.
-7. **Production Fail-Closed Guard:** In case environment configuration variables are absent, the system defaults to `isWorkerEnabled = false`, `isDryRunEnabled = true`, and `isRealWritesEnabled = false`.
-8. **Explicit Subdomain Allowlist:** Support filtering target clients using commas-separated subdomains in `CUSTOMER_ONBOARDING_ALLOWLIST` (e.g. `allowlist="alpha,beta"`).
-9. **Sanitized Logs/Errors:** Prevents credential leakage by omitting connection strings or raw exceptions from client-facing payloads.
-
----
-
-## 4. Why Real Worker remains Inactive
-
-1. **Safety Fallback Throw:** `runProvisioningWorkerDryRun` contains an explicit fallback throw that rejects requests with `REAL_PROVISIONING_WORKER_DISABLED` even if all feature flags and guards are bypassed.
-2. **Code Implementation Boundaries:** No physical database creation commands (`CREATE DATABASE`), schema push triggers, or seeding functions have been activated in the background worker daemon code.
+1. **حماية البيئة التشغيلية (ENV Guard):** فرض مطابقة بيئة التشغيل الحالية لـ Node (`process.env.NODE_ENV`) مع البيئة المصرح بها (`CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV`). وفي حال عدم المطابقة، يتم رفض الكتابة فوراً برمز `ENVIRONMENT_MISMATCH`.
+2. **حماية أعلام الميزات (Feature Flag Guard):** منع أي تهيئة مادية إلا إذا تم ضبط المتغير البيئي `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` على القيمة `'true'` صراحة.
+3. **حماية مفتاح الإيقاف الطارئ (Kill Switch):** رافعة برمجية فورية معرّفة بـ `CUSTOMER_ONBOARDING_KILL_SWITCH === 'true'` تعطل كافة عمليات معالجة المهام الخلفية عند تفعيلها.
+4. **حماية تفعيل الطابور:** فرض الفحص `isQueueEnabled()` في مسارات الواجهة البرمجية.
+5. **حماية وضع المعالج:** إيقاف المعالج والعودة الفورية عند بدء التشغيل إذا كانت دالة التحقق `isWorkerEnabled()` ترجع `false`.
+6. **حماية المحاكاة الافتراضية (Dry-Run Guard):** إجبار المعالج على تنفيذ المعالجة الصورية الافتراضية ما لم يتم إلغاء ذلك صراحة في الإعدادات `CUSTOMER_ONBOARDING_WORKER_DRY_RUN !== 'false'`.
+7. **إعدادات الفشل الآمن (Fail-Closed):** عند غياب متغيرات البيئة، يعتمد النظام القيم الأكثر أماناً: `isWorkerEnabled = false` و `isDryRunEnabled = true` و `isRealWritesEnabled = false`.
+8. **القائمة المسموح بها للنطاقات الفرعية (Allowlist):** دعم تصفية وفلترة النطاقات المسموح لها بالكتابة عبر الفصل بين النطاقات بفاصلة في المتغير `CUSTOMER_ONBOARDING_ALLOWLIST`.
+9. **سجلات مخرجات آمنة:** منع تسريب بيانات الاتصال بقواعد البيانات أو تفاصيل كائنات الأخطاء الفنية في السجلات العامة للخادم.
 
 ---
 
-## 5. Verification Results
+## 4. لماذا يظل المعالج الحقيقي معطلاً (Why Real Worker remains Inactive)
 
-### TypeScript Verification
-* **Command:** `npm run typecheck`
-* **Status:** `PASS`
-* **Output:** Types are fully resolved. No errors.
-
-### Prisma Schema Verification
-* **Command:** `npx prisma validate`
-* **Status:** `PASS`
-* **Output:** Valid schema definition.
-
-### Integration Tests
-* **Command:** `npx vitest run tests/integration/customer-onboarding`
-* **Status:** `PASS`
-* **Results:** All 28 tests across 4 files executed successfully:
-  - `provisioning-queue-skeleton.test.ts` (7 passed)
-  - `provisioning-worker-dry-run.test.ts` (6 passed)
-  - `provisioning-worker-guards.test.ts` (12 passed) - **New**
-  - `provisioning-worker-local.test.ts` (3 passed)
-
-### Secret Hygiene Verification
-* **Status:** `PASS`
-* **Details:** No passwords, SSH private keys, database credentials, or tokens are logged or included in code edits. All mock tests use safe values (`success@namasoft.com`, `run_worker_success`).
+1. **دالة الرمي الاحترازية:** تحتوي دالة `runProvisioningWorkerDryRun` على رمز رمي استثناء صريح `REAL_PROVISIONING_WORKER_DISABLED` لرفض أي محاولة تأسيس فعلية حتى وإن تم تخطي جميع الحمايات السابقة.
+2. **حدود التنفيذ البرمجي:** لم يتم كتابة أي أوامر فعلية لإنشاء قواعد البيانات (`CREATE DATABASE`) أو بذر الجداول أو نقل المخططات في الكود التنفيذي للمعالج الخلفي الحالي.
 
 ---
 
-## 6. Safety Confirmations
+## 5. نتائج عمليات التحقق والاختبار (Verification Results)
 
-* **Deploy Executed:** `NO`
-* **Database Schema Changes Applied:** `NO`
-* **SQL Queries Executed:** `NO`
-* **Migrations Created or Applied:** `NO`
-* **Production Code Affected:** `NO` (All changes are strictly local runtime guards and test files)
-* **Worker Enabled:** `NO` (Default state is inactive)
-* **Queue Consumption Active:** `NO` (Default state is inactive)
-* **Real writes permitted:** `NO` (Enforced blocked by default)
+### التحقق من تكوين الأنواع (TypeScript Verification)
+* **الأمر:** `npm run typecheck`
+* **الحالة:** `PASS` (ناجح)
+* **المخرجات:** تم التحقق من سلامة كافة الأنواع البرمجية، دون وجود أي أخطاء.
+
+### التحقق من مخطط بريزما (Prisma Schema Verification)
+* **الأمر:** `npx prisma validate`
+* **الحالة:** `PASS` (ناجح)
+* **المخرجات:** مخطط الجداول متوافق وسليم.
+
+### اختبارات التكامل (Integration Tests)
+* **الأمر:** `npx vitest run tests/integration/customer-onboarding`
+* **الحالة:** `PASS` (ناجح)
+* **المخرجات:** تم تشغيل كافة الاختبارات البالغ عددها 28 اختباراً بنجاح عبر 4 ملفات:
+  - `provisioning-queue-skeleton.test.ts` (نجاح 7)
+  - `provisioning-worker-dry-run.test.ts` (نجاح 6)
+  - `provisioning-worker-guards.test.ts` (نجاح 12) - **جديد**
+  - `provisioning-worker-local.test.ts` (نجاح 3)
+
+### فحص أمن ونظافة الأسرار (Secret Hygiene Verification)
+* **الحالة:** `PASS` (ناجح)
+* **المخرجات:** لا يتم كتابة أي كلمات مرور أو مفاتيح SSH أو تراخيص Clerk في سجلات أو اختبارات الكود. جميع سجلات الفحوصات الافتراضية تستعين ببيانات استرشادية آمنة ومبهمة (`success@namasoft.com` و `run_worker_success`).
 
 ---
 
-## 7. Risks & Mitigations
+## 6. تأكيدات سلامة بيئة الإنتاج (Safety Confirmations)
 
-* **Risk:** Developers manually enabling the flags in production environments by accident.
-* **Mitigation:** Safe production fallback gates enforce matching `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV === 'production'`. The default value is `'development'`, so even if real writes are enabled, the environment mismatch block activates.
+* **تم إجراء نشر للإنتاج:** `NO` (لا)
+* **تم تطبيق تعديلات هيكلية بقاعدة البيانات:** `NO` (لا)
+* **تم تشغيل استعلامات SQL مادية:** `NO` (لا)
+* **تم إنشاء أو تشغيل هجرات قاعدة بيانات:** `NO` (لا)
+* **تم تعديل منطق الإنتاج الحالي:** `NO` (لا - كافة التعديلات محصورة بالحمايات والملفات المحلية وملفات الاختبار)
+* **تفعيل المعالج الخلفي:** `NO` (لا - الحالة الافتراضية معطل)
+* **نشاط استهلاك المهام بالطابور:** `NO` (لا)
+* **تصريح الكتابة الحقيقية مفعّل:** `NO` (لا - محظور بالكامل افتراضياً)
 
 ---
 
-## 8. Next Recommended Phase
+## 7. المخاطر ووسائل الحد منها (Risks & Mitigations)
+
+* **الخطر:** قيام المطورين بتفعيل الأعلام البرمجية في بيئة الإنتاج الفعلي عن طريق الخطأ.
+* **الحد من الخطر:** تطبيق بوابات التحقق الآمنة لمطابقة البيئة الحالية مع المتغير `CUSTOMER_ONBOARDING_WORKER_ALLOWED_ENV === 'production'`. القيمة الافتراضية المحددة هي `'development'`، وبالتالي فحتى لو تم تفعيل الكتابة، فسيتم حظر العملية بسبب عدم مطابقة البيئة افتراضياً.
+
+---
+
+## 8. الخطوة التالية الموصى بها
 
 **NEXT_RECOMMENDED_APPROVAL:** `GO_FOR_CUSTOMER_ONBOARDING_PHASE4E_REAL_WORKER_LOCAL_GUARDS_COMMIT_GATE_REVIEW_ONLY`
