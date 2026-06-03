@@ -60,6 +60,8 @@ export default function CompanyInfoPage() {
     const [errorMsg, setErrorMsg] = useState('');
     const [provisionedSubdomain, setProvisionedSubdomain] = useState('');
     const [statusMessages, setStatusMessages] = useState<string[]>([]);
+    const [pollingAttempts, setPollingAttempts] = useState(0);
+    const [ssoToken, setSsoToken] = useState('');
 
     // Step 1
     const [companyNameAr, setCompanyNameAr] = useState('');
@@ -235,11 +237,13 @@ export default function CompanyInfoPage() {
 
     // ── Submit ────────────────────────────────────────────────────────────
     const handleSubmit = async () => {
+        if (isSubmitting) return; // Prevent double submit
         const err = validateStep(2);
         if (err) { setErrorMsg(err); return; }
         setErrorMsg('');
         setStatus('SUBMITTING');
         setIsSubmitting(true);
+        setPollingAttempts(0);
         setStatusMessages(['⏳ جاري إرسال بيانات المنشأة...']);
 
         const userEmail = user?.primaryEmailAddress?.emailAddress || '';
@@ -278,8 +282,9 @@ export default function CompanyInfoPage() {
             }
 
             const subdomain = data.subdomain;
-            const ssoToken  = data.ssoToken || '';
+            const tokenVal  = data.ssoToken || '';
             setProvisionedSubdomain(subdomain);
+            setSsoToken(tokenVal);
             setStatus('PROVISIONING');
             setStatusMessages(prev => [...prev,
                 `✅ تم إنشاء النطاق: ${subdomain}.namainvist.com`,
@@ -292,6 +297,7 @@ export default function CompanyInfoPage() {
             let attempts = 0;
             const poll = setInterval(async () => {
                 attempts++;
+                setPollingAttempts(attempts);
                 try {
                     const ping = await fetch(`https://${subdomain}.namainvist.com/api/health`);
                     if (ping.ok) {
@@ -299,8 +305,8 @@ export default function CompanyInfoPage() {
                         setStatusMessages(prev => [...prev, '🚀 نظامك جاهز! جاري تسجيل الدخول...']);
                         setStatus('READY');
                         setTimeout(() => {
-                            const dest = ssoToken
-                                ? `https://${subdomain}.namainvist.com/auto-login?token=${encodeURIComponent(ssoToken)}`
+                            const dest = tokenVal
+                                ? `https://${subdomain}.namainvist.com/auto-login?token=${encodeURIComponent(tokenVal)}`
                                 : `https://${subdomain}.namainvist.com/login`;
                             window.location.href = dest;
                         }, 1500);
@@ -329,7 +335,29 @@ export default function CompanyInfoPage() {
         );
     }
 
-    if (status === 'PROVISIONING' || status === 'READY' || status === 'SUBMITTING') {
+    if (status === 'SUBMITTING' || status === 'PROVISIONING') {
+        const step1Status = status === 'SUBMITTING' ? 'LOADING' : 'COMPLETE';
+        const step2Status = status === 'SUBMITTING' ? 'PENDING' : 'COMPLETE';
+        const step3Status = status === 'SUBMITTING' ? 'PENDING' :
+                           pollingAttempts < 2 ? 'LOADING' : 'COMPLETE';
+        const step4Status = status === 'SUBMITTING' ? 'PENDING' :
+                           pollingAttempts < 2 ? 'PENDING' :
+                           pollingAttempts < 5 ? 'LOADING' : 'COMPLETE';
+        const step5Status = status === 'SUBMITTING' ? 'PENDING' :
+                           pollingAttempts < 5 ? 'PENDING' : 'LOADING';
+
+        const renderStepIndicator = (stepStatus: 'PENDING' | 'LOADING' | 'COMPLETE') => {
+            if (stepStatus === 'COMPLETE') return <span className="text-emerald-400 text-base font-bold">✓</span>;
+            if (stepStatus === 'LOADING') return <Loader2 size={16} className="text-indigo-400 animate-spin" />;
+            return <span className="text-slate-600 text-base">•</span>;
+        };
+
+        const renderStepClass = (stepStatus: 'PENDING' | 'LOADING' | 'COMPLETE') => {
+            if (stepStatus === 'COMPLETE') return 'text-slate-300 font-bold';
+            if (stepStatus === 'LOADING') return 'text-white font-black animate-pulse';
+            return 'text-slate-500';
+        };
+
         return (
             <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
@@ -338,22 +366,105 @@ export default function CompanyInfoPage() {
                         <div className="absolute inset-0 border-4 border-t-indigo-400 rounded-full animate-spin" />
                         <div className="absolute inset-0 flex items-center justify-center text-3xl">🚀</div>
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-2">
-                        {status === 'READY' ? 'نظامك جاهز!' : 'جاري إنشاء نظامك السحابي'}
-                    </h2>
-                    {provisionedSubdomain && (
-                        <p className="text-indigo-300 font-bold mb-6 text-sm">{provisionedSubdomain}.namainvist.com</p>
+                    <h2 className="text-2xl font-black text-white mb-2">جاري إنشاء نظامك السحابي</h2>
+                    {previewSubdomain && (
+                        <p className="text-indigo-300 font-bold mb-6 text-sm">{previewSubdomain}.namainvist.com</p>
                     )}
-                    <div className="space-y-2 text-right">
-                        {statusMessages.map((msg, i) => (
-                            <div key={i} className="flex items-center gap-2 text-sm text-slate-300 bg-white/5 rounded-xl px-4 py-2">
-                                <span>{msg}</span>
-                            </div>
-                        ))}
+                    
+                    <div className="space-y-3 text-right bg-white/5 rounded-2xl p-5 border border-white/10">
+                        <div className={`flex items-center justify-between text-sm ${renderStepClass(step1Status)}`}>
+                            <span>1. إرسال وتأكيد بيانات المنشأة</span>
+                            {renderStepIndicator(step1Status)}
+                        </div>
+                        <div className={`flex items-center justify-between text-sm ${renderStepClass(step2Status)}`}>
+                            <span>2. حجز نطاق الشركة والتحقق من الصلاحيات</span>
+                            {renderStepIndicator(step2Status)}
+                        </div>
+                        <div className={`flex items-center justify-between text-sm ${renderStepClass(step3Status)}`}>
+                            <span>3. تهيئة خادم السيرفر وقاعدة البيانات السحابية</span>
+                            {renderStepIndicator(step3Status)}
+                        </div>
+                        <div className={`flex items-center justify-between text-sm ${renderStepClass(step4Status)}`}>
+                            <span>4. زرع الحسابات المحاسبية SoCPA وتفعيل الترخيص</span>
+                            {renderStepIndicator(step4Status)}
+                        </div>
+                        <div className={`flex items-center justify-between text-sm ${renderStepClass(step5Status)}`}>
+                            <span>5. فحص جاهزية النظام وبدء التوجيه الآمن</span>
+                            {renderStepIndicator(step5Status)}
+                        </div>
                     </div>
-                    {status !== 'READY' && (
-                        <p className="text-slate-400 text-xs mt-6">العملية تستغرق من 2 إلى 5 دقائق، يرجى الانتظار...</p>
-                    )}
+                    
+                    <p className="text-slate-400 text-xs mt-6">العملية تستغرق عادةً من 1 إلى 2 دقيقة، يرجى عدم إغلاق هذه الصفحة...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'READY') {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+                <div className="bg-white/10 backdrop-blur-xl border border-emerald-500/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
+                    <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-400 text-3xl font-bold">
+                        ✓
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2">نظامك جاهز للعمل!</h2>
+                    <p className="text-slate-300 text-sm mb-6">تم إعداد قاعدة البيانات وتهيئة المنشأة بنجاح.</p>
+                    
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 flex flex-col items-center gap-3">
+                        <span className="text-xs text-slate-400 font-bold">رابط لوحة التحكم المخصص:</span>
+                        <a href={`https://${provisionedSubdomain}.namainvist.com`} target="_blank" rel="noreferrer"
+                            className="text-indigo-300 font-black text-lg hover:underline break-all">
+                            {provisionedSubdomain}.namainvist.com
+                        </a>
+                        <button onClick={() => {
+                            navigator.clipboard.writeText(`https://${provisionedSubdomain}.namainvist.com`);
+                            alert('تم نسخ الرابط بنجاح!');
+                        }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-slate-300 hover:bg-white/10 transition-all">
+                            📋 نسخ الرابط
+                        </button>
+                    </div>
+
+                    <p className="text-emerald-400 font-bold text-sm animate-pulse mb-2">🚀 جاري إعادة توجيهك الآن تلقائياً...</p>
+                    <p className="text-slate-500 text-xs">أو يمكنك الضغط على الزر أدناه للدخول المباشر.</p>
+                    
+                    <button onClick={() => {
+                        window.location.href = ssoToken
+                            ? `https://${provisionedSubdomain}.namainvist.com/auto-login?token=${encodeURIComponent(ssoToken)}`
+                            : `https://${provisionedSubdomain}.namainvist.com/login`;
+                    }}
+                        className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-lg transition-all">
+                        🚀 الدخول للوحة التحكم
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'ERROR') {
+        return (
+            <div className="min-h-screen bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-4" dir="rtl">
+                <div className="bg-white/10 backdrop-blur-xl border border-red-500/20 rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
+                    <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-400 text-3xl font-bold">
+                        ⚠️
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2">فشل إعداد المنشأة</h2>
+                    <p className="text-red-300 font-bold text-sm mb-6">{errorMsg || 'حدث خطأ غير متوقع أثناء الاتصال بالخادم.'}</p>
+                    
+                    <div className="space-y-3">
+                        <button onClick={() => {
+                            setIsSubmitting(false);
+                            handleSubmit();
+                        }}
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-sm shadow-lg transition-all">
+                            🔄 إعادة المحاولة
+                        </button>
+                        
+                        <button onClick={() => { setStatus('IDLE'); setErrorMsg(''); }}
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/20 text-slate-300 font-bold text-sm hover:bg-white/10 transition-all">
+                            ✏️ تعديل البيانات
+                        </button>
+                    </div>
                 </div>
             </div>
         );
