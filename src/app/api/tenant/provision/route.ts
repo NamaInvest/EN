@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { createHmac } from 'crypto';
@@ -5,6 +6,8 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 import { validateSubdomainCandidate } from '@/lib/tenant/reserved-subdomains';
+import { acquireProvisioningLock, releaseProvisioningLock } from '@/lib/tenant/provisioning-guard';
+
 
 const log = logger.child({ service: 'tenant/provision' });
 
@@ -308,6 +311,8 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
+    let lockedSubdomain: string | null = null;
+    let masterPrisma: PrismaClient | null = null;
 
     try {
         // No auth check — endpoint is rate-limited (AUTH tier) and validates data internally
@@ -360,6 +365,37 @@ async function _POST(req: Request) {
             );
         }
 
+        // Initialize Master Prisma for early checks
+        masterPrisma = new PrismaClient({
+            datasources: { db: { url: getDbUrl('n11') } },
+        });
+
+        // ─── Early duplicate check on owner/email/userId ───────────────────
+        if (clerkEmail) {
+            const existingEmail = await masterPrisma.tenantAccount.findUnique({
+                where: { userEmail: clerkEmail },
+            });
+            if (existingEmail) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'تم تسجيل مستأجر بالفعل لهذا البريد الإلكتروني.',
+                    error: 'USER_ALREADY_HAS_TENANT'
+                }, { status: 409 });
+            }
+        }
+        if (clerkUserId) {
+            const existingUserId = await masterPrisma.tenantAccount.findUnique({
+                where: { clerkUserId: String(clerkUserId) },
+            });
+            if (existingUserId) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'تم تسجيل مستأجر بالفعل لهذا المستخدم.',
+                    error: 'USER_ALREADY_HAS_TENANT'
+                }, { status: 409 });
+            }
+        }
+
         // ─── ترجمة الأسماء (يفضل القيم القادمة من الـ form، والترجمة كـ fallback) ──────
         const companyNameEn     = companyNameEnFromClient?.trim() || await translateArToEn(companyNameAr);
         const zatcaIndustry     = businessDomain || '';
@@ -382,6 +418,30 @@ async function _POST(req: Request) {
                     message: earlyValidation.message,
                     error: earlyValidation.code
                 }, { status: 400 });
+            }
+
+            subdomain = subdomain.toLowerCase().trim();
+
+            // Acquire in-memory lock
+            if (!acquireProvisioningLock(subdomain)) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'عملية التأسيس قيد التنفيذ لهذا النطاق الفرعي.',
+                    error: 'PROVISIONING_IN_PROGRESS'
+                }, { status: 409 });
+            }
+            lockedSubdomain = subdomain;
+
+            // Pre-flight database check for explicit subdomain
+            const existingSubdomain = await masterPrisma.tenantAccount.findUnique({
+                where: { subdomain },
+            });
+            if (existingSubdomain) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'اسم النطاق الفرعي محجوز بالفعل أو قيد الاستخدام.',
+                    error: 'SUBDOMAIN_ALREADY_EXISTS'
+                }, { status: 409 });
             }
         }
 
@@ -420,10 +480,36 @@ async function _POST(req: Request) {
                 conn.on('error', reject);
                 conn.connect({ host: SSH_HOST, port: 22, username: SSH_USER, password: SSH_PASS, readyTimeout: 15000 });
             });
+
+            if (subdomain) {
+                subdomain = subdomain.toLowerCase().trim();
+
+                // Acquire lock for dynamically generated subdomain
+                if (!acquireProvisioningLock(subdomain)) {
+                    return NextResponse.json({
+                        success: false,
+                        message: 'عملية التأسيس قيد التنفيذ لهذا النطاق الفرعي.',
+                        error: 'PROVISIONING_IN_PROGRESS'
+                    }, { status: 409 });
+                }
+                lockedSubdomain = subdomain;
+
+                // Pre-flight database check for dynamically generated subdomain
+                const existingSubdomain = await masterPrisma.tenantAccount.findUnique({
+                    where: { subdomain },
+                });
+                if (existingSubdomain) {
+                    return NextResponse.json({
+                        success: false,
+                        message: 'اسم النطاق الفرعي محجوز بالفعل أو قيد الاستخدام.',
+                        error: 'SUBDOMAIN_ALREADY_EXISTS'
+                    }, { status: 409 });
+                }
+            }
         }
 
         if (!subdomain) {
-            return NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.' }, { status: 500 });
+            return NextResponse.json({ success: false, message: 'فشل توليد النطاق الفرعي.', error: 'PROVISIONING_FAILED' }, { status: 500 });
         }
 
         // Final backend enforcement gate right before SSH setup and DB writes
@@ -440,9 +526,9 @@ async function _POST(req: Request) {
         const { ok: dbOk, log: dbLog } = await runDbSetupViaSsh(subdomain);
 
         if (!dbOk) {
-            log.error('[provision] DB setup failed:', dbLog);
+            log.error('[provision] DB setup failed internally:', dbLog);
             return NextResponse.json(
-                { success: false, message: 'فشل إعداد قاعدة البيانات. يرجى المحاولة مرة أخرى.', debug: dbLog },
+                { success: false, message: 'فشل إعداد قاعدة البيانات. يرجى المحاولة مرة أخرى.', error: 'DATABASE_CREATION_FAILED' },
                 { status: 500 }
             );
         }
@@ -471,17 +557,12 @@ async function _POST(req: Request) {
         });
 
         if (!seedResult.ok) {
-            log.error('[provision] Seed failed:', seedResult.error);
+            log.error('[provision] Seed failed internally');
             // لا نوقف العملية — النظام شغال، البيانات يمكن تعبئتها لاحقاً
         }
 
         // ─── Step D: تسجيل الـ tenant في قاعدة البيانات الرئيسية ────────────
-        // استخدام PrismaClient مباشر على n11_db (الـ master DB)
-        let masterPrisma: PrismaClient | null = null;
         try {
-            masterPrisma = new PrismaClient({
-                datasources: { db: { url: getDbUrl('n11') } },
-            });
             const account = await masterPrisma.tenantAccount.upsert({
                 where: { userEmail: clerkEmail || `${subdomain}@namainvist.com` },
                 update: {
@@ -521,9 +602,7 @@ async function _POST(req: Request) {
             }).catch(() => { /* non-blocking */ });
 
         } catch (e: any) {
-            log.error('[provision] TenantAccount upsert failed:', e);
-        } finally {
-            if (masterPrisma) await masterPrisma.$disconnect();
+            log.error('[provision] TenantAccount upsert failed internally:', e instanceof Error ? e.message : e);
         }
 
         // ─── Step E: إرجاع الاستجابة للمتصفح ────────────────────────────────
@@ -561,8 +640,15 @@ async function _POST(req: Request) {
         });
 
     } catch (e: any) {
-        log.error('[provision] Uncaught error:', e);
-        return NextResponse.json({ success: false, message: 'خطأ عام: ' + e.message, debug: e.stack }, { status: 500 });
+        log.error('[provision] Uncaught error during provisioning:', e instanceof Error ? e.stack : e);
+        return NextResponse.json({ success: false, message: 'فشل عملية التأسيس. يرجى المحاولة لاحقاً.', error: 'PROVISIONING_FAILED' }, { status: 500 });
+    } finally {
+        if (masterPrisma) {
+            await masterPrisma.$disconnect();
+        }
+        if (lockedSubdomain) {
+            releaseProvisioningLock(lockedSubdomain);
+        }
     }
 }
 

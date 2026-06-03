@@ -1,48 +1,66 @@
-# Scan & Autopilot Report (System Gap & Safe Repair) - Nama Invest ERP
+# Agent Scan Report - Tenant Provisioning Duplicate Guard (Phase 4A)
 
-هذا التوثيق يهدف لتحليل الفجوات المعمارية والوظيفية الحالية لنظام Nama Invest ERP مقارنة بالأنظمة العالمية (SAP, Oracle, NetSuite) والامتثال الخليجي والسعودي، بالإضافة لنتائج الفحص والتشغيل التجريبي المحلي للمشروع.
+> **TRACK ID**: `CUSTOMER_ONBOARDING_PHASE4A_BACKEND_DUPLICATE_GUARD_END_TO_END`
+> **STATUS**: `SCAN_COMPLETED`
+> **DATE**: 2026-06-03
 
 ---
 
-## 1. الملفات التي قرأتها (Files Read)
-- [00-index.md](file:///d:/namasoft9-3-main/.ai-brain/00-index.md)
-- [01-architecture.md](file:///d:/namasoft9-3-main/.ai-brain/01-architecture.md)
-- [02-database.md](file:///d:/namasoft9-3-main/.ai-brain/02-database.md)
-- [05-business-logic.md](file:///d:/namasoft9-3-main/.ai-brain/05-business-logic.md)
-- [14-modules-map.md](file:///d:/namasoft9-3-main/.ai-brain/14-modules-map.md)
-- [17-gap-analysis.md](file:///d:/namasoft9-3-main/.ai-brain/17-gap-analysis.md)
-- [19-claude-rules.md](file:///d:/namasoft9-3-main/.ai-brain/19-claude-rules.md)
-- [GLOBAL_ERP_GAP_ANALYSIS.md](file:///d:/namasoft9-3-main/GLOBAL_ERP_GAP_ANALYSIS.md)
-- [docs/gaps/SUMMARY.md](file:///d:/namasoft9-3-main/docs/gaps/SUMMARY.md)
-- [project-governance/DEEP_SCAN_PROTOCOL.md](file:///d:/namasoft9-3-main/project-governance/DEEP_SCAN_PROTOCOL.md)
-- [project-governance/03-FINANCIAL_INVARIANTS.md](file:///d:/namasoft9-3-main/project-governance/03-FINANCIAL_INVARIANTS.md)
-- [project-ops/07-FINANCIAL_CHANGE_POLICY.md](file:///d:/namasoft9-3-main/project-ops/07-FINANCIAL_CHANGE_POLICY.md)
-- [project-ops/15-RISK_CLASSIFICATION.md](file:///d:/namasoft9-3-main/project-ops/15-RISK_CLASSIFICATION.md)
+## 1. الملفات التي قرأتها (Files Scanned)
+1. `tmp/customer-onboarding-phase4-provisioning-safety-scan-plan-report.md`
+2. `src/app/api/tenant/provision/route.ts`
+3. `src/lib/tenant/reserved-subdomains.ts`
+4. `src/lib/tenant/provisioning-guard.ts`
+5. `.ai-brain/00-index.md`
+6. `.ai-brain/01-architecture.md`
+7. `.ai-brain/02-database.md`
+8. `.ai-brain/05-business-logic.md`
+9. `.ai-brain/14-modules-map.md`
+10. `.ai-brain/17-gap-analysis.md`
+11. `.ai-brain/19-claude-rules.md`
+12. `project-governance/05-TENANT_ISOLATION_RULES.md`
+13. `project-ops/10-PRODUCTION_DEPLOYMENT.md`
 
-## 2. الملفات المعدلة (Files Modified)
-- [tsconfig.json](file:///d:/namasoft9-3-main/tsconfig.json) (إضافة ignoreDeprecations لمنع خطأ ts-jest)
-- [tsconfig.test.json](file:///d:/namasoft9-3-main/tsconfig.test.json) (إضافة ignoreDeprecations لمنع خطأ ts-jest)
+---
+
+## 2. الملفات المرشحة للتعديل (Candidate Files to Modify)
+1. `src/app/api/tenant/provision/route.ts` (API route modifying to include duplicate guard check and lock)
+2. `src/lib/tenant/provisioning-guard.ts` (contains process-local lock logic)
+3. `src/lib/__tests__/provisioning-guard.test.ts` (new test file)
+4. `src/__tests__/tenant-provision-duplicate-guard.test.ts` (new test file)
+5. `tmp/customer-onboarding-phase4a-backend-duplicate-guard-end-to-end-report.md` (new phase report)
+
+---
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **Financial Accounting (GL/JE)**: شجرة الحسابات، تسويات نهاية المدة، ودفاتر الأستاذ المتعددة.
-- **Sub-Ledger & Cash Application (AR/AP)**: إدارة البنود المفتوحة (Open Items)، مطابقة الدفعات، وأعمار الديون.
-- **Compliance & Localizations**: الامتثال لضريبة الاستقطاع (WHT)، ومطابقة ZATCA المستمرة، ورواتب مدد/قوى.
-- **Fixed Assets**: إهلاك الأصول بطرق متعددة، والإنشاءات قيد التنفيذ (CWIP)، والاستبعاد.
-- **Multi-Tenant (Phase 2)**: قاعدة فيزيائية مستقلة لكل مستأجر.
+- **Tenant Provisioning / Master SaaS Routing**
+- **Database Safety & Connection Pooling**
+- **Security & Secret Leakage Prevention**
 
-## 4. المخاطر (Risks)
-- **المخاطر المحاسبية (Critical)**: خطر تباين أرصدة الأستاذ العام (GL) مع الأستاذ الفرعي (Sub-ledger) في حال عدم تطبيق Open Item Management دقيق.
-- **مخاطر عزل المستأجرين (Critical)**: أي تعديل على بنية الكود أو الاتصال بقاعدة البيانات يجب أن يحافظ على عزل Phase 2 لمنع تسرب البيانات بين قواعد المستأجرين.
-- **مخاطر الأداء (High)**: العمليات الحسابية الضخمة (مثل الإهلاك أو مطابقة المعاملات البنكية بالذكاء الاصطناعي) قد تؤثر على سرعة الاستجابة في قواعد البيانات الكبيرة.
+---
 
-## 5. خطة التنفيذ المقترحة لسد الفجوات (Suggested Phase 0 Roadmap)
-1. **الترقيم الموحد (Numbering Sequence Engine)**: تحسين UI/UX لـ `numbering.ts` ودعم التخصيص لكل مستأجر.
-2. **آلة الحالة الموحدة (Document State Machine)**: ربط الفواتير والقيود والطلبات بآلة حالة موحدة تمنع التعديل بعد الترحيل.
-3. **التدقيق على مستوى الحقول (Field-Level Audit)**: استكمال تسجيل التغييرات التفصيلية (diff) في `AuditLog`.
-4. **محرك الإغلاق المالي (Period Close Engine)**: توسيع الإغلاق الحالي ليشمل قائمة التحقق (Checklist) من 16 خطوة وإغلاق الدفاتر الفرعية قبل العام.
+## 4. المخاطر والحلول (Risks & Mitigations)
+- **خطر التكرار والطلبات المتزامنة (Concurrent Requests Risk)**: قد يتم حجز نفس الـ Subdomain لطلبين متزامنين.
+  - *الحل*: استخدام in-memory locksRegistry لمنع التزامن في نفس خادم Node.js.
+- **خطر العمليات غير المكتملة وتكلفة خادم SSH**: تكرار استدعاء SSH للتحقق من المجلد وإنشاء قواعد بيانات مكررة قبل الفحص النهائي.
+  - *الحل*: التحقق المبكر عبر قاعدة بيانات الماستر (`tenant_accounts`) من خلو السجل مسبقاً قبل أي خطوة SSH.
+- **خطر كشف أسرار النظام في مخرجات الأخطاء (Secrets Leakage Risk)**: إرجاع stack trace أو SSH logs يحتوي على DATABASE_URL أو أسرار.
+  - *الحل*: تعقيم كامل لمخرجات الأخطاء في route handler وإرجاع رمز الخطأ والرسالة العربية/الإنجليزية العامة الآمنة للمستخدم.
 
-## 6. نتائج فحص الحوكمة والتحقق (Test & Build Verification)
-- **TypeScript compiles**: ناجح 100% بدون أي أخطاء.
-- **Prisma Schema validate**: ناجح 100% والمخطط سليم.
-- **Build**: تم بناء المشروع بالكامل بنجاح في 8.2 دقيقة.
-- **Tests**: تم اختبار سلامة إصلاحات الـ Security & Tenant Isolation واجتازت بنجاح.
+---
+
+## 5. خطة التنفيذ (Implementation Plan - Phase 4A Local Implementation Only)
+1. **Normalized Subdomain**: التحقق من Subdomain المدخل باستخدام الفحص والتوطين الموجودين في `reserved-subdomains.ts` بعد Normalize.
+2. **Master DB Verification**: استخدام PrismaClient الخاص بالماستر للتحقق من عدم وجود `subdomain` أو `userEmail`/`clerkUserId` مسبقاً في `tenant_accounts`.
+3. **In-memory short-term lock**: حيازة القفل (acquire lock) للـ subdomain المنظّم في بداية route handler وتحريره (release lock) في `finally`.
+4. **Sanitize Errors**: صياغة ردود الأخطاء لترجع رموز خطأ معرفة `SUBDOMAIN_ALREADY_EXISTS` أو `PROVISIONING_FAILED` ووقف كشف stack trace.
+5. **No Migration**: التغيير برمجي تماماً بدون تعديل schema أو prisma db push.
+
+---
+
+## 6. خطة الاختبار (Testing Plan)
+- كتابة اختبارات unit tests مخصصة باستخدام Jest لملف `provisioning-guard.test.ts`.
+- محاكاة طلبات متطابقة متزامنة وتأكيد حظر الطلب الثاني بـ `PROVISIONING_IN_PROGRESS`.
+- التحقق من معالجة حالة الأحرف (Case-insensitive Lock).
+- تشغيل `npm run typecheck` و `npx prisma validate`.
+- تشغيل الفحص اليدوي للتأكد من خلو الملفات من أية كلمات سرية أو أسرار حساسة.
