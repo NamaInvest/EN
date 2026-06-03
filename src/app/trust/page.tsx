@@ -36,11 +36,11 @@ export default function TrustCenterPage() {
                     </h2>
                     <ul className="space-y-4">
                         <li>
-                            <a href="/legal/terms" className="text-teal-700 hover:underline font-medium text-lg">Terms of Service</a>
+                            <a href="/terms" className="text-teal-700 hover:underline font-medium text-lg">Terms of Service</a>
                             <p className="text-gray-500 text-sm">Rules and guidelines for using Namasoft.</p>
                         </li>
                         <li>
-                            <a href="/legal/privacy" className="text-teal-700 hover:underline font-medium text-lg">Privacy Policy</a>
+                            <a href="/privacy" className="text-teal-700 hover:underline font-medium text-lg">Privacy Policy</a>
                             <p className="text-gray-500 text-sm">How we collect, use, and protect your data.</p>
                         </li>
                         <li>
