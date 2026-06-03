@@ -115,13 +115,10 @@ export class InMemoryProvisioningQueueAdapter implements ProvisioningQueueAdapte
 }
 
 // Singleton instances for queue adapters
-let inMemoryInstance: InMemoryProvisioningQueueAdapter | null = null;
-
 export function getProvisioningQueueAdapter(): ProvisioningQueueAdapter {
-  // If queue is disabled, or for local testing, return InMemory adapter
-  // In the future, this can return a real BullMQ adapter when fully integrated
-  if (!inMemoryInstance) {
-    inMemoryInstance = new InMemoryProvisioningQueueAdapter();
+  const globalRef = global as any;
+  if (!globalRef.__inMemoryProvisioningQueueInstance) {
+    globalRef.__inMemoryProvisioningQueueInstance = new InMemoryProvisioningQueueAdapter();
   }
-  return inMemoryInstance;
+  return globalRef.__inMemoryProvisioningQueueInstance;
 }
