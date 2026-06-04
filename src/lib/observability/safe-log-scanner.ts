@@ -1,4 +1,4 @@
-import { maskSecrets } from '../security/secret-masker';
+import { maskSecrets } from '../security/secret-masker.ts';
 
 export interface LogScanResult {
   totalLines: number;

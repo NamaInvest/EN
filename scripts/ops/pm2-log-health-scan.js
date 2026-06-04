@@ -1,7 +1,7 @@
 const { Client } = require('ssh2');
 const fs = require('fs');
 const path = require('path');
-const { scanLogContent } = require('../../src/lib/observability/safe-log-scanner');
+const { scanLogContent } = require('../../src/lib/observability/safe-log-scanner.ts');
 
 const keyPath = process.env.SSH_KEY_PATH || path.join(process.env.USERPROFILE || '/root', '.ssh', 'hetzner_key');
 const hasKey = fs.existsSync(keyPath);
