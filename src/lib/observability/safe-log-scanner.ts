@@ -1,4 +1,13 @@
-import { maskSecrets } from '../security/secret-masker.ts';
+function localMaskSecrets(text: string): string {
+  if (!text) return text;
+  let masked = text;
+  masked = masked.replace(/postgresql:\/\/([^:]+):([^@]+)@([^/]+)/gi, 'postgresql://***:***@$3');
+  masked = masked.replace(/postgres:\/\/([^:]+):([^@]+)@([^/]+)/gi, 'postgres://***:***@$3');
+  masked = masked.replace(/(password|pass|passwd|secret|token|key|private_key|ssh_key|privatekey|sshkey)=([^\s&]+)/gi, '$1=***');
+  masked = masked.replace(/-----BEGIN[^-]+-----[\s\S]+?-----END[^-]+-----/g, '-----BEGIN PRIVATE KEY-----\n***\n-----END PRIVATE KEY-----');
+  masked = masked.replace(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g, '***.***.***.***');
+  return masked;
+}
 
 export interface LogScanResult {
   totalLines: number;
@@ -54,7 +63,7 @@ export function scanLogContent(content: string): LogScanResult {
       }
     }
 
-    const maskedLine = maskSecrets(line);
+    const maskedLine = localMaskSecrets(line);
     const lowerLine = maskedLine.toLowerCase();
 
     let matched = false;
