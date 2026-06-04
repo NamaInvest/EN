@@ -409,7 +409,28 @@ async function _POST(req: Request) {
         const { isQueueEnabled, getProvisioningQueueAdapter } = require('@/lib/tenant/provisioning-queue');
         if (isQueueEnabled()) {
             const runId = 'run_' + Math.random().toString(36).substring(2, 15);
-            const requestedSubdomain = body.subdomain || toSlug(companyNameEnFromClient || companyNameAr || 'company');
+            const requestedSubdomain = (body.subdomain || toSlug(companyNameEnFromClient || companyNameAr || 'company')).toLowerCase().trim();
+
+            const earlyValidation = validateSubdomainCandidate(requestedSubdomain);
+            if (!earlyValidation.valid) {
+                return NextResponse.json({
+                    success: false,
+                    message: earlyValidation.message,
+                    error: earlyValidation.code
+                }, { status: 400 });
+            }
+
+            const existingSubdomain = await masterPrisma.tenantAccount.findUnique({
+                where: { subdomain: requestedSubdomain },
+            });
+            if (existingSubdomain) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'اسم النطاق الفرعي محجوز بالفعل أو قيد الاستخدام.',
+                    error: 'SUBDOMAIN_ALREADY_EXISTS'
+                }, { status: 409 });
+            }
+
             const adapter = getProvisioningQueueAdapter();
             await adapter.enqueueProvisioningJob({
                 provisioningRunId: runId,
