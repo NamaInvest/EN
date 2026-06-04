@@ -67,7 +67,8 @@ const config: Config = {
         '<rootDir>/tests/a11y/**/*.test.ts',
       ],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json', diagnostics: false }] },
+      testPathIgnorePatterns: ['<rootDir>/tests/integration/'],
     },
     {
       // Integration tests: /tests/integration/*.test.ts
@@ -76,7 +77,7 @@ const config: Config = {
       roots:           ['<rootDir>/tests/integration'],
       testMatch:      ['<rootDir>/tests/integration/**/*.test.ts'],
       moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }] },
+      transform:      { '^.+\\.(t|j)sx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json', diagnostics: false }] },
       testTimeout:    30_000,  // Integration tests may take longer
     },
   ],

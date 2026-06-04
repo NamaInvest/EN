@@ -17,6 +17,7 @@ export default defineConfig({
     include: [
       'tests/integration/**/*.{test,spec}.ts',
       'tests/security/**/*.{test,spec}.ts',
+      'tests/*.test.ts',
     ],
 
     exclude: [
