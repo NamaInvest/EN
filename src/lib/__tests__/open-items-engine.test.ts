@@ -9,7 +9,7 @@ import { OpenItemsEngine } from '../open-items-engine';
 
 function makePrisma(overrides: Record<string, any> = {}) {
   return {
-    $transaction: async (fn: Function) => fn(makePrisma(overrides)),
+    $transaction: async (fn: (arg: any) => any) => fn(makePrisma(overrides)),
     openItem: {
       findUnique: jest.fn().mockResolvedValue(null),
       findMany:   jest.fn().mockResolvedValue([]),

@@ -19,7 +19,7 @@ const buildMock = (items: ReturnType<typeof makeItem>[]) => ({
   journalEntry: {
     create: jest.fn().mockResolvedValue({ id: 99 }),
   },
-  $transaction: jest.fn().mockImplementation((fn: Function) =>
+  $transaction: jest.fn().mockImplementation((fn: (arg: any) => any) =>
     fn({
       openItem:    { update: jest.fn() },
       journalEntry: { create: jest.fn().mockResolvedValue({ id: 99 }) },
