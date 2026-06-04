@@ -126,7 +126,7 @@ async function deployFilesOnly(conn, files) {
         }
         
         for (const [name, site] of Object.entries(SITES)) {
-            const remotePath = `${site.path}/${file}`;
+            const remotePath = `${site.path}/${file.replace(/\\/g, '/')}`;
             try {
                 await uploadFile(conn, localPath, remotePath);
                 console.log(`  ✅ ${name}: ${file}`);
@@ -151,7 +151,7 @@ async function deployWithBuild(conn, files, parallel = false) {
             if (!fs.existsSync(localPath)) continue;
             
             for (const [name, site] of Object.entries(SITES)) {
-                const remotePath = `${site.path}/${file}`;
+                const remotePath = `${site.path}/${file.replace(/\\/g, '/')}`;
                 try {
                     await uploadFile(conn, localPath, remotePath);
                     console.log(`  ✅ ${name}: ${file}`);
