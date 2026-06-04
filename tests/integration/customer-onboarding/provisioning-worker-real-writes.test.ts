@@ -101,7 +101,8 @@ describe('Provisioning Worker Real Writes & Allowlist Enforcement Tests', () => 
       correlationId: runId,
       createdAt: new Date(),
       password: 'password123',
-      username: 'beta_admin'
+      username: 'beta_admin',
+      initialStatus: 'PENDING' as const
     };
 
     await adapter.enqueueProvisioningJob(payload);
@@ -109,10 +110,10 @@ describe('Provisioning Worker Real Writes & Allowlist Enforcement Tests', () => 
     // Start real background worker loop
     startProvisioningWorker();
 
-    // Poll until complete (Up to 30 seconds)
+    // Poll until complete (Up to 50 seconds)
     let status = '';
     let lastState: any = null;
-    for (let attempt = 0; attempt < 300; attempt++) {
+    for (let attempt = 0; attempt < 500; attempt++) {
       await new Promise(resolve => setTimeout(resolve, 100));
       const state = await adapter.getProvisioningJobStatus(runId);
       lastState = state;

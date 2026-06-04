@@ -308,6 +308,7 @@ const _POSTSchema = z.object({
   clerkEmail: z.string().email().optional(),
   city: z.any().optional(),
   cityEn: z.any().optional(),
+  inviteCode: z.string().optional(),
 }).passthrough();
 
 async function _POST(req: Request) {
@@ -342,8 +343,16 @@ async function _POST(req: Request) {
             password,
             adminName,
             username,
+            inviteCode,
         } = body;
 
+        const { validateInviteCode } = require('@/lib/tenant/provisioning-guard');
+        if (!inviteCode || !validateInviteCode(inviteCode)) {
+            return NextResponse.json(
+                { success: false, message: 'رمز الدعوة مطلوب أو غير صالح.', error: 'INVALID_INVITE_CODE' },
+                { status: 400 }
+            );
+        }
 
         if (!companyNameAr || !city || !mobile) {
             return NextResponse.json(
@@ -363,42 +372,6 @@ async function _POST(req: Request) {
                 { success: false, message: 'السجل التجاري يجب أن يتكون من 10 أرقام (يبدأ بـ 7).' },
                 { status: 400 }
             );
-        }
-
-        // If Onboarding Queue is enabled, enqueue the job and return immediately
-        const { isQueueEnabled, getProvisioningQueueAdapter } = require('@/lib/tenant/provisioning-queue');
-        if (isQueueEnabled()) {
-            const runId = 'run_' + Math.random().toString(36).substring(2, 15);
-            const adapter = getProvisioningQueueAdapter();
-            await adapter.enqueueProvisioningJob({
-                provisioningRunId: runId,
-                tenantName: companyNameAr,
-                requestedSubdomain: body.subdomain || toSlug(companyNameEnFromClient || companyNameAr || 'company'),
-                ownerName: adminName || companyNameAr,
-                ownerEmail: clerkEmail || '',
-                locale: 'ar',
-                source: 'WEB_APP',
-                correlationId: runId,
-                createdAt: new Date(),
-                password,
-                username,
-            });
-
-            // 🚨 Start the background worker explicitly in the API runtime context to bypass global state isolation
-            try {
-                const { startProvisioningWorker } = require('@/lib/tenant/provisioning-worker');
-                startProvisioningWorker();
-                log.info(`[provision] Explicitly triggered background provisioning worker for runId: ${runId}`);
-            } catch (workerErr: any) {
-                log.error(`[provision] Failed to trigger background worker: ${workerErr.message}`);
-            }
-
-            return NextResponse.json({
-                success: true,
-                runId,
-                status: 'PENDING',
-                message: 'تم تسجيل طلب التأسيس وبدء معالجته في الخلفية.',
-            });
         }
 
         // Initialize Master Prisma for early checks
@@ -430,6 +403,59 @@ async function _POST(req: Request) {
                     error: 'USER_ALREADY_HAS_TENANT'
                 }, { status: 409 });
             }
+        }
+
+        // If Onboarding Queue is enabled, enqueue the job and return immediately
+        const { isQueueEnabled, getProvisioningQueueAdapter } = require('@/lib/tenant/provisioning-queue');
+        if (isQueueEnabled()) {
+            const runId = 'run_' + Math.random().toString(36).substring(2, 15);
+            const requestedSubdomain = body.subdomain || toSlug(companyNameEnFromClient || companyNameAr || 'company');
+            const adapter = getProvisioningQueueAdapter();
+            await adapter.enqueueProvisioningJob({
+                provisioningRunId: runId,
+                tenantName: companyNameAr,
+                requestedSubdomain,
+                ownerName: adminName || companyNameAr,
+                ownerEmail: clerkEmail || '',
+                locale: 'ar',
+                source: 'WEB_APP',
+                correlationId: runId,
+                createdAt: new Date(),
+                password,
+                username,
+            });
+
+            // Write TenantProvisioningRun record to the master database with status 'AWAITING_APPROVAL'
+            try {
+                await masterPrisma.tenantProvisioningRun.create({
+                    data: {
+                        id: runId,
+                        subdomain: requestedSubdomain,
+                        databaseName: `${requestedSubdomain.toLowerCase()}_db`,
+                        status: 'AWAITING_APPROVAL',
+                        requestId: runId,
+                        createdByClerkUserId: clerkUserId ? String(clerkUserId) : null,
+                        createdByEmail: clerkEmail || null,
+                        attemptNo: 1,
+                        metadata: {
+                            tenantName: companyNameAr,
+                            ownerName: adminName || companyNameAr,
+                            source: 'WEB_APP',
+                        },
+                    },
+                });
+            } catch (dbRunErr: any) {
+                log.error('[provision] Failed to create TenantProvisioningRun record:', dbRunErr.message);
+            }
+
+            // Do NOT trigger background worker if state is awaiting approval (per policy)
+
+            return NextResponse.json({
+                success: true,
+                runId,
+                status: 'AWAITING_APPROVAL',
+                message: 'تم تسجيل طلب التأسيس وهو بانتظار موافقة الإدارة.',
+            });
         }
 
         // ─── ترجمة الأسماء (يفضل القيم القادمة من الـ form، والترجمة كـ fallback) ──────

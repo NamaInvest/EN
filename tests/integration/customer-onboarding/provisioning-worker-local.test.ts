@@ -35,6 +35,7 @@ describe('Provisioning Worker Local Integration Tests', () => {
       source: 'WEB_APP',
       correlationId: runId,
       createdAt: new Date(),
+      initialStatus: 'PENDING' as const,
     };
 
     // Enqueue
@@ -72,6 +73,7 @@ describe('Provisioning Worker Local Integration Tests', () => {
       source: 'WEB_APP',
       correlationId: runId,
       createdAt: new Date(),
+      initialStatus: 'PENDING' as const,
     };
 
     await adapter.enqueueProvisioningJob(payload);
@@ -103,6 +105,7 @@ describe('Provisioning Worker Local Integration Tests', () => {
       source: 'WEB_APP',
       correlationId: runId,
       createdAt: new Date(),
+      initialStatus: 'PENDING' as const,
     };
 
     // 1. Enqueue job (will fail at SEED_INITIAL_DATA)

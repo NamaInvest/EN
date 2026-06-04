@@ -155,3 +155,16 @@ export function validateRealWriteAllowed(subdomain: string, runId: string): Guar
   };
 }
 
+/**
+ * Validates the onboarding invite code using process.env.ONBOARDING_INVITE_CODES
+ * with a fallback list of allowed codes.
+ */
+export function validateInviteCode(code: string): boolean {
+  if (!code) return false;
+  const envCodes = process.env.ONBOARDING_INVITE_CODES;
+  const validCodes = envCodes
+    ? envCodes.split(',').map(c => c.trim())
+    : ['NAMA-GA-2026', 'NAMA-GA-PROD-2026'];
+  return validCodes.includes(code.trim());
+}
+

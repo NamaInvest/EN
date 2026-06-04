@@ -11,6 +11,7 @@ export interface ProvisioningPayload {
   password?: string;
   adminName?: string;
   username?: string;
+  initialStatus?: ProvisioningRunStatus;
 }
 
 export type ProvisioningJobStep =
@@ -35,7 +36,8 @@ export type ProvisioningRunStatus =
   | 'FAILED'
   | 'RETRYING'
   | 'CANCELLED'
-  | 'NEEDS_MANUAL_REVIEW';
+  | 'NEEDS_MANUAL_REVIEW'
+  | 'AWAITING_APPROVAL';
 
 export interface ProvisioningJobState {
   runId: string;

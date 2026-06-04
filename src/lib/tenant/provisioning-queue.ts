@@ -29,7 +29,7 @@ export class InMemoryProvisioningQueueAdapter implements ProvisioningQueueAdapte
     const state: ProvisioningJobState = {
       runId,
       subdomain: payload.requestedSubdomain,
-      status: 'PENDING',
+      status: payload.initialStatus || 'AWAITING_APPROVAL',
       currentStep: null,
       attemptNo: 1,
       lastErrorCode: null,
@@ -41,7 +41,7 @@ export class InMemoryProvisioningQueueAdapter implements ProvisioningQueueAdapte
 
     this.jobs.set(runId, { payload, state });
     this.timelines.set(runId, [
-      { step: 'VALIDATE_REQUEST', status: 'PENDING', timestamp: new Date() }
+      { step: 'VALIDATE_REQUEST', status: state.status, timestamp: new Date() }
     ]);
 
     log.info(`[InMemoryQueue] Enqueued job ${runId} for subdomain ${payload.requestedSubdomain}`);

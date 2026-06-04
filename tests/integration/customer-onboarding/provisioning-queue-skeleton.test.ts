@@ -17,9 +17,10 @@ describe('Provisioning Queue Skeleton Integration Tests', () => {
       'RETRYING',
       'CANCELLED',
       'NEEDS_MANUAL_REVIEW',
+      'AWAITING_APPROVAL',
     ];
     expect(statuses).toBeDefined();
-    expect(statuses.length).toBe(10);
+    expect(statuses.length).toBe(11);
   });
 
   it('defines the correct job step names', () => {
@@ -55,7 +56,7 @@ describe('Provisioning Queue Skeleton Integration Tests', () => {
     const state = await adapter.enqueueProvisioningJob(payload);
     expect(state).toBeDefined();
     expect(state.runId).toBe('run_test_123');
-    expect(state.status).toBe('PENDING');
+    expect(state.status).toBe('AWAITING_APPROVAL');
     expect(state.currentStep).toBeNull();
     expect(state.attemptNo).toBe(1);
 
@@ -65,7 +66,7 @@ describe('Provisioning Queue Skeleton Integration Tests', () => {
     const timeline = await adapter.getProvisioningTimeline('run_test_123');
     expect(timeline.length).toBe(1);
     expect(timeline[0].step).toBe('VALIDATE_REQUEST');
-    expect(timeline[0].status).toBe('PENDING');
+    expect(timeline[0].status).toBe('AWAITING_APPROVAL');
   });
 
   it('supports manual retry of failed jobs through skeleton methods', async () => {
