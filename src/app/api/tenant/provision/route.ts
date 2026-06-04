@@ -383,6 +383,16 @@ async function _POST(req: Request) {
                 password,
                 username,
             });
+
+            // 🚨 Start the background worker explicitly in the API runtime context to bypass global state isolation
+            try {
+                const { startProvisioningWorker } = require('@/lib/tenant/provisioning-worker');
+                startProvisioningWorker();
+                log.info(`[provision] Explicitly triggered background provisioning worker for runId: ${runId}`);
+            } catch (workerErr: any) {
+                log.error(`[provision] Failed to trigger background worker: ${workerErr.message}`);
+            }
+
             return NextResponse.json({
                 success: true,
                 runId,

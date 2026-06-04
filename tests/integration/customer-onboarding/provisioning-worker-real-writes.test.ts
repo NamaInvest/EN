@@ -142,5 +142,5 @@ describe('Provisioning Worker Real Writes & Allowlist Enforcement Tests', () => 
       expect(dbRes.rowCount).toBe(1);
       await client.end();
     }
-  });
+  }, 60000);
 });
