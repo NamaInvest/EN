@@ -1,39 +1,33 @@
-# تقرير فحص العميل - تفعيل المعالج الخلفي بوضع المحاكاة الصامتة (المرحلة 4E)
+# تقرير الفحص والتحليل - المرحلة 7C والمرحلة 7D (E2E Financial & Provisioning Dry-runs)
 
 ## 1. الملفات التي قرأتها (Files Read)
-- [instrumentation.ts](file:///d:/namasoft9-3-main/instrumentation.ts)
-- [src/lib/tenant/provisioning-worker.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-worker.ts)
-- [src/lib/tenant/provisioning-guard.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-guard.ts)
-- [src/lib/tenant/provisioning-queue.ts](file:///d:/namasoft9-3-main/src/lib/tenant/provisioning-queue.ts)
-- [src/lib/queue/index.ts](file:///d:/namasoft9-3-main/src/lib/queue/index.ts)
-- [deploy.js](file:///d:/namasoft9-3-main/deploy.js)
+- [NewJournalEntryPage (src/app/(dashboard)/accounting/journal/new/page.tsx)](file:///d:/namasoft9-3-main/src/app/(dashboard)/accounting/journal/new/page.tsx)
+- [FormField (src/components/forms/FormField.tsx)](file:///d:/namasoft9-3-main/src/components/forms/FormField.tsx)
+- [financial-dryrun-protection.spec.ts](file:///d:/namasoft9-3-main/e2e/financial-dryrun-protection.spec.ts)
+- [financial-reports-readonly.spec.ts](file:///d:/namasoft9-3-main/e2e/financial-reports-readonly.spec.ts)
+- [financial-dangerous-actions-confirmation.spec.ts](file:///d:/namasoft9-3-main/e2e/financial-dangerous-actions-confirmation.spec.ts)
+- [middleware.ts](file:///d:/namasoft9-3-main/middleware.ts)
 
-## 2. الملفات المرشحة للتعديل (Candidate Files for Modification)
-- [instrumentation.ts](file:///d:/namasoft9-3-main/instrumentation.ts) (لإضافة استدعاء `startProvisioningWorker` لتهيئة المعالج الخلفي أثناء بدء تشغيل التطبيق).
+## 2. الملفات المرشحة للتعديل (Files to Modify)
+- [financial-dryrun-protection.spec.ts](file:///d:/namasoft9-3-main/e2e/financial-dryrun-protection.spec.ts) (لإصلاح محدد حقل الوصف العام `description` لضمان تجاوز التحقق من صحة المدخلات في المتصفح).
+- [task.md](file:///C:/Users/1/.gemini/antigravity-ide/brain/383dba41-3fde-4373-834b-0983f14f673b/task.md) (لتحديث حالة الإنجاز).
+- [continuous-e2e-pipeline-progress-report.md](file:///d:/namasoft9-3-main/tmp/continuous-e2e-pipeline-progress-report.md) (لتحديث سير التقدم للمراحل).
 
-## 3. الدومينات المتأثرة (Affected Domains)
-- **معالج التأسيس الخلفي (Tenant Provisioning System):** تفعيل محرك الاستماع الصامت (Dry-Run) للمستأجرين الجدد لمراقبة تدفق المهام.
-- **إدارة خادم الإنتاج / PM2:** بدء تشغيل عملية الاستماع الخلفية داخل العمليات النشطة.
+## 3. الدومينات المتأثرة (Domains Affected)
+- دومين المحاسبة المالية (`Accounting`) ودومين إدارة الاشتراكات والتأسيس (`Tenant Provisioning`).
+- التأثير آمن تماماً ومحصور محلياً ضد بيئة التطوير والاختبار المعزولة بفضل حراس البيئة والـ Mocks. لا توجد قراءة/كتابة فعلية لقواعد البيانات الحية أو بيئة الإنتاج.
 
-## 4. المخاطر والحلول (Risks & Mitigations)
-- **خطر استدعاء عمليات كتابة حقيقية (Accidental Writes):**
-  - **الحل:** تم حسم هذا برمجياً وبيئياً؛ تظل أعلام `CUSTOMER_ONBOARDING_PROVISIONING_REAL_WRITES_ENABLED` معطلة بالكامل، وعلم `CUSTOMER_ONBOARDING_WORKER_DRY_RUN` مفعل افتراضياً (`true`). لا يتم إطلاق أي استعلامات SQL حقيقية أو إنشاء قواعد بيانات.
-- **خطر التداخل في الذاكرة لعمليات التأسيس المتوازية:**
-  - **الحل:** تحديد Concurrency بـ 1 كحد أقصى لحماية خادم قواعد البيانات.
+## 4. المخاطر (Risks)
+- **خطر التحقق من صحة المدخلات في المتصفح:** إذا لم نملأ حقل الوصف الرئيسي المسمى `description` (البيان العام)، فلن يتم إرسال النموذج مسبباً فشل الاختبار وتوقع الخطأ 403 الذي لن يأتي. تم كشف هذا الخطر بدقة وسيتم علاجه فوراً بتصحيح محدد العنصر إلى `input#description, [name="description"]`.
+- **مخاطر حماية البيانات والتحقق:** لا توجد مخاطر أمنية أو مالية حقيقية لأن جميع الطلبات يتم اعتراضها باستخدام `page.route` محلياً.
 
-## 5. خطة التنفيذ (Execution Plan)
-1. **تحديث الكود المحلي:** تعديل [instrumentation.ts](file:///d:/namasoft9-3-main/instrumentation.ts) لاستيراد واستدعاء `startProvisioningWorker()`.
-2. **التحقق المحلي:** التأكد من تجميع TypeScript عبر `npm run typecheck` ومرور الفحوصات.
-3. **الدفع والمزامنة:** عمل التزام ودفع برمجيات الحماية المستكملة للمستودع.
-4. **النشر للإنتاج (وضع Dry-Run):**
-   - مزامنة كود `instrumentation.ts` مع السيرفر وإعادة البناء.
-   - ضبط الأعلام البيئية على خادم الإنتاج/Staging:
-     - `CUSTOMER_ONBOARDING_WORKER_ENABLED=true`
-     - `CUSTOMER_ONBOARDING_WORKER_DRY_RUN=true`
-   - إعادة تشغيل تطبيقات PM2 لتنشيط الاستماع الصامت.
-5. **المراقبة:** فحص السجلات والتأكد من بدء المعالج الخلفي بوضع المحاكاة دون أخطاء.
+## 5. خطة التنفيذ (Implementation Plan)
+1. تعديل `e2e/financial-dryrun-protection.spec.ts` لتغيير محدد حقل `descField` وتعبئة حقل الوصف العام بدقة لضمان عبور التحقق من صحة النموذج.
+2. تشغيل الاختبارات المالية للتأكد من نجاح الـ 12 اختبار بالكامل.
+3. التحديث في `task.md` لتعليم تقدم المرحلة 7C بـ `[x]`.
+4. البدء الفوري في **المرحلة 7D** (إنشاء اختبارات التأسيس الافتراضية).
+5. تشغيل اختبارات المرحلة 7D والتحقق من بوابات الجودة (Typecheck, Prisma, Build).
 
-## 6. خطة الاختبار (Testing Plan)
-- تشغيل اختبارات التكامل المحلية للتأكد من سلامة الحمايات.
-- فحص استجابة مسار الحالة `GET /api/tenant/provision/status` للتحقق من قراءة الأعلام البيئية الجديدة.
-- مراقبة سجلات PM2 على السيرفر للتأكد من خلوها من الأخطاء.
+## 6. خطة الاختبار والتحقق (Verification Plan)
+- تشغيل اختبارات E2E المستهدفة: `npx playwright test e2e/financial-*.spec.ts`.
+- تشغيل Typecheck للتأكد من خلو المشروع من أخطاء الأنواع: `npm run typecheck`.
