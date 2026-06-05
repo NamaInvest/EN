@@ -640,6 +640,25 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - Inspected PM2 server logs confirming healthy startup, OpenTelemetry init, and background BullMQ workers execution.
 * **Next Recommended Phase**: Go for next business phase discovery and planning.
 
+### Phase: Concurrent Manufacturing Backflushing & Tenant Isolation Hardening (2026-06-05)
+* **Status**: `LOCAL_COMMITTED_AND_PUSHED`
+* **Commit**: `a799864d6e902b93dfa99bc3230a3f914d7a8f1b` (`a799864d`)
+* **Scope**: Enforce tenant isolation and idempotency in `MaterialIssuanceEngine` / `material-issuance.ts`:
+  - Removed direct `PrismaClient` instantiation to prevent DB connection leakage, requiring shared `prisma` context parameter in all engine methods.
+  - Hardened multi-tenant data isolation by requiring `tenantId` parameter in all engine methods and applying strict query filters on `ManufacturingOrder`, `Product`, `ProductStock`, `StockMovement`, and `ManufacturingCost` tables.
+  - Implemented an idempotency status-based guard inside `executeBackflushing` to block raw material deductions and cost double-postings for completed or cancelled orders.
+  - Wrote Vitest unit tests in `tests/material-issuance.test.ts` verifying picklist generation, backflushing deduction, double-backflushing blocks, tenant isolation bounds, and missing parameters (6/6 passed).
+  - Updated `FULL_SYSTEM_UI_SCENARIOS_AR.md` (added `SCN-SEC-003`, updated total scenarios to 27) and updated `/src/lib/material-issuance.ts` test coverage to 100% in `COVERAGE_BY_MODULE.md`.
+* **Files Modified**:
+  - `src/lib/material-issuance.ts`
+  - `tests/material-issuance.test.ts`
+  - `docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md`
+  - `docs/testing/COVERAGE_BY_MODULE.md`
+* **Database / Prisma Schema**: Unchanged.
+* **Local Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Vitest unit tests `tests/material-issuance.test.ts` 6/6 PASS.
+* **Production Deployment & Verification**: Standby (Pending separate deployment approval).
+* **Next Recommended Phase**: Production deployment and PM2 restart.
+
 
 
 
