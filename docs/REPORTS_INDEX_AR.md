@@ -30,4 +30,7 @@
 | تقرير الدفع للمستودع ZATCA | [ZATCA Push Report](file:///d:/namasoft9-3-main/tmp/zatca-phase2-push-report.md) | Phase 9 | دفع التغييرات للمستودع البعيد | **PASS** | Push Gate | Deploy | git push | لا |
 | تقرير قرار النشر ZATCA | [ZATCA Deploy Report](file:///d:/namasoft9-3-main/tmp/zatca-phase2-production-deploy-report.md) | Phase 10 | تحديد حالة النشر على الإنتاج (مؤجل لعدم توفر الوصول) | **PASS** | Push | Final Closeout | deploy.js | لا |
 | تقرير الإغلاق النهائي ZATCA | [ZATCA Final Closeout](file:///d:/namasoft9-3-main/tmp/zatca-phase2-final-closeout-report.md) | Phase 11 | ملخص كامل للمسار والنتائج والأرقام لربط زاتكا | **PASS** | Deploy | لا يوجد | docs/REPORTS_INDEX_AR.md | لا |
+| تقرير التطوير المحلي حماية الأجور | [HR WPS Local Implementation](file:///d:/namasoft9-3-main/tmp/hr-wps-hardening-local-implementation-report.md) | Phase 3 | تفاصيل تعديلات الكود وتحصين مسارات حماية الأجور | **PASS** | لا يوجد | Final Closeout | src/lib/wps-generator.ts | لا |
+| تقرير الإغلاق النهائي حماية الأجور | [HR WPS Final Closeout](file:///d:/namasoft9-3-main/tmp/hr-wps-hardening-final-closeout-report.md) | Phase 11 | ملخص كامل للمسار والنتائج والأرقام لحماية الأجور | **PASS** | Local Implementation | لا يوجد | docs/REPORTS_INDEX_AR.md | لا |
+| تقرير الإغلاق النهائي حراس مرتجعات المبيعات | [Sales Returns Final Closeout](file:///d:/namasoft9-3-main/tmp/sales-returns-guards-final-closeout-report.md) | Phase 11 | ملخص كامل للمسار والنتائج والأرقام لمرتجعات المبيعات | **PASS** | لا يوجد | لا يوجد | docs/REPORTS_INDEX_AR.md | لا |
 
