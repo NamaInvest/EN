@@ -8,6 +8,7 @@ import { logger } from '@/lib/logger';
 import { MfaEngine } from '@/lib/mfa-engine';
 import { buildOverrideContextFromRequest } from '@/lib/governance/override-context';
 import { assertPeriodWritable, PeriodLockViolation } from '@/lib/governance/period-lock';
+import { ApprovalEngine } from '@/lib/approval-engine';
 
 const log = logger.child({ service: 'accounting.journal' });
 
@@ -146,6 +147,24 @@ async function _POST(request: Request) {
         }
         // ------------------------------------------
 
+        // Check if approval is required for this Journal Entry
+        const approvalsEngine = new ApprovalEngine(prisma);
+        const rules = await prisma.approvalRule.findMany({
+            where: {
+                tenantId,
+                documentType: 'JOURNAL_ENTRY',
+                isActive: true,
+                minAmount: { lte: totalDebit },
+                OR: [
+                    { maxAmount: null },
+                    { maxAmount: { gte: totalDebit } },
+                ],
+            },
+        });
+
+        const requiresApproval = rules.length > 0;
+        const targetStatus = requiresApproval ? 'pending_approval' : (body.status || 'draft');
+
         const result = await createJournalEntry({
             description,
             reference,
@@ -158,7 +177,7 @@ async function _POST(request: Request) {
                 description: l.description,
             })),
             userId,
-            status: body.status || 'draft',
+            status: targetStatus,
             overrideContext
         });
 
@@ -166,7 +185,23 @@ async function _POST(request: Request) {
             return NextResponse.json({ error: result.error }, { status: 400 });
         }
 
-        return NextResponse.json({ success: true, entryId: result.entryId }, { status: 201 });
+        if (requiresApproval && result.entryId) {
+            await approvalsEngine.submit({
+                tenantId,
+                documentType: 'JOURNAL_ENTRY',
+                documentId: result.entryId,
+                amount: totalDebit,
+                requestedBy: auth.userId,
+                notes: description,
+            });
+        }
+
+        return NextResponse.json({
+            success: true,
+            entryId: result.entryId,
+            status: targetStatus,
+            requiresApproval
+        }, { status: 201 });
     } catch (error: any) {
         console.error('DEBUG ERROR:', error);
         throw error; // Rethrow to surface the error in vitest

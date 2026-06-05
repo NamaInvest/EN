@@ -9,6 +9,7 @@ import { Saga } from './coordinator';
 import { PrismaClient } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '@/lib/logger';
+import { ApprovalEngine } from '@/lib/approval-engine';
 
 const log = logger.child({ service: 'workflow.saga.purchase-sagas' });
 
@@ -98,23 +99,50 @@ export function buildPurchaseOrderSaga(prisma: PrismaClient): Saga<PurchaseOrder
       execute: async (ctx) => {
         if (!ctx.data.requireApproval || !ctx.purchaseOrderId) return ctx;
 
-        const request = await prisma.approvalRequest.create({
-          data: {
-            tenantId: ctx.tenantId,
-            documentType: 'PURCHASE_ORDER',
-            documentId: ctx.purchaseOrderId,
-            requestedBy: ctx.userId,
-            status: 'pending',
-          },
+        const po = await prisma.purchaseOrder.findUnique({
+          where: { id: ctx.purchaseOrderId },
+          select: { total: true }
+        });
+        const amount = po ? Number(po.total) : 0;
+
+        const engine = new ApprovalEngine(prisma);
+        const result = await engine.submit({
+          tenantId: ctx.tenantId,
+          documentType: 'PURCHASE_ORDER',
+          documentId: ctx.purchaseOrderId,
+          amount,
+          requestedBy: ctx.userId,
+          notes: ctx.data.notes,
         });
 
-        return { ...ctx, approvalRequestId: request.id };
+        if (result.status === 'auto_approved') {
+          await prisma.purchaseOrder.update({
+            where: { id: ctx.purchaseOrderId },
+            data: { status: 'approved' },
+          });
+          return ctx;
+        }
+
+        if (result.status === 'pending_approval' && result.requestId) {
+          await prisma.purchaseOrder.update({
+            where: { id: ctx.purchaseOrderId },
+            data: { status: 'pending' },
+          });
+          return { ...ctx, approvalRequestId: result.requestId };
+        }
+
+        return ctx;
       },
       compensate: async (ctx) => {
         if (ctx.approvalRequestId) {
-          await prisma.approvalRequest.update({
-            where: { id: ctx.approvalRequestId },
-            data: { status: 'rejected' },
+          const engine = new ApprovalEngine(prisma);
+          await engine.reject({
+            tenantId: ctx.tenantId,
+            requestId: ctx.approvalRequestId,
+            rejectorId: ctx.userId,
+            reason: 'Saga compensation: Purchase Order creation failed or rolled back',
+          }).catch((err) => {
+            log.error('Saga submit_approval compensation error:', err);
           });
         }
       },

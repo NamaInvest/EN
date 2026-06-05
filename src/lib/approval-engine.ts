@@ -69,8 +69,12 @@ export interface ApprovalStatus {
 export class ApprovalEngine {
   private prisma: ReturnType<typeof getPrisma>;
 
-  constructor(req?: Request) {
-    this.prisma = getPrisma(req) as ReturnType<typeof getPrisma>;
+  constructor(reqOrPrisma?: Request | ReturnType<typeof getPrisma>) {
+    if (reqOrPrisma && typeof (reqOrPrisma as any).$transaction === 'function') {
+      this.prisma = reqOrPrisma as ReturnType<typeof getPrisma>;
+    } else {
+      this.prisma = getPrisma(reqOrPrisma as Request) as ReturnType<typeof getPrisma>;
+    }
   }
 
   // â”€â”€ 1. Submit for approval â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

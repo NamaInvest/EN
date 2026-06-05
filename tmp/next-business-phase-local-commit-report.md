@@ -1,26 +1,24 @@
 # تقرير الالتزام المحلي (Local Commit Report) - Phase 10
 
-تم تسجيل الالتزام المحلي للتغييرات بنجاح في Git.
+تم تسجيل الالتزام المحلي بنجاح للملفات المحددة للمرحلة بعد التحقق من مطابقة نطاق العمل والتأمين الكامل.
 
-## تفاصيل الالتزام المحلي
+---
 
-- **رقم الالتزام (Commit Hash)**: `cd77de7a6`
-- **عنوان الالتزام (Commit Message)**: `feat(mfg): enforce tenant isolation and idempotency in MaterialIssuanceEngine`
-- **عدد الملفات الملتزم بها**: 12 ملفاً.
+## 1. تفاصيل الالتزام المحلي (Commit Details)
 
-## الملفات التي تم تضمينها في الالتزام
+- **رسالة الالتزام (Commit Message)**: `feat(approvals): integrate maker-checker workflows for POs and manual JEs`
+- **الملفات المدرجة في الالتزام**:
+  - الكود الأساسي للموافقات (`src/lib/approval-engine.ts`)
+  - الـ Saga الخاصة بأوامر الشراء (`src/lib/workflow/saga/purchase-sagas.ts`)
+  - منفذ القيود اليومية اليدوية (`src/app/api/accounting/journal/route.ts`)
+  - اختبارات الوحدة والدمج التكاملي الثلاثة (`tests/approval-engine.test.ts` و `tests/integration/...`)
+  - وثائق السيناريوهات والربط البرمجي المحدثة (`docs/scenarios/...`)
+  - التقارير الفنية للتحقق والمخاطر والاختبارات (`tmp/next-business-phase-*.md`)
 
-- `src/lib/material-issuance.ts`
-- `tests/material-issuance.test.ts`
-- `docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md`
-- `docs/testing/COVERAGE_BY_MODULE.md`
-- `tmp/next-business-phase-discovery-report.md`
-- `tmp/next-business-phase-scan-plan-report.md`
-- `tmp/next-business-phase-impact-analysis-report.md`
-- `tmp/next-business-phase-local-implementation-report.md`
-- `tmp/next-business-phase-documentation-archive-report.md`
-- `tmp/next-business-phase-safe-testing-report.md`
-- `tmp/next-business-phase-coverage-archive-verification-report.md`
-- `tmp/next-business-phase-commit-gate-report.md`
+- **الملفات المستبعدة**:
+  - `test-results.xml` (لم يتم إضافته لضمان نظافة المستودع).
 
-تم التحقق من عدم تتبع أو إضافة أي ملفات مؤقتة مثل `test-results.xml` أو ملفات الإعدادات البيئية الحساسة.
+---
+
+## 2. قرار البوابة
+الالتزام المحلي تم بناؤه بنجاح وهو جاهز للبث.
