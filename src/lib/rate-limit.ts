@@ -1,36 +1,38 @@
-﻿import { logger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'rate-limit' });
 
 /**
  * Rate Limiter Utility
  * ─────────────────────────────────────────────────────────────
- * In-memory rate limiter for sensitive API routes (auth, MFA, etc.)
- * Uses sliding window algorithm.
+ * Sliding window rate limiter for Next.js Middleware and APIs.
+ * Prevents bursts and supports in-memory execution in Edge runtimes.
  *
- * Usage in route.ts:
+ * Usage:
  *   import { rateLimit } from '@/lib/rate-limit';
- *   const allowed = await rateLimit(req, { max: 5, windowMs: 60_000 });
- *   if (!allowed) return new Response('Too many requests', { status: 429 });
+ *   const result = await rateLimit(req, { max: 10, windowMs: 60_000 });
+ *   if (!result.allowed) return new Response('Too many requests', { status: 429 });
  */
 
-interface RateLimitEntry {
-    count: number;
-    windowStart: number;
-}
+// In-memory sliding window store (timestamps array per identifier)
+const store = new Map<string, number[]>();
 
-// In-memory store (resets on server restart — OK for edge/serverless)
-const store = new Map<string, RateLimitEntry>();
-
-// Cleanup old entries every 5 minutes
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of store.entries()) {
-        if (now - entry.windowStart > 300_000) {
-            store.delete(key);
+// Cleanup old timestamps and empty keys every 5 minutes to prevent leaks
+if (typeof setInterval !== 'undefined') {
+    const cleanup = setInterval(() => {
+        const now = Date.now();
+        const cutoff = now - 300_000; // remove data older than 5 minutes
+        for (const [key, timestamps] of store.entries()) {
+            const filtered = timestamps.filter(t => t > cutoff);
+            if (filtered.length === 0) {
+                store.delete(key);
+            } else {
+                store.set(key, filtered);
+            }
         }
-    }
-}, 300_000);
+    }, 300_000);
+    if (cleanup.unref) cleanup.unref();
+}
 
 interface RateLimitOptions {
     max?: number;        // max requests per window (default: 10)
@@ -53,21 +55,25 @@ export async function rateLimit(
     const key = keyFn ? keyFn(req) : `${ip}:${path}`;
 
     const now = Date.now();
-    const entry = store.get(key);
+    const timestamps = store.get(key) || [];
 
-    if (!entry || now - entry.windowStart > windowMs) {
-        // Start new window
-        store.set(key, { count: 1, windowStart: now });
-        return { allowed: true, remaining: max - 1, resetAt: now + windowMs };
-    }
+    // Filter out timestamps outside the sliding window
+    const filtered = timestamps.filter(t => now - t < windowMs);
 
-    entry.count++;
-    const remaining = Math.max(0, max - entry.count);
-    const resetAt = entry.windowStart + windowMs;
-
-    if (entry.count > max) {
+    if (filtered.length >= max) {
+        const oldest = filtered[0] || now;
+        const resetAt = oldest + windowMs;
+        store.set(key, filtered);
+        log.warn(`Rate limit exceeded for key: ${key}. Count: ${filtered.length}/${max}`);
         return { allowed: false, remaining: 0, resetAt };
     }
+
+    filtered.push(now);
+    store.set(key, filtered);
+
+    const remaining = Math.max(0, max - filtered.length);
+    const oldest = filtered[0] || now;
+    const resetAt = oldest + windowMs;
 
     return { allowed: true, remaining, resetAt };
 }
@@ -79,16 +85,18 @@ export async function rateLimitOrReject(
 ): Promise<Response | null> {
     const result = await rateLimit(req, options);
     if (!result.allowed) {
+        const retryAfter = Math.max(1, Math.ceil((result.resetAt - Date.now()) / 1000));
         return new Response(
             JSON.stringify({
                 error: 'Too many requests',
-                retryAfter: Math.ceil((result.resetAt - Date.now()) / 1000),
+                message: 'تجاوزت الحد المسموح من الطلبات. يرجى المحاولة لاحقاً.',
+                retryAfter,
             }),
             {
                 status: 429,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+                    'Retry-After': String(retryAfter),
                     'X-RateLimit-Limit': String(options?.max || 10),
                     'X-RateLimit-Remaining': '0',
                     'X-RateLimit-Reset': String(result.resetAt),
@@ -98,3 +106,4 @@ export async function rateLimitOrReject(
     }
     return null;
 }
+

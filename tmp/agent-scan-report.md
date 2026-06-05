@@ -1,84 +1,63 @@
-# تقرير الفحص والتحليل الأمني - تفعيل وتحصين موديول حماية الأجور (HR/WPS Module Hardening)
+# تقرير الفحص والتحليل الأمني - تفعيل وتحصين نظام تحديد معدل الطلبات للـ APIs (API Rate Limiting Refinement Scan Report)
 
-تم إجراء فحص شامل للوقوف على البنية الحالية لموديولات الموارد البشرية والرواتب وبخاصة نظام حماية الأجور (WPS) والتأمينات الاجتماعية (GOSI)، وتحديد الثغرات والمخاطر الأمنية والهيكلية.
+تم إجراء فحص شامل للوقوف على البنية الحالية لأنظمة حماية معدل الطلبات (Rate Limiting) في الواجهات الخلفية (APIs) والـ Middleware لمشروع Nama Invest ERP، وتحديد الثغرات والمخاطر الأمنية وتصميم خطة التحصين.
 
 ---
 
 ## 1. الملفات التي تم قراءتها وفحصها
 - **ملفات الذاكرة والقواعد**:
-  - `.ai-brain/25-hr-payroll.md` (دليل الموارد البشرية والرواتب).
-  - `.agent/workflows/add-new-modules.md` (دليل تفعيل الوحدات في القائمة الجانبية).
   - `AGENTS.md` (قواعد التطوير والحوكمة للمشروع).
-- **ملفات الواجهات (Frontend)**:
-  - `src/components/Sidebar.tsx` (التحقق من روابط WPS و GOSI).
-  - `src/app/(dashboard)/hr/wps/page.tsx` (صفحة لوحة تحكم WPS).
-- **ملفات الخدمات والـ APIs الخلفية**:
-  - `src/lib/wps-generator.ts` (محرك توليد ملفات SIF v3).
-  - `src/app/api/hr/wps/route.ts` (مسار WPS للموارد البشرية).
-  - `src/app/api/payroll/wps/route.ts` (مسار WPS للرواتب).
-  - `src/app/api/payroll/wps/generate/route.ts` (مسار توليد ملف WPS للرواتب).
-  - `src/app/api/payroll/wps/history/route.ts` (مسار سجل الدفعات للرواتب).
-  - `src/app/api/payroll/wps/[batchId]/download/route.ts` (مسار تحميل الملف).
-  - `src/app/api/payroll/wps/[batchId]/mark-uploaded/route.ts` (مسار تحديث حالة الدفعة).
-  - `src/app/api/hr/gosi/route.ts` (مسار التأمينات الاجتماعية GOSI).
-- **قاعدة البيانات والاختبارات**:
-  - `prisma/schema.prisma` (مخططات WPSBatch و WPSBatchItem و Employee).
-  - `tests/wps-generator.test.ts` (اختبارات محرك WPS).
-  - `tests/unit/services/hr/payroll.test.ts` (اختبارات خدمة الرواتب).
-  - `tests/e2e/golden-paths/02-payroll-run.spec.ts` (سيناريوهات أتمتة الرواتب).
+  - `tmp/next-business-phase-discovery-report.md` (تقرير اكتشاف المرحلة الحالية).
+- **ملفات الـ Middleware**:
+  - [middleware.ts](file:///d:/namasoft9-3-main/middleware.ts) (التحقق من نقاط إدراج حماية معدل الطلبات).
+- **ملفات الخدمات ومحددات المعدل الحالية**:
+  - [src/lib/rate-limit.ts](file:///d:/namasoft9-3-main/src/lib/rate-limit.ts) (محدد معدل ثابت في الذاكرة مستخدم بالـ API handlers).
+  - [src/lib/rate-limiter.ts](file:///d:/namasoft9-3-main/src/lib/rate-limiter.ts) (محدد معدل Token Bucket غير مستخدم حالياً).
+  - [src/lib/api/with-route.ts](file:///d:/namasoft9-3-main/src/lib/api/with-route.ts) (محرك معالجة المسارات والتحقق الحالي من معدل الطلبات بـ Redis والذاكرة).
+- **ملفات البيئة والمكتبات**:
+  - `package.json` (التحقق من المكتبات المثبتة مثل `ioredis` و `@upstash/redis`).
+  - [src/lib/logger.ts](file:///d:/namasoft9-3-main/src/lib/logger.ts) (التحقق من سياق السجل وتوافقه مع بيئات الـ Edge).
 
 ---
 
 ## 2. الملفات المرشحة للتعديل
-1. **[wps-generator.ts](file:///d:/namasoft9-3-main/src/lib/wps-generator.ts)**:
-   - إلغاء الاستدعاء المباشر لـ `new PrismaClient()` وتمرير كائن الـ `prisma` من سياق الطلب.
-   - إصلاح المسميات الخاطئة لحقول الموظف للالتزام بمخطط قاعدة البيانات الحقيقي:
-     - استبدال `emp.fullName` بـ `emp.name`.
-     - استبدال `emp.bankIban` بـ `emp.iban`.
-     - استبدال `emp.basicSalary` بـ `emp.salary`.
-     - إزالة حقل `emp.contractType` غير الموجود بالمخطط واستخدام قيمة افتراضية أو حقل بديل متوفر.
-   - فرض فلترة وتدقيق الـ `tenantId` لجميع عمليات الجلب والتحديث لمنع تسريب العمليات.
-2. **[generate/route.ts](file:///d:/namasoft9-3-main/src/app/api/payroll/wps/generate/route.ts)**:
-   - تفعيل القيود الأمنية والتحقق من هوية المستأجر (`requireTenantId`).
-   - تصحيح استدعاء `generateSIF` بتمرير المعاملات الخمسة المطلوبة.
-3. **[[batchId]/mark-uploaded/route.ts](file:///d:/namasoft9-3-main/src/app/api/payroll/wps/[batchId]/mark-uploaded/route.ts)**:
-   - فرض المصادقة والتحقق من الصلاحيات وربطه بالـ `tenantId`.
-4. **[route.ts (payroll/wps)](file:///d:/namasoft9-3-main/src/app/api/payroll/wps/route.ts)**:
-   - تفعيل قيود الأمان وعزل المستأجرين.
-5. **[route.ts (hr/wps)](file:///d:/namasoft9-3-main/src/app/api/hr/wps/route.ts)**:
-   - توحيد الـ APIs وحظر التكرار البرمجي وإحالتها للمحرك الرئيسي آمن التفاصيل وعازل المستأجرين.
-6. **[page.tsx (hr/wps)](file:///d:/namasoft9-3-main/src/app/(dashboard)/hr/wps/page.tsx)**:
-   - إصلاح وتنسيق الاستدعاءات الخلفية وربطها بالـ APIs الصحيحة وحظر التعطل التفاعلي في علامات التبويب (مثل فحص الـ IBAN وحفظ الدفعات).
+1. **[middleware.ts](file:///d:/namasoft9-3-main/middleware.ts)**:
+   - إدراج منطق حظر معدل الطلبات (Rate Limiting) على جميع مسارات الـ APIs الخلفية (ما عدا الاستثناءات المحددة).
+   - التمييز بين طلبات القراءة (`GET`) وطلبات الموتشينات الحساسة (`POST`/`PUT`/`DELETE`).
+   - استخلاص المعرفات الفرعية (كجلسة المستخدم `userId` عند وجودها، أو الـ IP عند عدم تسجيل الدخول).
+2. **[src/lib/rate-limit.ts](file:///d:/namasoft9-3-main/src/lib/rate-limit.ts)**:
+   - ترقية خوارزمية تحديد معدل الطلبات لتكون **Sliding Window (النافذة الانزلاقية)** لتجنب هجمات تدفق الطلبات عند حدود النوافذ الثابتة.
+   - تهيئة البنية لتدعم العمل محلياً في الذاكرة دون الحاجة لـ Redis إلزامي (مع إمكانية الربط بـ Redis في الإنتاج بطريقة fail-open لمنع أي توقف في حال تعطل اتصال Redis).
 
 ---
 
 ## 3. الدومينات المتأثرة
-- **HR & Payroll / Salaries**: موديول معالجة وحساب مستحقات الموظفين وصرفها.
-- **Tenant Isolation & Security**: دومين عزل البيانات وحماية الخصوصية للمستأجرين.
-- **Financial Integrity**: المحاسبة والقيود المرتبطة بصرف رواتب الموظفين وتسجيل التزامات التأمينات.
+- **API Security & Integrity**: حماية مسارات النظام البرمجية من هجمات الإغراق (DDoS) ومحاولات Brute Force للـ Login.
+- **Tenant Isolation**: ضمان أن هجمات إغراق مستخدمين تابعين لمستأجر واحد لا تؤثر على أداء وحصص مستأجرين آخرين في البيئة السحابية المشتركة.
+- **Runtime Performance**: تقليل الضغط على قاعدة البيانات والمعالجة الخلفية عبر رفض الطلبات المفرطة مبكراً في الـ Middleware.
 
 ---
 
 ## 4. المخاطر المرصودة
-- ⚠️ **خطر تسريب بيانات المستأجرين (Cross-Tenant Leakage)**: محرك توليد ملفات WPS يقوم بالاستعلام والتحديث والإنشاء دون التحقق من الـ `tenantId` ويستخدم اتصال قاعدة بيانات عام بدلاً من الاتصال الخاص بسياق الطلب.
-- ⚠️ **خطر انهيار وقت التشغيل (Runtime Crashes)**: استخدام حقول وهمية وغير صحيحة بملف الموظف (مثل `fullName` و `bankIban`) سيؤدي لـ `TypeError: Cannot read properties of undefined` فورا عند تشغيل توليد ملف حماية الأجور.
-- ⚠️ **ثغرات صلاحيات مكشوفة (Unprotected Endpoints)**: بعض مسارات الـ APIs الخلفية (مثل `mark-uploaded` و `generate`) لا تتحقق من صحة جلسة المستخدم أو صلاحياته أو هويته وتسمح بالوصول المباشر.
+- ⚠️ **خطر تعطل الـ Middleware بسبب Redis (Connection Failure Blocker)**: إذا اعتمدت الـ Middleware على خادم Redis خارجي بشكل صارم وتوقف الخادم أو واجه مشاكل في الشبكة، قد يتوقف النظام بالكامل.
+  - *الوقاية*: تطبيق استراتيجية **Fail-Open**؛ أي في حال حدوث أي خطأ في الاتصال بقاعدة بيانات Redis، يتم تسجيل الخطأ والسماح بمرور الطلب دون تعطل.
+- ⚠️ **خطر عدم توافق المكتبات مع Edge Runtime**: لا تدعم بيئة Next.js Edge Middleware استدعاءات TCP المباشرة الخاصة بمكتبة `ioredis`.
+  - *الوقاية*: نعتمد على نظام تصفية وانزلاق داخلي متوافق تماماً مع الـ Javascript Engine الأساسي ومستقل عن مكتبات الـ TCP في الـ Middleware، مع تحويل الـ APIs الحالية التي تستخدم `withRoute` لاستعمال الحل الآمن والداعم للـ Redis.
 
 ---
 
-## 5. خطة التنفيذ المقترحة (آمنة ومرحلية)
-- **المرحلة 1: تحصين محرك WPS الأساسي**:
-  - تعديل `wps-generator.ts` لقبول كائن الـ `prisma` والـ `tenantId` إجبارياً في جميع العمليات، وتصحيح مسميات الحقول بما يتطابق تماماً مع مخطط الـ Prisma الفعلي.
-- **المرحلة 2: تأمين مسارات الـ APIs الخلفية**:
-  - تفعيل حارس عزل المستأجرين والمصادقة في جميع مسارات `/api/payroll/wps/*` بالاعتماد على `requireTenantId` و `getUserFromRequest`.
-- **المرحلة 3: مواءمة واجهة الاستخدام وإصلاح الخلل**:
-  - تعديل الاستدعاءات الخلفية بصفحة لوحة تحكم WPS لتتطابق تماماً مع المعاملات الصحيحة، وإلغاء التعارض الذي يعطل فحص الـ IBAN أو رفع الدفعات.
-- **المرحلة 4: كتابة اختبارات السلامة**:
-  - إضافة اختبارات وحدة آلية للتأكد من أن توليد ملف WPS وحوكمة GOSI ترفض العمل نهائياً عند محاولة تداخل المستأجرين.
+## 5. خطة التنفيذ المقترحة
+1. **كتابة تقرير تحليل الأثر ورسم الخطة في المستندات التوثيقية** (المرحلتين 2 و 3).
+2. **تطوير واختبار محرك Sliding Window Rate Limiter** في `src/lib/rate-limit.ts` بشكل مستقل ومرن للذاكرة.
+3. **إدراج وتفعيل محدد المعدل في الـ Middleware** وتطبيق فروق الحصص بين الموتشينات والقراءات.
+4. **توثيق التغطية التفاعلية للـ APIs وحالات التحقق**.
+5. **كتابة وتطبيق اختبارات السلامة التلقائية** للتحقق من رفض الطلبات المفرطة (HTTP 429).
 
 ---
 
 ## 6. خطة الاختبار
-- تشغيل `npm run typecheck` للتحقق من مطابقة الحقول والأنواع بعد التصحيح.
-- تشغيل `npm run build` للتأكد من تجميع المشروع بنجاح.
-- تشغيل اختبارات E2E المستهدفة للرواتب `npx playwright test tests/e2e/golden-paths/02-payroll-run.spec.ts` للتحقق من سلامة الواجهة.
+- التحقق من خلو الكود من أخطاء التجميع وبناء الإنتاج:
+  - `npx prisma validate`
+  - `npm run typecheck`
+  - `npm run build`
+- تشغيل اختبارات الوحدة والدمج المستهدفة لـ `rate-limit.ts` للتأكد من حساب الفارق الزمني والنافذة الانزلاقية بشكل مثالي.

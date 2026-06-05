@@ -14,6 +14,45 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { rateLimit } from '@/lib/rate-limit';
+
+// ── Rate Limiting Configurations ─────────────────────────────────────────────
+const LIMITS = {
+  AUTH: { max: 5, windowMs: 60_000 },       // Sensitive auth endpoints: 5 req/min
+  MUTATION: { max: 30, windowMs: 60_000 },  // Write operations: 30 req/min
+  GET: { max: 120, windowMs: 60_000 },      // Read operations: 120 req/min
+};
+
+function isSensitiveAuthRoute(pathname: string): boolean {
+  const SENSITIVE_ROUTES = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/mfa/verify',
+    '/api/pos/session/open',
+  ];
+  return SENSITIVE_ROUTES.some(r => pathname === r);
+}
+
+function buildRateLimitResponse(max: number, resetAt: number): NextResponse {
+  const retryAfter = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
+  return new NextResponse(
+    JSON.stringify({
+      error: 'Too Many Requests',
+      message: 'تجاوزت الحد المسموح من الطلبات. يرجى المحاولة لاحقاً.',
+      retryAfter,
+    }),
+    {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': String(max),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(resetAt),
+      },
+    }
+  );
+}
 
 // ── Public Routes (no auth required) ──────────────────────────────────────────
 const PUBLIC_ROUTES = [
@@ -144,6 +183,20 @@ export async function middleware(request: NextRequest) {
 
   // ── 4. Public routes ──────────────────────────────────────────────────────────
   if (isPublicRoute(pathname)) {
+    // Run rate limiting using client IP for public/anonymous endpoints
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
+    const limitConfig = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? LIMITS.AUTH : request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+    const rateLimitKey = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? 'auth' : request.method;
+
+    const result = await rateLimit(request, {
+      max: limitConfig.max,
+      windowMs: limitConfig.windowMs,
+      keyFn: () => `mw:${rateLimitKey}:ip:${ip}`
+    });
+
+    if (!result.allowed) {
+      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+    }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
@@ -159,6 +212,19 @@ export async function middleware(request: NextRequest) {
     // The global requestHeaders is already created
     requestHeaders.set('x-api-key', rawToken);
     requestHeaders.set('x-auth-type', 'api-key');
+
+    // Run rate limiting using API Key
+    const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+    const result = await rateLimit(request, {
+      max: limitConfig.max,
+      windowMs: limitConfig.windowMs,
+      keyFn: () => `mw:${request.method}:apikey:${rawToken.slice(0, 10)}` // slice to prevent logging full key
+    });
+
+    if (!result.allowed) {
+      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+    }
+
     // tenantId will be resolved from the DB record in the route handler.
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
@@ -186,6 +252,19 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set('x-tenant-id', String(payload.tenantId ?? ''));
     requestHeaders.set('x-username',  String(payload.username ?? ''));
     requestHeaders.set('x-auth-type', 'jwt');
+
+    // Run rate limiting using authenticated user ID
+    const userId = String(payload.userId ?? '');
+    const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+    const result = await rateLimit(request, {
+      max: limitConfig.max,
+      windowMs: limitConfig.windowMs,
+      keyFn: () => `mw:${request.method}:user:${userId}`
+    });
+
+    if (!result.allowed) {
+      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+    }
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
