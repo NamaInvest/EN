@@ -10,11 +10,11 @@
 | SCN-SUPERADMIN-001 | /admin/siem | تصدير سجلات SIEM | None | None | DEFERRED | توفير حساب SuperAdmin للاختبار |
 | SCN-TENANTADMIN-001 | /settings/roles | حفظ الدور والصلاحية | e2e/mocked-settings-rbac.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-ACCOUNTING-001 | /accounting/journal/new | ترحيل القيد المحاسبي | e2e/financial-dryrun-protection.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
-| SCN-SALES-001 | /sales/orders | إصدار واعتماد الفاتورة | tests/integration/zatca-full-flow.test.ts | tmp/zatca-phase2-verification-report.md | AUTOMATED | لا يوجد |
-| SCN-PURCHASES-001 | /purchases/orders | مطابقة وأرشفة GR/IR | e2e/mocked-purchases-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
-| SCN-INVENTORY-001 | /inventory | تسوية جرد المستودع | e2e/mocked-inventory-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-SALES-001 | /sales/orders | إصدار واعتماد الفاتورة | e2e/sales/sales-invoice.staging.spec.ts | tmp/wave-p3b-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-PURCHASES-001 | /purchases/orders | مطابقة وأرشفة GR/IR | e2e/purchases/grn.staging.spec.ts | tmp/wave-p3b-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-INVENTORY-001 | /inventory | تسوية جرد المستودع | e2e/inventory/stocktake.staging.spec.ts | tmp/wave-p3b-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-TREASURY-001 | /treasury/petty-cash | تأكيد المطابقة البنكية | e2e/mocked-treasury-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
-| SCN-POS-001 | /pos | دفع وإصدار الفاتورة | None | None | DEFERRED | الموافقة على تهيئة سلة تجريبية |
+| SCN-POS-001 | /pos | دفع وإصدار الفاتورة | e2e/pos/pos-checkout.staging.spec.ts | tmp/wave-p3b-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-POS-002 | /pos | التجاوبية للواجهات وحسابات الهواتف الجوالة | e2e/pos-responsive.spec.ts | tmp/next-business-phase-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-SECURITY-001 | /api/upload | فحص التوقيع الرقمي للملفات المرفوعة | tests/integration/security/p2c-remediations.test.ts | tmp/next-business-phase-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-HR-001 | /hr/leaves | إرسال طلب إجازة | None | None | DEFERRED | تهيئة حسابات الموظفين |
