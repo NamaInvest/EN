@@ -615,5 +615,27 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Deploy Status**: `PRODUCTION_DEPLOY_REQUIRED` but deferred/NOT done due to missing SSH credentials in the local environment. Production server remains untouched.
 * **Next Recommended Phase**: Technical lead to execute the production build and reload (`node deploy.js --build`) directly from the live server console or by configuring SSH credentials.
 
+### Phase: API Rate Limiting Refinement (2026-06-05)
+* **Status**: `PRODUCTION_PUSHED_AND_VERIFIED`
+* **Commit**: `fec6669b18361b7fcf7675fba18ef66bc7ca194a` (`fec6669b1`)
+* **Scope**: Refine API Rate Limiting to enforce sliding window limits in Middleware (in-memory sliding window rate limiter compatible with V8 Edge environments):
+  - Created a pure in-memory sliding window rate limiter inside `src/lib/rate-limit.ts` using Map and client timestamps queue.
+  - Modified `middleware.ts` to enforce rate limits globally on all API paths: 5 req/min on sensitive Auth routes, 30 req/min on other mutating HTTP methods (POST, PUT, DELETE), and 120 req/min on read (GET) requests.
+  - Identified clients by authenticated `x-user-id` (Clerk JWT context) or fallback IP (anonymous).
+  - Wrote Jest unit tests in `tests/unit/rate-limit.test.ts` to verify window boundaries and blocking (3/3 passed).
+  - Updated `FULL_SYSTEM_UI_SCENARIOS_AR.md` (added SCN-SEC-002, updated total scenarios to 26) and `REPORTS_INDEX_AR.md`.
+* **Files Modified**:
+  - `src/lib/rate-limit.ts`
+  - `middleware.ts`
+  - `docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md`
+  - `docs/REPORTS_INDEX_AR.md`
+  - `tests/unit/rate-limit.test.ts`
+* **Database / Prisma Schema**: Unchanged.
+* **Runtime Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Jest Unit tests `tests/unit/rate-limit.test.ts` 3/3 PASS.
+* **Push to Repository**: Pushed successfully to `origin/main` branch on Github.
+* **Deploy Status**: `PRODUCTION_DEPLOY_REQUIRED` but deferred/NOT done due to missing separate deployment approval. Production server remains untouched.
+* **Next Recommended Phase**: Go for next business phase discovery and planning.
+
+
 
 
