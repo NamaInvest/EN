@@ -33,3 +33,7 @@
 | SCN-SETTINGS-001 | /settings/custom-fields | حفظ الحقل المخصص | e2e/settings-rbac.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-SUPPORT-001 | /support/help-desk | إرسال تذكرة فنية | None | None | DEFERRED | تفعيل حسابات بورتال الدعم |
 | SCN-DESKTOP-001 | /desktop/verify-license | تفعيل الرخصة محلياً | None | None | DEFERRED | تهيئة تشغيل Electron |
+| SCN-LOADTEST-001 | None | اختبارات الحمل والضغط k6 | tests/load/k6/auth.js | tests/load/README.md | AUTOMATED | لا يوجد |
+| SCN-LEGAL-002 | /settings/tax | تسوية ضريبة الاستقطاع WHT | None | docs/legal/TAX_WHT_GUIDE_AR.md | DOCUMENTED | لا يوجد |
+| SCN-DEVOPS-002 | None | تشغيل ومراقبة عمال طوابير BullMQ | None | docs/devops/BULLMQ_WORKERS_GUIDE_AR.md | DOCUMENTED | لا يوجد |
+
