@@ -4,7 +4,7 @@
 
 ## تفاصيل الدفع
 
-* **معرف الالتزام الأخير (HEAD Commit Hash)**: `1be3810e14c3e80f86a83ef11be3810e1`
+* **معرف الالتزام الأخير (HEAD Commit Hash)**: `377c8b55fba693a66ad22f92ac6a0b4c6e53a7b6`
 * **المستودع البعيد**: `https://github.com/NamaInvest/EN.git`
 * **الفرع (Branch)**: `main -> main`
 * **حالة التطابق**: الـ `HEAD` المحلي يتطابق تماماً مع `origin/main` البعيد.
