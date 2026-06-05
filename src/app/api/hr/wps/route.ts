@@ -1,106 +1,113 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
-
 import { getUserFromRequest } from '@/lib/auth';
 import { requireTenantId } from '@/lib/tenant/tenant-guard';
+import { WPSGenerator } from '@/lib/wps-generator';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'hr.wps' });
+
 async function _GET(request: NextRequest) {
-    const prisma = getPrisma(request);
+    const prisma = getPrisma(request as any);
     try {
         const auth = getUserFromRequest(request as any);
-        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        if (!auth || !['admin', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) {
+            return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        }
         const tenantId = requireTenantId(request as any);
 
-        const batches = await prisma.wPSBatch.findMany({ take: 100,
-            where: { tenantId },
-            include: {
-                payrollRun: { select: { year: true, month: true } }
-            },
-            orderBy: { id: 'desc' }
-        });
-
-        const acceptedCount = batches.filter(b => b.status === 'ACCEPTED').length;
-        const pendingCount = batches.filter(b => b.status === 'GENERATED' || b.status === 'PENDING').length;
-
-        return NextResponse.json({
-            batches,
-            summary: {
-                totalBatches: batches.length,
-                acceptedCount,
-                pendingCount,
-                ibanErrors: batches.filter(b => b.status === 'REJECTED').length,
-            }
-        });
+        const dashboard = await WPSGenerator.getComplianceDashboard(prisma, tenantId);
+        return NextResponse.json(dashboard);
     } catch (error: any) {
         log.error('WPS GET error:', error);
         return NextResponse.json({ error: 'فشل جلب ملفات حماية الأجور' }, { status: 500 });
     }
 }
 
-
 const _POSTSchema = z.object({
+  action: z.string().optional(),
   payrollRunId: z.union([z.string(), z.number()]).optional(),
-  bankCode: z.any().optional(),
-}).passthrough();
+  bankCode: z.string().optional(),
+  employerId: z.string().optional(),
+  employerName: z.string().optional(),
+  molId: z.string().optional(),
+  batchId: z.union([z.string(), z.number()]).optional(),
+});
 
 async function _POST(request: NextRequest) {
-    const prisma = getPrisma(request);
+    const prisma = getPrisma(request as any);
     try {
         const auth = getUserFromRequest(request as any);
-        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        if (!auth || !['admin', 'hr', 'hr_manager', 'payroll_admin'].includes(auth.role)) {
+            return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        }
         const tenantId = requireTenantId(request as any);
 
         const body = await request.json();
-
-        const _parsed = _POSTSchema.safeParse(body);
-        if (!_parsed.success) {
-          return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
-        }
-        const { payrollRunId, bankCode } = body;
-
-        if (!payrollRunId || !bankCode) {
-            return NextResponse.json({ error: 'يجب تحديد مسير الرواتب والبنك' }, { status: 400 });
+        const parsed = _POSTSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'بيانات الطلب غير صالحة', details: parsed.error.flatten().fieldErrors }, { status: 400 });
         }
 
-        const payrollRun = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId, tenantId }
-        });
+        const action = body.action || 'generate';
 
-        if (!payrollRun) return NextResponse.json({ error: 'مسير الرواتب غير موجود' }, { status: 404 });
-
-        const employees = await prisma.employee.findMany({ take: 100, where: { tenantId } });
-        const totalAmount = employees.reduce((sum: number, emp: any) => sum + Number(emp.basicSalary || 0), 0);
-        
-        // Generate SIF Content Mock
-        const sifContent = `1,${payrollRun.year}${String(payrollRun.month).padStart(2,'0')}01,${employees.length},${totalAmount}\n` +
-                           employees.map((e: any) => `${e.id},${e.name},${e.basicSalary || 0}`).join('\n');
-
-        const batch = await prisma.wPSBatch.create({
-            data: {
-                tenantId,
-                payrollRunId,
-                bankCode,
-                batchNumber: `WPS-${payrollRun.year}-${String(payrollRun.month).padStart(2,'0')}-${Math.floor(Math.random() * 10000)}`,
-                totalAmount,
-                totalEmployees: employees.length,
-                fileFormat: 'SIF_V2',
-                fileContent: sifContent,
-                fileGeneratedAt: new Date(),
-                status: 'GENERATED'
+        if (action === 'generate') {
+            const { payrollRunId, bankCode, employerId, employerName, molId } = body;
+            if (!payrollRunId || !bankCode || !employerId) {
+                return NextResponse.json({ error: 'يجب تحديد مسير الرواتب، البنك، ومعرف المنشأة' }, { status: 400 });
             }
-        });
 
-        return NextResponse.json({ success: true, batch });
+            const result = await WPSGenerator.generateSIF(
+                prisma,
+                tenantId,
+                parseInt(payrollRunId),
+                bankCode,
+                employerId,
+                employerName || 'نما للاستثمار',
+                molId || '1000000000'
+            );
+
+            return NextResponse.json({ 
+                success: true, 
+                batch: { 
+                    id: result.batchId,
+                    batchNumber: result.summary.batchNumber,
+                    totalAmount: result.summary.totalNet,
+                    totalEmployees: result.summary.totalEmployees,
+                    fileFormat: 'SIF_V3',
+                    fileContent: result.content,
+                    status: 'GENERATED'
+                } 
+            });
+        }
+
+        if (action === 'validate_ibans' || action === 'validate-ibans') {
+            const employees = await prisma.employee.findMany({
+                take: 100,
+                where: { active: true, tenantId }
+            });
+            const result = await WPSGenerator.validateIBANs(employees);
+            return NextResponse.json(result);
+        }
+
+        if (action === 'submit' || action === 'mark-uploaded') {
+            const batchId = parseInt(body.batchId);
+            if (!batchId) {
+                return NextResponse.json({ error: 'رقم الدفعة مطلوب' }, { status: 400 });
+            }
+
+            const result = await WPSGenerator.submitToBank(prisma, tenantId, batchId);
+            return NextResponse.json(result);
+        }
+
+        return NextResponse.json({ error: 'الإجراء غير مدعوم' }, { status: 400 });
     } catch (error: any) {
         log.error('WPS POST error:', error);
-        return NextResponse.json({ error: error.message || 'فشل توليد ملف SIF' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'فشل معالجة الطلب' }, { status: 500 });
     }
 }
 
 export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT' });
-
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });

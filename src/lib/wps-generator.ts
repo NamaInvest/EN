@@ -1,12 +1,10 @@
 // WPS Generator v3.0 - Saudi Arabia Wage Protection System (Mudad 2026)
 // Compliant with MHRSD / SAMA / Mudad / Qiwa / GOSI regulations
 // @ts-nocheck
-import { PrismaClient, Employee } from '@prisma/client';
+import { Employee } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'wps-generator' });
-
-const prisma = new PrismaClient();
 
 // Saudi Bank Codes (BIC/SWIFT)
 const SAUDI_BANKS: Record<string, string> = {
@@ -71,6 +69,8 @@ export class WPSGenerator {
      * TRL|TotalEmployees|TotalBasic|TotalAllowances|TotalDeductions|TotalNet
      */
     static async generateSIF(
+        prisma: any,
+        tenantId: string,
         payrollRunId: number,
         bankCode: string,
         employerId: string,
@@ -78,10 +78,11 @@ export class WPSGenerator {
         employerMOLId: string
     ): Promise<{ content: string; fileName: string; batchId: number; summary: any }> {
 
-        const run = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId },
+        const run = await prisma.payrollRun.findFirst({
+            where: { id: payrollRunId, tenantId },
             include: {
                 payslips: {
+                    where: { tenantId },
                     include: { employee: true }
                 }
             }
@@ -89,7 +90,7 @@ export class WPSGenerator {
 
         if (!run) throw new Error("Payroll Run not found");
 
-        const batchNumber = `WPS-${run.periodYear}-${String(run.periodMonth).padStart(2, '0')}-${Date.now().toString().slice(-6)}`;
+        const batchNumber = `WPS-${run.year}-${String(run.month).padStart(2, '0')}-${Date.now().toString().slice(-6)}`;
 
         let totalBasic = 0;
         let totalAllowances = 0;
@@ -105,11 +106,11 @@ export class WPSGenerator {
             const emp = payslip.employee;
 
             // Validate IBAN (Saudi IBAN: SA + 22 chars = 24 total)
-            const iban = emp.bankIban;
+            const iban = emp.iban;
             if (!iban || iban.length < 24) {
                 validationErrors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: emp.name || 'موظف',
                     field: 'IBAN',
                     message: `IBAN مفقود أو غير صالح (${iban || 'فارغ'})`,
                     severity: 'ERROR'
@@ -120,7 +121,7 @@ export class WPSGenerator {
             if (!iban.startsWith('SA')) {
                 validationErrors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: emp.name || 'موظف',
                     field: 'IBAN',
                     message: 'IBAN يجب أن يبدأ بـ SA',
                     severity: 'ERROR'
@@ -129,12 +130,12 @@ export class WPSGenerator {
             }
 
             // Validate National ID / Iqama
-            const nationalId = emp.nationalId || '';
+            const nationalId = emp.idNumber || emp.iqamaNumber || '';
             if (!nationalId || nationalId.length < 10) {
                 validationErrors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
-                    field: 'nationalId',
+                    employeeName: emp.name || 'موظف',
+                    field: 'idNumber/iqamaNumber',
                     message: 'رقم الهوية/الإقامة مفقود أو غير صالح',
                     severity: 'ERROR'
                 });
@@ -152,8 +153,8 @@ export class WPSGenerator {
             const isSaudi = nationalId.startsWith('1');
             const nationality = isSaudi ? 'SAU' : 'NON_SAU';
 
-            // Contract type from employee record
-            const contractType = emp.contractType || 'FULL_TIME';
+            // Contract type from employee record (default to FULL_TIME)
+            const contractType = 'FULL_TIME';
 
             // Payment type: BANK_TRANSFER (mandatory since 2024)
             const paymentType = 'BANK_TRANSFER';
@@ -164,7 +165,7 @@ export class WPSGenerator {
                 emp.id,
                 nationalId,
                 isSaudi ? nationalId : nationalId, // Iqama = nationalId for non-Saudi
-                emp.fullName.replace(/\|/g, ' '), // Sanitize pipe chars
+                (emp.name || '').replace(/\|/g, ' '), // Sanitize pipe chars
                 iban,
                 basic.toFixed(2),
                 housing.toFixed(2),
@@ -222,8 +223,8 @@ export class WPSGenerator {
             employerId,
             employerMOLId,
             bankCode,
-            String(run.periodMonth).padStart(2, '0'),
-            String(run.periodYear),
+            String(run.month).padStart(2, '0'),
+            String(run.year),
             fileDate,
             totalRecords,
             totalNet.toFixed(2),
@@ -244,9 +245,10 @@ export class WPSGenerator {
         const fileContent = [header, ...employeeLines, ...deductionLines, trailer].join('\n');
         const fileName = `${employerId}_${fileDate}_${bankCode}_SIFv3.sif`;
 
-        // Save to Database
+        // Save to Database with proper tenantId mapping
         const batch = await prisma.wPSBatch.create({
             data: {
+                tenantId,
                 payrollRunId,
                 bankCode,
                 batchNumber,
@@ -257,7 +259,15 @@ export class WPSGenerator {
                 fileGeneratedAt: new Date(),
                 status: 'GENERATED',
                 items: {
-                    create: batchItems
+                    create: batchItems.map(item => ({
+                        tenantId,
+                        employeeId: item.employeeId,
+                        iban: item.iban,
+                        basicSalary: item.basicSalary,
+                        housingAllowance: item.housingAllowance,
+                        otherAllowance: item.otherAllowance,
+                        totalSalary: item.totalSalary
+                    }))
                 }
             }
         });
@@ -280,45 +290,47 @@ export class WPSGenerator {
     /**
      * Enhanced IBAN Validation (Saudi IBAN Rules)
      */
-    static async validateIBANs(employees: Employee[]): Promise<WPSValidationResult> {
+    static async validateIBANs(employees: any[]): Promise<WPSValidationResult> {
         let valid = 0;
         let invalid = 0;
         let warnings = 0;
         const errors: WPSValidationError[] = [];
 
         for (const emp of employees) {
-            if (!emp.bankIban) {
+            const iban = emp.iban;
+            const name = emp.name || 'موظف';
+            if (!iban) {
                 invalid++;
                 errors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: name,
                     field: 'IBAN',
                     message: 'لا يوجد رقم IBAN مسجل',
                     severity: 'ERROR'
                 });
-            } else if (!emp.bankIban.startsWith('SA')) {
+            } else if (!iban.startsWith('SA')) {
                 invalid++;
                 errors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: name,
                     field: 'IBAN',
                     message: 'IBAN يجب أن يبدأ بـ SA (المملكة العربية السعودية)',
                     severity: 'ERROR'
                 });
-            } else if (emp.bankIban.length !== 24) {
+            } else if (iban.length !== 24) {
                 invalid++;
                 errors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: name,
                     field: 'IBAN',
-                    message: `طول IBAN غير صحيح (${emp.bankIban.length} بدلاً من 24)`,
+                    message: `طول IBAN غير صحيح (${iban.length} بدلاً من 24)`,
                     severity: 'ERROR'
                 });
-            } else if (!emp.nationalId || emp.nationalId.length < 10) {
+            } else if ((!emp.idNumber && !emp.iqamaNumber) || (emp.idNumber && emp.idNumber.length < 10) || (emp.iqamaNumber && emp.iqamaNumber.length < 10)) {
                 warnings++;
                 errors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: name,
                     field: 'nationalId',
                     message: 'رقم الهوية/الإقامة غير مكتمل - قد يتم رفضه من مدد',
                     severity: 'WARNING'
@@ -336,11 +348,14 @@ export class WPSGenerator {
      * Qiwa Contract Cross-Validation
      * Checks that salary amounts match what's registered in Qiwa
      */
-    static async validateQiwaCompliance(payrollRunId: number): Promise<WPSValidationError[]> {
-        const run = await prisma.payrollRun.findUnique({
-            where: { id: payrollRunId },
+    static async validateQiwaCompliance(prisma: any, tenantId: string, payrollRunId: number): Promise<WPSValidationError[]> {
+        const run = await prisma.payrollRun.findFirst({
+            where: { id: payrollRunId, tenantId },
             include: {
-                payslips: { include: { employee: true } }
+                payslips: {
+                    where: { tenantId },
+                    include: { employee: true }
+                }
             }
         });
 
@@ -350,14 +365,14 @@ export class WPSGenerator {
 
         for (const payslip of run.payslips) {
             const emp = payslip.employee;
-            const registeredSalary = Number(emp.basicSalary || 0);
+            const registeredSalary = Number(emp.salary || 0);
             const payslipBasic = Number(payslip.basicSalary || 0);
 
             // Check if the basic salary matches the registered contract
             if (registeredSalary > 0 && Math.abs(registeredSalary - payslipBasic) > 1) {
                 errors.push({
                     employeeId: emp.id,
-                    employeeName: emp.fullName,
+                    employeeName: emp.name || 'موظف',
                     field: 'basicSalary',
                     message: `الراتب الأساسي (${payslipBasic}) لا يتطابق مع المسجل في العقد (${registeredSalary})`,
                     severity: 'WARNING'
@@ -371,15 +386,15 @@ export class WPSGenerator {
     /**
      * Submit to Bank (simulated - in production, this would use the bank's API)
      */
-    static async submitToBank(batchId: number): Promise<MudadSubmissionResult> {
-        const batch = await prisma.wPSBatch.findUnique({ where: { id: batchId } });
+    static async submitToBank(prisma: any, tenantId: string, batchId: number): Promise<MudadSubmissionResult> {
+        const batch = await prisma.wPSBatch.findFirst({ where: { id: batchId, tenantId } });
         if (!batch) throw new Error("Batch not found");
 
         // Simulate bank submission
         const mudadRef = `MDD-${new Date().getFullYear()}-${Date.now().toString().slice(-8)}`;
 
         await prisma.wPSBatch.update({
-            where: { id: batchId },
+            where: { id: batchId, tenantId },
             data: {
                 status: 'UPLOADED',
                 uploadedAt: new Date()
@@ -396,9 +411,9 @@ export class WPSGenerator {
     /**
      * Mark batch as accepted by Mudad
      */
-    static async markAccepted(batchId: number, mudadRef: string): Promise<void> {
+    static async markAccepted(prisma: any, tenantId: string, batchId: number, mudadRef: string): Promise<void> {
         await prisma.wPSBatch.update({
-            where: { id: batchId },
+            where: { id: batchId, tenantId },
             data: {
                 status: 'ACCEPTED'
             }
@@ -408,18 +423,25 @@ export class WPSGenerator {
     /**
      * Get compliance dashboard data
      */
-    static async getComplianceDashboard(): Promise<any> {
+    static async getComplianceDashboard(prisma: any, tenantId: string): Promise<any> {
         const batches = await prisma.wPSBatch.findMany({
+            where: { tenantId },
             orderBy: { fileGeneratedAt: 'desc' },
-            take: 12,
+            take: 100,
             include: {
-                items: true
+                items: true,
+                payrollRun: {
+                    select: {
+                        year: true,
+                        month: true
+                    }
+                }
             }
         });
 
         const totalBatches = batches.length;
         const acceptedCount = batches.filter(b => b.status === 'ACCEPTED').length;
-        const pendingCount = batches.filter(b => b.status === 'GENERATED').length;
+        const pendingCount = batches.filter(b => b.status === 'GENERATED' || b.status === 'PENDING').length;
         const uploadedCount = batches.filter(b => b.status === 'UPLOADED').length;
         const rejectedCount = batches.filter(b => b.status === 'REJECTED').length;
         
@@ -428,8 +450,10 @@ export class WPSGenerator {
 
         // Get total employees with IBAN issues
         const allEmployees = await prisma.employee.findMany({
-            take: 100, where: { isActive: true } });
-        const ibanErrors = allEmployees.filter(e => !e.bankIban || !e.bankIban.startsWith('SA') || e.bankIban.length !== 24).length;
+            take: 100,
+            where: { active: true, tenantId }
+        });
+        const ibanErrors = allEmployees.filter(e => !e.iban || !e.iban.startsWith('SA') || e.iban.length !== 24).length;
 
         return {
             summary: {
@@ -445,7 +469,13 @@ export class WPSGenerator {
             batches: batches.map(b => ({
                 ...b,
                 items: undefined, // Don't send items to frontend
-                employeeCount: b.items?.length || b.totalEmployees
+                employeeCount: b.items?.length || b.totalEmployees,
+                payrollRun: b.payrollRun ? {
+                    year: b.payrollRun.year,
+                    month: b.payrollRun.month,
+                    periodYear: b.payrollRun.year,
+                    periodMonth: b.payrollRun.month
+                } : null
             })),
             banks: SAUDI_BANKS
         };
