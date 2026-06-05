@@ -4,11 +4,20 @@
 
 ## 1. نتائج فحص الملفات المخطط للالتزام بها
 
-* **الملفات المعدلة (Modified Files)**:
-  - `AI_PROJECT_MEMORY.md` (تحديث سجل ذاكرة المشروع)
-  - `docs/REPORTS_INDEX_AR.md` (تحديث الفهرس العام للتقارير)
-* **الملفات الجديدة غير المتتبعة (Untracked Files to Commit)**:
-  - كافة تقارير التشغيل والتحقق المنشأة تحت مجلد `tmp/` للتدقيق والتوثيق.
+* **الملفات المعدلة والجاري تعقبها (Modified Files)**:
+  - `tmp/brain-and-archive-update-report.md`
+  - `tmp/full-system-autopilot-repair-loop-report.md`
+  - `tmp/full-system-continuous-autopilot-baseline-report.md`
+  - `tmp/full-system-coverage-and-archive-verification-report.md`
+  - `tmp/full-system-discovery-report.md`
+  - `tmp/full-system-safe-testing-report.md`
+* **الملفات الجديدة المطلوب تعقبها وإضافتها (New Reports to Track)**:
+  - `tmp/full-system-button-inventory-report.md`
+  - `tmp/full-system-ui-api-matrix-report.md`
+  - `tmp/full-system-dangerous-actions-report.md`
+  - `tmp/full-system-scenarios-report.md`
+  - `tmp/full-system-reports-linking-report.md`
+  - `tmp/full-system-continuous-commit-gate-report.md`
 * **الملفات المستبعدة (Excluded Files)**:
   - `test-results.xml` (مستبعد ومدرج في التجاهل).
 
@@ -21,3 +30,4 @@
 ## 3. قرار بوابة الالتزام
 
 * **القرار (Commit Gate Decision)**: **ناجح ومصرح بالالتزام المحلي (PASS)**.
+* **المسار المطلوب**: الانتقال تلقائياً إلى **Phase 13 (Local Commit)**.
