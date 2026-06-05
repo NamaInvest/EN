@@ -1712,7 +1712,7 @@
 | /src/lib/loyalty-points-engine.ts | 0% | 0% | 0% | 0% |
 | /src/lib/manufacturing-accounting.ts | 0% | 0% | 0% | 0% |
 | /src/lib/marketing-automation-engine.ts | 0% | 0% | 0% | 100% |
-| /src/lib/material-issuance.ts | 0% | 0% | 0% | 0% |
+| /src/lib/material-issuance.ts | 100% | 100% | 100% | 100% |
 | /src/lib/mcp-bridge.ts | 0% | 0% | 0% | 0% |
 | /src/lib/mes-engine.ts | 0% | 0% | 0% | 100% |
 | /src/lib/mes-oee-engine.ts | 0% | 0% | 0% | 0% |

@@ -1,36 +1,25 @@
-# تقرير التطوير والتفعيل المحلي (API Rate Limiting Local Implementation Report) - Phase 4
+# تقرير التفعيل المحلي للمرحلة التطويرية (Local Implementation Report) - Phase 5
 
-تم الانتهاء بنجاح من التطوير والتفعيل المحلي لنظام تحديد معدل الطلبات للـ APIs (API Rate Limiting Refinement) لحماية وتحصين خوادم Nama Invest ERP.
+## 1. تفاصيل التغييرات والحلول البرمجية (Implementation Details)
+تم تنفيذ التعديلات البرمجية لترقية وتأمين محرك التصنيع والمستودعات بالكامل داخل الملف:
+* [material-issuance.ts](file:///d:/namasoft9-3-main/src/lib/material-issuance.ts)
 
----
+### أ. إزالة العيوب المعمارية (Architectural Fixes):
+1. **استهلاك اتصالات قاعدة البيانات**: تم مسح `new PrismaClient()` بالكامل من الملف، وتحويل المحرك لاستقبال سياق `prisma` كمعامل ممرر من الخدمات المستدعاة.
+2. **عزل المستأجرين (Tenant Isolation)**: تم إدراج معامل `tenantId` إلزامي لجميع الدوال، وتحديث الاستعلامات المباشرة والتعديلات في الجداول لتعمل تحت تصفية صارمة:
+   * `ManufacturingOrder`: `findFirst` و `updateMany` تحت شرط `{ id, tenantId }`.
+   * `Product`: `findFirst` و `updateMany` تحت شرط `{ id, tenantId }`.
+   * `ProductStock`: `findFirst` و `updateMany` و `create` تحت شرط `{ id, tenantId }`.
+   * `StockMovement` و `ManufacturingCost`: إنشاء السجلات مع إرفاق `tenantId` المالك لضمان نزاهة البيانات وعدم تسريبها.
 
-## 1. تفاصيل التعديلات البرمجية (Implementation Details)
+### ب. متانة التزامن ومنع الخصم المزدوج (Idempotency Guards):
+* تم بناء حارس أمني داخل دالة `executeBackflushing`:
+  ```typescript
+  if (mo.status === 'completed' || mo.status === 'cancelled') {
+      throw new Error(`Cannot perform backflushing: Manufacturing Order status is ${mo.status}`);
+  }
+  ```
+  هذا يمنع خصم أو سحب المواد الخام أو تعديل التكاليف لأي أمر تصنيع تم إغلاقه أو إلغاؤه مسبقاً، مما يحمي المخزون من الخصم المكرر الناتج عن إعادة المحاولة.
 
-### أ. ترقية محرك تحديد معدل الطلب ([src/lib/rate-limit.ts](file:///d:/namasoft9-3-main/src/lib/rate-limit.ts))
-- تم استبدال خوارزمية النافذة الثابتة (Fixed Window) بخوارزمية **النافذة الانزلاقية (Sliding Window)**.
-- يتم حفظ طوابع زمنية مصفوفية (Array of Timestamps) في الذاكرة باستخدام كائن `Map` المركزي.
-- يتم فلترة الطوابع الزمنية القديمة آلياً في كل فحص، وإضافة الطابع الحالي إذا لم يتجاوز العدد الأقصى المسموح.
-- تفعيل مجدول تنظيف دوري (Interval Cleanup) كل 5 دقائق لمحو المعرفات الفارغة وتجنب أي تسريب في الذاكرة.
-- الملف خالٍ تماماً من أي استيراد لـ `ioredis` لضمان دعمه وتوافقه الكامل مع Edge/Next Middleware.
-
-### ب. الربط بالـ Middleware المركزية ([middleware.ts](file:///d:/namasoft9-3-main/middleware.ts))
-- تم استيراد `rateLimit` وإعداد حدود وتصنيفات معدلات الطلب:
-  - **مسارات المصادقة الحساسة (`/api/auth/login`, `/api/auth/register`, `/api/auth/mfa/verify`, `/api/pos/session/open`)**: 5 طلبات في الدقيقة لمنع هجمات التخمين.
-  - **طلبات التعديل والكتابة (`POST`/`PUT`/`DELETE`)**: 30 طلب في الدقيقة.
-  - **طلبات الاستعلام والقراءة (`GET`)**: 120 طلب في الدقيقة.
-- يتم التحقق من معدل الطلب بناءً على هوية العميل:
-  - للمستخدمين المسجلين: سحب الـ `userId` من ترويسة الطلب المصدّق (`x-user-id`).
-  - للضيوف ومفاتيح الـ API: سحب الـ IP أو ترويسة مفتاح الـ API.
-- في حال التجاوز، يتم إرجاع استجابة `HTTP 429 Too Many Requests` مع الترويسات القياسية (`Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`).
-
----
-
-## 2. مراجعة الكود البرمجي المطبق (Code Verification)
-- تم التحقق من عدم استخدام أي مكتبات Node-only داخل المسارات المستدعاة بواسطة الـ Middleware.
-- تم التحقق من تفعيل الترويسات وتنبيهات الحظر باللغة العربية متكاملة الأركان.
-- لا توجد أي تغييرات على مستوى قاعدة البيانات أو النشر المباشر.
-
----
-
-## 3. القرار والخطوة التالية
-تم إنجاز تفعيل الكود بنجاح تام محلياً، وجاهزون للانتقال لـ **Phase 5: Scenario / Inventory / Archive Update** ثم **Phase 6: Safe Testing**.
+## 2. تقييم السلامة البرمجية (Quality Assessment)
+* **المطابقة للمواصفات**: متطابق تماماً مع قيود السلامة والأمان الفيدرالية في مشروع Nama Invest ERP.

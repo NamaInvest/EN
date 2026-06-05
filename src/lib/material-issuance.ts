@@ -1,19 +1,22 @@
-import { PrismaClient, ManufacturingOrder, StockMovement, ProductStock } from '@prisma/client';
+import { StockMovement, ProductStock } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'material-issuance' });
-
-const prisma = new PrismaClient();
 
 export class MaterialIssuanceEngine {
     
     /**
      * Creates a Picklist (Material Issuance Draft) for a given Manufacturing Order
      * based on its recipe and quantity.
+     * Enforces strict tenant isolation and uses passed prisma transaction context.
      */
-    static async generatePicklist(moId: number): Promise<any> {
-        const mo = await prisma.manufacturingOrder.findUnique({
-            where: { id: moId },
+    static async generatePicklist(prisma: any, moId: number, tenantId: string): Promise<any> {
+        if (!tenantId) {
+            throw new Error("Missing tenantId context for generatePicklist");
+        }
+
+        const mo = await prisma.manufacturingOrder.findFirst({
+            where: { id: moId, tenantId },
             include: {
                 recipe: {
                     include: {
@@ -25,11 +28,13 @@ export class MaterialIssuanceEngine {
             }
         });
 
-        if (!mo || !mo.recipe) throw new Error("Manufacturing Order or Recipe not found");
+        if (!mo || !mo.recipe) {
+            throw new Error("Manufacturing Order or Recipe not found for this tenant");
+        }
 
         const targetQty = Number(mo.quantityToProduce || 0);
         
-        const picklist = mo.recipe.ingredients.map(ingredient => {
+        const picklist = mo.recipe.ingredients.map((ingredient: any) => {
             const requiredQty = Number(ingredient.quantity) * targetQty;
             const scrapFactor = 1 + (Number(ingredient.scrapPercentage) / 100);
             
@@ -53,10 +58,26 @@ export class MaterialIssuanceEngine {
     /**
      * Auto-issues materials (Backflushing) based on the completed quantity.
      * Moves raw materials out of inventory and books Manufacturing Costs.
+     * Enforces strict tenant isolation, idempotency checks, and transaction safety.
      */
-    static async executeBackflushing(moId: number, completedQty: number, userId: number, stockId: number): Promise<void> {
-        const mo = await prisma.manufacturingOrder.findUnique({
-            where: { id: moId },
+    static async executeBackflushing(
+        prisma: any, 
+        moId: number, 
+        completedQty: number, 
+        userId: number, 
+        stockId: number,
+        tenantId: string
+    ): Promise<void> {
+        if (!tenantId) {
+            throw new Error("Missing tenantId context for executeBackflushing");
+        }
+
+        if (completedQty <= 0) {
+            throw new Error("Completed quantity must be greater than zero");
+        }
+
+        const mo = await prisma.manufacturingOrder.findFirst({
+            where: { id: moId, tenantId },
             include: {
                 recipe: {
                     include: {
@@ -66,38 +87,51 @@ export class MaterialIssuanceEngine {
             }
         });
 
-        if (!mo || !mo.recipe) throw new Error("Manufacturing Order or Recipe not found");
+        if (!mo || !mo.recipe) {
+            throw new Error("Manufacturing Order or Recipe not found for this tenant");
+        }
 
-        // Use a transaction for data integrity
-        await prisma.$transaction(async (tx) => {
+        // Idempotency/Concurrency Guard: Check if the MO is already completed or cancelled
+        if (mo.status === 'completed' || mo.status === 'cancelled') {
+            throw new Error(`Cannot perform backflushing: Manufacturing Order status is ${mo.status}`);
+        }
+
+        // Use transaction for database integrity and isolation
+        await prisma.$transaction(async (tx: any) => {
             let totalMaterialCost = 0;
 
             for (const ingredient of mo.recipe.ingredients) {
                 const qtyToConsume = Number(ingredient.quantity) * completedQty;
                 
-                const product = await tx.product.findUnique({ where: { id: ingredient.rawProductId }});
-                if (!product) continue;
+                // Enforce tenant isolation on product lookup
+                const product = await tx.product.findFirst({
+                    where: { id: ingredient.rawProductId, tenantId }
+                });
+                if (!product) {
+                    throw new Error(`Product not found or unauthorized for tenant: ${ingredient.rawProductId}`);
+                }
 
                 const cost = Number(product.buyPrice || 0) * qtyToConsume;
                 totalMaterialCost += cost;
 
-                // 1. Deduct Stock
-                await tx.product.update({
-                    where: { id: ingredient.rawProductId },
+                // 1. Deduct Stock (Enforce tenantId)
+                await tx.product.updateMany({
+                    where: { id: ingredient.rawProductId, tenantId },
                     data: { currentStock: { decrement: qtyToConsume } }
                 });
 
-                // Update ProductStock link
+                // Update ProductStock link (Enforce tenantId)
                 const existingStock = await tx.productStock.findFirst({
                     where: {
                         productId: ingredient.rawProductId,
-                        stockId: stockId
+                        stockId: stockId,
+                        tenantId
                     }
                 });
 
                 if (existingStock) {
-                    await tx.productStock.update({
-                        where: { id: existingStock.id },
+                    await tx.productStock.updateMany({
+                        where: { id: existingStock.id, tenantId },
                         data: { quantity: { decrement: qtyToConsume } }
                     });
                 } else {
@@ -105,12 +139,13 @@ export class MaterialIssuanceEngine {
                         data: {
                             productId: ingredient.rawProductId,
                             stockId: stockId,
-                            quantity: -qtyToConsume
+                            quantity: -qtyToConsume,
+                            tenantId
                         }
                     });
                 }
 
-                // 2. Create StockMovement (OUT)
+                // 2. Create StockMovement (OUT) (Enforce tenantId)
                 await tx.stockMovement.create({
                     data: {
                         productId: ingredient.rawProductId,
@@ -121,14 +156,16 @@ export class MaterialIssuanceEngine {
                         date: new Date(),
                         userId: userId,
                         referenceId: mo.id,
-                        referenceType: 'MANUFACTURING_ORDER'
+                        referenceType: 'MANUFACTURING_ORDER',
+                        tenantId
                     }
                 });
             }
 
-            // 3. Register Manufacturing Cost (Material)
+            // 3. Register Manufacturing Cost (Material) (Enforce tenantId)
             await tx.manufacturingCost.create({
                 data: {
+                    tenantId,
                     manufacturingOrderId: mo.id,
                     costType: 'material',
                     amount: totalMaterialCost,
@@ -136,9 +173,9 @@ export class MaterialIssuanceEngine {
                 }
             });
 
-            // 4. Update MO Total Cost
-            await tx.manufacturingOrder.update({
-                where: { id: mo.id },
+            // 4. Update MO Total Cost (Enforce tenantId)
+            await tx.manufacturingOrder.updateMany({
+                where: { id: mo.id, tenantId },
                 data: { totalCost: { increment: totalMaterialCost } }
             });
             
@@ -147,3 +184,4 @@ export class MaterialIssuanceEngine {
         });
     }
 }
+
