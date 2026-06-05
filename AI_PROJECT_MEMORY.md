@@ -616,8 +616,8 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Next Recommended Phase**: Technical lead to execute the production build and reload (`node deploy.js --build`) directly from the live server console or by configuring SSH credentials.
 
 ### Phase: API Rate Limiting Refinement (2026-06-05)
-* **Status**: `PRODUCTION_PUSHED_AND_VERIFIED`
-* **Commit**: `fec6669b18361b7fcf7675fba18ef66bc7ca194a` (`fec6669b1`)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `dc4d19d10ef751194fe6a420acd6ef5bc2d35c38` (`dc4d19d10`)
 * **Scope**: Refine API Rate Limiting to enforce sliding window limits in Middleware (in-memory sliding window rate limiter compatible with V8 Edge environments):
   - Created a pure in-memory sliding window rate limiter inside `src/lib/rate-limit.ts` using Map and client timestamps queue.
   - Modified `middleware.ts` to enforce rate limits globally on all API paths: 5 req/min on sensitive Auth routes, 30 req/min on other mutating HTTP methods (POST, PUT, DELETE), and 120 req/min on read (GET) requests.
@@ -631,10 +631,15 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - `docs/REPORTS_INDEX_AR.md`
   - `tests/unit/rate-limit.test.ts`
 * **Database / Prisma Schema**: Unchanged.
-* **Runtime Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Jest Unit tests `tests/unit/rate-limit.test.ts` 3/3 PASS.
-* **Push to Repository**: Pushed successfully to `origin/main` branch on Github.
-* **Deploy Status**: `PRODUCTION_DEPLOY_REQUIRED` but deferred/NOT done due to missing separate deployment approval. Production server remains untouched.
+* **Local Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Jest Unit tests `tests/unit/rate-limit.test.ts` 3/3 PASS.
+* **Production Deployment & Verification**:
+  - Uploaded files (`middleware.ts` and `src/lib/rate-limit.ts`) via SFTP using `deploy.js` utilizing the RSA key `C:\Users\1\.ssh\hetzner_key` to all 3 production directories (`namainvist.com`, `n1.namainvist.com`, `n11.namainvist.com`).
+  - Completed production build successfully for all three sites on the server.
+  - Safely restarted all 3 PM2 apps (`main-site`, `n1-main`, `saas-app`) with 0 crashes or restart loops.
+  - Performed curl smoke tests verifying 200 OK for public domains and 401 Unauthorized for protected APIs (SIEM, settings/roles, auth/me, zatca).
+  - Inspected PM2 server logs confirming healthy startup, OpenTelemetry init, and background BullMQ workers execution.
 * **Next Recommended Phase**: Go for next business phase discovery and planning.
+
 
 
 
