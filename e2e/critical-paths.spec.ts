@@ -4,11 +4,17 @@
  * Playwright tests covering: Auth, Dashboard, Sales, Inventory,
  * Approvals, HR, Finance, ZATCA, Settings, Webhooks.
  *
+ * Scenarios: SCN-AUTH-001, SCN-SALES-001, SCN-INVENTORY-001, SCN-HR-001, 
+ * SCN-ACCOUNTING-001, SCN-TREASURY-001, SCN-PAYROLL-001, SCN-SETTINGS-001,
+ * SCN-SUPERADMIN-001, SCN-ONBOARDING-001
+ *
  * Run: npx playwright test
  * CI:  E2E_BASE_URL=https://namainvist.com npx playwright test --reporter=junit
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { guardTest, expect } from './helpers/environment-guard';
+import { Page } from '@playwright/test';
+const test = guardTest;
 
 // ── Helper: Login ──────────────────────────────────────────────────────────────
 async function login(page: Page, username = 'admin', password = 'password') {

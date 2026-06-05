@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { guardTest, expect } from '../helpers/environment-guard';
 
-test.describe('E2E Security - Tenant Isolation & Subdomain Routing Smoke Tests', () => {
-  test('should bind tenant context to hostname or requests securely', async ({ page }) => {
+guardTest.describe('SCN-ONBOARDING-001 - E2E Security - Tenant Isolation & Subdomain Routing Smoke Tests', () => {
+  guardTest('should bind tenant context to hostname or requests securely', async ({ page }) => {
     // Navigating to tenant-specific virtual workspace
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
@@ -11,7 +11,7 @@ test.describe('E2E Security - Tenant Isolation & Subdomain Routing Smoke Tests',
     expect(bodyText).toBeDefined();
   });
 
-  test('should block requests carrying invalid tenant context headers on protected resources', async ({ request }) => {
+  guardTest('should block requests carrying invalid tenant context headers on protected resources', async ({ request }) => {
     // Dispatching GET request with an unwhitelisted tenant ID
     const response = await request.get('/api/sales', {
       headers: {

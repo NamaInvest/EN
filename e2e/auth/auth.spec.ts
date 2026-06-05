@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { guardTest, expect } from '../helpers/environment-guard';
 
-test.describe('E2E Security - Authentication Smoke Tests', () => {
-  test('should load the login page successfully', async ({ page }) => {
+guardTest.describe('SCN-AUTH-001 - E2E Security - Authentication Smoke Tests', () => {
+  guardTest('should load the login page successfully', async ({ page }) => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
     
@@ -14,7 +14,7 @@ test.describe('E2E Security - Authentication Smoke Tests', () => {
     await expect(title).toBeVisible();
   });
 
-  test('should display error message on invalid credentials', async ({ page }) => {
+  guardTest('should display error message on invalid credentials', async ({ page }) => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
     

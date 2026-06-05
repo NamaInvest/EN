@@ -1,4 +1,6 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+
+export { expect };
 
 /**
  * Production Environment Guard for E2E Tests

@@ -1,9 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { guardTest, expect } from '../helpers/environment-guard';
 
-test.describe('E2E Security - RBAC & Route Protection Smoke Tests', () => {
-  test('should redirect unauthenticated users targeting corporate finance to login page', async ({ page }) => {
+guardTest.describe('SCN-TENANTADMIN-001 - E2E Security - RBAC & Route Protection Smoke Tests', () => {
+  guardTest('should redirect unauthenticated users targeting corporate finance to login page', async ({ page }) => {
     // Attempting to access protected financial ledger without session
-    await page.goto('/finance/ledger');
+    await page.goto('/accounting');
     await page.waitForLoadState('networkidle');
     
     // Expect redirection to login or auth page
@@ -11,7 +11,7 @@ test.describe('E2E Security - RBAC & Route Protection Smoke Tests', () => {
     expect(currentUrl.includes('login') || currentUrl.includes('sign-in') || currentUrl.includes('auth')).toBeTruthy();
   });
 
-  test('should block unauthorized guest users from administrative settings', async ({ page }) => {
+  guardTest('should block unauthorized guest users from administrative settings', async ({ page }) => {
     // Attempting to access advanced system configuration panel
     await page.goto('/settings/security');
     await page.waitForLoadState('networkidle');
