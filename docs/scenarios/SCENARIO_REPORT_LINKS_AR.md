@@ -25,6 +25,7 @@
 | SCN-PHARMACY-001 | /pharmacy | استعلام تداخل أدوية | None | None | DEFERRED | إدخال أدوية تجريبية |
 | SCN-WMS-001 | /enterprise/wms | تحويل البضائع للرفوف | e2e/mocked-inventory-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-REPORTS-001 | /reports/cashflow | استعلام الأرصدة المالية | e2e/reports-readonly-protection.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-REPORTS-002 | /reports | تصفين وتقسيم التقارير وكشوف الحسابات | tests/integration/reports/pagination.test.ts | tmp/next-business-phase-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-AI-001 | /ai/bank-fraud | فحص الأنماط الاحتيالية | e2e/mocked-ai-rag-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-AI-002 | /ai/nlq | الاستعلام باللغة الطبيعية | e2e/mocked-ai-rag-mutations.spec.ts | tmp/analytical-ai-spend-analytics-verification-report.md | AUTOMATED | لا يوجد |
 | SCN-AI-003 | /procurement/spend-analytics | تحليلات الإنفاق الشرائي | e2e/mocked-ai-rag-mutations.spec.ts | tmp/analytical-ai-spend-analytics-verification-report.md | AUTOMATED | لا يوجد |

@@ -136,7 +136,9 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 });
             }
             case 'users-list': {
-                const users = await prisma.user.findMany({ take: 100,
+                const users = await prisma.user.findMany({
+                    take: limit,
+                    skip: skip,
                     where: { active: true },
                     select: { id: true, fullName: true, role: true },
                     orderBy: { fullName: 'asc' },
@@ -159,12 +161,12 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 const hasDayDate = Object.keys(dayDate).length > 0;
                 const dayWhere = { ...(hasDayDate ? { date: dayDate } : {}), ...userFilter, ...branchFilter };
 
-                const sales = await prisma.salesInvoice.findMany({ take: 100, where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const purchases = await prisma.purchaseInvoice.findMany({ take: 100, where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const expenses = await prisma.expense.findMany({ take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const treasury = await prisma.treasury.findMany({ take: 100, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
-                const salesReturns = await prisma.salesReturn.findMany({ take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
-                const purchaseReturns = await prisma.purchaseReturn.findMany({ take: 100, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
+                const sales = await prisma.salesInvoice.findMany({ take: limit, skip: skip, where: dayWhere, include: { customer: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const purchases = await prisma.purchaseInvoice.findMany({ take: limit, skip: skip, where: dayWhere, include: { supplier: { select: { id: true, name: true, phone: true,  } }, user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const expenses = await prisma.expense.findMany({ take: limit, skip: skip, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const treasury = await prisma.treasury.findMany({ take: limit, skip: skip, where: dayWhere, include: { user: { select: { fullName: true } } }, orderBy: { date: 'desc' } });
+                const salesReturns = await prisma.salesReturn.findMany({ take: limit, skip: skip, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
+                const purchaseReturns = await prisma.purchaseReturn.findMany({ take: limit, skip: skip, where: { ...(hasDayDate ? { date: dayDate } : {}), ...(userId && userId !== 'all' ? { userId: parseInt(userId) } : {}) }, orderBy: { date: 'desc' } });
 
                 const totalSales = sales.reduce((s: number, i: any) => s + n(i.total), 0);
                 const totalPurchases = purchases.reduce((s: number, i: any) => s + n(i.total), 0);
@@ -190,6 +192,7 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                     treasury: treasury.map(t => ({ 'التاريخ': new Date(t.date).toLocaleDateString('en-GB'), 'الوقت': new Date(t.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), 'النوع': t.type === 'in' ? 'وارد' : 'صادر', 'الوصف': t.description || '-', 'المستخدم': (t as any).user?.fullName || '-', 'المبلغ': t.amount })),
                     salesReturns: salesReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('en-GB'), 'الإجمالي': r.total })),
                     purchaseReturns: purchaseReturns.map(r => ({ '#': r.returnNo, 'التاريخ': new Date(r.date).toLocaleDateString('en-GB'), 'الإجمالي': r.total })),
+                    pagination: { page, limit }
                 });
             }
             case 'stock-audit': {
@@ -226,14 +229,23 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                 const sinceDate = new Date();
                 sinceDate.setDate(sinceDate.getDate() - days);
 
-                // Get all active products
-                const allProducts = await prisma.product.findMany({ take: 100, where: { active: true }, select: { id: true, name: true, currentStock: true } });
-
-                // Get sales quantities per product in the period
-                const salesDetails = await prisma.salesInvoiceDetail.findMany({ take: 100,
-                    where: { invoice: { date: { gte: sinceDate } } },
-                    select: { productId: true, quantity: true },
+                // Get active products for the current page
+                const allProducts = await prisma.product.findMany({
+                    take: limit,
+                    skip: skip,
+                    where: { active: true },
+                    select: { id: true, name: true, currentStock: true }
                 });
+
+                // Get sales quantities ONLY for these products in the period
+                const productIds = allProducts.map(p => p.id);
+                const salesDetails = productIds.length > 0 ? await prisma.salesInvoiceDetail.findMany({
+                    where: {
+                        productId: { in: productIds },
+                        invoice: { date: { gte: sinceDate } }
+                    },
+                    select: { productId: true, quantity: true },
+                }) : [];
 
                 // Aggregate sales by product
                 const salesMap = new Map<number, { qty: number; count: number }>();
@@ -244,17 +256,18 @@ async function _GET(request: NextRequest, { params }: { params: Promise<{ type: 
                     salesMap.set(d.productId, entry);
                 }
 
-                // Build list with all products, sorted by qty ASC (least selling first)
+                // Build list with current page products, sorted by qty ASC (least selling first)
                 const list = allProducts.map(p => ({
                     'المنتج': p.name,
                     'المخزون الحالي': p.currentStock,
                     'الكمية المباعة': salesMap.get(p.id)?.qty || 0,
                     'عدد مرات البيع': salesMap.get(p.id)?.count || 0,
-                })).sort((a, b) => a['الكمية المباعة'] - b['الكمية المباعة']).slice(0, 20);
+                })).sort((a, b) => a['الكمية المباعة'] - b['الكمية المباعة']);
 
                 return NextResponse.json({
                     summary: { 'الفترة': `${days} يوم`, 'عدد المنتجات': allProducts.length, 'منتجات بدون مبيعات': allProducts.filter(p => !salesMap.has(p.id)).length },
                     data: list,
+                    pagination: { page, limit, hasMore: allProducts.length === limit }
                 });
             }
             case 'discounts-audit': {

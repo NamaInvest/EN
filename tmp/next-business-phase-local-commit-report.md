@@ -1,33 +1,42 @@
-# تقرير الالتزام المحلي للمرحلة القادمة (Next Business Phase Local Commit Report) - Phase 10
+# تقرير الالتزام المحلي لتصفين التقارير (Next Business Phase Local Commit Report) - Phase 10
 
-يوثق هذا التقرير تفاصيل عملية الالتزام البرمجي المحلي بنجاح (Local Commit).
-
----
-
-## 1. تفاصيل الالتزام (Commit Details)
-
-- **معرّف الالتزام (Commit Hash)**: `22a220a96bf8b849ab022e38c7f9996d91d0d970` (مختصر: `22a220a96`)
-- **الفرع الحالي (Branch)**: `main`
-- **رسالة الالتزام (Commit Message)**: `feat(security,ui): implement upload magic bytes signature check & pos mobile layout responsiveness`
-- **عدد الملفات المعدلة والمضافة**: 19 ملفاً
+يوثق هذا التقرير تفاصيل الالتزام المحلي (Local Commit) الذي تم تسجيله بنجاح للتغييرات والتحديثات في Git.
 
 ---
 
-## 2. ملخص التغييرات الملتزم بها (Summary of Committed Changes)
+## 1. تفاصيل الالتزام (Commit Metadata)
 
-- **بوابة الرفع الأمني `/api/upload`**:
-  - تم تحصين الرفع البرمجي للصور بإضافة ميزة فحص البايتات السحرية (Magic Bytes signatures) لملفات PNG, JPG, GIF, WEBP للتأكد من عدم تزوير الرؤوس البرمجية (MIME spoofing).
-- **نقاط البيع والمطاعم التجاوبية `/pos` و `/restaurant-pos`**:
-  - تطبيق فئات CSS تجاوبية تضمن تعديل سلوك العرض عند الانتقال للجوال أو الأجهزة الكفية (Floating Action Button للسلّة، Slide Drawer لعرض السلة المتنقلة، شريط التمرير الأفقي للأصناف، والتفاف النصوص لعدم انقطاعها).
-- **الاختبارات المتكاملة**:
-  - إضافة ملف اختبارات متكامل `tests/integration/security/p2c-remediations.test.ts` للتحقق من كافة السيناريوهات المحتملة للرفع والأحجام والأمان.
-- **حل مشاكل كسر الاعتماديات**:
-  - كسر الاعتمادية الدائرية بين `prisma.ts` و `prisma-audit.ts` لحل مشكلة فشل بيئة Vitest في تشغيل وفحص ملفات المشروع.
+- **مؤشر الالتزام (Commit Hash)**: `8a2558bab249b6b7a5a8e0cb20e980ccde3d4e74`
+- **الفرع الحالي (Current Branch)**: `main`
+- **الكاتب (Author)**: Antigravity AI Autopilot
+- **الرسالة (Commit Message)**: `feat(reports): implement dynamic reports pagination & least-selling query N+1 performance optimization`
+- **التاريخ (Date)**: 2026-06-05T13:01:25+03:00
+
+---
+
+## 2. ملخص التغييرات الملتزم بها (Summary of Committed Files)
+
+تم تعديل وإضافة 19 ملفاً موزعة كالتالي:
+
+1. **كود المسارات (API Routes)**:
+   * [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/%5Btype%5D/route.ts)
+   * [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/returns/route.ts)
+   * [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/customer-statement/route.ts)
+2. **الاختبارات التكاملية (Integration Tests)**:
+   * [pagination.test.ts](file:///d:/namasoft9-3-main/tests/integration/reports/pagination.test.ts)
+3. **التوثيق والسيناريوهات (Documentation & Scenarios)**:
+   * [FULL_SYSTEM_UI_SCENARIOS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md)
+   * [SCENARIO_REPORT_LINKS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/SCENARIO_REPORT_LINKS_AR.md)
+   * [UI_API_WIRING_MATRIX_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_API_WIRING_MATRIX_AR.md)
+   * [UI_BUTTON_INVENTORY_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_BUTTON_INVENTORY_AR.md)
+   * [REPORTS_INDEX_AR.md](file:///d:/namasoft9-3-main/docs/REPORTS_INDEX_AR.md)
+4. **تقارير دورة الحياة المؤقتة (Autopilot Lifecycle Reports)**:
+   * 10 تقارير ومخططات مرحلية في المجلد `tmp/`.
 
 ---
 
 ## 3. قرار سلامة البوابة (Gate Decision)
 
-تم تسجيل الالتزام المحلي بنجاح تام ولا توجد أية ملفات معلقة غير معالجة.
+تم تسجيل الالتزام بنجاح محلياً وبطريقة آمنة.
 
-**القرار**: الانتقال التلقائي إلى **Phase 11 — Push Gate And Push** لبدء فحص الدفع والرفع إلى المستودع البعيد.
+**القرار**: الانتقال التلقائي إلى **Phase 11 — Push Gate & Push**.

@@ -62,12 +62,19 @@ async function _GET(req: NextRequest) {
             }
         }
 
-        const invoices = await prisma.salesInvoice.findMany({ take: 100,
+        // Dynamic Pagination Parameters
+        const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+        const defaultLimit = 100;
+        const maxLimit = 1000;
+        const limit = Math.min(maxLimit, Math.max(1, parseInt(url.searchParams.get('limit') || String(defaultLimit), 10)));
+        const skip = (page - 1) * limit;
+
+        const invoices = await prisma.salesInvoice.findMany({
             where: whereInvoices,
             select: { id: true, invoiceNo: true, date: true, total: true }
         });
 
-        const payments = await prisma.treasury.findMany({ take: 100,
+        const payments = await prisma.treasury.findMany({
             where: wherePayments,
             select: { id: true, date: true, amount: true, description: true }
         });
@@ -79,7 +86,7 @@ async function _GET(req: NextRequest) {
                 type: 'INVOICE',
                 ref: 'INV-' + inv.invoiceNo,
                 date: inv.date,
-                debit: inv.total, // Increases balance
+                debit: n(inv.total), // Increases balance
                 credit: 0,
                 description: 'فاتورة مبيعات'
             });
@@ -91,24 +98,28 @@ async function _GET(req: NextRequest) {
                 ref: 'PAY-' + pay.id,
                 date: pay.date,
                 debit: 0,
-                credit: pay.amount, // Decreases balance
+                credit: n(pay.amount), // Decreases balance
                 description: pay.description || 'سداد دفعة / سند قبض'
             });
         });
 
         transactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-        // 4. Calculate running balance
+        // 4. Calculate running balance over the complete array to keep running balance correct
         let runningBalance = openingBalance;
         const statementLines = transactions.map(t => {
             runningBalance += (t.debit - t.credit);
             return { ...t, balance: runningBalance };
         });
 
+        // Slice for pagination
+        const paginatedLines = statementLines.slice(skip, skip + limit);
+
         // 5. Aging
         const now = new Date();
         const aging = { current: 0, '1-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
-        const openInvoices = await prisma.salesInvoice.findMany({ take: 100,
+        const openInvoices = await prisma.salesInvoice.findMany({
+            take: 1000, // Increased to prevent incorrect aging totals
             where: { customerId, remaining: { gt: 0 } },
             select: { remaining: true, date: true }
         });
@@ -126,8 +137,9 @@ async function _GET(req: NextRequest) {
             customer: { id: customer.id, name: customer.name, phone: customer.phone, taxNumber: customer.taxNumber },
             openingBalance,
             closingBalance: runningBalance,
-            transactions: statementLines,
-            aging
+            transactions: paginatedLines,
+            aging,
+            pagination: { page, limit, total: statementLines.length, hasMore: skip + limit < statementLines.length }
         });
     } catch (e: any) {
         log.error(e);

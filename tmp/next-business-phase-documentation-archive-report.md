@@ -1,29 +1,23 @@
-# تقرير تحديث التوثيق والأرشفة للمرحلة القادمة (Next Business Phase Documentation & Archive Report) - Phase 6
+# تقرير توثيق وأرشفة سيناريوهات النظام (Next Business Phase Documentation Archive Report) - Phase 6
 
-يقدم هذا التقرير تفاصيل تحديث التوثيق والأرشيف والسيناريوهات المتعلقة بالتعديلات البرمجية لـ Wave P2-C و Wave P2-D.
-
----
-
-## 1. الملفات المحدثة في الأرشيف (Updated Archive Assets)
-
-1. **[FULL_SYSTEM_UI_SCENARIOS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md)**:
-   - تم إدراج السيناريو الجديد `SCN-POS-002` لتغطية تجاوب واجهات نقاط البيع والمطاعم وتشغيل السلة عبر الدرج الجانبي المنبثق.
-   - تم إدراج السيناريو الجديد `SCN-SECURITY-001` لتغطية فحص التواقيع الرقمية للملفات المرفوعة بالبايتات السحرية في بوابة الرفع.
-   - تم تحديث الفهرس العام وجدول ملخص إحصائيات التغطية (ارتفع عدد السيناريوهات المسجلة إلى 29 سيناريو مكتمل وموثق).
-
-2. **[UI_BUTTON_INVENTORY_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_BUTTON_INVENTORY_AR.md)**:
-   - تم إضافة زر السلة العائم المخصص للهواتف الجوالة والأجهزة اللوحية تحت موديول نقاط البيع.
-
-3. **[UI_API_WIRING_MATRIX_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_API_WIRING_MATRIX_AR.md)**:
-   - تم إضافة منفذ الرفع `/api/upload` وتوضيح حراسة فحص بايتات التواقيع الرقمية وحجم الملف لحمايتها من الـ MIME spoofing.
-
-4. **[SCENARIO_REPORT_LINKS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/SCENARIO_REPORT_LINKS_AR.md)**:
-   - تم ربط السيناريوهات الجديدة `SCN-POS-002` و `SCN-SECURITY-001` بالاختبارات والتقارير المقابلة.
+يوثق هذا التقرير التحديثات البرمجية التي أجريت على مستندات سيناريوهات ومصفوفات النظام لمطابقة تحسينات التصفين لتقارير كشوف الحسابات.
 
 ---
 
-## 2. قرار سلامة البوابة (Gate Decision)
+## 1. المستندات التي تم تحديثها (Documents Updated)
 
-جميع التغييرات تم توثيقها بالكامل، وتم التحقق من تطابق معرفات السيناريوهات وسلامة روابط الملفات المحلية.
+1. **[FULL_SYSTEM_UI_SCENARIOS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md):**
+   * إضافة سيناريو جديد بالكامل `SCN-REPORTS-002` يغطي تصفين وتقسيم التقارير وكشوف الحسابات والتأكد من عدم الإضرار بدقة الأرصدة المستمرة.
+   * إدراجه في جدول الفهرس وفي تفاصيل الخطوات وإمكانيات الأتمتة.
+2. **[SCENARIO_REPORT_LINKS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/SCENARIO_REPORT_LINKS_AR.md):**
+   * إدراج `SCN-REPORTS-002` وربطه بالملف الاختباري الجديد `tests/integration/reports/pagination.test.ts` وتقرير الفحص المالي الملحق.
+3. **[UI_API_WIRING_MATRIX_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_API_WIRING_MATRIX_AR.md):**
+   * تسجيل نقاط الربط الجديدة للتقارير المصفحة (`/api/reports/[type]` و `/api/reports/returns` و `/api/reports/customer-statement`) وربطها بالواجهات المقابلة.
+4. **[UI_BUTTON_INVENTORY_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_BUTTON_INVENTORY_AR.md):**
+   * إدراج أزرار وعناصر التحكم للباغينيشن (السابق/التالي وتغيير حجم الصفحة) وتصنيف درجة خطورتها كآمنة (Safe/Query only).
 
-**القرار**: الانتقال التلقائي إلى **Phase 7 — Safe Testing** لبدء مرحلة الفحوصات البرمجية والاختبارات الآمنة وتجميع الكود.
+---
+
+## 2. مراجعة الجودة
+* تم ربط كافة السيناريوهات والـ APIs بملفات الاختبار والتقارير المحددة دون فجوات أو روابط مكسورة.
+* تعزيز الشفافية وتأكيد جاهزية النظام لمرحلة البوابات البرمجية والاختبارات الآمنة.

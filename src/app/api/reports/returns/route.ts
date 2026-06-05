@@ -16,6 +16,13 @@ async function _GET(req: NextRequest) {
         const from = url.searchParams.get('from');
         const to = url.searchParams.get('to');
 
+        // Dynamic Pagination Parameters
+        const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+        const defaultLimit = 100;
+        const maxLimit = 1000;
+        const limit = Math.min(maxLimit, Math.max(1, parseInt(url.searchParams.get('limit') || String(defaultLimit), 10)));
+        const skip = (page - 1) * limit;
+
         const where: any = {};
         if (from || to) {
             where.date = {};
@@ -23,7 +30,9 @@ async function _GET(req: NextRequest) {
             if (to) where.date.lte = new Date(to + 'T23:59:59');
         }
 
-        const returns = await prisma.salesReturn.findMany({ take: 100,
+        const returns = await prisma.salesReturn.findMany({
+            take: limit,
+            skip: skip,
             where,
             include: {
                 details: {
@@ -34,7 +43,7 @@ async function _GET(req: NextRequest) {
         });
 
         // Also fetch stocks to map destinationStockId to stock name
-        const stocks = await prisma.stock.findMany({ take: 100, select: { id: true, name: true } });
+        const stocks = await prisma.stock.findMany({ take: 1000, select: { id: true, name: true } });
         const stockMap = Object.fromEntries(stocks.map(s => [s.id, s.name]));
 
         const formattedReturns = returns.map((r: any) => ({
