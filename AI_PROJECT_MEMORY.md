@@ -689,7 +689,55 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - Safely reloaded all 3 PM2 apps (`main-site`, `n1-main`, `saas-app`) with 0 crashes or restart loops.
   - Performed curl smoke tests verifying 200 OK for public domains and 401 Unauthorized for protected APIs (SIEM, settings/roles, auth/me, journal).
   - Inspected PM2 server logs confirming healthy startup, OpenTelemetry init, and BullMQ workers execution.
-* **Next Recommended Phase**: Go for next business phase discovery and planning.
+* **Next Recommended Phase**: POS Responsiveness & File Upload Magic-Bytes Checking (Wave P2-C & P2-D).
+
+### Phase: POS Responsiveness & File Upload Magic-Bytes Checking (Wave P2-C & P2-D) (2026-06-05)
+* **Status**: `PRODUCTION_DEPLOY_APPROVED_AND_PENDING`
+* **Commit**: `f0a3e4a83cdacc3889ecdab922d4f448b5b15a50` (`f0a3e4a83`)
+* **Scope**: Implement security hardening for file uploads and enhance mobile UI layout responsiveness on the main POS and Restaurant POS cashiers interface:
+  - Added magic bytes signature checking for files in `/api/upload` to block malicious spoofed extensions.
+  - Enhanced layout responsiveness, layout padding, and overflow scrolling to prevent Arabic text clipping in both cashier views.
+* **Files Modified**:
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+  - `src/app/api/upload/route.ts`
+  - `src/lib/prisma-audit.ts`
+  - `src/lib/prisma.ts`
+  - `docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md`
+  - `docs/scenarios/SCENARIO_REPORT_LINKS_AR.md`
+  - `docs/scenarios/UI_API_WIRING_MATRIX_AR.md`
+  - `docs/scenarios/UI_BUTTON_INVENTORY_AR.md`
+* **Tests Added**:
+  - `tests/integration/security/p2c-remediations.test.ts`
+* **Database / Prisma Schema**: Unchanged.
+* **Local & Server Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS.
+* **Production Deployment & Verification**:
+  - Stopped at Deploy Gate awaiting deployment approval.
+* **Next Recommended Phase**: Report Pagination & query N+1 Optimization (Wave P2-A).
+
+### Phase: Report Pagination & query N+1 Optimization (Wave P2-A) (2026-06-05)
+* **Status**: `PRODUCTION_DEPLOY_APPROVED_AND_PENDING`
+* **Commit**: `926c2eb739d4017e6887042e395148214eb0f6bd` (`926c2eb73`)
+* **Scope**: Implement dynamic reports pagination and optimize query N+1 performance:
+  - Paginated users list and daily reports to accept dynamic `page`/`limit` parameters.
+  - Sliced transactions in customer statement after computing running balance in-memory to preserve historical arithmetic correctness.
+  - Refactored `least-selling` product report to resolve N+1 querying on sales detail aggregation.
+* **Files Modified**:
+  - `src/app/api/reports/[type]/route.ts`
+  - `src/app/api/reports/customer-statement/route.ts`
+  - `src/app/api/reports/returns/route.ts`
+  - `docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md`
+  - `docs/scenarios/SCENARIO_REPORT_LINKS_AR.md`
+  - `docs/scenarios/UI_API_WIRING_MATRIX_AR.md`
+  - `docs/scenarios/UI_BUTTON_INVENTORY_AR.md`
+  - `docs/REPORTS_INDEX_AR.md`
+* **Tests Added**:
+  - `tests/integration/reports/pagination.test.ts`
+* **Database / Prisma Schema**: Unchanged.
+* **Local & Server Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Vitest targeted tests 5/5 PASS.
+* **Production Deployment & Verification**:
+  - Stopped at Deploy Gate awaiting deployment approval.
+* **Next Recommended Phase**: Production Deploy & PM2 reload for both accumulated changes.
 
 
 
