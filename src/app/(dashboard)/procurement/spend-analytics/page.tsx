@@ -30,14 +30,44 @@ export default function SpendAnalyticsPage() {
           <p>No spend analytics data available. Missing tenant or data.</p>
         </div>
       ) : (
-        <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Layers className="text-blue-500" size={20} /> Analytics Cube
+        <div className="card p-6 border border-(--border) bg-(--bg-secondary) rounded-xl shadow-sm space-y-6">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Layers className="text-blue-500" size={20} /> Spend Analytics Cube
           </h2>
-          <div className="bg-(--bg-primary) p-4 rounded-lg border border-(--border)">
-            <pre className="overflow-auto text-sm text-(--text-muted)" dir="ltr" style={{ maxHeight: '500px' }}>
-              {JSON.stringify(data.cube || data, null, 2)}
-            </pre>
+          
+          <div className="overflow-hidden border border-(--border) rounded-xl bg-(--bg-primary)">
+            <table className="min-w-full divide-y divide-(--border)">
+              <thead className="bg-(--bg-secondary)">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Transactions Count</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Visual Share</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-(--border) text-(--text)">
+                {(data.cube || []).map((item: any, i: number) => (
+                  <tr key={i} className="hover:bg-(--bg-secondary)/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap font-mono">Category #{item.categoryId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-bold">{item.count}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5 max-w-xs">
+                        <div 
+                          className="bg-blue-600 h-2.5 rounded-full" 
+                          style={{ width: `${Math.min(100, item.count * 10)}%` }}
+                        ></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {(data.cube || []).length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                      No spend classifications found. Add transactions to see analytics.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

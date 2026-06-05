@@ -16,7 +16,7 @@ const _POSTSchema = z.object({
 async function _POST(req: NextRequest) {
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
-    const prisma = getPrisma(req);
+    const prisma = getPrisma(req, { requireTenant: true });
     try {
         const body = await req.json();
 

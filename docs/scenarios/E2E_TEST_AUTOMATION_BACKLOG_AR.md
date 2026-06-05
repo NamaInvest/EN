@@ -24,6 +24,9 @@
 | **SCN-WMS-001** | Warehouse (WMS) | استلام البضائع وجدولة مهام التخزين | `/enterprise/wms` | نعم | نعم | لا | نعم | لا | Playwright | متوسطة | **AUTOMATED_PHASE_7A (Rejection check)** |
 | **SCN-REPORTS-001** | Reports & BI | استعلام ميزان المراجعة والتقارير المالية | `/reports/cashflow` | نعم | لا | لا | نعم | نعم | Playwright | عالية | **AUTOMATED_PHASE_7A (Read-only redirect check)** |
 | **SCN-AI-001** | AI & RAG | استخلاص الأنماط الاحتيالية بالذكاء الاصطناعي | `/ai/bank-fraud` | نعم | لا | لا | نعم | نعم | API Testing | متوسطة | **AUTOMATED_PHASE_7A (Rejection check)** |
+| **SCN-AI-002** | AI & RAG | التحليلات التنبؤية والتفاعل الذكي باللغة الطبيعية | `/ai/nlq` | نعم | لا | لا | نعم | نعم | Playwright | متوسطة | **AUTOMATED_PHASE_7A (Rejection check)** |
+| **SCN-AI-003** | AI & RAG | تحليلات الإنفاق والتنبؤ بالتدفقات الشرائية | `/procurement/spend-analytics` | نعم | لا | لا | نعم | نعم | Playwright | متوسطة | **AUTOMATED_PHASE_7A (Read-only check)** |
+
 | **SCN-SETTINGS-001** | System Settings | بناء حقول ديناميكية مخصصة لكل مستأجر | `/settings/custom-fields`| نعم | نعم | لا | نعم | نعم | Playwright | متوسطة | **AUTOMATED_PHASE_7A (Rejection check)** |
 | **SCN-SUPPORT-001** | Help Desk | تذكرة دعم فني وقياس الامتثال لاتفاقية SLA| `/support/help-desk` | نعم | نعم | لا | نعم | نعم | Playwright | منخفضة | مؤجل (يحتاج مستخدم تجريبي) |
 | **SCN-DESKTOP-001** | Desktop Launcher | مزامنة الترخيص والتشغيل دون اتصال بالشبكة | `/desktop/verify-license` | نعم | نعم | لا | نعم | نعم | Playwright Electron| متوسطة | مؤجل (تكامل سطح مكتب) |

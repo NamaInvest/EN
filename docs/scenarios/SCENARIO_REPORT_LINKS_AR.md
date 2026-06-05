@@ -24,6 +24,9 @@
 | SCN-WMS-001 | /enterprise/wms | تحويل البضائع للرفوف | e2e/mocked-inventory-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-REPORTS-001 | /reports/cashflow | استعلام الأرصدة المالية | e2e/reports-readonly-protection.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-AI-001 | /ai/bank-fraud | فحص الأنماط الاحتيالية | e2e/mocked-ai-rag-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-AI-002 | /ai/nlq | الاستعلام باللغة الطبيعية | e2e/mocked-ai-rag-mutations.spec.ts | tmp/analytical-ai-spend-analytics-verification-report.md | AUTOMATED | لا يوجد |
+| SCN-AI-003 | /procurement/spend-analytics | تحليلات الإنفاق الشرائي | e2e/mocked-ai-rag-mutations.spec.ts | tmp/analytical-ai-spend-analytics-verification-report.md | AUTOMATED | لا يوجد |
+
 | SCN-SETTINGS-001 | /settings/custom-fields | حفظ الحقل المخصص | e2e/settings-rbac.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-SUPPORT-001 | /support/help-desk | إرسال تذكرة فنية | None | None | DEFERRED | تفعيل حسابات بورتال الدعم |
 | SCN-DESKTOP-001 | /desktop/verify-license | تفعيل الرخصة محلياً | None | None | DEFERRED | تهيئة تشغيل Electron |

@@ -24,6 +24,9 @@
 | SCN-WMS-001 | Warehouse (WMS) | /enterprise/wms | e2e/mocked-inventory-mutations.spec.ts | verify WMS putaway and item shelving | خطر متوسط | AUTOMATED | لا يوجد |
 | SCN-REPORTS-001 | Reports & BI | /reports/cashflow | e2e/reports-readonly-protection.spec.ts | verify cashflow report trial balance readonly redirect | آمن | AUTOMATED | لا يوجد |
 | SCN-AI-001 | AI & RAG | /ai/bank-fraud | e2e/mocked-ai-rag-mutations.spec.ts | verify LLM prompt injection guards & fraud scan | آمن | AUTOMATED | لا يوجد |
+| SCN-AI-002 | AI & RAG | /ai/nlq | e2e/mocked-ai-rag-mutations.spec.ts | verify LLM response and question helpers | آمن | AUTOMATED | لا يوجد |
+| SCN-AI-003 | AI & RAG | /procurement/spend-analytics | e2e/mocked-ai-rag-mutations.spec.ts | verify spend analytics layout and category filtering | آمن | AUTOMATED | لا يوجد |
+
 | SCN-SETTINGS-001 | System Settings | /settings/custom-fields | e2e/settings-rbac.spec.ts | verify custom fields creation and save | آمن | AUTOMATED | لا يوجد |
 | SCN-SUPPORT-001 | Help Desk | /support/help-desk | None | None | آمن | DEFERRED | يتطلب دمج مع بوابة العملاء وخدمة البريد |
 | SCN-DESKTOP-001 | Desktop Launcher | /desktop/verify-license | None | None | آمن | DEFERRED | يتطلب تشغيل البيئة المكتبية Electron وبيئة ترخيص منفصلة |

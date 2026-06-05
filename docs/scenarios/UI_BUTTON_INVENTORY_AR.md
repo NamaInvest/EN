@@ -23,6 +23,10 @@
 | الرواتب | /payroll | إعادة احتساب فروقات موظف | Button | POST /api/payroll/calculate | احتساب المستحقات الإضافية أو الخصومات للشهر الحالي | خطر متوسط | SCN-PAYROLL-001 | مكتمل | لا يوجد |
 | التأسيس | /company-setup | تأكيد وبدء التأسيس | Button | POST /api/tenant/provision | بناء قاعدة بيانات العميل وتخصيص بيئة المستأجر | خطر حرج (بناء DB) | SCN-ONBOARDING-001 | مكتمل | لا يوجد |
 | الذكاء الاصطناعي | /ai/bank-fraud | بدء الفحص والتحليل الذكي | Button | POST /api/ai/bank-fraud | تحليل سلوك المعاملات وكشف الحركات المشبوهة | آمن (استعلام) | SCN-AI-001 | مكتمل | لا يوجد |
+| الذكاء الاصطناعي | /ai/nlq | الاستعلام باللغة الطبيعية (NLQ) | Input & Button | POST /api/ai/nlq | تفاعل ذكي باللغة الطبيعية مع البيانات المالية | آمن (استعلام) | SCN-AI-002 | مكتمل | لا يوجد |
+| الذكاء الاصطناعي | /ai/demand-forecast | تشغيل تنبؤات الطلب المستقبلية | Button | POST /api/ai/demand-forecast | تحليل الكميات والتنبؤ بالاحتياجات التخزينية | آمن (استعلام) | SCN-AI-002 | مكتمل | لا يوجد |
+| المشتريات | /procurement/spend-analytics | فلترة وعرض تحليلات الإنفاق | Button & Filter | GET /api/procurement/spend-analytics | استعلام وتصفية الحركات الإنفاقية للمستأجر | آمن (استعلام) | SCN-AI-003 | مكتمل | لا يوجد |
+
 | لوحة التحكم | /admin/siem | تصدير سجلات SIEM الأمنية | Button | GET /api/admin/audit-logs | جلب سجلات مراقبة الدخول ومحاولات الاختراق الأمني | آمن (استعلام) | SCN-SUPERADMIN-001 | مكتمل | لا يوجد |
 | الإعدادات | /settings/custom-fields | حفظ وتعريف الحقل المخصص | Button | POST /api/settings/custom-fields | تخزين تعريفات الحقول الديناميكية الجديدة | آمن | SCN-SETTINGS-001 | مكتمل | لا يوجد |
 | الدعم الفني | /support/help-desk | إرسال تذكرة دعم فني جديدة | Button | POST /api/crm/tickets | فتح تذكرة ومتابعة شكاوى المستخدمين وعملاء النظام | آمن | SCN-SUPPORT-001 | مكتمل | لا يوجد |

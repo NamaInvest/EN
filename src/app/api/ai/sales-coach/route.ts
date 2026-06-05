@@ -18,7 +18,7 @@ const _POSTSchema = z.object({
 }).passthrough();
 
 async function _POST(req: Request) {
-    const prisma = getPrisma(req as any);
+    const prisma = getPrisma(req as any, { requireTenant: true });
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -30,6 +30,15 @@ async function _POST(req: Request) {
           return NextResponse.json({ error: 'Invalid request body', details: _parsed.error.flatten().fieldErrors }, { status: 400 });
         }
         const targetUserId = parseInt(body.userId) || user.userId;
+
+        // Verify that target user belongs to the current tenant
+        const targetUserExists = await prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: { id: true }
+        });
+        if (!targetUserExists) {
+            return NextResponse.json({ error: 'الموظف غير موجود أو لا ينتمي لهذا المستأجر' }, { status: 403 });
+        }
 
         // Fetch last 30 days sales for this user
         const thirtyDaysAgo = new Date();

@@ -32,7 +32,7 @@ function detectTrend(data: number[]): 'up' | 'down' | 'stable' {
 }
 
 async function _GET(req: Request) {
-    const prisma = getPrisma(req as any);
+    const prisma = getPrisma(req as any, { requireTenant: true });
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
@@ -99,7 +99,7 @@ async function _GET(req: Request) {
 }
 
 async function _POST(req: Request) {
-    const prisma = getPrisma(req as any);
+    const prisma = getPrisma(req as any, { requireTenant: true });
     const user = getUserFromRequest(req as any);
     if (!user) return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
 
