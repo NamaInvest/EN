@@ -2,31 +2,31 @@
 
 توضح هذه المصفوفة مستوى الترابط البرمجي بين واجهات المستخدم الأمامية (Frontend pages/buttons) ونقاط النهاية الخلفية (Backend API Routes)، مع استعراض مستوى الأمان والحراسة المطبق لكل منها.
 
-| الصفحة الأمامية | الزر / النموذج | مسار الـ API المرتبط | طريقة الطلب (Method) | يتطلب مصادقة (Auth) | عزل المستأجر (Tenant Id) | حارس الصلاحيات (RBAC) | الحارس المالي (GL Guard) | الحالة البرمجية | معرف السيناريو |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `/sign-up` | نموذج التسجيل | `/api/auth/sign-up` | POST | لا | لا | لا | لا | مكتمل | SCN-PUBLIC-001 |
-| `/company-setup` | زر بدء التأسيس | `/api/tenant/provision` | POST | نعم | نعم (عبر المعالج) | لا | لا | مكتمل | SCN-ONBOARDING-001 |
-| `/login` | نموذج الدخول | `/api/auth/login` | POST | لا | لا | لا | لا | مكتمل | SCN-AUTH-001 |
-| `/admin/siem` | لوحة مراقبة الأمان | `/api/admin/audit-logs` | GET | نعم | لا (منصة عليا) | نعم (SuperAdmin) | لا | مكتمل | SCN-SUPERADMIN-001 |
-| `/settings/roles` | زر حفظ الدور والصلاحية | `/api/settings/roles` | POST | نعم | نعم | نعم (TenantAdmin) | لا | مكتمل | SCN-TENANTADMIN-001 |
-| `/accounting/journal/new` | زر ترحيل قيد يومية | `/api/accounting/journal` | POST | نعم | نعم | نعم (Accountant) | نعم (فحص القفل المالي) | مكتمل | SCN-ACCOUNTING-001 |
-| `/sales/orders` | زر اعتماد وإرسال فاتورة | `/api/sales/orders` | POST | نعم | نعم | نعم (Sales User) | نعم (ترحيل مالي تلقائي) | مكتمل | SCN-SALES-001 |
-| `/purchases/orders` | زر تأكيد ومطابقة GR/IR | `/api/purchases/matching` | POST | نعم | نعم | نعم (Purchases User)| نعم (مطابقة الأسعار) | مكتمل | SCN-PURCHASES-001 |
-| `/inventory` | زر تسوية جرد المستودع | `/api/stock/adjustments` | POST | نعم | نعم | نعم (Inventory User)| نعم (القيود التلقائية) | مكتمل | SCN-INVENTORY-001 |
-| `/treasury/petty-cash` | زر صرف عهدة نقدية | `/api/treasury/petty-cash` | POST | نعم | نعم | نعم (Treasury User)| نعم (حسابات الصندوق) | مكتمل | SCN-TREASURY-001 |
-| `/pos` | زر إتمام البيع السريع | `/api/pos/checkout` | POST | نعم | نعم | نعم (Cashier User) | نعم (قيد مبيعات POS) | مكتمل | SCN-POS-001 |
-| `/hr/leaves` | نموذج تقديم طلب إجازة | `/api/hr/leaves` | POST | نعم | نعم | نعم (Employee) | لا | مكتمل | SCN-HR-001 |
-| `/payroll` | زر تشغيل الرواتب وإصدار WPS | `/api/payroll` | POST | نعم | نعم | نعم (Payroll User) | نعم (قيد الاستحقاق) | مكتمل | SCN-PAYROLL-001 |
-| `/crm/leads` | زر تحويل العميل المحتمل | `/api/crm/leads/[id]/convert` | POST | نعم | نعم | نعم (CRM User) | لا | مكتمل | SCN-CRM-001 |
-| `/enterprise/projects` | زر حفظ لقطة أداء المشروع | `/api/enterprise/projects` | POST | نعم | نعم | نعم (Project Manager)| لا | مكتمل | SCN-PROJECTS-001 |
-| `/manufacturing/boms` | زر اعتماد شجرة التصنيع | `/api/manufacturing/boms` | POST | نعم | نعم | نعم (Manufacturing) | نعم (التكلفة المعيارية) | مكتمل | SCN-MANUFACTURING-001 |
-| `/pharmacy` | نموذج استعلام تداخل أدوية | `/api/pharmacy/drug-interact` | POST | نعم | نعم | نعم (Pharmacy User) | لا | مكتمل | SCN-PHARMACY-001 |
-| `/enterprise/wms` | زر تحويل البضائع للرفوف | `/api/enterprise/wms` | POST | نعم | نعم | نعم (Warehouse User) | لا | مكتمل | SCN-WMS-001 |
-| `/reports/cashflow` | زر استعلام الأرصدة المالية | `/api/accounting/trial-balance` | GET | نعم | نعم | نعم (Accountant) | نعم (قفل الفحص للتقارير) | مكتمل | SCN-REPORTS-001 |
-| `/ai/bank-fraud` | زر فحص الأنماط الاحتيالية | `/api/ai/bank-fraud` | POST | نعم | نعم | نعم (Audit Role) | لا | مكتمل | SCN-AI-001 |
-| `/settings/custom-fields`| زر حفظ الحقل المخصص | `/api/settings/custom-fields` | POST | نعم | نعم | نعم (TenantAdmin) | لا | مكتمل | SCN-SETTINGS-001 |
-| `/support/help-desk` | زر إرسال تذكرة فنية | `/api/crm/tickets` | POST | نعم | نعم | نعم (Active User) | لا | مكتمل | SCN-SUPPORT-001 |
-| `/desktop/verify-license`| زر تفعيل الرخصة محلياً | `/api/desktop/verify-license` | POST | نعم | نعم | نعم (Active User) | لا | مكتمل | SCN-DESKTOP-001 |
+| Page | Element/Form | Frontend File | API Route | API File | Method | Payload Match | Response Match | Auth | RBAC | Tenant | Financial Guard | Status | Missing |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| /sign-up | نموذج التسجيل | src/app/sign-up/page.tsx | /api/auth/sign-up | src/app/api/auth/sign-up/route.ts | POST | نعم (بريد، كلمة مرور) | نعم (معلومات المستخدم) | لا | لا | لا | لا | مكتمل | لا يوجد |
+| /company-setup | زر بدء التأسيس | src/app/company-setup/page.tsx | /api/tenant/provision | src/app/api/tenant/provision/route.ts | POST | نعم (معلومات الشركة) | نعم (بيانات المستأجر والـ DB) | نعم | لا | نعم (إنشاء) | لا | مكتمل | لا يوجد |
+| /login | نموذج الدخول | src/app/login/page.tsx | /api/auth/login | src/app/api/auth/login/route.ts | POST | نعم (بريد، كلمة مرور) | نعم (توكن الجلسة) | لا | لا | لا | لا | مكتمل | لا يوجد |
+| /admin/siem | لوحة مراقبة الأمان | src/app/(dashboard)/admin/siem/page.tsx | /api/admin/audit-logs | src/app/api/admin/audit-logs/route.ts | GET | لا | نعم (سجلات الدخول) | نعم | SuperAdmin | لا (ماستر) | لا | مكتمل | لا يوجد |
+| /settings/roles | زر حفظ الدور والصلاحية | src/app/(dashboard)/settings/roles/page.tsx | /api/settings/roles | src/app/api/settings/roles/route.ts | POST | نعم (اسم الدور، الصلاحيات) | نعم (تأكيد الحفظ) | نعم | TenantAdmin | نعم | لا | مكتمل | لا يوجد |
+| /accounting/journal/new | زر ترحيل قيد يومية | src/app/(dashboard)/accounting/journal/new/page.tsx | /api/accounting/journal | src/app/api/accounting/journal/route.ts | POST | نعم (أطراف القيد، المبالغ) | نعم (رقم القيد وحالته) | نعم | Accountant | نعم | نعم (فحص القفل المالي) | مكتمل | لا يوجد |
+| /sales/orders | زر اعتماد وإرسال فاتورة | src/app/(dashboard)/sales/orders/page.tsx | /api/sales/orders | src/app/api/sales/orders/route.ts | POST | نعم (تفاصيل الطلب والعميل) | نعم (بيانات فاتورة زكاة والـ QR) | نعم | Sales User | نعم | نعم (ترحيل تلقائي) | مكتمل | لا يوجد |
+| /purchases/orders | زر تأكيد ومطابقة GR/IR | src/app/(dashboard)/purchases/orders/page.tsx | /api/purchases/matching | src/app/api/purchases/matching/route.ts | POST | نعم (أمر الشراء، إيصال المخزن) | نعم (تأكيد المطابقة) | نعم | Purchases User | نعم | نعم (مطابقة الأسعار) | مكتمل | لا يوجد |
+| /inventory | زر تسوية جرد المستودع | src/app/(dashboard)/inventory/page.tsx | /api/stock/adjustments | src/app/api/stock/adjustments/route.ts | POST | نعم (الكميات الفعلية والتسوية) | نعم (قيد التسوية المخزنية) | نعم | Inventory User | نعم | نعم (القيود التلقائية) | مكتمل | لا يوجد |
+| /treasury/petty-cash | زر صرف عهدة نقدية | src/app/(dashboard)/treasury/petty-cash/page.tsx | /api/treasury/petty-cash | src/app/api/treasury/petty-cash/route.ts | POST | نعم (معلومات الصرف والمستلم) | نعم (تأكيد الصرف) | نعم | Treasury User | نعم | نعم (حسابات الصندوق) | مكتمل | لا يوجد |
+| /pos | زر إتمام البيع السريع | src/app/(dashboard)/pos/page.tsx | /api/pos/checkout | src/app/api/pos/checkout/route.ts | POST | نعم (المنتجات، وسيلة الدفع) | نعم (الفاتورة المبسطة والـ QR) | نعم | Cashier User | نعم | نعم (قيد مبيعات POS) | مكتمل | لا يوجد |
+| /hr/leaves | نموذج تقديم طلب إجازة | src/app/(dashboard)/hr/leaves/page.tsx | /api/hr/leaves | src/app/api/hr/leaves/route.ts | POST | نعم (التاريخ، نوع الإجازة) | نعم (تأكيد الطلب) | نعم | Employee | نعم | لا | مكتمل | لا يوجد |
+| /payroll | زر تشغيل الرواتب وإصدار WPS | src/app/(dashboard)/payroll/page.tsx | /api/payroll | src/app/api/payroll/route.ts | POST | نعم (الشهر، قائمة الموظفين) | نعم (توليد ملف WPS) | نعم | Payroll User | نعم | نعم (قيد الاستحقاق) | مكتمل | لا يوجد |
+| /crm/leads | زر تحويل العميل المحتمل | src/app/(dashboard)/crm/leads/page.tsx | /api/crm/leads/[id]/convert | src/app/api/crm/leads/[id]/convert/route.ts | POST | نعم (معلومات التحويل) | نعم (إنشاء ملف عميل) | نعم | CRM User | نعم | لا | مكتمل | لا يوجد |
+| /enterprise/projects | زر حفظ لقطة أداء المشروع | src/app/(dashboard)/enterprise/projects/page.tsx | /api/enterprise/projects | src/app/api/enterprise/projects/route.ts | POST | نعم (بيانات التقدم المالي والتنفيذي) | نعم (تأكيد التسجيل واللقطة) | نعم | Project Manager | نعم | لا | مكتمل | لا يوجد |
+| /manufacturing/boms | زر اعتماد شجرة التصنيع | src/app/(dashboard)/manufacturing/boms/page.tsx | /api/manufacturing/boms | src/app/api/manufacturing/boms/route.ts | POST | نعم (المكونات والمراحل) | نعم (تأكيد الاعتماد والـ BOM) | نعم | Manufacturing | نعم | نعم (التكلفة المعيارية) | مكتمل | لا يوجد |
+| /pharmacy | نموذج استعلام تداخل أدوية | src/app/(dashboard)/pharmacy/page.tsx | /api/pharmacy/drug-interact | src/app/api/pharmacy/drug-interact/route.ts | POST | نعم (الأدوية المحددة) | نعم (تقرير التداخلات والتنبيهات) | نعم | Pharmacy User | نعم | لا | مكتمل | لا يوجد |
+| /enterprise/wms | زر تحويل البضائع للرفوف | src/app/(dashboard)/enterprise/wms/page.tsx | /api/enterprise/wms | src/app/api/enterprise/wms/route.ts | POST | نعم (موقع الرف، كمية الصنف) | نعم (تحديث المخازن الفرعية) | نعم | Warehouse User | نعم | لا | مكتمل | لا يوجد |
+| /reports/cashflow | زر استعلام الأرصدة المالية | src/app/(dashboard)/reports/cashflow/page.tsx | /api/accounting/trial-balance | src/app/api/accounting/trial-balance/route.ts | GET | نعم (تحديد التواريخ والحسابات) | نعم (ميزان المراجعة) | نعم | Accountant | نعم | نعم (فحص القفل المالي) | مكتمل | لا يوجد |
+| /ai/bank-fraud | زر فحص الأنماط الاحتيالية | src/app/(dashboard)/ai/bank-fraud/page.tsx | /api/ai/bank-fraud | src/app/api/ai/bank-fraud/route.ts | POST | نعم (قائمة المعاملات البنكية) | نعم (التحليل الاحتيالي والنتيجة) | نعم | Audit Role | نعم | لا | مكتمل | لا يوجد |
+| /settings/custom-fields | زر حفظ الحقل المخصص | src/app/(dashboard)/settings/custom-fields/page.tsx | /api/settings/custom-fields | src/app/api/settings/custom-fields/route.ts | POST | نعم (تعريف الحقول ونوع البيانات) | نعم (حفظ التكوين والتهيئة) | نعم | TenantAdmin | نعم | لا | مكتمل | لا يوجد |
+| /support/help-desk | زر إرسال تذكرة فنية | src/app/(dashboard)/support/help-desk/page.tsx | /api/crm/tickets | src/app/api/crm/tickets/route.ts | POST | نعم (موضوع الشكوى، التفاصيل) | نعم (رقم التذكرة وتأكيد الفتح) | نعم | Active User | نعم | لا | مكتمل | لا يوجد |
+| /desktop/verify-license | زر تفعيل الرخصة محلياً | src/app/(dashboard)/desktop/verify-license/page.tsx | /api/desktop/verify-license | src/app/api/desktop/verify-license/route.ts | POST | نعم (مفتاح الترخيص) | نعم (صلاحية وحالة التفعيل) | نعم | Active User | نعم | لا | مكتمل | لا يوجد |
 
 ---
 
