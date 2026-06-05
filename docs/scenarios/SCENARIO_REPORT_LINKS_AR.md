@@ -10,7 +10,7 @@
 | SCN-SUPERADMIN-001 | /admin/siem | تصدير سجلات SIEM | None | None | DEFERRED | توفير حساب SuperAdmin للاختبار |
 | SCN-TENANTADMIN-001 | /settings/roles | حفظ الدور والصلاحية | e2e/mocked-settings-rbac.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-ACCOUNTING-001 | /accounting/journal/new | ترحيل القيد المحاسبي | e2e/financial-dryrun-protection.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
-| SCN-SALES-001 | /sales/orders | إصدار واعتماد الفاتورة | e2e/mocked-sales-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-SALES-001 | /sales/orders | إصدار واعتماد الفاتورة | tests/integration/zatca-full-flow.test.ts | tmp/zatca-phase2-verification-report.md | AUTOMATED | لا يوجد |
 | SCN-PURCHASES-001 | /purchases/orders | مطابقة وأرشفة GR/IR | e2e/mocked-purchases-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-INVENTORY-001 | /inventory | تسوية جرد المستودع | e2e/mocked-inventory-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |
 | SCN-TREASURY-001 | /treasury/petty-cash | تأكيد المطابقة البنكية | e2e/mocked-treasury-mutations.spec.ts | tmp/full-system-safe-testing-report.md | AUTOMATED | لا يوجد |

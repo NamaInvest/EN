@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import QRCode from 'qrcode';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -17,14 +19,17 @@ function getTLV(tag: number, value: string): Buffer {
     return Buffer.concat([tagBuffer, lengthBuffer, valueBuffer]);
 }
 
-
 const _POSTSchema = z.object({
   invoiceId: z.union([z.string(), z.number()]).optional(),
 }).passthrough();
 
 async function _POST(req: NextRequest) {
-
+    const prisma = getPrisma(req as any);
     try {
+        const auth = getUserFromRequest(req as any);
+        if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+        const tenantId = requireTenantId(req as any);
+
         const body = await req.json();
 
         const _parsed = _POSTSchema.safeParse(body);
@@ -33,17 +38,17 @@ async function _POST(req: NextRequest) {
         }
         const { invoiceId } = body;
 
-        const invoice = await prisma.salesInvoice.findUnique({
-            where: { id: Number(invoiceId) },
+        const invoice = await prisma.salesInvoice.findFirst({
+            where: { id: Number(invoiceId), tenantId },
             include: { customer: true }
         });
 
         if (!invoice) throw new Error('Invoice not found');
 
         const settingsRaw = await prisma.setting.findMany({ take: 100,
-            where: { key: { startsWith: 'zatca_' } }
+            where: { key: { startsWith: 'zatca_' }, tenantId }
         });
-        const taxNumberSetting = await prisma.setting.findUnique({ where: { key: 'tax_number' } });
+        const taxNumberSetting = await prisma.setting.findFirst({ where: { key: 'tax_number', tenantId } });
 
         const s = settingsRaw.reduce((acc: any, curr: any) => {
             acc[curr.key] = curr.value;
@@ -82,7 +87,7 @@ async function _POST(req: NextRequest) {
 
         // Save QR to DB
         await prisma.salesInvoice.update({
-            where: { id: invoice.id },
+            where: { id: invoice.id, tenantId },
             data: { 
                 zatcaQr: qrDataUrl, 
                 zatcaStatus: isPhase2 ? 'REPORTED' : 'PHASE_1_QR' 
@@ -91,6 +96,7 @@ async function _POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, qrDataUrl, phase: isPhase2 ? 2 : 1 });
     } catch (error: any) {
+        log.error('ZATCA QR generate error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

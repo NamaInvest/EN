@@ -1,11 +1,8 @@
-/**
- * ZATCA XML Download API
- * GET /api/zatca/xml?invoiceId=13
- * Downloads the signed ZATCA XML for a specific sales invoice
- */
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { getUserFromRequest } from '@/lib/auth';
+import { requireTenantId } from '@/lib/tenant/tenant-guard';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -18,6 +15,10 @@ const GETQuerySchema = z.object({
 async function _GET(request: NextRequest) {
   const prisma = getPrisma(request);
   try {
+    const auth = getUserFromRequest(request as any);
+    if (!auth) return NextResponse.json({ error: 'غير مصرح' }, { status: 403 });
+    const tenantId = requireTenantId(request as any);
+
     const params = Object.fromEntries(request.nextUrl.searchParams);
     const parsed = GETQuerySchema.safeParse(params);
     if (!parsed.success) {
@@ -28,8 +29,8 @@ async function _GET(request: NextRequest) {
     }
 
     const { invoiceId } = parsed.data;
-    const invoice = await prisma.salesInvoice.findUnique({
-      where: { id: parseInt(invoiceId) },
+    const invoice = await prisma.salesInvoice.findFirst({
+      where: { id: parseInt(invoiceId), tenantId },
       select: { id: true, invoiceNo: true, zatcaXml: true, zatcaStatus: true },
     });
 

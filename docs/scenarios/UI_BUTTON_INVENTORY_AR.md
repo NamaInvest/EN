@@ -9,6 +9,10 @@
 | المحاسبة | /accounting/period-lock | قفل الفترة المالية المحاسبية | Button | POST /api/accounting/period-lock | إغلاق الفترة ومنع أي تعديل أو كتابة قيود فيها | خطر حرج (قفل نظام) | SCN-ACCOUNTING-001 | مكتمل | لا يوجد |
 | المبيعات | /sales/orders | إصدار واعتماد الفاتورة | Button | POST /api/sales/orders | ترحيل الفاتورة للزكاة واعتمادها رسمياً | خطر (فاتورة زكاة) | SCN-SALES-001 | مكتمل | لا يوجد |
 | المبيعات | /sales/orders | طباعة الفاتورة | Button | GET /api/sales/orders/generate-pdf | توليد ملف PDF للفاتورة وعرضه للطباعة | آمن (عرض فقط) | SCN-SALES-001 | مكتمل | لا يوجد |
+| الإعدادات | /settings/zatca | توليد شهادة CSR والربط | Button | POST /api/zatca | إنشاء طلب شهادة CSR والربط التجريبي | خطر متوسط | SCN-SALES-001 | مكتمل | لا يوجد |
+| الإعدادات | /settings/zatca | تحديث شهادة وحفظ الإعدادات | Button | POST /api/zatca/qr | تحديث شهادات ZATCA وحفظ بيانات الربط | خطر متوسط | SCN-SALES-001 | مكتمل | لا يوجد |
+| الإعدادات | /settings/zatca | فحص امتثال XML | Button | POST /api/zatca/xml | توليد وفحص ملف UBL XML للفاتورة | آمن | SCN-SALES-001 | مكتمل | لا يوجد |
+| الإعدادات | /settings/zatca | تشغيل فحص Sandbox | Button | POST /api/zatca/test | تشغيل اختبار الامتثال التجريبي الآمن | آمن | SCN-SALES-001 | مكتمل | لا يوجد |
 | المشتريات | /purchases/orders | مطابقة وأرشفة GR/IR | Button | POST /api/purchases/matching | مطابقة إيصالات المخازن وفواتير الموردين | خطر متوسط | SCN-PURCHASES-001 | مكتمل | لا يوجد |
 | المشتريات | /purchases/orders | موافقة وتدشين أمر شراء | Button | POST /api/purchases/orders | اعتماد أمر الشراء وإرساله للمورد | خطر متوسط | SCN-PURCHASES-001 | مكتمل | لا يوجد |
 | المخزون | /inventory | اعتماد تسوية كميات الجرد | Button | POST /api/stock/adjustments | حفظ الفروقات وتعديل كميات المخازن الفعلية | خطر (كتابة مخزنية) | SCN-INVENTORY-001 | مكتمل | لا يوجد |

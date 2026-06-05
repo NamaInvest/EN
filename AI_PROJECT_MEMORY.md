@@ -574,3 +574,20 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Runtime Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), targeted tests e2e/mocked-ai-rag-mutations.spec.ts 3/3 PASS.
 * **Next Recommended Phase**: Local Integration Testing & Hardening of HR/WPS Modules.
 
+### Phase: ZATCA Phase 2 Integration, Onboarding & Compliance Verification (2026-06-05)
+* **Status**: `LOCAL_IMPLEMENTATION_COMPLETED`
+* **Scope**: Refactor and secure ZATCA Phase 2 endpoints to enforce strict tenant isolation and authentication/authorization checks, and disable external API and CLI subprocess execution in local mode:
+  - Enforced strict session validation and admin-role checks in `api/zatca/route.ts`.
+  - Swapped global `prisma` calls in all ZATCA endpoints to use current tenant context database instances.
+  - Applied strict `tenantId` filtering on settings queries, invoice queries, and cryptographic stamp updates in `api/zatca/route.ts`, `api/zatca/qr/route.ts`, and `api/zatca/xml/route.ts` to prevent cross-tenant leakage.
+  - Disabled external Sandbox ZATCA API calls and `fatoora` shell subprocess executions in `api/zatca/test/route.ts`, replacing them with secure mocked compliance data for dry-run verification.
+* **Files Modified**:
+  - `src/app/api/zatca/route.ts`
+  - `src/app/api/zatca/qr/route.ts`
+  - `src/app/api/zatca/xml/route.ts`
+  - `src/app/api/zatca/test/route.ts`
+* **Database / Prisma Schema**: Unchanged.
+* **Runtime Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Jest Integration tests `tests/integration/zatca-full-flow.test.ts` 13/13 PASS.
+* **Next Recommended Phase**: Production Deploy of stabilized runtime features (Analytical AI, HR WPS, ZATCA Phase 2).
+
+
