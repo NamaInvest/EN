@@ -1,49 +1,36 @@
-# تقرير تحليل الأثر البرمجي والتشغيلي (Impact Analysis Report) - Phase 4
+# تقرير تحليل الأثر للمرحلة القادمة (Next Business Phase Impact Analysis Report) - Phase 4
 
-## 1. الملفات المتوقع تعديلها (Files to be Modified)
-* **ملفات الكود (Runtime Code)**:
-  * [src/lib/approval-engine.ts](file:///d:/namasoft9-3-main/src/lib/approval-engine.ts): دعم استقبال عميل Prisma ممرر مباشرة في الـ constructor.
-  * [src/lib/workflow/saga/purchase-sagas.ts](file:///d:/namasoft9-3-main/src/lib/workflow/saga/purchase-sagas.ts): استدعاء محرك الموافقات لخطوات الـ PO Saga.
-  * [src/app/api/accounting/journal/route.ts](file:///d:/namasoft9-3-main/src/app/api/accounting/journal/route.ts): توجيه القيود المحاسبية اليدوية لمحرك الموافقات وتعديل الحالة الافتراضية.
-
-* **ملفات الاختبارات (New Test Files)**:
-  * `tests/unit/approval-engine.test.ts` (جديد): لاختبارات الوحدة لمحرك الموافقات.
-  * `tests/integration/procurement/purchase-approval.test.ts` (جديد): لاختبارات تدفق الشراء مع الموافقات.
-  * `tests/integration/accounting/journal-approval.test.ts` (جديد): لاختبارات قيود اليومية مع الموافقات.
+يقدم هذا التقرير تحليلاً شاملاً للأثر الفني والأمني والتشغيلي للمعدلات المخططة في نظام **Nama Invest ERP**.
 
 ---
 
-## 2. تقييم التأثير على الأنظمة والوظائف (Impact Matrix)
+## 1. مسح التغييرات والأثر المعماري (Impact Scope)
 
-* **تأثير وقت التشغيل (Runtime Impact)**:
-  * سيتغير سلوك إنشاء قيود اليومية اليدوية وأوامر الشراء. بدلاً من حفظها كـ `posted` فوراً، ستخضع لفحص القواعد. إذا انطبقت القواعد، ستتغير حالتها إلى `pending_approval` أو `pending` ولن تؤثر على أرصدة الحسابات إلا بعد الاعتماد النهائي وتغيير الحالة إلى `posted`.
-  * التغييرات متوافقة رجعياً 100% لأنها لا تغير سلوك الفواتير التلقائية أو الرواتب أو الإهلاك التي تنشأ آلياً بحالة `posted`.
-
-* **تأثير قاعدة البيانات والمخطط (Database / Schema Impact)**:
-  * **لا يوجد (DB_CHANGED: NO)**. جداول الموافقات والاعتمادات موجودة ومعدة مسبقاً في مخطط Prisma وقاعدة البيانات. لن نقوم بتشغيل أي migrations أو db push.
-
-* **التأثير المالي والأمني (Financial & Security Impact)**:
-  * تأثير إيجابي حاسم. يمنع التعديل مخاطر قيام موظفين بترحيل قيود مالية مغلوطة أو التزامات شراء ضخمة مباشرة دون موافقة الإدارة المالية والمدراء المعتمدين.
-
-* **أمن عزل المستأجرين (Tenant Isolation)**:
-  * خاضع للتأمين الكامل. يعتمد `ApprovalEngine` على `tenantId` المستخلص أمنياً من واجهة الطلبات والـ Middleware، ويتم مطابقة القواعد والخطوات وطلب الموافقات لكل شركة بشكل معزول فيزيائياً أو منطقياً.
-
-* **مخاطر تسريب الأسرار (Secrets Risk)**:
-  * **لا يوجد**. لن يتم لمس ملفات التكوين البيئي `.env` أو التعامل مع أسرار أو مفاتيح تشفير خاصة.
-
-* **مخاطر الامتثال الحساس (ZATCA/WPS/HR/AI Sensitive Risk)**:
-  * لا توجد أي مخاطر. الموافقات تتم محلياً وتاريخياً قبل أي محاولة تصدير ملفات WPS أو ZATCA XML، مما يضمن أمان الامتثال القانوني.
-
-* **أثر البناء والترميز (Build & TypeScript Impact)**:
-  * تغيير طفيف في التوقيع لا يؤثر على بناء الموديولات الأخرى. سيتم تشغيل فحوصات الجودة البرمجية والتأكد من نجاح `npm run build` و `npm run typecheck` بالكامل.
+- **الملفات المتوقع تعديلها (Expected Modified Files)**:
+  - `src/app/api/upload/route.ts`
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+- **هل سيتغير كود وقت التشغيل (Runtime Changed)**: **نعم (YES)**. سيتم إدخال تعديلات أمنية وتجاوبية في ملفات الـ route والـ pages المذكورة.
+- **تأثير قاعدة البيانات والمخطط (DB & Prisma Schema)**: **لا يوجد (NO)**. لن تتغير قاعدة البيانات أو مخطط Prisma نهائياً.
+- **إنشاء مهاجرات جديدة (Migrations Created)**: **لا يوجد (NO)**.
 
 ---
 
-## 3. استراتيجية التراجع الفوري (Rollback Strategy)
+## 2. مراجعة وتقييم المخاطر (Risk Assessment)
 
-في حال رصد أي مشكلة أو تراجع في بيئة التطوير المحلية أثناء الاختبارات:
-1. التراجع عن الملفات المعدلة:
-   ```bash
-   git checkout HEAD -- src/lib/approval-engine.ts src/lib/workflow/saga/purchase-sagas.ts src/app/api/accounting/journal/route.ts
-   ```
-2. حذف ملفات الاختبار المضافة لضمان رجوع المستودع للجاهزية ونظافته التامة.
+- **المخاطر المالية والمحاسبية (Financial Risk)**: **لا يوجد (NO)**. لا يمس التعديل أي معادلات محاسبية، أو قيود، أو عمليات جرد، أو حساب تكاليف.
+- **مخاطر عزل المستأجرين (Tenant Isolation Risk)**: **لا يوجد (NO)**. سيبقى سياق المستأجر مؤمناً ومحققاً كالسابق عبر Clerk و middleware.
+- **مخاطر تسريب الأسرار (Secrets Risk)**: **لا يوجد (NO)**. لن يتم كشف أي كلمات مرور أو مفاتيح، والملفات المرفوعة يتم التحقق من بايتاتها السحرية فقط.
+- **حساسية ZATCA أو حماية الأجور (ZATCA/WPS Sensitive Risk)**: **لا يوجد (NO)**. لا تؤثر هذه التعديلات على منطق الفوترة الإلكترونية أو ملفات الأجور.
+- **الأثر على البناء والتشغيل (Build & Performance Impact)**: خفيف جداً. فحص بايتات البافر السحرية سريع ومحسن ويعمل بضربة واحدة في الذاكرة دون إبطاء عمليات الرفع.
+
+---
+
+## 3. استراتيجية التراجع وحماية الإنتاج (Rollback Strategy)
+
+- **خطة التراجع (Rollback Plan)**:
+  - التراجع الفوري لملفات الكود المصدري باستخدام:
+    ```bash
+    git checkout -- src/app/api/upload/route.ts src/app/(dashboard)/pos/page.tsx src/app/(dashboard)/restaurant-pos/page.tsx
+    ```
+- **حماية الإنتاج (Production Safety)**: يمنع دمج أو نشر أي تعديل للإنتاج إلا بعد نجاح تجميع الواجهات التجاوبية محلياً ومرور كافة اختبارات الجودة (Typecheck & Build & Integration tests) بنسبة 100%.

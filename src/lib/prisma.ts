@@ -9,6 +9,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { AsyncLocalStorage } from 'async_hooks';
 import { applySoftDeleteMiddleware } from './prisma-soft-delete';
+import { applyAuditMiddleware } from './prisma-audit';
 import { logger } from '@/lib/logger';
 import {
   TENANT_ISOLATION_ERROR,
@@ -195,8 +196,6 @@ export function getClient(tenant: string, options: { read?: boolean } = {}) {
     });
 
     applySoftDeleteMiddleware(rawClient);
-
-    const { applyAuditMiddleware } = require('./prisma-audit');
     applyAuditMiddleware(rawClient);
 
     pool.set(poolKey, rawClient);

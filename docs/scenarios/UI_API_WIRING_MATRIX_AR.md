@@ -35,6 +35,7 @@
 | /settings/custom-fields | زر حفظ الحقل المخصص | src/app/(dashboard)/settings/custom-fields/page.tsx | /api/settings/custom-fields | src/app/api/settings/custom-fields/route.ts | POST | نعم (تعريف الحقول ونوع البيانات) | نعم (حفظ التكوين والتهيئة) | نعم | TenantAdmin | نعم | لا | مكتمل | لا يوجد |
 | /support/help-desk | زر إرسال تذكرة فنية | src/app/(dashboard)/support/help-desk/page.tsx | /api/crm/tickets | src/app/api/crm/tickets/route.ts | POST | نعم (موضوع الشكوى، التفاصيل) | نعم (رقم التذكرة وتأكيد الفتح) | نعم | Active User | نعم | لا | مكتمل | لا يوجد |
 | /desktop/verify-license | زر تفعيل الرخصة محلياً | src/app/(dashboard)/desktop/verify-license/page.tsx | /api/desktop/verify-license | src/app/api/desktop/verify-license/route.ts | POST | نعم (مفتاح الترخيص) | نعم (صلاحية وحالة التفعيل) | نعم | Active User | نعم | لا | مكتمل | لا يوجد |
+| - | رفع الملفات بالـ DMS | - | /api/upload | src/app/api/upload/route.ts | POST | نعم (الملف الثنائي) | نعم (رابط الملف المرفوع) | نعم | Active User | نعم | نعم (التحقق من Magic Bytes وحجم الملف) | مكتمل | لا يوجد |
 
 ---
 

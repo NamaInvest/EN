@@ -26,6 +26,7 @@ export default function RestaurantPOS() {
     const [taxRate, setTaxRate] = useState(15);
     const { status: madaTermStatus, connect: connectMada, disconnect: disconnectMada, sendPayment: sendMadaPayment } = useMadaTerminal();
     const [cart, setCart] = useState<any[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const [showReturnsModal, setShowReturnsModal] = useState(false);
     const [completedInvoiceId, setCompletedInvoiceId] = useState<number | null>(null);
 
@@ -594,7 +595,7 @@ export default function RestaurantPOS() {
         <div className="flex h-[calc(100vh-4rem)] bg-[#F9FAFB] text-slate-800 overflow-hidden font-sans selection:bg-orange-500/30 relative" dir="rtl">
             
             {/* LEFT CATEGORIES PANEL (Light Minimalist) */}
-            <div className="w-28 bg-white border-l border-slate-200 flex flex-col items-center py-6 gap-3 z-10 shrink-0 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
+            <div className="hidden md:flex w-28 bg-white border-l border-slate-200 flex-col items-center py-6 gap-3 z-10 shrink-0 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
                 <div className="text-3xl mb-4 font-black text-slate-800 tracking-tighter drop-shadow-sm">POS</div>
                 
                 <div className="flex-1 w-full overflow-y-auto hide-scrollbar flex flex-col gap-3 px-3">
@@ -622,8 +623,8 @@ export default function RestaurantPOS() {
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 
                 {/* HEADER */}
-                <div className="h-24 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 shadow-sm z-10">
-                    <div className="flex items-center gap-5">
+                <div className="min-h-[6rem] md:h-24 bg-white border-b border-slate-200 px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 shadow-sm z-10">
+                    <div className="flex items-center gap-5 w-full md:w-auto">
                         <Link href="/dashboard" className="flex items-center justify-center w-12 h-12 rounded-[1.25rem] bg-white text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-all border border-slate-200 shadow-sm hover:shadow-md">
                             <ArrowRight className="w-6 h-6" />
                         </Link>
@@ -636,15 +637,15 @@ export default function RestaurantPOS() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                        <div className="relative w-full sm:w-auto">
                             <Search className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input 
                                 type="text"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="ابحث عن منتج أو باركود..."
-                                className="w-80 pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all font-semibold shadow-inner"
+                                className="w-full sm:w-72 md:w-80 pl-4 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-[1.25rem] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all font-semibold shadow-inner"
                             />
                         </div>
                         
@@ -666,12 +667,28 @@ export default function RestaurantPOS() {
                             </div>
                         )}
 
-                        <button onClick={() => { if(typeof setShowCustomerModal !== 'undefined') setShowCustomerModal(true); }} className="flex items-center justify-center px-5 h-12 gap-2 rounded-[1.25rem] bg-white text-slate-600 hover:text-orange-500 hover:bg-orange-50 hover:border-orange-200 border border-slate-200 shadow-sm transition-all font-bold">
+                        <button onClick={() => { if(typeof setShowCustomerModal !== 'undefined') setShowCustomerModal(true); }} className="flex items-center justify-center px-5 h-12 gap-2 rounded-[1.25rem] bg-white text-slate-600 hover:text-orange-500 hover:bg-orange-50 hover:border-orange-200 border border-slate-200 shadow-sm transition-all font-bold w-full sm:w-auto">
                             <User className="w-5 h-5" />
                             {typeof selectedCustomer !== 'undefined' && selectedCustomer ? selectedCustomer.name : 'عميل نقدي'}
                         </button>
 
                     </div>
+                </div>
+
+                {/* MOBILE CATEGORIES ROW (Horizontal Scrollable) */}
+                <div className="md:hidden flex gap-2 overflow-x-auto p-4 bg-white border-b border-slate-200 shrink-0 scrollbar-none">
+                    {categories.map((cat: any) => {
+                        const isActive = activeCategory === cat.id || activeCategory === cat.name;
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveCategory(cat.id === t('pos.all') ? t('sys.str_4068') : cat.id)}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${isActive ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                            >
+                                {cat.name}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* GRID OR TABLES */}
@@ -781,7 +798,7 @@ export default function RestaurantPOS() {
             </div>
 
             {/* RIGHT SIDEBAR - CART (Light Minimalist) */}
-            <div className="w-[440px] bg-white border-r border-slate-200 flex flex-col z-20 shrink-0 shadow-[-10px_0_40px_rgba(0,0,0,0.03)] relative">
+            <div className="hidden xl:flex w-[440px] bg-white border-r border-slate-200 flex flex-col z-20 shrink-0 shadow-[-10px_0_40px_rgba(0,0,0,0.03)] relative">
                 
                 {/* Cart Header */}
                 <div className="p-8 pb-6 border-b border-slate-100 flex items-center justify-between bg-white">
@@ -818,7 +835,7 @@ export default function RestaurantPOS() {
                                 </div>
                                 <div className="flex-1 flex flex-col justify-center gap-3">
                                     <div className="flex justify-between items-start">
-                                        <h4 className="font-extrabold text-slate-800 text-sm leading-snug line-clamp-2 pr-2">{item.name}</h4>
+                                        <h4 className="font-extrabold text-slate-800 text-base leading-snug line-clamp-2 pr-2 break-words text-wrap">{item.name}</h4>
                                         <span className="font-black text-orange-500 whitespace-nowrap bg-orange-50/50 border border-orange-100 px-2 py-1 rounded-lg text-sm">{item.price} ر.س</span>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -882,6 +899,116 @@ export default function RestaurantPOS() {
 
                 </div>
             </div>
+
+            {/* FLOATING CART BUTTON FOR MOBILE */}
+            <div className="xl:hidden fixed bottom-6 left-6 z-30">
+                <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-orange-500/40 hover:bg-orange-600 transition-all border-4 border-white relative"
+                >
+                    <ShoppingCart className="w-6 h-6" />
+                    {cart.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-white animate-bounce">
+                            {cart.reduce((sum, item) => sum + item.qty, 0)}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* MOBILE CART OVERLAY DRAWER */}
+            {isCartOpen && (
+                <div className="xl:hidden fixed inset-0 bg-slate-900/50 z-40 flex justify-end animate-in fade-in duration-300" onClick={() => setIsCartOpen(false)}>
+                    <div className="w-[400px] max-w-[90%] bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-[1rem] bg-sky-50 text-sky-500 flex items-center justify-center border border-sky-100 shadow-sm">
+                                    <ShoppingCart className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-extrabold text-slate-800 leading-none mb-1">الطلب الحالي</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">#{typeof activeTable !== 'undefined' && activeTable ? activeTable.name : 'NEW ORDER'}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setCart([])} className="w-10 h-10 flex items-center justify-center text-red-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => setIsCartOpen(false)} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all border border-slate-200">
+                                    <XIcon className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-50/30">
+                            {cart.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
+                                    <ShoppingCart className="w-16 h-16 mb-2" />
+                                    <p className="font-extrabold text-lg">السلة فارغة</p>
+                                </div>
+                            ) : (
+                                cart.map((item: any) => (
+                                    <div key={item.id} className="flex gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-all">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                                            {item.image ? (
+                                                <img src={item.image} className="w-9 h-9 object-contain mix-blend-multiply" />
+                                            ) : (
+                                                <Grid className="w-5 h-5 text-slate-300" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 flex flex-col justify-center gap-2">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-slate-800 text-xs leading-snug line-clamp-2 pr-2 break-words text-wrap">{item.name}</h4>
+                                                <span className="font-extrabold text-orange-500 whitespace-nowrap bg-orange-50/50 border border-orange-100 px-2 py-0.5 rounded text-xs">{item.price} ر.س</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200">
+                                                    <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded bg-white text-slate-600 shadow-sm flex items-center justify-center hover:text-orange-500 border border-slate-100 transition-colors">
+                                                        <Minus className="w-3 h-3" />
+                                                    </button>
+                                                    <span className="w-6 text-center font-bold text-slate-800 text-xs">{item.qty}</span>
+                                                    <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded bg-white text-slate-600 shadow-sm flex items-center justify-center hover:text-orange-500 border border-slate-100 transition-colors">
+                                                        <Plus className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                                <span className="font-bold text-slate-800 text-sm">
+                                                    {(item.price * item.qty).toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="p-6 bg-white border-t border-slate-200 flex flex-col gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-slate-500 font-bold text-xs">
+                                    <span>المجموع الفرعي</span>
+                                    <span>{displaySubtotal.toFixed(2)} ر.س</span>
+                                </div>
+                                <div className="flex justify-between text-slate-500 font-bold text-xs">
+                                    <span>الضريبة (15%)</span>
+                                    <span>{tax.toFixed(2)} ر.س</span>
+                                </div>
+                                <div className="h-px w-full bg-slate-100 my-1"></div>
+                                <div className="flex justify-between items-end">
+                                    <span className="text-sm font-bold text-slate-800 mb-1">الإجمالي</span>
+                                    <span className="text-2xl font-black text-orange-500 tracking-tight">{finalTotal.toFixed(2)} <span className="text-sm font-bold">ر.س</span></span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CARD'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#0EA5E9] hover:bg-[#0284C7] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm">
+                                    <CreditCard className="w-4 h-4" /> بطاقة (F2)
+                                </button>
+                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CASH'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm">
+                                    <Banknote className="w-4 h-4" /> نقد
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* MODALS INJECTED HERE (Using light minimalist style) */}
             {typeof showCustomerModal !== 'undefined' && showCustomerModal && (

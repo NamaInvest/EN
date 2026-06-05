@@ -9,6 +9,34 @@ import { logger } from '@/lib/logger';
 
 const log = logger.child({ service: 'upload' });
 
+function checkMagicBytes(buffer: Buffer): string | null {
+    if (buffer.length < 4) return null;
+    
+    // PNG: 89 50 4E 47
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+        return 'image/png';
+    }
+    
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+        return 'image/jpeg';
+    }
+    
+    // GIF: 47 49 46 38
+    if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
+        return 'image/gif';
+    }
+    
+    // WEBP: RIFF at 0 and WEBP at 8
+    if (buffer.length >= 12 &&
+        buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+        buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+        return 'image/webp';
+    }
+    
+    return null;
+}
+
 async function _POST(req: NextRequest) {
     try {
         const { userId } = await auth();
@@ -46,6 +74,16 @@ async function _POST(req: NextRequest) {
         // Write file
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+
+        // Validate Magic Bytes to prevent MIME spoofing
+        const detectedType = checkMagicBytes(buffer);
+        if (!detectedType || !allowedTypes.includes(detectedType)) {
+            return NextResponse.json({ error: 'نوع الملف الفعلي غير مدعوم أو غير متطابق مع الامتداد' }, { status: 400 });
+        }
+        if (detectedType !== file.type) {
+            return NextResponse.json({ error: 'نوع ترويسة الملف لا يطابق البايتات السحرية للملف' }, { status: 400 });
+        }
+
         const filePath = path.join(uploadsDir, filename);
         await writeFile(filePath, buffer);
 

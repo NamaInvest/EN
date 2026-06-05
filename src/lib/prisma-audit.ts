@@ -13,7 +13,6 @@
 
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
-import { currentRequestStore, tenantContext } from './prisma';
 import { getRequestContext } from '@/lib/observability/request-context';
 
 const log = logger.child({ service: 'prisma-audit' });
@@ -57,7 +56,18 @@ export function applyAuditMiddleware(prisma: any) {
 
         // 3. استخراج معلومات المستأجر (Tenant) من السياق الموحد أو البيئة
         const reqContext = getRequestContext();
-        const tenantId = reqContext?.tenantId || tenantContext.getStore() || currentRequestStore.getStore() || 'default';
+        let tenantId = reqContext?.tenantId;
+        if (!tenantId) {
+            try {
+                const prismaModule = require('./prisma');
+                tenantId = prismaModule.tenantContext?.getStore() || prismaModule.currentRequestStore?.getStore();
+            } catch {
+                // ignore
+            }
+        }
+        if (!tenantId) {
+            tenantId = 'default';
+        }
 
         // 4. استخراج معرف المستخدم (UserId) من السياق أو المعاملة
         let userId: number | null = null;
