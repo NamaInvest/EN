@@ -641,8 +641,8 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Next Recommended Phase**: Go for next business phase discovery and planning.
 
 ### Phase: Concurrent Manufacturing Backflushing & Tenant Isolation Hardening (2026-06-05)
-* **Status**: `LOCAL_COMMITTED_AND_PUSHED`
-* **Commit**: `a799864d6e902b93dfa99bc3230a3f914d7a8f1b` (`a799864d`)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `9e672deb56120e5e0d144efc2251d1c900194724` (`9e672deb5`)
 * **Scope**: Enforce tenant isolation and idempotency in `MaterialIssuanceEngine` / `material-issuance.ts`:
   - Removed direct `PrismaClient` instantiation to prevent DB connection leakage, requiring shared `prisma` context parameter in all engine methods.
   - Hardened multi-tenant data isolation by requiring `tenantId` parameter in all engine methods and applying strict query filters on `ManufacturingOrder`, `Product`, `ProductStock`, `StockMovement`, and `ManufacturingCost` tables.
@@ -656,8 +656,13 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - `docs/testing/COVERAGE_BY_MODULE.md`
 * **Database / Prisma Schema**: Unchanged.
 * **Local Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (288 tests), Vitest unit tests `tests/material-issuance.test.ts` 6/6 PASS.
-* **Production Deployment & Verification**: Standby (Pending separate deployment approval).
-* **Next Recommended Phase**: Production deployment and PM2 restart.
+* **Production Deployment & Verification**:
+  - Synced server git repository with remote `origin/main` (`git fetch` + `git reset --hard`) and uploaded file (`src/lib/material-issuance.ts`) using `deploy.js` via RSA key `C:\Users\1\.ssh\hetzner_key` to all production directories (`namainvist.com`, `n1.namainvist.com`, `n11.namainvist.com`).
+  - Completed production builds successfully sequentially on all directories.
+  - Safely restarted all 3 PM2 apps (`main-site`, `n1-main`, `saas-app`) with 0 crashes or restart loops.
+  - Performed curl smoke tests verifying 200 OK for public domains and 401 Unauthorized for protected APIs (SIEM, settings/roles, auth/me).
+  - Inspected PM2 server logs confirming healthy startup, OpenTelemetry init, and BullMQ workers execution.
+* **Next Recommended Phase**: Go for next business phase discovery and planning.
 
 
 
