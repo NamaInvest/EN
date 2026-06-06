@@ -1,58 +1,22 @@
-# بوابة نشر تصفين التقارير للإنتاج (Next Business Phase Production Deploy Gate Report) - Phase 13
+# تقرير بوابة مراجعة نشر الإنتاج (Deploy Gate Review)
 
-يوثق هذا التقرير حالة الاستعداد والتحقق لبوابة النشر للإنتاج (Deploy Gate)، ويحدد خطة النشر وخطة التراجع الأمنية.
+- **FINAL_STATUS**: DEPLOY_GATE_READY
 
----
-
-## 1. جاهزية بيئة الإنتاج والتحقق المحلي (Production Readiness)
-
-- **الفرع البعيد المستهدف**: `origin/main`
-- **آخر التزام تم التحقق منه محلياً ودفع**: `926c2eb73e4a9eef167520e544c4146a482b528b`
-- **هل الكود يمر بـ typecheck والـ build محلياً؟**: نعم **PASS**
-- **هل تجتاز الاختبارات التكاملية؟**: نعم **PASS**
-- **حالة قاعدة البيانات**: لا تتطلب تغييرات في المخطط أو تشغيل مهاجرات.
-
----
-
-## 2. خطة النشر المقترحة (Proposed Deployment Plan)
-
-1. الاتصال بخادم الإنتاج VPS عبر SSH.
-2. سحب التعديلات من الفرع الرئيسي:
-   ```bash
-   git pull origin main
-   ```
-3. بناء المشروع الإنتاجي على الخادم:
-   ```bash
-   npm run build
-   ```
-4. إعادة تشغيل التطبيقات المشغلة بـ PM2:
-   ```bash
-   pm2 reload all
-   ```
-
----
-
-## 3. خطة التراجع السريع عند الطوارئ (Rollback Plan)
-
-في حال حدوث أية مشكلات تشغيلية أو توقف للخدمة بعد النشر، يتم تنفيذ التراجع فوراً كالتالي:
-
-1. العودة للالتزام المستقر السابق (`8d803f23736e4cba6a26438b5a9cd5cefbbecbb2`):
-   ```bash
-   git reset --hard 8d803f23736e4cba6a26438b5a9cd5cefbbecbb2
-   ```
-2. إعادة بناء نسخة المستودع:
-   ```bash
-   npm run build
-   ```
-3. إعادة تشغيل خدمات PM2:
-   ```bash
-   pm2 reload all
-   ```
-
----
-
-## 4. قرار سلامة البوابة (Gate Decision)
-
-تم فحص جاهزية النشر بنجاح وتوفير خطة التراجع. يرجى التوقف هنا وعدم البدء بالنشر الفعلي للإنتاج حتى صدور عبارة الموافقة المخصصة للنشر (`GO_FOR_NEXT_BUSINESS_PHASE_PRODUCTION_DEPLOY_ONLY`).
-
-**القرار**: **STOP_AND_WAIT_FOR_DEPLOY_APPROVAL**
+- **DEPLOYMENT_NECESSITY_DECISION**: PRODUCTION_DEPLOY_REQUIRED
+- **FILES_FOR_DEPLOY**:
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+  - `src/app/(dashboard)/sales/terminal/page.tsx`
+- **BUILD_REQUIRED**: YES (يتطلب بناء تجميع الإنتاج على خوادم الـ VPS)
+- **PM2_RELOAD_REQUIRED**: YES (يتطلب إعادة تحميل العمليات main-site, n1-main, saas-app)
+- **DB_CHANGED**: NO
+- **MIGRATIONS_REQUIRED**: NO
+- **PRISMA_DB_PUSH_REQUIRED**: NO
+- **ENV_CHANGED**: NO
+- **ROLLBACK_PLAN**: التراجع عن الالتزام عبر Git إلى النسخة السابقة وإعادة النشر والبناء.
+- **SMOKE_TEST_PLAN**: فحص تحميل شاشات نقاط البيع، والتحقق البصري من عمل شارة اتصال الطابعة، وتلقي إشعارات QZ Tray بالـ Tooltips المضافة حديثاً.
+- **LOG_OBSERVATION_PLAN**: مراقبة سجلات PM2 للتطبيقات الثلاثة بحثاً عن أي انهيارات.
+- **RISK_LEVEL**: LOW (تعديلات واجهة مستخدم فقط)
+- **GO_NO_GO**: GO (التحققات ناجحة وجاهز للنشر)
+- **NEXT_ACTION**: التوقف هنا بانتظار الموافقة الصريحة للنشر للإنتاج:
+  `GO_FOR_NEXT_BUSINESS_PHASE_PRODUCTION_DEPLOY_ONLY`

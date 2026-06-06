@@ -1,27 +1,18 @@
-# تقرير بوابة الدفع للمستودع (Next Business Phase Push Gate Report) - Phase 11 (Wave P3-C)
+# تقرير بوابة دفع الكود للمستودع (Push Gate Review)
 
-يوثق هذا التقرير الفحص الأخير والتأكيد الأمني قبل إرسال ودفع التغييرات إلى المستودع البعيد (Git Push).
+- **FINAL_STATUS**: PUSH_GATE_READY
 
----
-
-## 1. تفاصيل التغييرات المستهدفة بالدفع (Push Scope)
-
-- **الفرع الحالي**: `main`
-- **عدد الالتزامات المعلقة (Pending Commits)**: التزام واحد.
-- **التغييرات المعلقة (Diff Stat)**:
-  - تحديث كود واجهة API الدانينج لضمان استخدام المحرك V2 مع تمرير الـ Prisma Client المعزول.
-  - إعداد وتوسيع إعدادات Vitest لتغطية اختبارات محرك الدانينج V2.
-  - إضافة ملف اختبارات تكامل للتشغيل اليومي للدانينج.
-  - تحديث ذاكرة المشروع وفهرس التقارير.
-- **الملفات المستثناة والملفات غير المتتبعة**:
-  - لا توجد ملفات غير متتبعة أو مؤقتة حيوية، تم تنظيف وتصفية البيئة بنجاح.
-
----
-
-## 2. مراجعة الجودة والسرية (Quality & Security Checks)
-
-- **فحوصات البناء والتجميع (Prisma validate, Typecheck, Build)**: جميعها مسجلة بحالة **PASS** بنسبة 100%.
-- **الفحوصات الحية للإنتاج (Smoke & integration tests)**: جميعها **PASS** (نجاح 20/20 اختباراً تكاملياً وفردياً لمحرك الدانينج).
-- **فحص الأسرار والمتغيرات**: نظيف وآمن 100%.
-
-**القرار**: **PASS** - المباشرة بتشغيل أمر الدفع للمستودع البعيد `git push origin main`.
+- **LOCAL_HEAD**: 2cf2e60a90edff5d9c318f1d82a4d7dd9b3387d7
+- **ORIGIN_MAIN**: c8bcac1aab0121ceca82194f16029afdb59fc659
+- **COMMITS_AHEAD**: 1
+- **FILES_TO_PUSH**:
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+  - `src/app/(dashboard)/sales/terminal/page.tsx`
+  - `AI_PROJECT_MEMORY.md`
+  - `docs/REPORTS_INDEX_AR.md`
+  - التقارير المرافقة في `tmp/`
+- **SECRET_SCAN_RESULT**: ناجح (PASS) (لا توجد أسرار أو كلمات مرور)
+- **RISK_LEVEL**: LOW
+- **PUSH_RECOMMENDATION**: GO (جاهز للدفع للمستودع)
+- **NEXT_ACTION**: الانتقال إلى المرحلة العاشرة (Push Only).

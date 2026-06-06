@@ -825,4 +825,19 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - Deployed to Hetzner VPS (`main-site`, `n1-main`, `saas-app`) on 2026-06-06. Rebuilt and restarted via PM2. Verified online.
 * **Next Recommended Phase**: Proceed with next business gap closure in roadmap.
 
-
+### Phase: Multi-printer Polling Auto-recovery & Custom Tooltips (Wave P4-B) (2026-06-06)
+* **Status**: `DEVELOPED_AND_VERIFIED`
+* **Commit**: Awaiting commit
+* **Scope**: Implement auto-recovery polling and interactive custom tooltips for printer status indicators across all POS screens:
+  - Added a 30-second polling interval in `useEffect` in `pos/page.tsx`, `restaurant-pos/page.tsx`, and `sales/terminal/page.tsx` to automatically recheck QZ Tray status and update the UI badge.
+  - Wrapped the printer status indicator with a custom styled Tailwind/Glassmorphism tooltip (`relative group` with custom popup overlay) to explain printer connectivity to users.
+  - Animated the refresh icon (`animate-spin` on `RefreshCcw`) during verification status checks.
+* **Files Modified**:
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+  - `src/app/(dashboard)/sales/terminal/page.tsx`
+* **Database / Prisma Schema**: Unchanged.
+* **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), Prisma Validation PASS, Next.js Production Build PASS.
+* **Production Deployment & Verification**:
+  - Awaiting push to `origin/main` and production deploy approval.
+* **Next Recommended Phase**: Proceed with next business gap closure in roadmap.

@@ -56,9 +56,14 @@ export default function SalesPage() {
    }
  };
 
- useEffect(() => {
-   checkPrinter();
- }, []);
+  useEffect(() => {
+    checkPrinter();
+    // فحص دوري تلقائي كل 30 ثانية للتحقق المستمر وتحديث الحالة تلقائياً (QZ Tray Auto Recovery)
+    const interval = setInterval(() => {
+      checkPrinter();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
  const dispatchKitchenPrinters = async (invoice: any, cartItems: CartItem[]) => {
  try {
@@ -1027,18 +1032,31 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
  <OfflineBadge />
- <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', padding: '4px 8px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.08)' }}>
+ <div className="relative group cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', padding: '4px 8px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.08)' }}>
     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: printerStatus === 'connected' ? '#22c55e' : '#ef4444', display: 'inline-block' }}></span>
-    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+    <span className="select-none" style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
       {printerStatus === 'connected' ? 'طابعة متصلة' : printerStatus === 'checking' ? 'جاري فحص الطابعة...' : 'طابعة غير متصلة'}
     </span>
+     
+     {/* Tooltip المخصص لـ QZ Tray */}
+     <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-50 bg-slate-900 text-white text-[11px] p-2.5 rounded-lg shadow-xl border border-slate-700 w-64 transition-all duration-300" style={{ fontFamily: 'Inter, sans-serif', textDecoration: 'none', fontStyle: 'normal' }}>
+         <div className="font-bold mb-1" style={{ color: '#fff' }}>حالة اتصال الطابعة المحلية (QZ Tray)</div>
+         <p className="text-slate-300 leading-relaxed" style={{ margin: 0, color: '#cbd5e1' }}>
+             {printerStatus === 'connected' 
+               ? 'الاتصال نشط مع برنامج QZ Tray. جميع عمليات طباعة الفواتير جاهزة للعمل.' 
+               : printerStatus === 'checking' 
+               ? 'جاري فحص الاتصال بالمنفذ المحلي لبرنامج الطباعة...' 
+               : 'البرنامج غير متصل. تأكد من تشغيل تطبيق QZ Tray على جهاز الكمبيوتر الخاص بك، ثم انقر على زر التحديث لإعادة الفحص.'}
+         </p>
+         <div className="absolute -top-1 right-6 w-2.5 h-2.5 rotate-45 bg-slate-900 border-t border-l border-slate-700"></div>
+     </div>
     <button
       type="button"
       onClick={checkPrinter}
       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
       title="إعادة فحص الاتصال بالطابعة"
     >
-      <RefreshCcw className="w-3.5 h-3.5" />
+      <RefreshCcw className={`w-3.5 h-3.5 ${printerStatus === 'checking' ? 'animate-spin' : ''}`} />
     </button>
   </div>
  <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>

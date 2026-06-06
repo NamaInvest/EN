@@ -38,6 +38,11 @@ export default function RestaurantPOS() {
 
     useEffect(() => {
         checkPrinter();
+        // فحص دوري تلقائي كل 30 ثانية للتحقق المستمر وتحديث الحالة تلقائياً (QZ Tray Auto Recovery)
+        const interval = setInterval(() => {
+            checkPrinter();
+        }, 30000);
+        return () => clearInterval(interval);
     }, []);
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -654,18 +659,32 @@ export default function RestaurantPOS() {
                                     {isOffline ? 'وضع الأوفلاين' : 'متصل بالشبكة'}
                                 </div>
                                 <span className="text-slate-200">|</span>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 relative group cursor-pointer">
                                     <span className={`w-2 h-2 rounded-full ${printerStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500 animate-pulse'}`}></span>
-                                    <span>
+                                    <span className="select-none">
                                         {printerStatus === 'connected' ? 'طابعة متصلة' : printerStatus === 'checking' ? 'جاري فحص الطابعة...' : 'طابعة غير متصلة'}
                                     </span>
+                                    
+                                    {/* Tooltip المخصص لـ QZ Tray */}
+                                    <div className="absolute top-full right-0 mt-2 hidden group-hover:block z-50 bg-slate-900 text-white text-[11px] p-2.5 rounded-lg shadow-xl border border-slate-700 w-64 transition-all duration-300">
+                                        <div className="font-bold mb-1">حالة اتصال الطابعة المحلية (QZ Tray)</div>
+                                        <p className="text-slate-300 leading-relaxed">
+                                            {printerStatus === 'connected' 
+                                              ? 'الاتصال نشط مع برنامج QZ Tray. جميع عمليات طباعة الفواتير جاهزة للعمل.' 
+                                              : printerStatus === 'checking' 
+                                              ? 'جاري فحص الاتصال بالمنفذ المحلي لبرنامج الطباعة...' 
+                                              : 'البرنامج غير متصل. تأكد من تشغيل تطبيق QZ Tray على جهاز الكمبيوتر الخاص بك، ثم انقر على زر التحديث لإعادة الفحص.'}
+                                        </p>
+                                        <div className="absolute -top-1 right-6 w-2.5 h-2.5 rotate-45 bg-slate-900 border-t border-l border-slate-700"></div>
+                                    </div>
+
                                     <button
                                         type="button"
                                         onClick={checkPrinter}
                                         className="text-slate-400 hover:text-orange-500 transition-colors p-1"
                                         title="إعادة فحص الاتصال بالطابعة"
                                     >
-                                        <RefreshCcw className="w-3.5 h-3.5" />
+                                        <RefreshCcw className={`w-3.5 h-3.5 ${printerStatus === 'checking' ? 'animate-spin' : ''}`} />
                                     </button>
                                 </div>
                             </div>
