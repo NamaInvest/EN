@@ -764,5 +764,43 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Production Deployment & Verification**:
   - Synced server git repository with remote `origin/main` (`git pull origin main`).
   - No production build or PM2 reload required (NO_PRODUCTION_DEPLOY_REQUIRED) since only non-runtime documentation files were changed.
-* **Next Recommended Phase**: Go for next business phase discovery and planning (Wave P3-B E2E Staging and Load Testing execution).
+* **Next Recommended Phase**: E2E Staging Environment Setup & Playwright Wave 2 Write Tests (Wave P3-B).
 
+### Phase: E2E Staging Environment Setup & Playwright Wave 2 Write Tests (Wave P3-B) (2026-06-05)
+* **Status**: `PRODUCTION_PUSHED_AND_VERIFIED`
+* **Commit**: `80c76459bef501f2012dfc743df09a8dcab2691a` (`80c76459`)
+* **Scope**: Implement staging-safe E2E Playwright write tests for Sales (SCN-SALES-001), POS (SCN-POS-001), Purchases (SCN-PURCHASES-001), and Inventory (SCN-INVENTORY-001) using Playwright mock route interceptions:
+  - Created staging-safe E2E test for Goods Receipt Note (GRN) under `e2e/purchases/grn.staging.spec.ts`.
+  - Created staging-safe E2E test for Inventory Stocktake and Reconciliation under `e2e/inventory/stocktake.staging.spec.ts`.
+  - Updated scenario mappings inside `docs/scenarios/SCENARIO_REPORT_LINKS_AR.md` and reports index `docs/REPORTS_INDEX_AR.md`.
+* **Files Modified**:
+  - `docs/REPORTS_INDEX_AR.md`
+  - `docs/scenarios/SCENARIO_REPORT_LINKS_AR.md`
+  - `e2e/inventory/stocktake.staging.spec.ts` [NEW]
+  - `e2e/pos/pos-checkout.staging.spec.ts` [NEW]
+  - `e2e/purchases/grn.staging.spec.ts` [NEW]
+  - `e2e/sales/sales-invoice.staging.spec.ts` [NEW]
+* **Database / Prisma Schema**: Unchanged.
+* **Local Verification**: Prisma Validate PASS, TypeScript Compilation PASS, Production Build PASS, Playwright List E2E PASS (300 tests), Playwright targeted tests `e2e/sales/sales-invoice.staging.spec.ts`, `e2e/pos/pos-checkout.staging.spec.ts`, `e2e/purchases/grn.staging.spec.ts`, and `e2e/inventory/stocktake.staging.spec.ts` 12/12 PASS (running against local production server).
+* **Production Deployment & Verification**:
+  - Synced server git repository with remote `origin/main` (`git pull origin main`).
+  - No production build or PM2 reload required (NO_PRODUCTION_DEPLOY_REQUIRED) since only non-runtime documentation and E2E test files were changed.
+* **Next Recommended Phase**: Dunning Automation Implementation & Integration (Wave P3-C).
+
+### Phase: Dunning Automation Implementation & Integration (Wave P3-C) (2026-06-06)
+* **Status**: `DEVELOPED_AND_VERIFIED`
+* **Commit**: Awaiting commit
+* **Scope**: Upgrade daily dunning run API endpoint `/api/accounting/dunning/daily-run` to utilize `DunningEngineV2` for multi-tenant data isolation and clean type safety:
+  - Destructured scoped `prisma` instance from `withRoute` and passed it directly to `DunningEngineV2.executeDailyRun`.
+  - Removed unused logger variables and replaced generic `any` casting with correct type parameters, ensuring 100% type safety.
+  - Added a dedicated Vitest integration test suite under `tests/integration/accounting/dunning-daily-run.test.ts`.
+  - Modified `vitest.config.ts` to include `src/lib/__tests__/` glob for running V2 engine unit tests.
+* **Files Modified**:
+  - `src/app/api/accounting/dunning/daily-run/route.ts`
+  - `vitest.config.ts`
+  - `tests/integration/accounting/dunning-daily-run.test.ts` [NEW]
+* **Database / Prisma Schema**: Unchanged.
+* **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), ESLint validation PASS (0 warnings), Next.js Production Build PASS, Vitest unit & integration tests 20/20 PASS.
+* **Production Deployment & Verification**:
+  - Awaiting Git push and production deployment.
+* **Next Recommended Phase**: Proceed with next business gap closure in roadmap.

@@ -18,6 +18,7 @@ export default defineConfig({
       'tests/integration/**/*.{test,spec}.ts',
       'tests/security/**/*.{test,spec}.ts',
       'tests/*.test.ts',
+      'src/lib/__tests__/**/*.test.ts',
     ],
 
     exclude: [

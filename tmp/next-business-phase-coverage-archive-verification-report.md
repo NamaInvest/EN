@@ -1,20 +1,27 @@
-# تقرير تحقق التغطية والأرشفة (Next Business Phase Coverage & Verification Report) - Phase 8
+# تقرير التحقق من التغطية والأرشيف للمرحلة التالية (Next Business Phase Coverage & Archive Verification Report) - Phase 8 (Wave P3-C)
 
-وثق هذا التقرير التحقق النهائي من تكامل تغطية السيناريوهات وأرشفة التقارير وسلامة الفهارس البرمجية.
-
----
-
-## 1. تغطية سيناريوهات واجهة المستخدم (UI Scenarios Coverage)
-* **معرف السيناريو:** `SCN-REPORTS-002` (تصفين وتقسيم التقارير وكشوف الحسابات).
-* **الفحص:**
-  * تم التأكد من ربط السيناريو بنقاط النهاية والملف الاختباري بنجاح في [FULL_SYSTEM_UI_SCENARIOS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md).
-  * تم تحديث مصفوفة ربط الواجهات [UI_API_WIRING_MATRIX_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_API_WIRING_MATRIX_AR.md).
-  * تم تحديث سجل الأزرار والعناصر التفاعلية [UI_BUTTON_INVENTORY_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_BUTTON_INVENTORY_AR.md).
-  * تم ربط السيناريو في جدول روابط التقارير [SCENARIO_REPORT_LINKS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/SCENARIO_REPORT_LINKS_AR.md).
-* **الفجوات البرمجية المتبقية:** 0 (كل الفجوات مغطاة بالكامل).
+يوثق هذا التقرير التدقيق الرقمي والتحقق التام من خلو النظام والمستندات من أية نواقص أو فجوات معلقة لسيناريوهات **Wave P3-C: Dunning Automation Implementation & Integration**.
 
 ---
 
-## 2. التحقق من فهرس التقارير (Reports Index Parity)
-* تم استعراض وتحديث فهرس التقارير الشامل [REPORTS_INDEX_AR.md](file:///d:/namasoft9-3-main/docs/REPORTS_INDEX_AR.md) لإدراج روابط وتقارير مرحلة **تصفين التقارير (Reports Pagination)**.
-* جميع التقارير الـ 16 للمرحلة الحالية لها سجل واضح وموثق ومطابق لبيانات الفحص والنتائج الحقيقية.
+## 1. مقاييس التحقق الرقمية (Coverage Metrics)
+
+تم فحص ومطابقة الملفات وسجل الفهارس وكانت النتائج صفر فجوات معلقة:
+
+- `PAGES_MISSING_FROM_DOCS = 0` (جميع المسارات موثقة).
+- `BUTTONS_MISSING_FROM_INVENTORY = 0` (جميع الأزرار التفاعلية مجرودة).
+- `FORMS_MISSING = 0` (جميع النماذج والمدخلات مغطاة).
+- `APIS_MISSING_FROM_MATRIX = 0` (جميع مسارات APIs مربوطة).
+- `DANGEROUS_ACTIONS_MISSING_SAFE_PLAN = 0` (العمليات الخطيرة لها خطة حماية).
+- `SCENARIOS_WITHOUT_TEST_OR_REASON = 0` (كل سيناريو له فحص أو مبرر تأجيل).
+- `REPORTS_WITHOUT_INDEX_LINK = 0` (جميع تقارير البوابات الحيوية مربوطة بالفهرس).
+- `BRAIN_UPDATE_STATUS = UPDATED` (تم تحديث الذاكرة البرمجية).
+
+---
+
+## 2. التحقق من تكامل التوثيق (Documentation Integrity)
+
+- تم تحديث [فهرس التقارير الشامل](file:///d:/namasoft9-3-main/docs/REPORTS_INDEX_AR.md) بنجاح.
+- تم تحديث [vitest.config.ts](file:///d:/namasoft9-3-main/vitest.config.ts) بنجاح.
+
+**القرار**: **PASS** - الانتقال التلقائي إلى **Phase 9 — Commit Gate**.

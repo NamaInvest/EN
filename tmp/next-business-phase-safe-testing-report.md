@@ -1,27 +1,34 @@
-# تقرير الفحص والاختبار الآمن (Next Business Phase Safe Testing Report) - Phase 7
+# تقرير الفحص والتحقق الآمن للمرحلة التالية (Next Business Phase Safe Testing Report) - Phase 7 (Wave P3-C)
 
-وثق هذا التقرير مخرجات عمليات الفحص الآلي وبناء المشروع وتطبيق الاختبارات للتأكد من خلو المشروع من أخطاء الترجمة أو الأداء.
-
----
-
-## 1. نتائج الاختبارات التكاملية (Integration Tests Results)
-* **ملف الاختبار:** [pagination.test.ts](file:///d:/namasoft9-3-main/tests/integration/reports/pagination.test.ts)
-* **أداة الاختبار:** Vitest v4.1.5
-* **النتيجة الإجمالية:** **ناجح بنسبة 100% (PASS)**
-  * عدد الاختبارات المنفذة: 5 اختبارات
-  * الحالات المغطاة بنجاح:
-    1. تصفين قائمة المستخدمين `users-list` والتحقق من بقاء نوع المرجعات كمصفوفة متسقة مع الواجهة.
-    2. تصفين استعلام التقرير اليومي `daily-report` وتوزيع بارامترات الباغينيشن بنجاح.
-    3. تصفين قائمة الأصناف الأقل مبيعاً `least-selling` والتأكد من الفلترة والحدود بنجاح.
-    4. تصفين قائمة المرتجعات `returns` واستخلاص المتغيرات ديناميكياً.
-    5. التحقق الرياضي والمحاسبي من سلامة وصحة الرصيد الجاري المتراكم (Running Balance) في كشف حساب العميل وعمر الديون (Aging) مع تفعيل التصفين بالذاكرة.
+يوثق هذا التقرير نتائج فحوصات الجودة الآمنة والتجميع التلقائي لكود وهيكل مشروع **Namasoft ERP / Nama Invest ERP** للتأكد من خلو المرحلة من أي أخطاء أو تراجعات برمجية.
 
 ---
 
-## 2. فحص الأنواع وبناء المشروع (Typecheck & Build Validation)
-1. **Prisma Schema Validation (`npx prisma validate`):**
-   * **الحالة:** ناجح (PASS). مخطط قاعدة البيانات متوافق وصحيح تماماً.
-2. **TypeScript Compilation (`npm run typecheck`):**
-   * **الحالة:** ناجح (PASS). لا توجد أخطاء نوعية في ملفات التقارير المحدثة أو المشروع بالكامل.
-3. **Next.js Production Build (`npm run build`):**
-   * **الحالة:** ناجح (PASS). تم تجميع وبناء كود الإنتاج بنجاح وتوليد المكونات والمسارات الديناميكية دون أي معوقات.
+## 1. نتائج فحوصات الجودة التلقائية (Quality Gates Results)
+
+تم تشغيل بوابات التحقق التلقائية وكانت النتائج كالتالي:
+
+1. **التحقق من مخطط قاعدة البيانات (Prisma Schema Validation)**:
+   - **الأمر**: `npx prisma validate`
+   - **النتيجة**: **PASS** (المخطط سليم ومطابق بنسبة 100%).
+2. **التحقق من تجميع كود TypeScript (Typecheck)**:
+   - **الأمر**: `npm run typecheck`
+   - **النتيجة**: **PASS** (تم العبور وصفر أخطاء).
+3. **تجميع وبناء حزمة الإنتاج (Production Build)**:
+   - **الأمر**: `npm run build`
+   - **النتيجة**: **PASS** (تم بناء حزمة الإنتاج لجميع الصفحات الـ 811 بنجاح 100% دون أي أخطاء).
+4. **التحقق من الكود وقواعد ESLint (Linting)**:
+   - **الأمر**: `npx eslint src/app/api/accounting/dunning/daily-run/route.ts tests/integration/accounting/dunning-daily-run.test.ts --max-warnings 0`
+   - **النتيجة**: **PASS** (تم التحقق وصفر أخطاء أو تحذيرات).
+
+---
+
+## 2. نتائج اختبارات التكامل المستهدفة (Targeted Integration Tests)
+
+تم تشغيل اختبارات التكامل لتأكيد استقرار المحرك V2 وتكامل واجهة المطالبات والتشغيل اليومي:
+- **الأمر**: `npx vitest run src/lib/__tests__/dunning-engine-v2.test.ts tests/integration/accounting/dunning-daily-run.test.ts`
+- **النتيجة**: **PASS** (نجاح 20 اختباراً بالكامل في غضون ثوانٍ معدودة):
+  - 18 اختباراً فردياً لوظائف المحرك (Snooze, Promise-to-Pay, Late Fees, Level Escalation).
+  - اختبارين تكامليين لواجهة الـ API.
+
+**القرار**: **PASS** - الانتقال التلقائي إلى **Phase 8 — Coverage And Archive Verification**.

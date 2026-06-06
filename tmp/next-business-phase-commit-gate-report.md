@@ -1,43 +1,28 @@
-# بوابة التزام تصفين التقارير (Next Business Phase Commit Gate Report) - Phase 9
+# تقرير بوابة الالتزام للمرحلة التالية (Next Business Phase Commit Gate Report) - Phase 9 (Wave P3-C)
 
-يوثق هذا التقرير الفحص الأمني للالتزام (Commit Gate) والتأكد من نظافة التعديلات وجاهزيتها قبل تسجيلها في Git.
-
----
-
-## 1. الملفات المخطط التزامها (Files to Commit)
-
-بناءً على فحص حالة المستودع، التغييرات تنقسم إلى:
-
-### أ. ملفات الكود المصدر التابعة للمرحلة (Source Code Changes)
-* [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/%5Btype%5D/route.ts)
-* [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/returns/route.ts)
-* [route.ts](file:///d:/namasoft9-3-main/src/app/api/reports/customer-statement/route.ts)
-
-### ب. ملفات اختبارات الجودة المضافة (Tests Changes)
-* [pagination.test.ts](file:///d:/namasoft9-3-main/tests/integration/reports/pagination.test.ts)
-
-### ج. ملفات سيناريوهات ومصفوفات النظام المحدثة (Documentation Changes)
-* [FULL_SYSTEM_UI_SCENARIOS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/FULL_SYSTEM_UI_SCENARIOS_AR.md)
-* [SCENARIO_REPORT_LINKS_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/SCENARIO_REPORT_LINKS_AR.md)
-* [UI_API_WIRING_MATRIX_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_API_WIRING_MATRIX_AR.md)
-* [UI_BUTTON_INVENTORY_AR.md](file:///d:/namasoft9-3-main/docs/scenarios/UI_BUTTON_INVENTORY_AR.md)
-* [REPORTS_INDEX_AR.md](file:///d:/namasoft9-3-main/docs/REPORTS_INDEX_AR.md)
+يوثق هذا التقرير مراجعة وتصفية الملفات المعدلة وغير المتتبعة والتأكد من خلوها تماماً من أي متغيرات بيئية أو مفاتيح سرية أو أية ملفات غير مقصودة قبل الالتزام المحلي (Git Commit).
 
 ---
 
-## 2. مراجعة النظافة والأمان (Security & Secrets Review)
+## 1. تفاصيل الملفات المستهدفة بالالتزام (Git Diff Scope)
 
-1. **البيانات السرية (Secrets Check)**:
-   * تم التحقق من خلو جميع الملفات المحدّثة من أية كلمات مرور، أو مفاتيح تشفير، أو ترويسات أمنية غير مشفرة.
-2. **عزل المستأجرين (Tenant Isolation)**:
-   * تأكيد حصر الاستعلامات تحت غلاف `withRoute` لضمان عزل البيانات آلياً.
-3. **الملفات غير المطلوبة (Trash/Build Artifacts)**:
-   * تم التأكد من عدم إضافة أي ملفات مؤقتة أو متعلقة بمخرجات البناء والتشغيل إلى قائمة التتبع.
+- **الملفات المعدلة المقصودة (Target Modified Files)**:
+  - [AI_PROJECT_MEMORY.md](file:///d:/namasoft9-3-main/AI_PROJECT_MEMORY.md)
+  - [REPORTS_INDEX_AR.md](file:///d:/namasoft9-3-main/docs/REPORTS_INDEX_AR.md)
+  - [route.ts](file:///d:/namasoft9-3-main/src/app/api/accounting/dunning/daily-run/route.ts)
+  - [vitest.config.ts](file:///d:/namasoft9-3-main/vitest.config.ts)
+- **الملفات الجديدة المقصودة (Target New Files)**:
+  - [dunning-daily-run.test.ts](file:///d:/namasoft9-3-main/tests/integration/accounting/dunning-daily-run.test.ts)
+- **الملفات المستثناة من الالتزام**:
+  - ملفات التقارير بداخل مجلد `tmp/` (لن يتم إضافتها لمستودع Git للحفاظ على نظافة الهيدر والمستودع البرمجي للإنتاج، حيث ستبقى محلية أو بالـ AppData).
 
 ---
 
-## 3. قرار سلامة البوابة (Gate Decision)
+## 2. التحقق من أمان ونظافة البيئة (Secrets & Credentials Scanner Check)
 
-جميع شروط التزام الكود قد تم استيفاؤها بنجاح تام، والكود يطابق معايير الـ Git Hygiene بنسبة 100%.
+تم فحص الكود والملفات بصرياً وعبر خوارزميات التدقيق وخلوها تماماً مما يلي:
+- **الملف البيئي `.env`**: غير مدرج بالالتزام ومحمي بالـ `.gitignore`.
+- **مفاتيح RSA وشهادات ZATCA الحقيقية**: صفر (جميع الشهادات والرموز المسجلة هي تجريبية أو وهمية).
+- **كلمات المرور والروابط المباشرة**: صفر.
 
-**القرار**: الانتقال التلقائي إلى **Phase 10 — Local Commit**.
+**القرار**: **PASS** - الانتقال التلقائي إلى **Phase 10 — Local Commit**.

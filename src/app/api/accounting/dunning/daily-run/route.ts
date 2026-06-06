@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
-import { DunningEngine } from '@/lib/dunning-engine';
+import { DunningEngineV2 } from '@/lib/dunning-engine-v2';
 import { z } from 'zod';
-import { logger } from '@/lib/logger';
-
-const log = logger.child({ service: 'accounting.dunning.daily-run' });
-
 
 const _POSTSchema = z.object({
   date: z.string().optional(),
 }).passthrough();
 
-async function _POST(req: NextRequest) {
-
+async function _POST(req: NextRequest, prisma: import('@prisma/client').PrismaClient) {
     try {
         const body = await req.json();
 
@@ -22,12 +17,17 @@ async function _POST(req: NextRequest) {
         }
         const date = body.date ? new Date(body.date) : new Date();
         
-        await DunningEngine.executeDailyRun(date);
+        const result = await DunningEngineV2.executeDailyRun(prisma, date);
         
-        return NextResponse.json({ message: 'Dunning daily run completed successfully', date });
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        return NextResponse.json({ message: 'Dunning daily run completed successfully', date, result });
+    } catch (e) {
+        const error = e as Error;
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'FINANCIAL' });
+export const POST = withRoute(async ({ req, prisma }) => _POST(req, prisma as import('@prisma/client').PrismaClient), {
+  rateLimit: 'FINANCIAL',
+  module: 'accounting',
+  permission: 'edit',
+});
