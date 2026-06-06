@@ -1,63 +1,57 @@
-# Agent Scan Report - Wave P3-C: Dunning Automation Implementation
+# Agent Scan Report - Wave P4-A: UI/UX Micro-interactions & Printer Connection Status Indicator
 
-> **TRACK ID**: `DUNNING_AUTOMATION_V2_TRACK`
-> **STATUS**: `SCAN_COMPLETED`
+> **TRACK ID**: `WAVE_P4A_UI_UX_PRINTER_TRACK` / `GLOBAL_EVALUATION_GAPS_CLOSURE`
+> **STATUS**: `PLAN_ONLY_PHASE` (No runtime modifications - awaiting implementation approval)
 > **DATE**: 2026-06-06
 
 ---
 
 ## 1. الملفات التي قرأتها (Files Scanned)
-1. `.ai-brain/00-index.md` (فهرس الذاكرة)
-2. `.ai-brain/01-architecture.md` (هيكل النظام وتدفق الطلبات)
-3. `.ai-brain/02-database.md` (قواعد المعاملات والعزل)
-4. `.ai-brain/05-business-logic.md` (فلوهات الأعمال)
-5. `.ai-brain/14-modules-map.md` (خريطة الموديولات)
-6. `.ai-brain/17-gap-analysis.md` (تحليل الفجوات وموقع الدانينج)
-7. `.ai-brain/19-claude-rules.md` (القواعد الأساسية الملتزمة)
-8. `.ai-brain/20-accounting-domain.md` (مجال المحاسبة والقيود التلقائية)
-9. `project-governance/05-TENANT_ISOLATION_RULES.md` (قواعد عزل المستأجرين)
-10. `project-governance/06-ACCOUNTING_LOCK_RULES.md` (قواعد حظر التعديل المالي)
-11. `src/app/api/accounting/dunning/daily-run/route.ts` (نقطة النهاية المستهدفة)
-12. `src/lib/dunning-engine-v2.ts` (محرك الدانينج الإصدار الثاني)
-13. `src/app/api/cron/ar-collection-dunning/route.ts` (مرجع استخدام V2)
-14. `tests/integration/accounting/journal-approval.test.ts` (هيكل الاختبارات التكاملية)
+1. `docs/reports/full-project-audit/FULL_PROJECT_ISSUES_REGISTER.md` (سجل المشاكل العام)
+2. `src/lib/qz.ts` (جسر الاتصال بالطابعة المحلية QZ Tray)
+3. `src/app/(dashboard)/pos/page.tsx` (شاشة نقاط البيع للمطاعم والتجزئة)
+4. `src/app/(dashboard)/restaurant-pos/page.tsx` (شاشة نقاط بيع المطاعم المستقلة)
+5. `src/app/(dashboard)/sales/terminal/page.tsx` (شاشة الكاشير السريعة)
+6. `src/components/Sidebar.tsx` (شريط التنقل الجانبي والنطاق الفرعي)
+7. `src/app/globals.css` (ملف تنسيق Ocean Glass العام)
+8. `AI_PROJECT_MEMORY.md` (حالة الذاكرة الحالية)
+9. `AGENTS.md` (قواعد الوكلاء ومصفوفات الحظر والتحصين)
 
 ---
 
 ## 2. الملفات المرشحة للتعديل (Candidate Files to Modify)
-1. `src/app/api/accounting/dunning/daily-run/route.ts` (استدعاء المحرك V2 وتمرير سياق Prisma للمستأجر)
-2. `tests/integration/accounting/dunning-daily-run.test.ts` (إنشاء ملف اختبارات تكاملية جديد)
+بموجب خطة "PLAN ONLY" المعتمدة حالياً، لن يتم تعديل أي ملف تشغيلي حتى صدور عبارة الموافقة البرمجية التالية. الملفات المخطط تعديلها في المرحلة القادمة هي:
+1. `src/app/(dashboard)/pos/page.tsx` (إضافة شارة الاتصال بالطابعة وزر التحديث)
+2. `src/app/(dashboard)/restaurant-pos/page.tsx` (إضافة شارة الاتصال بالطابعة وزر التحديث)
+3. `src/app/(dashboard)/sales/terminal/page.tsx` (إضافة شارة الاتصال بالطابعة)
+4. `src/components/Sidebar.tsx` (إضافة حركات انتقالية ناعمة cubic-bezier للتوسيع والتقليص)
+5. `src/app/globals.css` (إضافة فئات التحريك متناهية الصغر `hover-micro` للأزرار)
+6. `AI_PROJECT_MEMORY.md` (لتوثيق الحالة وإدراج commit hash الفعلي لـ Wave P3-C)
 
 ---
 
 ## 3. الدومينات المتأثرة (Affected Domains)
-- **Accounting & AR Collections** (Dunning Engine Upgrade)
-- **Multi-Tenant Database Isolation** (Dynamic Client Resolution)
-- **Financial Postings (Journal Entries)** (Late Fee & Interest generation)
+- **POS / Local Printing Domain** (إدماج حالة QZ Tray)
+- **UI / UX & Rich Aesthetics Domain** (الانتقالات الناعمة وحركات شريط التنقل والأزرار)
 
 ---
 
 ## 4. المخاطر والحلول (Risks & Mitigations)
-- **الخطر**: تمرير Prisma client غير معزول أو التسبب في تسريب بيانات المستأجرين.
-  - **الحل**: استخراج الـ `prisma` client من الـ RouteContext الخاص بـ `withRoute` وتمريره كمعامل أول لـ `DunningEngineV2.executeDailyRun`.
-- **الخطر**: فشل التشغيل اليومي إذا لم تكن إعدادات الحسابات (`dunning_late_fee_account_id` / `dunning_ar_account_id`) مهيأة.
-  - **الحل**: محرك V2 مصمم داخلياً ليتخطى إنشاء قيود اليومية للرسوم والفوائد ويكتفي بكتابة تحذير في السجلات إذا غابت الإعدادات، مما يمنع تعطل الفحص بأكمله.
-- **الخطر**: تشغيل اختبارات Jest التي تستغرق وقتاً طويلاً جداً أو تهنج بسبب مشاكل Next.js/ts-jest.
-  - **الحل**: كتابة اختبارات تكاملية متوافقة مع Vitest تحت `tests/integration/accounting/` لتشغيلها بشكل فوري وسريع عبر `npm run test:integration`.
+- **الخطر**: عدم اتصال برنامج QZ Tray محلياً عند العميل، مما قد يسبب استدعاءات فاشلة متكررة تبطئ المتصفح.
+  - **الحل**: تفعيل الاتصال والتثبيت لمرة واحدة عند تحميل الصفحة (Mount) مع تخزين الحالة، ولا يتم التكرار إلا بطلب يدوي من المستخدم عبر الضغط على زر التحديث.
+- **الخطر**: تكسير تصاميم الواجهات أو تداخل النصوص بسبب إضافة الشارات الجديدة.
+  - **الحل**: تنسيق الشارة بأسلوب Glassmorphism متوافق بالكامل مع الألوان وتجاوب الشاشات، ووضعها بجوار `OfflineBadge` في المساحات المخصصة بالهيدر.
 
 ---
 
 ## 5. خطة التنفيذ (Implementation Plan)
-1. **تعديل Endpoint**: تحديث `src/app/api/accounting/dunning/daily-run/route.ts` لتمرير الـ `prisma` client المستخرج من `withRoute` واستدعاء `DunningEngineV2.executeDailyRun(prisma, date)`.
-2. **إضافة الاختبار التكاملي**: إنشاء `tests/integration/accounting/dunning-daily-run.test.ts` لاختبار استدعاء الـ API مع محاكاة إرجاع محرك Dunning V2 وتأكيد الاستجابة.
-3. **تحديث الذاكرة والـ AI Project Memory**: توثيق اكتمال Wave P3-C.
+1. إدراج حالة الاتصال بالطابعة `printerStatus` في شاشات الـ POS الثلاث.
+2. تفعيل التحقق التلقائي عند التحميل وإضافة الشارات الخضراء والحمراء ديناميكياً.
+3. دمج فئات الأنماط والحركات الانتقالية متناهية الصغر في `Sidebar` و `globals.css` للأزرار والقوائم.
 
 ---
 
 ## 6. خطة الاختبار (Testing Plan)
-- تشغيل التحقق من الأنواع: `npm run typecheck`
-- تشغيل اختبارات Vitest التكاملية المحددة:
-  ```bash
-  npx vitest run tests/integration/accounting/dunning-daily-run.test.ts
-  ```
-- التحقق من تجميع كود الإنتاج بنجاح: `npm run build`
+- فحص بناء المشروع محلياً بالكامل للتأكد من عدم وجود أخطاء تجميع: `npm run build`
+- فحص سلامة اتساق الأنواع للواجهات: `npm run typecheck`
+- تشغيل السيرفر محلياً واختبار مؤشر الطابعة يدوياً بتشغيل وإيقاف برنامج QZ Tray للتأكد من تفاعلية المؤشر.
