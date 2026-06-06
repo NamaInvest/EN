@@ -36,4 +36,7 @@
 | SCN-LOADTEST-001 | None | اختبارات الحمل والضغط k6 | tests/load/k6/auth.js | tests/load/README.md | AUTOMATED | لا يوجد |
 | SCN-LEGAL-002 | /settings/tax | تسوية ضريبة الاستقطاع WHT | None | docs/legal/TAX_WHT_GUIDE_AR.md | DOCUMENTED | لا يوجد |
 | SCN-DEVOPS-002 | None | تشغيل ومراقبة عمال طوابير BullMQ | None | docs/devops/BULLMQ_WORKERS_GUIDE_AR.md | DOCUMENTED | لا يوجد |
+| SCN-DUNNING-001 | /api/accounting/dunning/daily-run | تشغيل مطالبات السداد الآلي | tests/integration/accounting/dunning-daily-run.test.ts | tmp/next-business-phase-safe-testing-report.md | AUTOMATED | لا يوجد |
+| SCN-POS-003 | /pos | فحص مؤشر اتصال طابعة الفواتير | None | tmp/wave-p4a-safe-testing-report.md | AUTOMATED | لا يوجد |
+
 

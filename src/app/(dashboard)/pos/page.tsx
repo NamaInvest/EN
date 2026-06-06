@@ -13,6 +13,8 @@ import { FeatureGuard } from '@/hooks/FeatureGuard';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { useToast } from '@/components/Toast';
 import { toArray } from '@/lib/utils/safe-data';
+import { connectQZ } from '@/lib/qz';
+
 
 export default function RestaurantPOS() {
     const { lang } = useTranslation();
@@ -22,6 +24,24 @@ export default function RestaurantPOS() {
     const { isOffline, OfflineBadge, saveInvoiceWithSync, cacheProducts } = useOfflineSync();
     // Force RTL for this specific layout to match image perfectly
     const isRTL = true;
+
+    // Printer connection status indicator (ISS-14)
+    const [printerStatus, setPrinterStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
+
+    const checkPrinter = async () => {
+        setPrinterStatus('checking');
+        try {
+            const isConnected = await connectQZ();
+            setPrinterStatus(isConnected ? 'connected' : 'disconnected');
+        } catch (e) {
+            setPrinterStatus('disconnected');
+        }
+    };
+
+    useEffect(() => {
+        checkPrinter();
+    }, []);
+
 
     const [searchQuery, setSearchQuery] = useState('');
     const [taxRate, setTaxRate] = useState(15);
@@ -606,11 +626,29 @@ export default function RestaurantPOS() {
                         </Link>
                         <div>
                             <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">نقطة البيع (مبيعات)</h2>
-                            <div className="text-sm font-semibold text-slate-400 mt-1 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                متصل
+                            <div className="text-sm font-semibold text-slate-400 mt-1 flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className={`w-2 h-2 rounded-full ${isOffline ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'}`}></span>
+                                    {isOffline ? 'وضع الأوفلاين' : 'متصل بالشبكة'}
+                                </div>
+                                <span className="text-slate-200">|</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`w-2 h-2 rounded-full ${printerStatus === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500 animate-pulse'}`}></span>
+                                    <span>
+                                        {printerStatus === 'connected' ? 'طابعة متصلة' : printerStatus === 'checking' ? 'جاري فحص الطابعة...' : 'طابعة غير متصلة'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={checkPrinter}
+                                        className="text-slate-400 hover:text-orange-500 transition-colors p-1"
+                                        title="إعادة فحص الاتصال بالطابعة"
+                                    >
+                                        <RefreshCcw className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
+
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
@@ -643,7 +681,7 @@ export default function RestaurantPOS() {
                             </div>
                         )}
 
-                        <button onClick={() => { if(typeof setShowCustomerModal !== 'undefined') setShowCustomerModal(true); }} className="flex items-center justify-center px-5 h-12 gap-2 rounded-[1.25rem] bg-white text-slate-600 hover:text-orange-500 hover:bg-orange-50 hover:border-orange-200 border border-slate-200 shadow-sm transition-all font-bold w-full sm:w-auto">
+                        <button onClick={() => { if(typeof setShowCustomerModal !== 'undefined') setShowCustomerModal(true); }} className="flex items-center justify-center px-5 h-12 gap-2 rounded-[1.25rem] bg-white text-slate-600 hover:text-orange-500 hover:bg-orange-50 hover:border-orange-200 border border-slate-200 shadow-sm transition-all font-bold w-full sm:w-auto hover-micro">
                             <User className="w-5 h-5" />
                             {typeof selectedCustomer !== 'undefined' && selectedCustomer ? selectedCustomer.name : 'عميل نقدي'}
                         </button>
@@ -916,10 +954,10 @@ export default function RestaurantPOS() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CARD'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#0EA5E9] hover:bg-[#0284C7] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm">
+                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CARD'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#0EA5E9] hover:bg-[#0284C7] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm hover-micro">
                                     <CreditCard className="w-4 h-4" /> بطاقة (F2)
                                 </button>
-                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CASH'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm">
+                                <button onClick={() => { setIsCartOpen(false); handleCheckout('CASH'); }} disabled={cart.length === 0 || isProcessing} className="py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-sm hover-micro">
                                     <Banknote className="w-4 h-4" /> نقد
                                 </button>
                             </div>

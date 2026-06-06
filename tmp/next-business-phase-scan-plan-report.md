@@ -1,82 +1,99 @@
-# تقرير الفحص والتخطيط للمرحلة التالية (Next Business Phase Scan & Plan Report) - Phase 3 (Wave P3-C)
+# تقرير الفحص والتخطيط للمرحلة القادمة (Next Business Phase Scan & Plan Report) - Phase 3 (Wave P4-A)
 
-يوثق هذا التقرير الفحص الشامل للمرحلة البرمجية والتشغيلية المحددة **Wave P3-C: Dunning Automation Implementation & Integration** والتخطيط الدقيق لإنجازها بالكامل دون مخاطر على الكود أو الإنتاج أو عزل البيانات.
-
----
-
-## 1. تفاصيل المرحلة المحددة (Selected Phase Details)
-
-- **اسم المرحلة**: **Wave P3-C: Dunning Automation Implementation & Integration (Gap 05)**
-- **سبب الاختيار**: بعد إغلاق كافة فئات الاستقرار لـ Wave P3-B بنجاح كامل وصفر فجوات برمجية أو أمنية، ننتقل مباشرة لسد النواقص الهيكلية في إدارة الحسابات المدينة والتحصيل التلقائي. يتضمن العمل تفعيل وتكامل محرك الحوكمة والتحصين المالي المتقدم `DunningEngineV2` مع تفعيل القيود التلقائية لرسوم وفوائد التأخير ماليًا.
-- **النطاق (Scope)**:
-  1. ترقية كود نقطة النهاية للتشغيل اليومي للمطالبات `/api/accounting/dunning/daily-run` ليعتمد كلياً على محرك الحوكمة والتحصين المالي المتقدم `DunningEngineV2` بدلاً من النسخة الأولى الأساسية `DunningEngine`.
-  2. دمج المحرك مع معاملات العزل لكل مستأجر `tenantId` لضمان استحالة تداخل بيانات العملاء أو المستندات ماليًا بين الفروع والشركات الفرعية.
-  3. ربطه بمهام الكرون الدورية في `src/app/api/cron/ar-collection-dunning/route.ts` لضمان جدولة تشغيل آلي للمطالبات أسبوعياً.
-  4. التحقق من تكامل واجهة إدارة المطالبات والموافقات ماليًا.
+يوثق هذا التقرير تفاصيل الفحص الدقيق والخطط المقترحة لتطبيق المرحلة التجارية والتشغيلية القادمة **Wave P4-A: UI/UX Micro-interactions & Printer Connection Status Indicator (ISS-13 & ISS-14)**.
 
 ---
 
-## 2. الملفات المفحوصة والمراجعة (Files & Pages Reviewed)
+## 1. تفاصيل التحديد (Selection Details)
 
-- **الملفات والمجلدات المفحوصة**:
-  - [src/lib/dunning-engine-v2.ts](file:///d:/namasoft9-3-main/src/lib/dunning-engine-v2.ts): الكود الفعلي لمحرك التحصيل المتقدم V2 الداعم لتوليد القيود وعزل المستأجرين.
-  - [src/app/api/accounting/dunning/daily-run/route.ts](file:///d:/namasoft9-3-main/src/app/api/accounting/dunning/daily-run/route.ts): الـ API الحالي للتشغيل اليومي للدانينج.
-  - [src/app/api/cron/ar-collection-dunning/route.ts](file:///d:/namasoft9-3-main/src/app/api/cron/ar-collection-dunning/route.ts): الكرون جوب الدورية.
-  - [src/app/(dashboard)/accounting/dunning/page.tsx](file:///d:/namasoft9-3-main/src/app/%28dashboard%29/accounting/dunning/page.tsx): واجهة كاشير المطالبات والمستويات.
+- **المرحلة المحددة**: **Wave P4-A: UI/UX Micro-interactions & Printer Connection Status Indicator** (المرتبطة بالمشكلتين `ISS-13` و `ISS-14` في سجل المشاكل).
+- **سبب الاختيار**: تماشيًا مع إتمام كافة المراحل الوظيفية المعقدة السابقة (الدانينج ومسارات الفترات المالية وتوطيد Staging)، تهدف هذه المرحلة إلى سد الفجوات الجمالية والتشغيلية المتبقية في واجهات نقاط البيع POS وشريط التنقل الأساسي للوصول بـ Nama Invest ERP إلى تجربة مستخدم عالمية (Rich Aesthetics) والتأكد من وضوح حالة الطابعة محلياً.
 
 ---
 
-## 3. التحليل البرمجي والتشغيلى (Behavior Analysis)
+## 2. نطاق الفحص الميداني (Scope & Files Reviewed)
 
-### السلوك الحالي (Current Behavior)
-- الـ API الحالي `/api/accounting/dunning/daily-run` يستدعي كلاس `DunningEngine` القديم (V1) الذي يفتقر لـ:
-  - تمرير سياق `PrismaClient` المشترك الخاص بكل مستأجر.
-  - توليد قيود رسوم وفائدة التأخير ماليًا تلقائياً.
-  - دعم الوعود بالدفع (Promise-to-Pay) بشكل كامل.
-  - حارس التحصين الإجباري للمستندات والعملاء.
+لقد تم فحص المكونات والملفات التالية:
 
-### السلوك المطلوب والمستهدف (Target Behavior)
-- تحويل الـ API في `/api/accounting/dunning/daily-run` ليعتمد بالكامل على `DunningEngineV2` مع تزويده بالـ `prisma` client المطابق للمستأجر المعزول.
-- تصفية الطلب ومطابقة `tenantId` المستخلص من جلسة المستخدم لضمان عزل البيانات الكامل ومنع تسريب التقارير أو كشوف الحسابات.
-- تفعيل توليد القيود التلقائية لرسوم وفوائد التأخير ماليًا.
+- **الملفات البرمجية (Files Reviewed)**:
+  - [src/lib/qz.ts](file:///d:/namasoft9-3-main/src/lib/qz.ts): فحص جسر الاتصال ببرنامج الطباعة QZ Tray والتأكد من استخدام `connectQZ()` و `getLocalPrinters()`.
+  - [src/app/(dashboard)/pos/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/pos/page.tsx) & [src/app/(dashboard)/restaurant-pos/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/restaurant-pos/page.tsx): شاشات نقاط البيع الكبرى.
+  - [src/app/(dashboard)/sales/terminal/page.tsx](file:///d:/namasoft9-3-main/src/app/(dashboard)/sales/terminal/page.tsx): شاشة الكاشير والمبيعات السريعة المتقدمة.
+  - [src/components/Sidebar.tsx](file:///d:/namasoft9-3-main/src/components/Sidebar.tsx): شريط التنقل الجانبي.
+  - [src/app/globals.css](file:///d:/namasoft9-3-main/src/app/globals.css): ملف الأنماط العام للنظام.
+
+- **الصفحات المتأثرة (Pages Reviewed)**:
+  - صفحة نقطة البيع للمطاعم والتجزئة: `/pos` و `/restaurant-pos`
+  - صفحة كاشير المبيعات السريعة: `/sales/terminal`
+  - شريط التنقل الجانبي في جميع لوحات التحكم.
+
+- **الأزرار والوظائف المعنية**:
+  - مؤشر الاتصال بالشبكة (الرأس) ومؤشر الطابعة الجديد.
+  - أزرار التحكم بالكمية، وأزرار الدفع النقدي والشبكي في نقاط البيع.
+  - روابط القائمة المنسدلة للوحدات الممتدة في شريط التنقل.
+
+- **نماذج البيانات والمنافذ (Models & APIs)**:
+  - لا يتطلب تعديل أي جداول Prisma (DB_CHANGED: NO).
+  - لا يتطلب تعديل أي مسارات API خلفية، فالتغييرات تجميلية وعلى العميل فقط.
 
 ---
 
-## 4. المخاطر والضوابط (Risks & Controls)
+## 3. السلوك الحالي مقابل السلوك المفقود (Current vs. Missing Behavior)
 
-- **خطر التعديل المحاسبي/المالي**: توليد قيود رسوم وفوائد التأخير ماليًا تلقائياً يجب أن يمر بحسابات الدليل الصحيحة المحددة في الإعدادات (`dunning_late_fee_account_id` و `dunning_ar_account_id`).
-  - *الحل:* التحقق التام من وجود الإعدادات مسبقاً وسقوط العملية صامتاً مع تسجيل تحذير مالي دون كسر تشغيل الخادم.
-- **خطر عزل المستأجرين**: استخدام `tenantId` المستخلص من جلسة Clerk للمستأجر الفعلي في جميع استعلامات الـ DB.
-- **تأثير قاعدة البيانات**: صفر (لن يتم تغيير prisma schema أو تشغيل prisma migrate).
-- **شروط الإيقاف الفوري (No-go Conditions)**:
-  - محاولة تعديل ملفات المتغيرات البيئية `.env`.
-  - محاولة الاتصال بالإنتاج أو تعديل كود الـ API الفعلي للإنتاج.
+### أ. اتصال الطابعة المحلية (ISS-14):
+- **السلوك الحالي**: يتم استدعاء الاتصال بالطابعة QZ Tray بشكل كسول (lazily) عند الضغط على زر الطباعة فقط. لا توجد طريقة تمكن الكاشير من معرفة ما إذا كانت طابعة الفواتير المحلية متصلة بالبرنامج ومتاحة للطباعة قبل المباشرة بالدفع وحفظ الفاتورة، مما قد يسبب تأخيراً وتشويشاً للكاشير في أوقات الذروة.
+- **السلوك المفقود**: مؤشر بصري (Badge) يعرض حالة الاتصال مع QZ Tray على العميل (مثال: "متصل بالطابعة 🟢" أو "الطابعة غير متصلة 🔴") يتم تحديثه تلقائياً عند تحميل الصفحة، مع زر تحديث سريع لإعادة التحقق من الاتصال بالبرنامج دون إعادة تحميل المتصفح.
+
+### ب. الحركات الانتقالية متناهية الصغر (ISS-13):
+- **السلوك الحالي**: تستخدم روابط وتفرعات القوائم في Sidebar تبديلات مفاجئة وخشنة للتنقل وتوسيع القوائم دون سلاسة (opacity و max-height تتغير بسرعة شديدة دون تأثير انتقالي مميز).
+- **السلوك المفقود**: تفعيل حركات انتقالية ناعمة و hardware-accelerated باستخدام Tailwind transitions وتنسيق cubic-bezier متطور وتوسيع آمن للارتفاع مع هوفر أنيق ومتحرك للأزرار.
 
 ---
 
-## 5. خطة التنفيذ والتحقق (Implementation & Verification Plan)
+## 4. خطة التنفيذ المقترحة (Proposed Implementation Plan)
 
-### خطة التطوير (Implementation Plan)
-- **تعديل** `src/app/api/accounting/dunning/daily-run/route.ts` لاستخدام `DunningEngineV2.executeDailyRun` وتمرير `prisma` client للمستأجر الفعلي المعزول.
-
-### خطة التحقق والاختبار (Test Plan)
-- تشغيل التحقق العام للتجميع والتأكد من عدم كسر أي شيء:
-  ```bash
-  npm run typecheck
-  npm run build
+### الخطوة 1: دمج مؤشر الطابعة المحلية في نقاط البيع (POS Pages)
+- إضافة حالة React بداخل `pos/page.tsx` و `restaurant-pos/page.tsx` و `sales/terminal/page.tsx`:
+  `const [printerStatus, setPrinterStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');`
+- استدعاء `connectQZ()` على العميل عندMount الصفحة:
+  ```typescript
+  const checkPrinter = async () => {
+      setPrinterStatus('checking');
+      const isConnected = await connectQZ();
+      setPrinterStatus(isConnected ? 'connected' : 'disconnected');
+  };
+  useEffect(() => { checkPrinter(); }, []);
   ```
-- تشغيل اختبارات الوحدة للمحرك للتأكد من نجاحها:
-  ```bash
-  npx vitest run src/lib/__tests__/dunning-engine-v2.test.ts
-  ```
+- عرض المؤشر في الهيدر بجوار `OfflineBadge` في شاشات الـ POS:
+  - في حال الاتصال: شارة خضراء بأسلوب Glassmorphism ناعم "طابعة الفواتير متصلة 🖨️ 🟢".
+  - في حال عدم الاتصال: شارة حمراء/رمادية تفاعلية "الطابعة غير متصلة 🖨️ 🔴" مع زر إعادة محاولة دائري صغير.
+
+### الخطوة 2: تحسين حركات وانتقالات الواجهة (ISS-13)
+- تحسين توسيع القوائم في `src/components/Sidebar.tsx` بإضافة فئات ناعمة ومؤثرات تحريك للروابط والأيقونات الفرعية.
+- إضافة فئات ومؤثرات هوفر ناعمة وسلسة للأزرار في شاشات الـ POS بداخل `src/app/globals.css` باستخدام حركات Micro-interactions مطورة.
 
 ---
 
-## 6. خطة التراجع والضمان (Rollback Plan)
+## 5. خطة الاختبار والتحقق (Test Plan)
 
-- التراجع الفوري يتم ببساطة شديدة عبر التراجع عن التعديلات في Git:
-  ```bash
-  git checkout -- src/app/api/accounting/dunning/daily-run/route.ts
-  ```
+- **الاختبارات الآلية (Automated Tests)**:
+  - التحقق من خلو الواجهات من أي مشاكل في الصلاحيات أو عزل المستأجرين.
+  - تشغيل `npm run typecheck` و `npm run build` لضمان سلامة التوطين.
+- **الاختبارات اليدوية (Manual Verification)**:
+  - تشغيل السيرفر محلياً والتحقق من عمل شاشة الـ POS وعرض شارات الطابعة الخضراء والحمراء ديناميكياً عند تشغيل أو إيقاف برنامج QZ Tray محلياً.
 
-**القرار**: **PASS** - الانتقال التلقائي إلى **Phase 4 — Impact Analysis**.
+---
+
+## 6. خطة التراجع والضمانات (Rollback & Safe Guards)
+
+- **خطة التراجع (Rollback Plan)**: تراجع بسيط عبر Git (`git checkout`) نظرًا لأن التغييرات لا تؤثر على قاعدة البيانات أو الكود الخلفي للـ APIs.
+- **شروط حظر التقدم (No-go Conditions)**:
+  - أي فشل في تجميع TypeScript أو خطأ في بناء Next.js.
+  - أي بطء ملحوظ أو تسريب ذاكرة عند إعادات التحقق المتكررة من الطابعة.
+
+---
+
+## 7. عبارة الموافقة المطلوبة للمرحلة التالية (Approval Expectation)
+
+**عبارة الموافقة المطلوبة للانتقال للتنفيذ**:  
+`GO_FOR_NEXT_BUSINESS_PHASE_IMPLEMENTATION_ONLY`

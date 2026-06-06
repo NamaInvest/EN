@@ -788,8 +788,8 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Next Recommended Phase**: Dunning Automation Implementation & Integration (Wave P3-C).
 
 ### Phase: Dunning Automation Implementation & Integration (Wave P3-C) (2026-06-06)
-* **Status**: `DEVELOPED_AND_VERIFIED`
-* **Commit**: Awaiting commit
+* **Status**: `DEVELOPED_AND_VERIFIED_AND_PUSHED`
+* **Commit**: `dbbd0fb9fa9333e6ddea494d35a3990b3af881f8`
 * **Scope**: Upgrade daily dunning run API endpoint `/api/accounting/dunning/daily-run` to utilize `DunningEngineV2` for multi-tenant data isolation and clean type safety:
   - Destructured scoped `prisma` instance from `withRoute` and passed it directly to `DunningEngineV2.executeDailyRun`.
   - Removed unused logger variables and replaced generic `any` casting with correct type parameters, ensuring 100% type safety.
@@ -802,5 +802,26 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Database / Prisma Schema**: Unchanged.
 * **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), ESLint validation PASS (0 warnings), Next.js Production Build PASS, Vitest unit & integration tests 20/20 PASS.
 * **Production Deployment & Verification**:
-  - Awaiting Git push and production deployment.
+  - Pushed to `origin/main`. No production reload required (`NO_PRODUCTION_DEPLOY_REQUIRED` for this step).
+* **Next Recommended Phase**: Wave P4-A: UI/UX Micro-interactions & Printer Connection Status Indicator (ISS-13 & ISS-14) (Scan & Plan Only).
+
+### Phase: UI/UX Micro-interactions & Printer Connection Status (Wave P4-A) (2026-06-06)
+* **Status**: `DEVELOPED_AND_VERIFIED`
+* **Commit**: Awaiting commit
+* **Scope**: Implement UI/UX micro-interactions for POS buttons and Sidebar navigation, and add a dynamic printer connection status badge in POS and fast cashier terminal:
+  - Added QZ Tray WebSocket connectivity checks (`printerStatus` state and `connectQZ`) with fallback to disconnected in `pos/page.tsx`, `restaurant-pos/page.tsx`, and `sales/terminal/page.tsx`.
+  - Added a re-run/refresh connection check button (`RefreshCcw`) in all three POS/Sales headers.
+  - Implemented smooth transitions for submenu expand/collapse (`will-change-[max-height,opacity]`) and arrow rotation in `Sidebar.tsx`.
+  - Introduced premium elastic button transitions using `.hover-micro` in `globals.css` applied to major transaction buttons (MADA, Cash, Customer selection, etc.).
+* **Files Modified**:
+  - `src/app/(dashboard)/pos/page.tsx`
+  - `src/app/(dashboard)/restaurant-pos/page.tsx`
+  - `src/app/(dashboard)/sales/terminal/page.tsx`
+  - `src/components/Sidebar.tsx`
+  - `src/app/globals.css`
+* **Database / Prisma Schema**: Unchanged.
+* **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), Prisma Validation PASS, Next.js Production Build PASS.
+* **Production Deployment & Verification**:
+  - Awaiting push to `origin/main`. No production reload required (`NO_PRODUCTION_DEPLOY_REQUIRED`).
 * **Next Recommended Phase**: Proceed with next business gap closure in roadmap.
+

@@ -10,6 +10,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { RiyalLogo } from '@/components/RiyalLogo';
 import { useTranslation } from "@/lib/i18n";
 import { printRawESCPOS, connectQZ } from "@/lib/qz";
+import { RefreshCcw } from 'lucide-react';
 import { useSettings } from '@/lib/SettingsContext';
 import { useToast } from '@/components/Toast';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
@@ -41,6 +42,23 @@ export default function SalesPage() {
  const { getSetting } = useSettings();
  const discountEnabled = getSetting('POS_DISCOUNT_ENABLED', 'true') === 'true';
  const isTaxInclusive = getSetting('POS_TAX_INCLUSIVE', 'true') === 'true';
+
+ // Printer connection status indicator (ISS-14)
+ const [printerStatus, setPrinterStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
+
+ const checkPrinter = async () => {
+   setPrinterStatus('checking');
+   try {
+     const isConnected = await connectQZ();
+     setPrinterStatus(isConnected ? 'connected' : 'disconnected');
+   } catch (e) {
+     setPrinterStatus('disconnected');
+   }
+ };
+
+ useEffect(() => {
+   checkPrinter();
+ }, []);
 
  const dispatchKitchenPrinters = async (invoice: any, cartItems: CartItem[]) => {
  try {
@@ -1009,6 +1027,20 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
  <OfflineBadge />
+ <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.03)', padding: '4px 8px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.08)' }}>
+    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: printerStatus === 'connected' ? '#22c55e' : '#ef4444', display: 'inline-block' }}></span>
+    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
+      {printerStatus === 'connected' ? 'طابعة متصلة' : printerStatus === 'checking' ? 'جاري فحص الطابعة...' : 'طابعة غير متصلة'}
+    </span>
+    <button
+      type="button"
+      onClick={checkPrinter}
+      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+      title="إعادة فحص الاتصال بالطابعة"
+    >
+      <RefreshCcw className="w-3.5 h-3.5" />
+    </button>
+  </div>
  <h1 className="page-title" style={{ margin: 0 }}>{t('sys.str_4321')}</h1>
  <button id="returns-btn" type="button" onClick={() => setShowReturnsModal(true)} className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '12px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
  ↩ {'استرجاع مباشر'}
@@ -1423,15 +1455,15 @@ BNPL_REF:${bnplOrderId} [${paymentType}]` : notes,
  </>
  ) : (
  <>
- <button id="save-btn" className="btn btn-primary" onClick={() => handleSave(false)} disabled={saving || cart.length === 0} style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
+ <button id="save-btn" className="btn btn-primary hover-micro" onClick={() => handleSave(false)} disabled={saving || cart.length === 0} style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
  {saving ? t('sys.str_852') : t('sys.str_455')} <kbd style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>F2</kbd>
  </button>
- <button className="btn btn-success" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
+ <button className="btn btn-success hover-micro" onClick={() => handleSave(true)} disabled={saving || cart.length === 0}>
  {t('sys.str_781')}</button>
- <button className="btn" onClick={() => handleSave(false, true)} disabled={saving || cart.length === 0}
+ <button className="btn hover-micro" onClick={() => handleSave(false, true)} disabled={saving || cart.length === 0}
  style={{ background: '#25D366', color: '#fff', fontWeight: '600' }}>
  {t('sys.str_782')}</button>
- <button className="btn btn-ghost" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
+ <button className="btn btn-ghost hover-micro" onClick={handleNewInvoice}>{t('sys.str_742')}</button>
  </>
  )}
  </div>

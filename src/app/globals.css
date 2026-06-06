@@ -2920,3 +2920,20 @@ html[dir="rtl"] .lucide-arrow-right,
 html[dir="rtl"] .lucide-arrow-left {
   transform: scaleX(-1);
 }
+
+/* Premium micro-interactions for POS/Sales buttons */
+.hover-micro {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  will-change: transform, box-shadow;
+}
+
+.hover-micro:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.15);
+  filter: brightness(1.05);
+}
+
+.hover-micro:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 10px -5px rgba(0, 0, 0, 0.1);
+}

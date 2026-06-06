@@ -1245,10 +1245,10 @@ export default function Sidebar() {
                   <span className="text-[15px] tracking-wide">
                     {gl(lang, group.sk)}
                   </span>
-                  <span className={`text-xs transition-transform duration-300 ${isExpanded ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}>▼</span>
+                  <span className={`text-xs transition-transform duration-300 will-change-transform ${isExpanded ? 'rotate-180 text-blue-600' : 'text-slate-400'}`}>▼</span>
                 </button>
 
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100 mt-1 mb-3' : 'max-h-0 opacity-0 m-0'}`}>
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out will-change-[max-height,opacity] transform-gpu ${isExpanded ? 'max-h-[1000px] opacity-100 mt-1 mb-3' : 'max-h-0 opacity-0 m-0'}`}>
                   {(group.items || []).map((item) => {
                     const isActive = pathname === item.href;
                     return (
