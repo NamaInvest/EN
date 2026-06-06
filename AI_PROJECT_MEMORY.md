@@ -806,8 +806,8 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Next Recommended Phase**: Wave P4-A: UI/UX Micro-interactions & Printer Connection Status Indicator (ISS-13 & ISS-14) (Scan & Plan Only).
 
 ### Phase: UI/UX Micro-interactions & Printer Connection Status (Wave P4-A) (2026-06-06)
-* **Status**: `DEVELOPED_AND_VERIFIED`
-* **Commit**: Awaiting commit
+* **Status**: `DEVELOPED_AND_VERIFIED_AND_DEPLOYED`
+* **Commit**: `725e792605ad95bde38680999d1986e03c842cc6`
 * **Scope**: Implement UI/UX micro-interactions for POS buttons and Sidebar navigation, and add a dynamic printer connection status badge in POS and fast cashier terminal:
   - Added QZ Tray WebSocket connectivity checks (`printerStatus` state and `connectQZ`) with fallback to disconnected in `pos/page.tsx`, `restaurant-pos/page.tsx`, and `sales/terminal/page.tsx`.
   - Added a re-run/refresh connection check button (`RefreshCcw`) in all three POS/Sales headers.
@@ -822,6 +822,7 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * **Database / Prisma Schema**: Unchanged.
 * **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), Prisma Validation PASS, Next.js Production Build PASS.
 * **Production Deployment & Verification**:
-  - Awaiting push to `origin/main`. No production reload required (`NO_PRODUCTION_DEPLOY_REQUIRED`).
+  - Deployed to Hetzner VPS (`main-site`, `n1-main`, `saas-app`) on 2026-06-06. Rebuilt and restarted via PM2. Verified online.
 * **Next Recommended Phase**: Proceed with next business gap closure in roadmap.
+
 
