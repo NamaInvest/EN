@@ -1,25 +1,25 @@
-# Production Deploy Gate Report - Wave P4-A
+# تقرير بوابة نشر الإنتاج - Wave P4-A
 
-- **Prisma Validate**: PASS
-- **TypeScript Typecheck**: PASS
-- **Production Build**: PASS
-- **Secret Scan**: PASS
-- **Database Migrations Check**: PASS (No migrations or schema changes are present in this wave)
-- **Environment Configuration Check**: PASS (No `.env` files or keys modified)
+- **فحص Prisma**: ناجح (PASS)
+- **فحص أنواع TypeScript**: ناجح (PASS)
+- **بناء التطبيق للإنتاج**: ناجح (PASS)
+- **فحص الأسرار والبيانات الحساسة**: ناجح (PASS)
+- **فحص هجرات قواعد البيانات**: ناجح (PASS) (لا توجد أي هجرات أو تعديلات على هيكل قاعدة البيانات)
+- **فحص متغيرات البيئة**: ناجح (PASS) (لا توجد تعديلات على ملفات `.env`)
 
-## Rollback Plan
-- **Command**:
+## خطة تراجع الطوارئ (Rollback Plan)
+- **الأمر البرمجي**:
   ```bash
   git revert 725e792605ad95bde38680999d1986e03c842cc6
   git push origin main
   ```
-- **Action**: Perform revert on `main` branch, push, and execute the standard VPS deploy workflow.
+- **الإجراء**: تراجع محلي عن الالتزام، الرفع للفرع الرئيسي، ثم تشغيل خط النشر القياسي لـ VPS.
 
-## Production Path & Deployment Scope
-- **Modified Routes**: `/pos`, `/restaurant-pos`, `/sales/terminal`
-- **Modified Styles**: `globals.css`
-- **Modified Nav Layout**: `Sidebar.tsx`
-- **Result**: PASS
+## مسارات النشر ونطاق التعديل
+- **المسارات والصفحات المتأثرة**: `/pos` و `/restaurant-pos` و `/sales/terminal`
+- **التنسيقات**: `globals.css`
+- **القائمة الجانبية**: `Sidebar.tsx`
+- **النتيجة**: ناجح (PASS)
 
-> **IMPORTANT**: The deploy gate has passed, but **NO production deploy has been executed**.
-> **NEXT APPROVAL REQUIRED**: `GO_FOR_WAVE_P4A_PRODUCTION_DEPLOY_ONLY`
+> **تنبيه هام**: بوابة النشر ناجحة بالكامل ولكن **لم يتم النشر الفعلي للإنتاج**.
+> **الخطوة والموافقة التالية المطلوبة**: `GO_FOR_WAVE_P4A_PRODUCTION_DEPLOY_ONLY`

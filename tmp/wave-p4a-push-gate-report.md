@@ -1,11 +1,11 @@
-# Push Gate Report - Wave P4-A
+# تقرير بوابة الدفع (Push Gate) - Wave P4-A
 
-- **Local Commit ID**: `725e792605ad95bde38680999d1986e03c842cc6`
-- **Behind/Ahead Status**: Ahead of `origin/main` by 1 commit.
-- **Verification Runs Status**:
-  - Prisma Validate: PASS
-  - TypeScript Typecheck: PASS
-  - Next.js Build: PASS
-  - Playwright Test List: PASS
-- **Secrets Check**: Checked. Zero secrets or sensitive data are introduced in the commit.
-- **Result**: PASS
+- **معرف الالتزام المحلي**: `725e792605ad95bde38680999d1986e03c842cc6`
+- **حالة المزامنة**: متقدم عن المستودع البعيد بـ 1 التزام (Commit).
+- **حالة فحوصات التحقق البرمجية**:
+  - فحص Prisma: ناجح (PASS)
+  - فحص TypeScript: ناجح (PASS)
+  - بناء تطبيق الويب: ناجح (PASS)
+  - قائمة اختبارات Playwright: ناجح (PASS)
+- **فحص تسريب البيانات والأسرار**: تم الفحص والـ Diff نظيف بالكامل ولا يحتوي على أي كلمات مرور أو مفاتيح APIs.
+- **النتيجة**: ناجح (PASS)
