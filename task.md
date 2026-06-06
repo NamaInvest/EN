@@ -154,6 +154,21 @@
 - Env changes: NO
 - Rollback required: NO
 
+## 12. Printer Status Auto-Recovery & Tooltips Production Deploy Pipeline (Wave P4-B) (Completed)
+- `[x]` المرحلة 0 — فحص خط الأساس المحلي (Local Baseline Check - PASS)
+- `[x]` المرحلة 1 — التحقق من نطاق النشر والالتزام المستهدف (Deploy Scope Verification - PASS)
+- `[x]` المرحلة 2 — فحص جاهزية الإنتاج والاتصال الآمن (Production Precheck - PASS)
+- `[x]` المرحلة 3 — بوابة التحقق ونزاهة المخطط (Deploy Gate - PASS)
+- `[x]` المرحلة 4 — أخذ نسخ احتياطية للملفات المتأثرة على الإنتاج (Backup Before Deploy - PASS)
+- `[x]` المرحلة 5 — النشر الفعلي للملفات المنشورة (Deploy Execution - PASS)
+- `[x]` المرحلة 6 — بناء حزمة الإنتاج Next.js على السيرفر (Production Build - PASS)
+- `[x]` المرحلة 7 — إعادة تشغيل خدمات PM2 الثلاثة (PM2 Reload - PASS)
+- `[x]` المرحلة 8 — فحوصات الاستجابة السريعة للمواقع والـ APIs (Smoke Tests - PASS)
+- `[x]` المرحلة 9 — مراقبة وتحليل سجلات الخوادم على الإنتاج (Log Observation - PASS)
+- `[x]` المرحلة 10 — تحديث الذاكرة والتوثيق وقوائم المهام (Memory & Docs Update - PASS)
+- `[x]` المرحلة 11 — الإغلاق النهائي لنشر الإنتاج (Final Deploy Closeout - PASS)
+
+
 
 
 

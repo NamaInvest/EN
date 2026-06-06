@@ -825,19 +825,24 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
   - Deployed to Hetzner VPS (`main-site`, `n1-main`, `saas-app`) on 2026-06-06. Rebuilt and restarted via PM2. Verified online.
 * **Next Recommended Phase**: Proceed with next business gap closure in roadmap.
 
-### Phase: Multi-printer Polling Auto-recovery & Custom Tooltips (Wave P4-B) (2026-06-06)
-* **Status**: `DEVELOPED_AND_VERIFIED`
-* **Commit**: Awaiting commit
-* **Scope**: Implement auto-recovery polling and interactive custom tooltips for printer status indicators across all POS screens:
+### Phase: Multi-printer Polling Auto-recovery & Custom Tooltips (Wave P4-B) (2026-06-07)
+* Status: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* Commit: `3057a40a30141f2a36b94098679f04627b0b60cb`
+* Scope: Implement auto-recovery polling and interactive custom tooltips for printer status indicators across all POS screens:
   - Added a 30-second polling interval in `useEffect` in `pos/page.tsx`, `restaurant-pos/page.tsx`, and `sales/terminal/page.tsx` to automatically recheck QZ Tray status and update the UI badge.
   - Wrapped the printer status indicator with a custom styled Tailwind/Glassmorphism tooltip (`relative group` with custom popup overlay) to explain printer connectivity to users.
   - Animated the refresh icon (`animate-spin` on `RefreshCcw`) during verification status checks.
-* **Files Modified**:
+* Files Modified & Deployed:
   - `src/app/(dashboard)/pos/page.tsx`
   - `src/app/(dashboard)/restaurant-pos/page.tsx`
   - `src/app/(dashboard)/sales/terminal/page.tsx`
-* **Database / Prisma Schema**: Unchanged.
-* **Local Verification**: TypeScript compilation PASS (`npm run typecheck`), Prisma Validation PASS, Next.js Production Build PASS.
-* **Production Deployment & Verification**:
-  - Awaiting push to `origin/main` and production deploy approval.
-* **Next Recommended Phase**: Proceed with next business gap closure in roadmap.
+* Database / Prisma Schema: Unchanged.
+* Local Verification: TypeScript compilation PASS (`npm run typecheck`), Prisma Validation PASS, Next.js Production Build PASS.
+* Production Deployment & Verification:
+  - Deployed to Hetzner VPS (`main-site`, `n1-main`, `saas-app`) at `/www/wwwroot/...`.
+  - Backups taken on the VPS as `.bak_wave_p4b_printer_recovery` for all 3 files before deployment.
+  - Built successfully in parallel on production in 75.3s.
+  - Reloaded PM2 apps (`main-site`, `n1-main`, `saas-app`) and verified they are online.
+  - Performed Smoke Tests on public/protected paths (all passed: 200 OK for UI routes, 401 for protected APIs, 0 crashes/500 errors).
+  - Monitored PM2 logs (clean, no TypeErrors or Prisma schema errors).
+* Next Recommended Phase: Proceed with next business gap closure in roadmap (GO_FOR_NEXT_BUSINESS_PHASE_SCAN_AND_PLAN_ONLY).
