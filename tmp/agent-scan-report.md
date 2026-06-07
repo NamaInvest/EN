@@ -1,54 +1,33 @@
-# تقرير الفحص والمسح الشامل للنظام (System Scan & Plan Report)
-**المشروع:** Nama Invest ERP / Namasoft ERP
-**اسم المرحلة:** REFERENCE_SKILLS_AND_FULL_SYSTEM_SCAN_ONLY
-**التاريخ:** 2026-06-07
+# Agent Scan Report - Test DB Local Setup Prep
 
----
+## 1. الملفات التي قرأتها
+- [AGENTS.md](file:///d:/namasoft9-3-main/AGENTS.md)
+- [TEST_DB_ENVIRONMENT_SETUP_GUIDE_AR.md](file:///d:/namasoft9-3-main/docs/testing/TEST_DB_ENVIRONMENT_SETUP_GUIDE_AR.md)
+- [TEST_DB_SAFE_RUNBOOK_AR.md](file:///d:/namasoft9-3-main/docs/testing/TEST_DB_SAFE_RUNBOOK_AR.md)
 
-## 1. الملفات والمراجع التي تم فحصها وقراءتها
-تم إجراء مسح شامل وقراءة للمراجع المتاحة في `reference-repos/` بالإضافة لملفات التوثيق الأساسية للمشروع:
+## 2. الملفات المرشحة للتعديل/الإنشاء
+- `docs/testing/TEST_DB_LOCAL_ENV_COMMANDS_AR.md` (جديد - دليل أوامر تهيئة البيئة المحلية)
+- `docs/testing/TEST_DB_READINESS_RETRY_CHECKLIST_AR.md` (جديد - قائمة مراجعة إعادة الجاهزية)
+- `scripts/testing/check-test-db-env.ps1` (جديد - سكربت فحص الجاهزية بدون أسرار)
+- `tmp/test-db-local-setup-prep-*report.md` (جديد - تقارير الفحص والجاهزية)
 
-* **المراجع الممسوحة (Reference Repos):**
-  * `You-Dont-Know-JS` & `javascript-questions` & `33-js-concepts` (مفاهيم جودة الأكواد وإدارة الذاكرة والوعود)
-  * `nodebestpractices` (أفضل ممارسات أمن واستقرار Node.js)
-  * `ASVS` & `owasp-asvs-checklist` (معايير أمن التطبيقات السحابية والمؤسسية)
-  * `erpnext` & `bigcapital` (محركات وهياكل الحركات المالية والمحاسبية والمخزنية)
-  * `skills` (هياكل ونماذج مهارات الأوتوبايلوت)
-* **ملفات توثيق المشروع وذاكرته:**
-  * [INDEX.md](file:///d:/namasoft9-3-main/docs/INDEX.md) (فهرس التوثيق الشامل)
-  * [AI_PROJECT_MEMORY.md](file:///d:/namasoft9-3-main/AI_PROJECT_MEMORY.md) (ذاكرة المشروع التراكمية)
-  * [task.md](file:///d:/namasoft9-3-main/task.md) (قائمة المهام)
-  * [walkthrough.md](file:///d:/namasoft9-3-main/walkthrough.md) (مسيرة التطوير والنشر)
-* **أكواد وواجهات النظام الحالية:**
-  * راوترات APIs تحت مجلد `src/app/api/` للتحقق من تطبيق حراس المستأجرين.
-  * مكونات شاشات نقاط البيع والـ POS الفورية.
+## 3. الدومينات المتأثرة
+- بيئة ووثائق وسكربتات تهيئة بيئة قاعدة البيانات المعزولة محلياً.
+- لا يوجد أي تعديل على كود التشغيل (Runtime) أو قواعد البيانات الحية.
 
----
+## 4. المخاطر
+- لا توجد أي مخاطر لعدم وجود اتصالات بقواعد البيانات، وسيكون السكربت والتعليمات خاليين تماماً من أي قيم أو تفاصيل سرية (Mocks / Placeholders only).
 
-## 2. الدومينات المتأثرة (Affected Domains)
-تغطية الفحص تشمل جميع الدومينات والمكونات الهيكلية للنظام:
-* **الأمن وعزل البيانات (Security & Tenant Isolation):** التحقق من تطبيق حرس `tenantId` وصلاحيات الوصول على كل API وواجهة.
-* **المسارات المالية والمحاسبية (Financial & Accounting Flows):** تدقيق عمليات توازن القيود، والتحقق من الفترات المالية المغلقة، والـ Immuted Posted Journals.
-* **المسارات التشغيلية وحركات المخازن (Operational & Inventory Valuation):** حماية حركات المخازن وحسابات متوسط التكلفة المتحرك.
-* **الأداء وسلامة الـ Event Loop (Performance & Event Loop Blockers):** التحقق من خلو الأكواد من blocking sync operations وتكرار الاتصالات.
+## 5. خطة التنفيذ
+- مراجعة الخط الأساسي وقواعد الحوكمة في Phase 1.
+- مراجعة تغطية وسيناريوهات الفحص في Phase 2.
+- مراجعة الأدلة السابقة للتهيئة في Phase 3.
+- إنشاء دليل أوامر الجلسة المحلية في Phase 4.
+- إنشاء قائمة مراجعة بوابة إعادة الجاهزية في Phase 5.
+- إنشاء السكربت الآمن المساعد في Phase 6.
+- التحقق البرمجي ونوع البيانات في Phase 7 و 8.
+- الفحص الأمني والأسرار والـ commit/push في المراحل اللاحقة.
 
----
-
-## 3. تحليل المخاطر (Risk & Vulnerability Analysis)
-* **ثغرات كشف أو خرق عزل المستأجرين (Cross-Tenant Data Leakage):** خطر محتمل عند نسيان تضمين `tenantId` في استعلامات Prisma أو عدم تصفية الكاش والجلسات؛ تم تصنيف الخطر كـ **حرج (Critical)** وحله هو الالتزام الصارم ببوابات الأمان المحددة في ASVS.
-* **تعديل قيود مرحلة أو تعديل فترات مغلقة (Financial Integrity Violations):** خطر تشويه الدفاتر المحاسبية العامة؛ تم تصنيف الخطر كـ **مرتفع جداً (High)** وحله هو تفعيل فحص الفترات المغلقة وحظر عمليات التعديل والحذف للقيود المعتمدة برمجياً.
-* **شلل أو تعطل خادم التطبيق (Event Loop Blocking):** خطر انقطاع الخدمة بسبب استدعاء دوال متزامنة لمعالجة الملفات الكبيرة أو التقارير؛ تم تصنيف الخطر كـ **متوسط (Medium)** وحله هو تشغيل هذه المهام في عمال خلفيين مستقلين.
-
----
-
-## 4. خطة التنفيذ (Implementation & Verification Plan)
-بما أن هذه المرحلة مخصصة للمسح والتوثيق فقط (`SCAN_ONLY`):
-1. **إنشاء مهارات التحقق والمراجعة (الخطوة المكتملة):** تم توليد ملفات المهارات وقوائم الفحص في `docs/skills/` باللغة العربية بناءً على المراجع العشرة.
-2. **توليد سيناريوهات الفحص الشامل للنظام (System Scan Scenarios):** سيتم توليد وتصميم سيناريوهات شاملة تغطي الصفحات والأزرار والـ APIs والمسارات المالية والأمنية والتشغيلية في ملفات مستقلة في مجلد `docs/scenarios/` لضمان إمكانية إجراء الفحوصات بانتظام.
-3. **تحديث فهرس التقارير والذاكرة الفنية:** إدراج تقارير وسيناريوهات هذه المرحلة في الفهرس الشامل لإغلاق المرحلة بنجاح.
-
----
-
-## 5. خطة الاختبار والتحقق (Testing Plan)
-* **الاختبارات الآمنة المتاحة:** تشغيل `npm run typecheck` و `npx prisma validate` محلياً للتأكد من سلامة النظام أثناء وبعد إكمال التوثيق.
-* **الاختبارات الأمنية:** مطابقة شروط ASVS على أكواد النظام يدوياً وبرمجياً في التقارير الملحقة.
+## 6. خطة الاختبار
+- تشغيل `npx vitest run tests/db-safety.test.ts tests/finance-harness-safety.test.ts tests/finance-isolated-db-smoke.test.ts`
+- تشغيل `npx tsc -p tsconfig.test.json --noEmit`
