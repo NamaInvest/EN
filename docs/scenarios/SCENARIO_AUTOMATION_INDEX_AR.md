@@ -129,5 +129,6 @@
 * **REQUIRES_DB_WRITE:** NO
 * **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
-* **RECOMMENDED_TEST_FILE:** `tests/unit/performance/sync-blockers.test.ts`
+* **RECOMMENDED_TEST_FILE:** `tests/sync-blockers.test.ts`
 * **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
