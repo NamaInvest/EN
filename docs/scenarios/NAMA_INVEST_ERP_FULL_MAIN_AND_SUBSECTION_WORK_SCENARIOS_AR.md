@@ -26,6 +26,7 @@ DB_WRITE_ALLOWED: YES (في بيئة Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (عبر Test DB ومحاكاة مغلّفة، ممنوع على الإنتاج)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/finance-isolated-db-smoke.test.ts`
 RISK_LEVEL: P1 (مرتفع جداً)
@@ -55,6 +56,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES (يمكن استخدام Mock لـ Prisma)
 AUTOMATION_STATUS: NOT_STARTED
 RELATED_TEST_FILE: `tests/integration/accounting/coa.test.ts`
 RISK_LEVEL: P1
@@ -84,6 +86,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES (للملف المرفوع)
 AUTOMATION_STATUS: NOT_STARTED
 RELATED_TEST_FILE: `tests/integration/accounting/bank-recon.test.ts`
 RISK_LEVEL: P2
@@ -112,6 +115,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES (إلزامي لمقدمي خدمات الرسائل والبريد)
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/accounting/dunning.test.ts`
 RISK_LEVEL: P2
@@ -141,6 +145,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES (لبوابة الدفع ومحاكاة ZATCA)
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/e2e/pos/checkout.test.ts`
 RISK_LEVEL: P1
@@ -170,6 +175,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/sales/returns.test.ts`
 RISK_LEVEL: P1
@@ -199,6 +205,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES (لاتصالات الويب سوكيت)
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/e2e/pos/restaurant.test.ts`
 RISK_LEVEL: P2
@@ -228,6 +235,7 @@ DB_WRITE_ALLOWED: NO (محاكاة كاملة في الاختبارات)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-procurement.test.ts`
 RISK_LEVEL: P2
@@ -241,7 +249,7 @@ SUB_SECTION: Purchase Returns
 PAGE_OR_ROUTE: `/purchase-returns`
 API_ROUTE: `POST /api/purchases/returns`
 USER_ROLE: أمين مخزن (Storekeeper)
-BUTTON_OR_ACTION: زر ترحيل المرتجع (Post Purchase Return)
+BUTTON_OR_ACTION: زر ترحيل المرتجع للمورد
 FORM_FIELDS: سند الاستلام المخزني الأصلي (GRN)، الكميات المسترجعة، المورد
 PRECONDITIONS: وجود مستند استلام مخزني (GRN) مرحل ومثبت مسبقاً.
 SAFE_TEST_DATA: سند استلام مخزني يحتوي صنف اختبار بكمية 20 حبة.
@@ -257,6 +265,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/purchases/returns.test.ts`
 RISK_LEVEL: P1
@@ -286,6 +295,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول مخزني ومحاسبي)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/inventory/transfers.test.ts`
 RISK_LEVEL: P1
@@ -315,6 +325,7 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/inventory/adjustments.test.ts`
 RISK_LEVEL: P1
@@ -344,10 +355,11 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: NOT_STARTED
 RELATED_TEST_FILE: `tests/integration/hr/employees.test.ts`
 RISK_LEVEL: P2
-NOTES: يتم التحقق من عزل البيانات بالكامل لمنع تسريب الموظفين لمستأجر آخر.
+NOTES: يتم التحقق من عزل البيانات بالكامل لمنع تسريب الموظفين.
 
 ---
 
@@ -373,6 +385,7 @@ DB_WRITE_ALLOWED: NO (معزول API)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-compliance.test.ts`
 RISK_LEVEL: P2
@@ -402,15 +415,16 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: YES (معزول مالي)
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: BLOCKED_NEEDS_TEST_DB
 RELATED_TEST_FILE: `tests/integration/fixed-assets/depreciation.test.ts`
 RISK_LEVEL: P1
-NOTES: يتم التحقق من عدم تخطي مجمع الإهلاك لقيمة الإهلاك الكلية.
+NOTES: يتم التحقق من عدم تخطي مجمع الإهلاك لقيمة الأصل الكلية.
 
 ---
 
 ### SCENARIO_ID: SCN-APP-001
-MAIN_SECTION: Approvals
+MAIN_SECTION: Document Approvals
 SUB_SECTION: Document Workflow Approvals
 PAGE_OR_ROUTE: `/approvals`
 API_ROUTE: `GET /api/approvals/pending`
@@ -430,6 +444,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-procurement.test.ts`
 RISK_LEVEL: P2
@@ -458,6 +473,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-ai-cfo.test.ts`
 RISK_LEVEL: P3
@@ -478,7 +494,7 @@ SAFE_TEST_DATA: معدة تكييف اختبارية.
 STEPS:
 1. فتح جدول الصيانة واختيار المعدة.
 2. تعيين خيارات التكرار وتاريخ الفحص وحفظ.
-3. التحقق من توليد أوامر الصيانة الوقائية وتحديث حالة المعدة وجدول العمل الوقائي.
+3. التحقق من توليد أوامر الصيانة الدورية وتنبيه الفني وتحديث حالة المعدة وجدول العمل الوقائي.
 EXPECTED_RESULT: حفظ الجدول بنجاح وتوليد أوامر العمل المقابلة وإرجاع 201 Created.
 NEGATIVE_CASES: محاولة حفظ خطة صيانة بدون اختيار معدة يرجع خطأ تحقق 400.
 PERMISSION_RULES: تطلب صلاحية `manage:maintenance`.
@@ -487,10 +503,11 @@ DB_WRITE_ALLOWED: YES (Test DB فقط)
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: YES
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: NOT_STARTED
 RELATED_TEST_FILE: `tests/integration/maintenance/pm.test.ts`
 RISK_LEVEL: P3
-NOTES: لا يتم حساب أي تكاليف قطع غيار حية أو فواتير صيانة خارجية حقيقية.
+NOTES: لا يتم حساب أي تكاليف قطع غيار حية أو فواتير صيانة.
 
 ---
 
@@ -514,6 +531,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-security.test.ts`
 RISK_LEVEL: P0 (ثغرة أمنية حرجة)
@@ -541,6 +559,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-security.test.ts`
 RISK_LEVEL: P0
@@ -568,6 +587,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: NO
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/sync-blockers.test.ts`
 RISK_LEVEL: P2
@@ -595,6 +615,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-accounting-governance.test.ts`
 RISK_LEVEL: P1
@@ -622,6 +643,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-accounting-governance.test.ts`
 RISK_LEVEL: P1
@@ -649,6 +671,7 @@ DB_WRITE_ALLOWED: NO
 FINANCIAL_POSTING_ALLOWED: NO
 PRODUCTION_ALLOWED: NO
 TEST_DB_REQUIRED: NO
+MOCK_ALLOWED: YES
 AUTOMATION_STATUS: AUTOMATED
 RELATED_TEST_FILE: `tests/api-contract-accounting-governance.test.ts`
 RISK_LEVEL: P1

@@ -14,6 +14,7 @@ SAFE_TO_RUN_NOW: NO (Requires TEST_DATABASE_URL to be set by admin)
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires a real Postgres DB connection to test the actual Prisma insert and General Ledger ledger balancing.
 RECOMMENDED_NEXT_ACTION: Request admin to configure TEST_DATABASE_URL and retry the readiness gate.
 
@@ -29,6 +30,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Missing integration test file for COA tree validation.
 RECOMMENDED_NEXT_ACTION: Create `tests/integration/accounting/coa.test.ts` using mocked or isolated test DB.
 
@@ -44,6 +46,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: YES (Requires CSV statement import mock)
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Missing reconciliation integration test file.
 RECOMMENDED_NEXT_ACTION: Create reconciliation test.
 
@@ -59,6 +62,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: YES (Mock email/SMS client)
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Blocked on test database availability.
 RECOMMENDED_NEXT_ACTION: Implement test DB dunning runner.
 
@@ -74,6 +78,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: YES (Mock Stripe payments and ZATCA APIs)
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Playwright tests need local dev server running with Test DB connection.
 RECOMMENDED_NEXT_ACTION: Run E2E test suite in Wave POS phase.
 
@@ -89,6 +94,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires posted sales invoice inside database to process returns.
 RECOMMENDED_NEXT_ACTION: Seed test database with a posted sales invoice.
 
@@ -96,7 +102,7 @@ RECOMMENDED_NEXT_ACTION: Seed test database with a posted sales invoice.
 
 ### SCENARIO_ID: SCN-POS-002
 MAIN_SECTION: Point of Sale (POS)
-SUB_SECTION: Restaurant Restaurant POS & Tables
+SUB_SECTION: Restaurant POS & Tables
 AUTOMATION_STATUS: PARTIALLY_AUTOMATED
 TEST_FILE: `tests/e2e/pos/restaurant.test.ts`
 TEST_COMMAND: `npx playwright test tests/e2e/pos/restaurant.test.ts`
@@ -104,6 +110,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: YES (WebSocket mocks)
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires WebSocket connection and floor mapping database records.
 RECOMMENDED_NEXT_ACTION: Seed tables and floor layouts in Test DB.
 
@@ -119,6 +126,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES (DB Client is mocked)
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. The API contract and calculations are fully validated with Mock DB.
 RECOMMENDED_NEXT_ACTION: Run with normal Vitest suite.
 
@@ -134,6 +142,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires posted GRN records in the database.
 RECOMMENDED_NEXT_ACTION: Seed database with GRN prior to returns execution.
 
@@ -149,6 +158,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires warehouses and initial item balances.
 RECOMMENDED_NEXT_ACTION: Seed warehouses A & B with stock.
 
@@ -164,6 +174,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires physical counts and book values comparison checks.
 RECOMMENDED_NEXT_ACTION: Create inventory adjustment test file.
 
@@ -179,6 +190,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Missing test file.
 RECOMMENDED_NEXT_ACTION: Create employee contracts test.
 
@@ -194,6 +206,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Mudad compliance file formatting checks are fully automated.
 RECOMMENDED_NEXT_ACTION: Run with main Vitest suite.
 
@@ -209,13 +222,14 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Requires capitalized asset profiles.
 RECOMMENDED_NEXT_ACTION: Create assets depreciation test file.
 
 ---
 
 ### SCENARIO_ID: SCN-APP-001
-MAIN_SECTION: Approvals
+MAIN_SECTION: Document Approvals
 SUB_SECTION: Document Workflow Approvals
 AUTOMATION_STATUS: AUTOMATED
 TEST_FILE: `tests/api-contract-procurement.test.ts`
@@ -224,6 +238,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Workflow approvals endpoint checks are covered in contract tests.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -239,6 +254,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES (Mock Gemini LLM API)
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. LLM API requests and responses are fully mocked.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -254,6 +270,7 @@ SAFE_TO_RUN_NOW: NO
 REQUIRES_TEST_DB: YES
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: YES
+REQUIRES_CODE_CHANGE: NO
 GAP: Missing preventive maintenance integration test.
 RECOMMENDED_NEXT_ACTION: Create CMMS test file.
 
@@ -269,6 +286,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Secure tenant-header leakage tests are automated.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -284,6 +302,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Role-based endpoint rejection (403 Forbidden) is validated.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -299,6 +318,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: NO
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. AST code check runs fine without server connections.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -314,6 +334,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Prevention of unbalanced entries is validated.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -329,6 +350,7 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Rejection of Posted Entry modification is validated.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
 
@@ -344,5 +366,6 @@ SAFE_TO_RUN_NOW: YES
 REQUIRES_TEST_DB: NO
 REQUIRES_MOCK: YES
 REQUIRES_ADMIN_ENV: NO
+REQUIRES_CODE_CHANGE: NO
 GAP: None. Locked period entry rejection is validated.
 RECOMMENDED_NEXT_ACTION: Run in standard test suite.
