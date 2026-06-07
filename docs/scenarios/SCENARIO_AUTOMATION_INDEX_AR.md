@@ -8,31 +8,31 @@
 
 ## 📊 جدول فهرس الأتمتة العام
 
-| المعرف | القسم الفرعي | نوع الأتمتة | طبقة الاختبار | آمن للأتمتة؟ | الأولوية |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **SCN-GL-001** | Journal Entries | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-GL-002** | Chart of Accounts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-BANK-001** | Bank Reconciliation | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM |
-| **SCN-GL-003** | Dunning Engine V2 | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM |
-| **SCN-POS-001** | Cashier Checkout | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH |
-| **SCN-SAL-002** | Sales Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-POS-002** | Restaurant POS | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH |
-| **SCN-PUR-001** | Purchase Orders | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM |
-| **SCN-PUR-002** | Purchase Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-INV-001** | Stock Transfers | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-INV-002** | Stocktake | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-HR-001** | Employee Contracts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM |
-| **SCN-COMP-001** | Mudad File Generation | API_CONTRACT | Vitest (Read-only) | **YES** | MEDIUM |
-| **SCN-APP-001** | Workflow Approvals | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-AI-001** | AI CFO Auditor | API_CONTRACT | Vitest (Mocked LLM) | **YES** | MEDIUM |
-| **SCN-CMMS-001** | Preventive Maintenance| INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | LOW |
-| **SCN-SEC-001** | Cross-Tenant Leakage | API_CONTRACT | Playwright / Vitest | **YES** | HIGH |
-| **SCN-SEC-002** | Server Access Control | API_CONTRACT | Playwright / Vitest | **YES** | HIGH |
-| **SCN-PERF-001**| Sync Blockers Check | UNIT | Jest / AST parser check | **YES** | HIGH |
-| **SCN-PERF-002**| POS Memory Leak Check | UI_E2E | Playwright Performance | **PARTIAL** | HIGH |
-| **SCN-FIN-001** | Unbalanced Entries | UNIT | Vitest / Jest (Calculation) | **YES** | HIGH |
-| **SCN-FIN-002** | Posted Record Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
-| **SCN-FIN-003** | Closed Period Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH |
+| المعرف | القسم الفرعي | نوع الأتمتة | طبقة الاختبار | آمن للأتمتة؟ | الأولوية | الحالة |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **SCN-GL-001** | Journal Entries | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-GL-002** | Chart of Accounts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-BANK-001** | Bank Reconciliation | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-GL-003** | Dunning Engine V2 | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-POS-001** | Cashier Checkout | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NOT_STARTED |
+| **SCN-SAL-002** | Sales Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-POS-002** | Restaurant POS | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NOT_STARTED |
+| **SCN-PUR-001** | Purchase Orders | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | **AUTOMATED** |
+| **SCN-PUR-002** | Purchase Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-INV-001** | Stock Transfers | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-INV-002** | Stocktake | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-HR-001** | Employee Contracts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-COMP-001** | Mudad File Generation | API_CONTRACT | Vitest (Read-only) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-APP-001** | Workflow Approvals | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
+| **SCN-AI-001** | AI CFO Auditor | API_CONTRACT | Vitest (Mocked LLM) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-CMMS-001** | Preventive Maintenance| INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | LOW | NOT_STARTED |
+| **SCN-SEC-001** | Cross-Tenant Leakage | API_CONTRACT | Playwright / Vitest | **YES** | HIGH | **AUTOMATED** |
+| **SCN-SEC-002** | Server Access Control | API_CONTRACT | Playwright / Vitest | **YES** | HIGH | **AUTOMATED** |
+| **SCN-PERF-001**| Sync Blockers Check | UNIT | Jest / AST parser check | **YES** | HIGH | **AUTOMATED** |
+| **SCN-PERF-002**| POS Memory Leak Check | UI_E2E | Playwright Performance | **PARTIAL** | HIGH | NOT_STARTED |
+| **SCN-FIN-001** | Unbalanced Entries | UNIT | Vitest / Jest (Calculation) | **YES** | HIGH | NOT_STARTED |
+| **SCN-FIN-002** | Posted Record Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-FIN-003** | Closed Period Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
 
 ---
 
@@ -52,6 +52,7 @@
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
 * **RECOMMENDED_TEST_FILE:** `tests/integration/accounting/journal-post.test.ts`
 * **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** NOT_STARTED
 
 ### SCN-GL-002: Chart of Accounts (COA)
 * **MODULE:** Accounting
@@ -67,6 +68,7 @@
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
 * **RECOMMENDED_TEST_FILE:** `tests/integration/accounting/coa.test.ts`
 * **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** NOT_STARTED
 
 ### SCN-BANK-001: Bank Reconciliation
 * **MODULE:** Accounting
@@ -82,6 +84,7 @@
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
 * **RECOMMENDED_TEST_FILE:** `tests/integration/accounting/bank-recon.test.ts`
 * **PRIORITY:** MEDIUM
+* **AUTOMATION_STATUS:** NOT_STARTED
 
 ### SCN-GL-003: Dunning Engine V2
 * **MODULE:** Accounting
@@ -97,6 +100,7 @@
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
 * **RECOMMENDED_TEST_FILE:** `tests/integration/accounting/dunning.test.ts`
 * **PRIORITY:** MEDIUM
+* **AUTOMATION_STATUS:** NOT_STARTED
 
 ---
 
@@ -107,15 +111,36 @@
 * **MAIN_SECTION:** Security & Tenant Isolation
 * **SUBSECTION:** Cross-Tenant Isolation
 * **AUTOMATION_TYPE:** API_CONTRACT
-* **TEST_LAYER:** Playwright / Vitest
+* **TEST_LAYER:** Vitest
 * **SAFE_TO_AUTOMATE:** YES
-* **REASON:** يمكن إرسال طلبات HTTP لراوترات معزولة والتحقق من كود الاستجابة 403/401؛ آمن جداً ولا يكتب في قاعدة البيانات.
+* **REASON:** اختبار عزل المستأجرين والتأكد من رفض الطلب أو تصفية الاستعلام ببيانات مستأجر آخر.
 * **REQUIRES_AUTH:** YES
 * **REQUIRES_DB_WRITE:** NO
 * **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
 * **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
-* **RECOMMENDED_TEST_FILE:** `e2e/security/tenant-isolation.spec.ts`
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-security.test.ts`
 * **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-SEC-002: Server Access Control & RBAC Verification
+* **MODULE:** Security
+* **MAIN_SECTION:** Security & Tenant Isolation
+* **SUBSECTION:** Server Access Control
+* **AUTOMATION_TYPE:** API_CONTRACT
+* **TEST_LAYER:** Vitest
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** التحقق من الصلاحيات ورفض الأدوار غير المصرح بها بـ 403 Forbidden.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-security.test.ts`
+* **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
 
 ### SCN-PERF-001: Sync Blockers Check
 * **MODULE:** Performance
@@ -132,3 +157,43 @@
 * **RECOMMENDED_TEST_FILE:** `tests/sync-blockers.test.ts`
 * **PRIORITY:** HIGH
 * **AUTOMATION_STATUS:** AUTOMATED
+
+---
+
+## 📦 3. تفاصيل خطة أتمتة موديول المشتريات والموافقات (Procurement & Approvals)
+
+### SCN-PUR-001: Purchase Order Draft Creation & Tax Calculation
+* **MODULE:** Purchases
+* **MAIN_SECTION:** Procurement
+* **SUBSECTION:** Purchase Orders
+* **AUTOMATION_TYPE:** INTEGRATION_SAFE
+* **TEST_LAYER:** Vitest (Mocked DB)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** التحقق من صحة معدلات الضريبة وتوليد مسودة أمر الشراء Saga وإعادة الكود 201 Created.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** YES (محاكاة)
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-procurement.test.ts`
+* **PRIORITY:** MEDIUM
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-APP-001: Document Workflow Approvals Pending Listing
+* **MODULE:** Workflow
+* **MAIN_SECTION:** Approvals
+* **SUBSECTION:** Document Workflow Approvals
+* **AUTOMATION_TYPE:** INTEGRATION_SAFE
+* **TEST_LAYER:** Vitest (Mocked DB)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** جلب الموافقات المعلقة الخاصة بالـ User/Tenant المعني بـ 200 OK.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-procurement.test.ts`
+* **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
