@@ -85,3 +85,9 @@ tmp/*
 # Playwright test outputs
 /test-results/
 /playwright-report/
+
+# Local reference repositories used only for AI review skills; never commit.
+reference-repos/
+
+# Local test runner artifact.
+test-results.xml
