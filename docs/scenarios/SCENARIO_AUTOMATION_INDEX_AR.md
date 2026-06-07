@@ -10,17 +10,17 @@
 
 | المعرف | القسم الفرعي | نوع الأتمتة | طبقة الاختبار | آمن للأتمتة؟ | الأولوية | الحالة |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SCN-GL-001** | Journal Entries | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-GL-001** | Journal Entries | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NEEDS_ISOLATED_TEST_DB |
 | **SCN-GL-002** | Chart of Accounts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
 | **SCN-BANK-001** | Bank Reconciliation | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
-| **SCN-GL-003** | Dunning Engine V2 | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
-| **SCN-POS-001** | Cashier Checkout | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NOT_STARTED |
-| **SCN-SAL-002** | Sales Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
-| **SCN-POS-002** | Restaurant POS | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NOT_STARTED |
+| **SCN-GL-003** | Dunning Engine V2 | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NEEDS_ISOLATED_TEST_DB |
+| **SCN-POS-001** | Cashier Checkout | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NEEDS_ISOLATED_TEST_DB |
+| **SCN-SAL-002** | Sales Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NEEDS_ISOLATED_TEST_DB |
+| **SCN-POS-002** | Restaurant POS | UI_E2E | Playwright (Mocked API) | **PARTIAL** | HIGH | NEEDS_ISOLATED_TEST_DB |
 | **SCN-PUR-001** | Purchase Orders | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | **AUTOMATED** |
-| **SCN-PUR-002** | Purchase Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
-| **SCN-INV-001** | Stock Transfers | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
-| **SCN-INV-002** | Stocktake | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-PUR-002** | Purchase Returns | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NEEDS_ISOLATED_TEST_DB |
+| **SCN-INV-001** | Stock Transfers | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NEEDS_ISOLATED_TEST_DB |
+| **SCN-INV-002** | Stocktake | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NEEDS_ISOLATED_TEST_DB |
 | **SCN-HR-001** | Employee Contracts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
 | **SCN-COMP-001** | Mudad File Generation | API_CONTRACT | Vitest (Read-only) | **YES** | MEDIUM | **AUTOMATED** |
 | **SCN-APP-001** | Workflow Approvals | INTEGRATION_SAFE | Vitest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
