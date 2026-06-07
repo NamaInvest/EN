@@ -22,17 +22,17 @@
 | **SCN-INV-001** | Stock Transfers | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
 | **SCN-INV-002** | Stocktake | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
 | **SCN-HR-001** | Employee Contracts | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | MEDIUM | NOT_STARTED |
-| **SCN-COMP-001** | Mudad File Generation | API_CONTRACT | Vitest (Read-only) | **YES** | MEDIUM | NOT_STARTED |
-| **SCN-APP-001** | Workflow Approvals | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
-| **SCN-AI-001** | AI CFO Auditor | API_CONTRACT | Vitest (Mocked LLM) | **YES** | MEDIUM | NOT_STARTED |
+| **SCN-COMP-001** | Mudad File Generation | API_CONTRACT | Vitest (Read-only) | **YES** | MEDIUM | **AUTOMATED** |
+| **SCN-APP-001** | Workflow Approvals | INTEGRATION_SAFE | Vitest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
+| **SCN-AI-001** | AI CFO Auditor | API_CONTRACT | Vitest (Mocked LLM) | **YES** | MEDIUM | **AUTOMATED** |
 | **SCN-CMMS-001** | Preventive Maintenance| INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | LOW | NOT_STARTED |
 | **SCN-SEC-001** | Cross-Tenant Leakage | API_CONTRACT | Playwright / Vitest | **YES** | HIGH | **AUTOMATED** |
 | **SCN-SEC-002** | Server Access Control | API_CONTRACT | Playwright / Vitest | **YES** | HIGH | **AUTOMATED** |
 | **SCN-PERF-001**| Sync Blockers Check | UNIT | Jest / AST parser check | **YES** | HIGH | **AUTOMATED** |
 | **SCN-PERF-002**| POS Memory Leak Check | UI_E2E | Playwright Performance | **PARTIAL** | HIGH | NOT_STARTED |
-| **SCN-FIN-001** | Unbalanced Entries | UNIT | Vitest / Jest (Calculation) | **YES** | HIGH | NOT_STARTED |
-| **SCN-FIN-002** | Posted Record Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
-| **SCN-FIN-003** | Closed Period Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | NOT_STARTED |
+| **SCN-FIN-001** | Unbalanced Entries | UNIT | Vitest / Jest (Calculation) | **YES** | HIGH | **AUTOMATED** |
+| **SCN-FIN-002** | Posted Record Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
+| **SCN-FIN-003** | Closed Period Lock | INTEGRATION_SAFE | Vitest / Jest (Mocked DB) | **YES** | HIGH | **AUTOMATED** |
 
 ---
 
@@ -196,4 +196,98 @@
 * **PRIORITY:** HIGH
 * **AUTOMATION_STATUS:** AUTOMATED
 * **AUTOMATED_IN_WAVE:** API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+---
+
+## ⚖️ 4. تفاصيل خطة أتمتة موديولات الامتثال والذكاء الاصطناعي وحوكمة الحسابات
+
+### SCN-COMP-001: Mudad File Generation / Wages Protection
+* **MODULE:** HR / Payroll
+* **MAIN_SECTION:** Wages Protection System
+* **SUBSECTION:** Mudad Compliance
+* **AUTOMATION_TYPE:** API_CONTRACT
+* **TEST_LAYER:** Vitest (Read-only)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** اختبار التحقق من الامتثال وحسابات نسب حماية الأجور وإنشاء تقارير Mudad.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-compliance.test.ts`
+* **PRIORITY:** MEDIUM
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** REMAINING_API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-AI-001: AI CFO Auditor
+* **MODULE:** AI Features
+* **MAIN_SECTION:** CFO Auditor
+* **SUBSECTION:** AI Financial Insights
+* **AUTOMATION_TYPE:** API_CONTRACT
+* **TEST_LAYER:** Vitest (Mocked LLM)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** فحص عقد استرجاع تحليلات الأرباح والمخازن ومقترحات CFO من Gemini API باستخدام محاكاة للنموذج والطلب المباشر.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-ai-cfo.test.ts`
+* **PRIORITY:** MEDIUM
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** REMAINING_API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-FIN-001: Unbalanced Journal Entry Prevention
+* **MODULE:** Accounting
+* **MAIN_SECTION:** General Ledger
+* **SUBSECTION:** Journal Entry Calculation
+* **AUTOMATION_TYPE:** UNIT
+* **TEST_LAYER:** Vitest / Jest (Calculation)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** التحقق حسابياً من توازن قيود اليومية ورفض القيود غير المتوازنة بـ 400 Bad Request.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-accounting-governance.test.ts`
+* **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** REMAINING_API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-FIN-002: Posted Record Lock / Immutability
+* **MODULE:** Accounting
+* **MAIN_SECTION:** General Ledger
+* **SUBSECTION:** Posted Journal Entry
+* **AUTOMATION_TYPE:** INTEGRATION_SAFE
+* **TEST_LAYER:** Vitest / Jest (Mocked DB)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** التحقق من استحالة تعديل القيود بعد ترحيلها (posted) وإرجاع كود الخطأ المناسب 500.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-accounting-governance.test.ts`
+* **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** REMAINING_API_CONTRACT_WAVE
+* **LAST_VALIDATION:** PASS
+
+### SCN-FIN-003: Closed Period Lock
+* **MODULE:** Accounting
+* **MAIN_SECTION:** General Ledger
+* **SUBSECTION:** Closed Period Verification
+* **AUTOMATION_TYPE:** INTEGRATION_SAFE
+* **TEST_LAYER:** Vitest / Jest (Mocked DB)
+* **SAFE_TO_AUTOMATE:** YES
+* **REASON:** التحقق من رفض عمليات الحفظ أو التعديل في الفترات المالية المغلقة وإرجاع 409 LOCKED.
+* **REQUIRES_AUTH:** YES
+* **REQUIRES_DB_WRITE:** NO
+* **DB_WRITE_ALLOWED_IN_THIS_PHASE:** NO
+* **PRODUCTION_SAFE:** NO_PRODUCTION_TOUCH
+* **RECOMMENDED_TEST_FILE:** `tests/api-contract-accounting-governance.test.ts`
+* **PRIORITY:** HIGH
+* **AUTOMATION_STATUS:** AUTOMATED
+* **AUTOMATED_IN_WAVE:** REMAINING_API_CONTRACT_WAVE
 * **LAST_VALIDATION:** PASS
