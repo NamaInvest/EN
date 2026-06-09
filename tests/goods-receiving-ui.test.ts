@@ -50,9 +50,9 @@ function validateGrnQuantities(items: GrnItemInput[]): { valid: boolean; error?:
     }
     const totalInput = item.acceptedQty + item.rejectedQty;
     if (totalInput > item.quantity) {
-      return { 
-        valid: false, 
-        error: `الكمية المدخلة (${totalInput}) تتجاوز الكمية المطلوبة بأمر الشراء (${item.quantity})` 
+      return {
+        valid: false,
+        error: `الكمية المدخلة (${totalInput}) تتجاوز الكمية المطلوبة بأمر الشراء (${item.quantity})`
       };
     }
   }

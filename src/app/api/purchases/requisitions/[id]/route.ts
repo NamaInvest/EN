@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/with-route';
 import { getPrisma } from '@/lib/prisma';
+import { requireTenantId } from '@/lib/governance/tenant-guard';
 import jwt from 'jsonwebtoken';
 import { logger } from '@/lib/logger';
 
@@ -23,6 +24,15 @@ async function _PUT(
         const id = parseInt((await params).id);
         if (isNaN(id)) {
             return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+        }
+
+        const tenantId = requireTenantId(req as any);
+
+        const requisition = await prisma.purchaseRequisition.findFirst({
+            where: { id, tenantId }
+        });
+        if (!requisition) {
+            return NextResponse.json({ error: 'Requisition not found' }, { status: 404 });
         }
 
         const body = await req.json();
