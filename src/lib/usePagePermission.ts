@@ -16,9 +16,10 @@ const log = logger.child({ service: 'usePagePermission' });
  * @param moduleKey - مفتاح الوحدة مثل 'pos', 'purchases', 'reports'
  * @returns true إذا مسموح | false إذا ممنوع | null جاري التحقق
  */
-export function usePagePermission(moduleKey: string): boolean | null {
+export function usePagePermission(moduleKey: string | string[]): boolean | null {
   const router = useRouter();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const keyString = Array.isArray(moduleKey) ? moduleKey.join(',') : moduleKey;
 
   useEffect(() => {
     try {
@@ -43,7 +44,8 @@ export function usePagePermission(moduleKey: string): boolean | null {
         return;
       }
 
-      const hasAccess = perms.includes(moduleKey);
+      const keys = keyString.split(',');
+      const hasAccess = keys.some(k => perms.includes(k));
       Promise.resolve().then(() => setAllowed(hasAccess));
 
       if (!hasAccess) {
@@ -52,7 +54,7 @@ export function usePagePermission(moduleKey: string): boolean | null {
     } catch {
       router.push('/login');
     }
-  }, [moduleKey, router]);
+  }, [keyString, router]);
 
   return allowed;
 }

@@ -132,6 +132,45 @@ export default function PurchaseOrdersPage() {
     }
   }, [allowed]);
 
+  // Check for purchase requisition conversion parameter
+  useEffect(() => {
+    if (allowed) {
+      const params = new URLSearchParams(window.location.search);
+      const convertPrId = params.get('convertPrId');
+      if (convertPrId) {
+        const prId = parseInt(convertPrId, 10);
+        if (!isNaN(prId)) {
+          const token = localStorage.getItem('token') || '';
+          fetch('/api/purchases/requisitions', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                const pr = data.find((r: any) => r.id === prId);
+                if (pr) {
+                  reset({
+                    supplierId: '',
+                    branchId: '',
+                    notes: `أُنشئ تلقائياً من طلب الشراء #${pr.reqNo}`,
+                    items: pr.details.map((d: any) => ({
+                      productId: String(d.productId),
+                      productName: d.product?.name || d.productName || '',
+                      quantity: Number(d.quantity) || 1,
+                      price: 0
+                    }))
+                  });
+                  setShowModal(true);
+                  toastSuccess('تم سحب بنود طلب الشراء بنجاح، يرجى تحديد المورد والأسعار لحفظ أمر الشراء');
+                }
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    }
+  }, [allowed, reset]);
+
   // Load Orders when filters change
   useEffect(() => {
     if (allowed) {
@@ -871,6 +910,13 @@ export default function PurchaseOrdersPage() {
                                 className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 rounded-lg font-bold text-xs transition-colors border border-indigo-200 dark:border-indigo-800/40"
                               >
                                 {t('sys.str_950') || 'إثبات تكاليف مضافة'}
+                              </button>
+
+                              <button
+                                onClick={() => router.push(`/purchases/grn?poId=${o.id}`)}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition-colors shadow-sm shadow-emerald-500/10"
+                              >
+                                {t('purchases.grn_receive') || 'استلام البضاعة (GRN)'}
                               </button>
 
                               <button
