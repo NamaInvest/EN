@@ -179,13 +179,13 @@
 
 
 ## 13. Purchase Orders Auth Logout Bug Fix (In Progress)
-- `[/]` المرحلة 8 — Implement Minimal Fix
-- `[ ]` المرحلة 9 — Tests
-- `[ ]` المرحلة 10 — Validation
-- `[ ]` المرحلة 11 — Secret and Scope Scan
-- `[ ]` المرحلة 12 — Commit Gate
-- `[ ]` المرحلة 13 — Commit and Push
-- `[ ]` المرحلة 14 — Deploy Gate
-- `[ ]` المرحلة 15 — Production Deploy
-- `[ ]` المرحلة 16 — Real Browser Verification
-- `[ ]` المرحلة 17 — Final Closeout
+- `[x]` المرحلة 8 — Implement Minimal Fix
+- `[x]` المرحلة 9 — Tests
+- `[x]` المرحلة 10 — Validation
+- `[x]` المرحلة 11 — Secret and Scope Scan
+- `[x]` المرحلة 12 — Commit Gate
+- `[x]` المرحلة 13 — Commit and Push
+- `[x]` المرحلة 14 — Deploy Gate
+- `[x]` المرحلة 15 — Production Deploy
+- `[x]` المرحلة 16 — Real Browser Verification
+- `[x]` المرحلة 17 — Final Closeout
