@@ -168,7 +168,10 @@ export default function PurchaseOrdersPage() {
 
   async function fetchSuppliers() {
     try {
-      const res = await fetch('/api/customers?type=1');
+      const token = localStorage.getItem('token') || '';
+      const res = await fetch('/api/customers?type=1', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.ok) setSuppliers(await res.json());
     } catch(e){}
   }
@@ -193,6 +196,7 @@ export default function PurchaseOrdersPage() {
     setLoading(true);
     setError(null);
     try {
+      const token = localStorage.getItem('token') || '';
       const params = new URLSearchParams();
       params.append('page', String(page));
       params.append('limit', String(limit));
@@ -201,7 +205,14 @@ export default function PurchaseOrdersPage() {
       if (fromDate) params.append('from', fromDate);
       if (toDate) params.append('to', toDate);
 
-      const r = await fetch(`/api/purchase-orders?${params.toString()}`);
+      const r = await fetch(`/api/purchase-orders?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (r.status === 401 || r.status === 403) {
+        setError(t('sys.str_960') || 'غير مصرح لك بعرض أوامر الشراء');
+        setLoading(false);
+        return;
+      }
       if (r.ok) {
         const json = await r.json();
         const data = Array.isArray(json) ? json : (json.data || []);
@@ -278,9 +289,13 @@ export default function PurchaseOrdersPage() {
   // Update status with validation and confirmation
   const executeStatusUpdate = async (id: number, newStatus: string) => {
     try {
+      const token = localStorage.getItem('token') || '';
       const res = await fetch(`/api/purchase-orders/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
