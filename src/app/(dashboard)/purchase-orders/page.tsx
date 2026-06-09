@@ -62,7 +62,7 @@ interface Order {
 
 export default function PurchaseOrdersPage() {
   const { t, lang } = useTranslation();
-  const allowed = usePagePermission('purchases');
+  const allowed = usePagePermission('purchase_orders');
   const { error: toastError, success: toastSuccess } = useToast();
   const router = useRouter();
 
@@ -161,7 +161,7 @@ export default function PurchaseOrdersPage() {
   const hasPermission = (action: 'canView' | 'canAdd' | 'canEdit' | 'canDelete' | 'canPrint') => {
     if (!userSession) return false;
     if (userSession.role === 'admin' || userSession.role === 'owner' || userSession.role === 'CFO') return true;
-    const purchasesPerm = (userSession.permissions || []).find((p: any) => p.module === 'purchases');
+    const purchasesPerm = (userSession.permissions || []).find((p: any) => p.module === 'purchase_orders');
     if (!purchasesPerm) return false;
     return !!purchasesPerm[action];
   };

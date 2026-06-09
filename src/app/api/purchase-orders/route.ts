@@ -194,6 +194,6 @@ async function _POST(req: NextRequest) {
   }
 }
 
-export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'purchases', permission: 'view' });
+export const GET = withRoute(async ({ req }) => _GET(req as any), { rateLimit: 'DEFAULT', module: 'purchase_orders', permission: 'view' });
 
-export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', module: 'purchases', permission: 'add' });
+export const POST = withRoute(async ({ req }) => _POST(req as any), { rateLimit: 'DEFAULT', module: 'purchase_orders', permission: 'add' });

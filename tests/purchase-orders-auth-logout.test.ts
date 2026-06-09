@@ -10,7 +10,7 @@ describe('Purchase Orders Auth and Logout Guard Tests', () => {
         id: 1,
         fullName: 'Test User',
         role: 'user',
-        permissions: [{ module: 'purchases', canView: true, canAdd: true, canEdit: false, canPrint: true }]
+        permissions: [{ module: 'purchase_orders', canView: true, canAdd: true, canEdit: false, canPrint: true }]
       })
     };
     
@@ -63,9 +63,9 @@ describe('Purchase Orders Auth and Logout Guard Tests', () => {
       errorState = null;
       try {
         const token = localStorage.getItem('token') || '';
-        const r = await mockFetch('/api/purchase-orders', {
+        const r = (await mockFetch('/api/purchase-orders', {
           headers: { Authorization: `Bearer ${token}` }
-        });
+        })) as any;
         
         if (r.status === 401 || r.status === 403) {
           errorState = 'غير مصرح لك بعرض أوامر الشراء';
@@ -102,7 +102,7 @@ describe('Purchase Orders Auth and Logout Guard Tests', () => {
     const hasPermission = (action: 'canView' | 'canAdd' | 'canEdit' | 'canDelete' | 'canPrint') => {
       if (!user) return false;
       if (user.role === 'admin' || user.role === 'owner' || user.role === 'CFO') return true;
-      const purchasesPerm = (user.permissions || []).find((p: any) => p.module === 'purchases');
+      const purchasesPerm = (user.permissions || []).find((p: any) => p.module === 'purchase_orders');
       if (!purchasesPerm) return false;
       return !!purchasesPerm[action];
     };

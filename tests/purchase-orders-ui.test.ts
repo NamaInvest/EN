@@ -49,7 +49,7 @@ function canPerformAction(action: string, status: string, user: { role: string; 
   if (isAdmin) {
     hasPurchasesPermission = true;
   } else if (user.permissions) {
-    const p = user.permissions.find((perm) => perm.module === 'purchases');
+    const p = user.permissions.find((perm) => perm.module === 'purchase_orders');
     if (p && p.canEdit) {
       hasPurchasesPermission = true;
     }
@@ -166,11 +166,11 @@ describe('Purchase Orders UI Helpers & Normalization Contracts', () => {
     const cfoUser = { role: 'CFO' };
     const standardUserWithEdit = {
       role: 'user',
-      permissions: [{ module: 'purchases', canEdit: true }]
+      permissions: [{ module: 'purchase_orders', canEdit: true }]
     };
     const standardUserWithoutEdit = {
       role: 'user',
-      permissions: [{ module: 'purchases', canEdit: false }]
+      permissions: [{ module: 'purchase_orders', canEdit: false }]
     };
 
     it('should allow admin/CFO to perform status actions under correct document state', () => {
