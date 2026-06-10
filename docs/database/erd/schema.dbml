@@ -17,6 +17,7 @@ Table users {
   createdAt DateTime [default: `now()`, not null]
   permissions user_permissions [not null]
   salesInvoices sales_invoices [not null]
+  salesQuotations sales_quotations [not null]
   purchaseInvoices purchase_invoices [not null]
   purchaseOrders purchase_orders [not null]
   approvals purchase_orders [not null]
@@ -241,6 +242,7 @@ Table products {
   purchaseReturnDetails purchase_return_details [not null]
   pharmacyDrug pharmacy_drugs
   SalesOrderDetail sales_order_details [not null]
+  salesQuotationLines sales_quotation_lines [not null]
   DeliveryNoteDetail delivery_note_details [not null]
   prDetails purchase_requisition_details [not null]
   rfqDetails request_for_quotation_details [not null]
@@ -313,6 +315,7 @@ Table customers {
   b2bEnabled Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
   salesInvoices sales_invoices [not null]
+  salesQuotations sales_quotations [not null]
   purchaseInvoices purchase_invoices [not null]
   purchaseOrders purchase_orders [not null]
   installments installments [not null]
@@ -477,6 +480,7 @@ Table sales_invoices {
   salesRep employees
   user users
   details sales_invoice_details [not null]
+  salesQuotation sales_quotations
   branchId Int
   branch branches
   shift shifts
@@ -2687,30 +2691,6 @@ Table tenant_accounts {
   provisioningRuns tenant_provisioning_runs [not null]
 }
 
-Table tenant_provisioning_runs {
-  id String [pk]
-  tenantAccountId Int
-  tenantAccount tenant_accounts
-  subdomain String [not null]
-  databaseName String
-  status String [not null, default: 'PENDING']
-  currentStep String
-  attemptNo Int [not null, default: 1]
-  requestId String
-  createdByClerkUserId String
-  createdByEmail String
-  startedAt DateTime
-  completedAt DateTime
-  failedAt DateTime
-  lastRetryAt DateTime
-  lastErrorCode String
-  lastErrorMessageSanitized String
-  lastErrorDetailsJson Json
-  metadata Json
-  createdAt DateTime [default: `now()`, not null]
-  updatedAt DateTime [not null]
-}
-
 Table desktop_licenses {
   id Int [pk, increment]
   tenantId String [not null, default: 'default']
@@ -3378,7 +3358,6 @@ Table consolidation_groups {
   runs consolidation_runs [not null]
   members consolidation_member [not null]
   eliminationRules elimination_rule [not null]
-  eliminationRequests consolidation_elimination_requests [not null]
 }
 
 Table consolidation_runs {
@@ -9097,7 +9076,7 @@ Table financial_periods {
     (tenantId, period) [unique]
   }
 
-  Note: 'إقفال الفترات المحاسبية — Financial Period Lock'
+  Note: '╪ح┘é┘╪د┘ ╪د┘┘╪ز╪▒╪د╪ز ╪د┘┘à╪ص╪د╪│╪ذ┘è╪ر ظ¤ Financial Period Lock'
 }
 
 Table financial_period_module_locks {
@@ -9116,7 +9095,7 @@ Table financial_period_module_locks {
     (tenantId, period, module) [unique]
   }
 
-  Note: 'إقفال الفترات المحاسبية على مستوى الوحدة — Module-Specific Financial Period Lock'
+  Note: '╪ح┘é┘╪د┘ ╪د┘┘╪ز╪▒╪د╪ز ╪د┘┘à╪ص╪د╪│╪ذ┘è╪ر ╪╣┘┘ë ┘à╪│╪ز┘ê┘ë ╪د┘┘ê╪ص╪»╪ر ظ¤ Module-Specific Financial Period Lock'
 }
 
 Table accrual_entries {
@@ -9139,7 +9118,7 @@ Table accrual_entries {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
 
-  Note: 'مصاريف مستحقة ومدفوعات مقدماً — Accruals & Prepayments'
+  Note: '┘à╪╡╪د╪▒┘è┘ ┘à╪│╪ز╪ص┘é╪ر ┘ê┘à╪»┘┘ê╪╣╪د╪ز ┘à┘é╪»┘à╪د┘ï ظ¤ Accruals & Prepayments'
 }
 
 Table collection_activities {
@@ -9155,7 +9134,7 @@ Table collection_activities {
   performedBy String [not null]
   createdAt DateTime [default: `now()`, not null]
 
-  Note: 'سجل نشاطات التحصيل — Collection Activity'
+  Note: '╪│╪ش┘ ┘╪┤╪د╪╖╪د╪ز ╪د┘╪ز╪ص╪╡┘è┘ ظ¤ Collection Activity'
 }
 
 Table prepayment_schedules {
@@ -9169,7 +9148,7 @@ Table prepayment_schedules {
   postedAt DateTime
   createdAt DateTime [default: `now()`, not null]
 
-  Note: 'جدول استهلاك المدفوعات المقدمة — Prepayment Amortization Schedule'
+  Note: '╪ش╪»┘ê┘ ╪د╪│╪ز┘ç┘╪د┘â ╪د┘┘à╪»┘┘ê╪╣╪د╪ز ╪د┘┘à┘é╪»┘à╪ر ظ¤ Prepayment Amortization Schedule'
 }
 
 Table DemandForecastV2 {
@@ -9769,6 +9748,30 @@ Table open_item_matchings {
   deletedBy String
 }
 
+Table tenant_provisioning_runs {
+  id String [pk]
+  tenantAccountId Int
+  tenantAccount tenant_accounts
+  subdomain String [not null]
+  databaseName String
+  status String [not null, default: 'PENDING']
+  currentStep String
+  attemptNo Int [not null, default: 1]
+  requestId String
+  createdByClerkUserId String
+  createdByEmail String
+  startedAt DateTime
+  completedAt DateTime
+  failedAt DateTime
+  lastRetryAt DateTime
+  lastErrorCode String
+  lastErrorMessageSanitized String
+  lastErrorDetailsJson Json
+  metadata Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
 Table consolidation_elimination_requests {
   id String [pk]
   tenantId String [not null]
@@ -9777,71 +9780,98 @@ Table consolidation_elimination_requests {
   periodTo DateTime [not null]
   periodKey String [not null]
   status String [not null, default: 'DRAFT']
-  previewHash String [not null]
-  snapshotJson Json [not null]
   totalDebit Decimal [not null]
   totalCredit Decimal [not null]
-  isBalanced Boolean [not null, default: true]
+  previewHash String [not null]
+  createdBy String [not null]
+  cfoApprovedBy String
+  cfoApprovedAt DateTime
+  masterApprovedBy String
+  masterApprovedAt DateTime
+  rejectedBy String
+  rejectedAt DateTime
+  rejectionReason String
+  autoReverseDate DateTime
   postingReference String
   reversalReference String
-  autoReverseDate DateTime
-  createdBy String [not null]
-  submittedBy String
-  cfoApprovedBy String
-  masterApprovedBy String
-  postedBy String
-  reversedBy String
-  rejectedBy String
-  rejectionReason String
   journalEntryId Int
   reversalJournalEntryId Int
-  createdAt DateTime [default: `now()`, not null]
-  submittedAt DateTime
-  cfoApprovedAt DateTime
-  masterApprovedAt DateTime
+  postedBy String
   postedAt DateTime
+  reversedBy String
   reversedAt DateTime
-  rejectedAt DateTime
+  snapshotJson Json [not null]
+  createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
-  group consolidation_groups [not null]
-  approvals consolidation_elimination_approvals [not null]
-  postings consolidation_elimination_postings [not null]
-
-  indexes {
-    (tenantId, groupId, periodKey, postingReference) [unique]
-  }
-}
-
-Table consolidation_elimination_approvals {
-  id String [pk]
-  tenantId String [not null]
-  requestId String [not null]
-  actorId String [not null]
-  actorRole String [not null]
-  decision String [not null]
-  reason String
-  createdAt DateTime [default: `now()`, not null]
-  request consolidation_elimination_requests [not null]
-}
-
-Table consolidation_elimination_snapshots {
-  id String [pk]
-  tenantId String [not null]
-  requestId String [unique, not null]
-  payload Json [not null]
-  createdAt DateTime [default: `now()`, not null]
 }
 
 Table consolidation_elimination_postings {
-  id String [pk]
+  id Int [pk, increment]
   tenantId String [not null]
   requestId String [not null]
   journalEntryId Int [not null]
   reversalEntryId Int
   status String [not null, default: 'SUCCESS']
-  errorMessage String
-  postedAt DateTime [default: `now()`, not null]
-  request consolidation_elimination_requests [not null]
+  postedAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table sales_quotations {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default']
+  quotationNo String [not null]
+  customerId Int
+  contactName String
+  contactEmail String
+  contactPhone String
+  quotationDate DateTime [default: `now()`, not null]
+  validUntil DateTime
+  status String [not null, default: 'DRAFT']
+  currency String [not null, default: 'SAR']
+  subtotal Decimal [not null, default: 0]
+  discountTotal Decimal [not null, default: 0]
+  taxTotal Decimal [not null, default: 0]
+  total Decimal [not null, default: 0]
+  terms String
+  notes String
+  createdById Int
+  acceptedAt DateTime
+  rejectedAt DateTime
+  convertedAt DateTime
+  convertedInvoiceId Int [unique]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customer customers
+  createdBy users
+  convertedInvoice sales_invoices
+  lines sales_quotation_lines [not null]
+
+  indexes {
+    (tenantId, quotationNo) [unique]
+  }
+}
+
+Table sales_quotation_lines {
+  id Int [pk, increment]
+  tenantId String [not null, default: 'default']
+  quotationId Int [not null]
+  productId Int
+  description String
+  quantity Decimal [not null, default: 1]
+  unitPrice Decimal [not null, default: 0]
+  discountRate Decimal [not null, default: 0]
+  discountAmount Decimal [not null, default: 0]
+  taxRate Decimal [not null, default: 15]
+  taxAmount Decimal [not null, default: 0]
+  lineTotal Decimal [not null, default: 0]
+  sortOrder Int [not null, default: 0]
+  quotation sales_quotations [not null]
+  product products
+
+  indexes {
+    (quotationId, sortOrder) [unique]
+  }
 }
 
 Enum FinancialPeriodStatus {
@@ -10267,8 +10297,6 @@ Ref: inv_serial_numbers.stockId > stocks.id
 Ref: fng_petty_cash_funds.custodianId > employees.id
 
 Ref: sys_alerts.userId > users.id
-
-Ref: tenant_provisioning_runs.tenantAccountId > tenant_accounts.id [delete: Set Null]
 
 Ref: desktop_licenses.tenantAccountId > tenant_accounts.id
 
@@ -10740,8 +10768,14 @@ Ref: open_item_matchings.salesReturnId > sales_returns.id [delete: Restrict]
 
 Ref: open_item_matchings.treasuryId > treasury.id [delete: Restrict]
 
-Ref: consolidation_elimination_requests.groupId > consolidation_groups.id
+Ref: tenant_provisioning_runs.tenantAccountId > tenant_accounts.id [delete: Set Null]
 
-Ref: consolidation_elimination_approvals.requestId > consolidation_elimination_requests.id [delete: Cascade]
+Ref: sales_quotations.customerId > customers.id
 
-Ref: consolidation_elimination_postings.requestId > consolidation_elimination_requests.id [delete: Cascade]
+Ref: sales_quotations.createdById > users.id
+
+Ref: sales_quotations.convertedInvoiceId - sales_invoices.id
+
+Ref: sales_quotation_lines.quotationId > sales_quotations.id [delete: Cascade]
+
+Ref: sales_quotation_lines.productId > products.id [delete: Set Null]

@@ -99,6 +99,23 @@ export function useUserPermissions() {
       return true;
     }
 
+    if (user.permissionsMap?.[module]?.[action]) {
+      return true;
+    }
+
+    // Fallback mapping for sales.quotation.*
+    if (module.startsWith('sales.quotation.')) {
+      const parentPerm = user.permissionsMap?.['price_quotes'] || user.permissionsMap?.['sales_quotes'];
+      if (parentPerm) {
+        const subAction = module.replace('sales.quotation.', '');
+        if (subAction === 'view') return parentPerm.canView;
+        if (subAction === 'create') return parentPerm.canAdd;
+        if (subAction === 'update') return parentPerm.canEdit;
+        if (subAction === 'delete') return parentPerm.canDelete;
+        if (['print', 'send', 'accept', 'reject', 'convert_to_invoice', 'cancel'].includes(subAction)) return parentPerm.canPrint;
+      }
+    }
+
     const modulePerms = user.permissionsMap?.[module];
     if (!modulePerms) return false;
 

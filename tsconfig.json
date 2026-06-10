@@ -48,6 +48,9 @@
     "stories",
     "tests/a11y",
     "scripts",
-    "tmp"
+    "tmp",
+    "reference-repos",
+    "backups",
+    "scratch"
   ]
 }

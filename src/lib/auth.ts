@@ -140,7 +140,35 @@ export async function hasPermission(userId: number, module: string, prismaClient
 
         // Explicit permissions override role
         if (user.permissions.length > 0) {
-            return user.permissions.some((p: any) => p.module === module);
+            if (user.permissions.some((p: any) => p.module === module)) {
+                return true;
+            }
+            // Fallback mapping for sales.quotation.*
+            if (module.startsWith('sales.quotation.')) {
+                const parentPerm = user.permissions.find((p: any) => p.module === 'price_quotes' || p.module === 'sales_quotes');
+                if (parentPerm) {
+                    const action = module.replace('sales.quotation.', '');
+                    if (action === 'view') return parentPerm.canView;
+                    if (action === 'create') return parentPerm.canAdd;
+                    if (action === 'update') return parentPerm.canEdit;
+                    if (action === 'delete') return parentPerm.canDelete;
+                    if (['print', 'send', 'accept', 'reject', 'convert_to_invoice', 'cancel'].includes(action)) return parentPerm.canPrint;
+                }
+            }
+            // Fallback mapping for sales.invoice_register.*
+            if (module.startsWith('sales.invoice_register.')) {
+                const parentPerm = user.permissions.find((p: any) => p.module === 'sales' || p.module === 'invoice_register');
+                if (parentPerm) {
+                    const action = module.replace('sales.invoice_register.', '');
+                    if (action === 'view') return parentPerm.canView;
+                    if (action === 'export') return parentPerm.canPrint || parentPerm.canView;
+                    if (action === 'print') return parentPerm.canPrint;
+                    if (action === 'send') return parentPerm.canPrint || parentPerm.canEdit;
+                    if (action === 'collect_payment') return parentPerm.canAdd || parentPerm.canEdit;
+                    if (action === 'zatca_retry') return parentPerm.canEdit;
+                    if (action === 'void') return parentPerm.canDelete || parentPerm.canEdit;
+                }
+            }
         }
 
         return false;

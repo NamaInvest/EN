@@ -30,6 +30,7 @@ model User {
 
   permissions          UserPermission[]
   salesInvoices        SalesInvoice[]
+  salesQuotations      SalesQuotation[]
   purchaseInvoices     PurchaseInvoice[]
   purchaseOrders       PurchaseOrder[]       @relation("PurchaseOrderCreator")
   approvals            PurchaseOrder[]       @relation("PurchaseOrderApprover")
@@ -85,7 +86,7 @@ model User {
   controlledLogs   ControlledDrugLog[]  @relation("ControlledDrugPharmacist")
   posSessions      PosSession[]
   DocumentStateLog DocumentStateLog[]
-  deletedAt        DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt        DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("users")
 }
@@ -290,6 +291,7 @@ model Product {
   purchaseReturnDetails  PurchaseReturnDetail[]
   pharmacyDrug           PharmacyDrug?
   SalesOrderDetail       SalesOrderDetail[]
+  salesQuotationLines    SalesQuotationLine[]
   DeliveryNoteDetail     DeliveryNoteDetail[]
   prDetails              PurchaseRequisitionDetail[]
   rfqDetails             RequestForQuotationDetail[]
@@ -375,6 +377,7 @@ model Customer {
   createdAt      DateTime @default(now()) @map("created_at")
 
   salesInvoices       SalesInvoice[]
+  salesQuotations     SalesQuotation[]
   purchaseInvoices    PurchaseInvoice[]
   purchaseOrders      PurchaseOrder[]
   installments        Installment[]
@@ -573,6 +576,7 @@ model SalesInvoice {
   salesRep             Employee?             @relation("SalesInvoiceRep", fields: [salesRepId], references: [id])
   user                 User?                 @relation(fields: [userId], references: [id])
   details              SalesInvoiceDetail[]
+  salesQuotation       SalesQuotation?
   branchId             Int?                  @map("branch_id")
   branch               Branch?               @relation(fields: [branchId], references: [id])
   shift                Shift?                @relation(fields: [shiftId], references: [id])
@@ -631,7 +635,7 @@ model SalesInvoiceDetail {
   variant   ProductVariant? @relation(fields: [variantId], references: [id])
   batch     ProductBatch?   @relation(fields: [batchId], references: [id])
   batchId   Int?            @map("batch_id")
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([invoiceId, deletedAt], map: "idx_sales_det_inv")
   @@map("sales_invoice_details")
@@ -726,7 +730,7 @@ model PurchaseOrder {
   landedCosts    LandedCost[]
   goodsReceipts  GoodsReceiptNote[]
   ThreeWayMatch  ThreeWayMatch[]
-  deletedAt      DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt      DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   promisedDate DateTime?
 
@@ -751,7 +755,7 @@ model PurchaseOrderDetail {
 
   order     PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product       @relation(fields: [productId], references: [id])
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("purchase_order_details")
 }
@@ -826,7 +830,7 @@ model PurchaseInvoiceDetail {
 
   invoice   PurchaseInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product   Product         @relation(fields: [productId], references: [id])
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("purchase_invoice_details")
 }
@@ -952,7 +956,7 @@ model Treasury {
   branch            Branch?             @relation(fields: [branchId], references: [id])
   branchId          Int?                @map("branch_id")
   openItemMatchings OpenItemMatching[]  @relation("TreasuryMatchings")
-  deletedAt         DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt         DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([date])
   @@index([branchId])
@@ -1275,7 +1279,7 @@ model Account {
   isActive Boolean @default(true) @map("is_active")
   balance  Decimal @default(0)
 
-  // Zakat classification — used by zakat-engine to compute zakatable base
+  // Zakat classification ظ¤ used by zakat-engine to compute zakatable base
   // Values: NONE | EQUITY | LT_LIAB | LT_INV | FIXED_ASSET | NET_PROFIT | ADJ_ADD | ADJ_DEDUCT
   zakatCategory String? @map("zakat_category")
 
@@ -1382,7 +1386,7 @@ model JournalLine {
   bankRecon    BankReconciliation? @relation(fields: [reconciliationId], references: [id])
   profitCenter ProfitCenter?       @relation(fields: [profitCenterId], references: [id])
   segment      Segment?            @relation(fields: [segmentId], references: [id])
-  deletedAt    DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt    DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([profitCenterId, accountId])
   @@index([projectId, accountId])
@@ -1642,7 +1646,7 @@ model InstallmentPayment {
   paidDate      String? @map("paid_date")
 
   installment Installment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
-  deletedAt   DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt   DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("installment_payments")
 }
@@ -2291,7 +2295,7 @@ model EmployeeLoan {
   createdAt        DateTime @default(now()) @map("created_at")
 
   employee  Employee  @relation(fields: [employeeId], references: [id])
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("employee_loans")
 }
@@ -2898,7 +2902,7 @@ model PurchaseRequisition {
   approver  User? @relation("PRApprover", fields: [approvedBy], references: [id])
 
   details   PurchaseRequisitionDetail[]
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("purchase_requisitions")
 }
@@ -3368,39 +3372,6 @@ model TenantAccount {
   provisioningRuns TenantProvisioningRun[]
 
   @@map("tenant_accounts")
-}
-
-// ==================== 101.1 Tenant Provisioning Status Tracking ====================
-model TenantProvisioningRun {
-  id                        String    @id @default(cuid())
-  tenantAccountId           Int?      @map("tenant_account_id")
-  tenantAccount             TenantAccount? @relation(fields: [tenantAccountId], references: [id], onDelete: SetNull)
-  subdomain                 String
-  databaseName              String?   @map("database_name")
-  status                    String    @default("PENDING")
-  currentStep               String?   @map("current_step")
-  attemptNo                 Int       @default(1) @map("attempt_no")
-  requestId                 String?   @map("request_id")
-  createdByClerkUserId      String?   @map("created_by_clerk_user_id")
-  createdByEmail            String?   @map("created_by_email")
-  startedAt                 DateTime? @map("started_at")
-  completedAt               DateTime? @map("completed_at")
-  failedAt                  DateTime? @map("failed_at")
-  lastRetryAt               DateTime? @map("last_retry_at")
-  lastErrorCode             String?   @map("last_error_code")
-  lastErrorMessageSanitized String?   @map("last_error_message_sanitized")
-  lastErrorDetailsJson      Json?     @map("last_error_details_json")
-  metadata                  Json?
-  createdAt                 DateTime  @default(now()) @map("created_at")
-  updatedAt                 DateTime  @updatedAt @map("updated_at")
-
-  @@index([subdomain])
-  @@index([status])
-  @@index([requestId])
-  @@index([tenantAccountId])
-  @@index([createdByClerkUserId])
-  @@index([createdAt])
-  @@map("tenant_provisioning_runs")
 }
 
 // ==================== 102. Desktop Licensing ====================
@@ -3954,7 +3925,7 @@ model RentInvoice {
 
   customer  Customer?           @relation(fields: [customerId], references: [id])
   details   RentInvoiceDetail[]
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([tenantAccountId])
   @@map("rent_invoices")
@@ -3970,7 +3941,7 @@ model RentInvoiceDetail {
   total       Decimal @default(0)
 
   invoice   RentInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("rent_invoice_details")
 }
@@ -4018,7 +3989,7 @@ model PayrollInvoice {
 
   employee  Employee?              @relation(fields: [employeeId], references: [id])
   details   PayrollInvoiceDetail[]
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([tenantAccountId])
   @@map("payroll_invoices")
@@ -4033,7 +4004,7 @@ model PayrollInvoiceDetail {
   type        String  @default("addition") // addition, deduction
 
   invoice   PayrollInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("payroll_invoice_details")
 }
@@ -4211,7 +4182,6 @@ model ConsolidationGroup {
   runs             ConsolidationRun[]
   members          ConsolidationMember[]
   eliminationRules EliminationRule[]
-  eliminationRequests ConsolidationEliminationRequest[]
 
   @@map("consolidation_groups")
 }
@@ -6030,7 +6000,7 @@ model IfrsVariableLeasePayment {
 
   periodDate       DateTime
   amount           Decimal  @db.Decimal(20, 4)
-  basisDescription String // "5 SAR per km × 2,000 km"
+  basisDescription String // "5 SAR per km ├ù 2,000 km"
   indexValue       Decimal? @db.Decimal(20, 8) // if INDEX-based
 
   expenseJournalId Int?
@@ -6713,7 +6683,7 @@ model PaymentRun {
   approvals PaymentRunApproval[]
 
   createdAt DateTime  @default(now())
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([status, createdAt])
   @@index([currency, dueDateUntil])
@@ -6775,7 +6745,7 @@ model PaymentRunLine {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@index([runId, status])
   @@index([supplierId])
@@ -7550,7 +7520,7 @@ model PaymentTransaction {
 
   gateway   PaymentGateway @relation(fields: [gatewayId], references: [id])
   invoice   SalesInvoice   @relation(fields: [invoiceId], references: [id])
-  deletedAt DateTime? // P1.2 soft-delete — لا تستخدم hard DELETE
+  deletedAt DateTime? // P1.2 soft-delete ظ¤ ┘╪د ╪ز╪│╪ز╪«╪»┘à hard DELETE
 
   @@map("payment_transactions")
 }
@@ -7888,7 +7858,7 @@ model StatementTemplate {
   footerHtml String? @db.Text
 
   // Email template
-  emailSubject  String // "كشف حساب {{customerName}} - {{period}}"
+  emailSubject  String // "┘â╪┤┘ ╪ص╪│╪د╪ذ {{customerName}} - {{period}}"
   emailBodyHtml String @db.Text
   emailBodyText String @db.Text
 
@@ -8746,9 +8716,9 @@ model WebhookDeliveryLog {
   @@map("webhook_delivery_logs")
 }
 
-// ——————————————————————————————————————————————————
+// ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
 // G-Series Gap Build Models
-// ——————————————————————————————————————————————————
+// ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
 
 model WorkflowDefinition {
   id          Int      @id @default(autoincrement())
@@ -10207,7 +10177,7 @@ model KnowledgeChunk {
   documentId       String   @map("document_id")
   chunkIndex       Int      @map("chunk_index")
   content          String   @db.Text
-  embedding        Float[] // migrated to vector(768) via raw SQL — see migration
+  embedding        Float[] // migrated to vector(768) via raw SQL ظ¤ see migration
   tokenCount       Int      @map("token_count")
   embeddingVersion String   @default("text-embedding-004") @map("embedding_version")
   metadata         Json? // { page, section, title, ... }
@@ -10295,7 +10265,7 @@ model DeferredTax {
   taxRate           Decimal   @map("tax_rate") @db.Decimal(7, 4) // 0.20 = 20%
   deferredTaxAmount Decimal   @map("deferred_tax_amount") @db.Decimal(18, 2) // temporaryDiff * taxRate
   classification    String // DTL (liability) | DTA (asset)
-  recoverability    String? // PROBABLE | UNCERTAIN — احتمالية الاسترداد للضرائب المؤجلة معيار IAS 12.34-35
+  recoverability    String? // PROBABLE | UNCERTAIN ظ¤ ╪د╪ص╪ز┘à╪د┘┘è╪ر ╪د┘╪د╪│╪ز╪▒╪»╪د╪» ┘┘╪╢╪▒╪د╪خ╪ذ ╪د┘┘à╪ج╪ش┘╪ر ┘à╪╣┘è╪د╪▒ IAS 12.34-35
   expectedReversal  DateTime? @map("expected_reversal")
   journalEntryId    Int?      @map("journal_entry_id")
   status            String    @default("DRAFT") // DRAFT, RECOGNIZED, REVERSED
@@ -10599,7 +10569,7 @@ model TaxRegime {
   @@map("tax_regime")
 }
 
-// H-01 — Shift & Roster
+// H-01 ظ¤ Shift & Roster
 model ShiftSchedule {
   id         Int      @id @default(autoincrement())
   tenantId   String   @map("tenant_id")
@@ -10613,7 +10583,7 @@ model ShiftSchedule {
   @@map("shift_schedule")
 }
 
-// H-02 — Overtime Approval
+// H-02 ظ¤ Overtime Approval
 model OvertimeRequest {
   id          Int      @id @default(autoincrement())
   tenantId    String   @map("tenant_id")
@@ -10627,7 +10597,7 @@ model OvertimeRequest {
   @@map("overtime_request")
 }
 
-// H-03 — Mudad / GOSI Sync
+// H-03 ظ¤ Mudad / GOSI Sync
 model MudadSyncLog {
   id           Int      @id @default(autoincrement())
   tenantId     String   @map("tenant_id")
@@ -10639,7 +10609,7 @@ model MudadSyncLog {
   @@map("mudad_sync_log")
 }
 
-// I-01 — WMS Wave Picking
+// I-01 ظ¤ WMS Wave Picking
 model WmsWave {
   id         Int      @id @default(autoincrement())
   tenantId   String   @map("tenant_id")
@@ -10672,7 +10642,7 @@ model WmsTask {
   @@map("wms_task")
 }
 
-// I-02 — Demand Sensing
+// I-02 ظ¤ Demand Sensing
 model DemandForecast {
   id          Int      @id @default(autoincrement())
   tenantId    String   @map("tenant_id")
@@ -10685,7 +10655,7 @@ model DemandForecast {
   @@map("demand_forecast")
 }
 
-// I-03 — Multi-Bin Management
+// I-03 ظ¤ Multi-Bin Management
 model InventoryBin {
   id          Int     @id @default(autoincrement())
   tenantId    String  @map("tenant_id")
@@ -11434,15 +11404,15 @@ model EncryptedField {
 
 // ==================== FINANCIAL GOVERNANCE MODELS ====================
 
-/// إقفال الفترات المحاسبية — Period Lock
-/// يُتتبع حالة الفترة: OPEN | LOCKED | TEMP_UNLOCKED
+/// ╪ح┘é┘╪د┘ ╪د┘┘╪ز╪▒╪د╪ز ╪د┘┘à╪ص╪د╪│╪ذ┘è╪ر ظ¤ Period Lock
+/// ┘è┘╪ز╪ز╪ذ╪╣ ╪ص╪د┘╪ر ╪د┘┘╪ز╪▒╪ر: OPEN | LOCKED | TEMP_UNLOCKED
 enum FinancialPeriodStatus {
   OPEN
   SOFT_LOCKED
   HARD_LOCKED
 }
 
-/// إقفال الفترات المحاسبية — Financial Period Lock
+/// ╪ح┘é┘╪د┘ ╪د┘┘╪ز╪▒╪د╪ز ╪د┘┘à╪ص╪د╪│╪ذ┘è╪ر ظ¤ Financial Period Lock
 model FinancialPeriod {
   id         Int                   @id @default(autoincrement())
   tenantId   String                @map("tenant_id")
@@ -11461,7 +11431,7 @@ model FinancialPeriod {
   @@map("financial_periods")
 }
 
-/// إقفال الفترات المحاسبية على مستوى الوحدة — Module-Specific Financial Period Lock
+/// ╪ح┘é┘╪د┘ ╪د┘┘╪ز╪▒╪د╪ز ╪د┘┘à╪ص╪د╪│╪ذ┘è╪ر ╪╣┘┘ë ┘à╪│╪ز┘ê┘ë ╪د┘┘ê╪ص╪»╪ر ظ¤ Module-Specific Financial Period Lock
 model FinancialPeriodModuleLock {
   id         Int                   @id @default(autoincrement())
   tenantId   String                @map("tenant_id")
@@ -11480,7 +11450,7 @@ model FinancialPeriodModuleLock {
 }
 
 
-/// مصاريف مستحقة ومدفوعات مقدماً — Accruals & Prepayments
+/// ┘à╪╡╪د╪▒┘è┘ ┘à╪│╪ز╪ص┘é╪ر ┘ê┘à╪»┘┘ê╪╣╪د╪ز ┘à┘é╪»┘à╪د┘ï ظ¤ Accruals & Prepayments
 model AccrualEntry {
   id               Int       @id @default(autoincrement())
   tenantId         String    @map("tenant_id")
@@ -11506,7 +11476,7 @@ model AccrualEntry {
   @@map("accrual_entries")
 }
 
-/// سجل نشاطات التحصيل — Collection Activity
+/// ╪│╪ش┘ ┘╪┤╪د╪╖╪د╪ز ╪د┘╪ز╪ص╪╡┘è┘ ظ¤ Collection Activity
 model CollectionActivity {
   id          Int      @id @default(autoincrement())
   tenantId    String   @map("tenant_id")
@@ -11526,7 +11496,7 @@ model CollectionActivity {
   @@map("collection_activities")
 }
 
-/// جدول استهلاك المدفوعات المقدمة — Prepayment Amortization Schedule
+/// ╪ش╪»┘ê┘ ╪د╪│╪ز┘ç┘╪د┘â ╪د┘┘à╪»┘┘ê╪╣╪د╪ز ╪د┘┘à┘é╪»┘à╪ر ظ¤ Prepayment Amortization Schedule
 model PrepaymentSchedule {
   id             Int       @id @default(autoincrement())
   tenantId       String    @map("tenant_id")
@@ -12266,94 +12236,151 @@ model OpenItemMatching {
   @@map("open_item_matchings")
 }
 
-// F-13E Consolidation Elimination Schema Implementation (Local Only)
+// ==================== 101.1 Tenant Provisioning Status Tracking ====================
+model TenantProvisioningRun {
+  id                        String    @id @default(cuid())
+  tenantAccountId           Int?      @map("tenant_account_id")
+  tenantAccount             TenantAccount? @relation(fields: [tenantAccountId], references: [id], onDelete: SetNull)
+  subdomain                 String
+  databaseName              String?   @map("database_name")
+  status                    String    @default("PENDING")
+  currentStep               String?   @map("current_step")
+  attemptNo                 Int       @default(1) @map("attempt_no")
+  requestId                 String?   @map("request_id")
+  createdByClerkUserId      String?   @map("created_by_clerk_user_id")
+  createdByEmail            String?   @map("created_by_email")
+  startedAt                 DateTime? @map("started_at")
+  completedAt               DateTime? @map("completed_at")
+  failedAt                  DateTime? @map("failed_at")
+  lastRetryAt               DateTime? @map("last_retry_at")
+  lastErrorCode             String?   @map("last_error_code")
+  lastErrorMessageSanitized String?   @map("last_error_message_sanitized")
+  lastErrorDetailsJson      Json?     @map("last_error_details_json")
+  metadata                  Json?
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@index([subdomain])
+  @@index([status])
+  @@index([requestId])
+  @@index([tenantAccountId])
+  @@index([createdByClerkUserId])
+  @@index([createdAt])
+  @@map("tenant_provisioning_runs")
+}
 
 model ConsolidationEliminationRequest {
-  id                String                             @id @default(cuid())
-  tenantId          String                             @map("tenant_id")
-  groupId           Int                                @map("group_id")
-  periodFrom        DateTime                           @map("period_from")
-  periodTo          DateTime                           @map("period_to")
-  periodKey         String                             @map("period_key") // e.g. "2026-05"
-  status            String                             @default("DRAFT")  // DRAFT | SUBMITTED | CFO_APPROVED | MASTER_APPROVED | POSTING_READY | POSTING_IN_PROGRESS | POSTED | REVERSED | REJECTED | CANCELLED | FAILED
-  previewHash       String                             @map("preview_hash")
-  snapshotJson      Json                               @map("snapshot_json") // Stores proposed lines snapshot
-  totalDebit        Decimal                            @db.Decimal(20, 4) @map("total_debit")
-  totalCredit       Decimal                            @db.Decimal(20, 4) @map("total_credit")
-  isBalanced        Boolean                            @default(true) @map("is_balanced")
-  postingReference  String?                            @map("posting_reference")
-  reversalReference String?                            @map("reversal_reference")
-  autoReverseDate   DateTime?                          @map("auto_reverse_date")
-  
-  createdBy         String                             @map("created_by")
-  submittedBy       String?                            @map("submitted_by")
-  cfoApprovedBy     String?                            @map("cfo_approved_by")
-  masterApprovedBy  String?                            @map("master_approved_by")
-  postedBy          String?                            @map("posted_by")
-  reversedBy        String?                            @map("reversed_by")
-  rejectedBy        String?                            @map("rejected_by")
-  rejectionReason   String?                            @map("rejection_reason")
-  
-  journalEntryId    Int?                               @map("journal_entry_id")
-  reversalJournalEntryId Int?                          @map("reversal_journal_entry_id")
-  
-  createdAt         DateTime                           @default(now()) @map("created_at")
-  submittedAt       DateTime?                          @map("submitted_at")
-  cfoApprovedAt     DateTime?                          @map("cfo_approved_at")
-  masterApprovedAt  DateTime?                          @map("master_approved_at")
-  postedAt          DateTime?                          @map("posted_at")
-  reversedAt        DateTime?                          @map("reversed_at")
-  rejectedAt        DateTime?                          @map("rejected_at")
-  updatedAt         DateTime                           @updatedAt @map("updated_at")
+  id                     String    @id @default(cuid())
+  tenantId               String    @map("tenant_id")
+  groupId                Int       @map("group_id")
+  periodFrom             DateTime  @map("period_from")
+  periodTo               DateTime  @map("period_to")
+  periodKey              String    @map("period_key")
+  status                 String    @default("DRAFT")
+  totalDebit             Decimal   @map("total_debit") @db.Decimal(20, 4)
+  totalCredit            Decimal   @map("total_credit") @db.Decimal(20, 4)
+  previewHash            String    @map("preview_hash")
+  createdBy              String    @map("created_by")
+  cfoApprovedBy          String?   @map("cfo_approved_by")
+  cfoApprovedAt          DateTime? @map("cfo_approved_at")
+  masterApprovedBy       String?   @map("master_approved_by")
+  masterApprovedAt       DateTime? @map("master_approved_at")
+  rejectedBy             String?   @map("rejected_by")
+  rejectedAt             DateTime? @map("rejected_at")
+  rejectionReason        String?   @map("rejection_reason")
+  autoReverseDate        DateTime? @map("auto_reverse_date")
+  postingReference       String?   @map("posting_reference")
+  reversalReference      String?   @map("reversal_reference")
+  journalEntryId         Int?      @map("journal_entry_id")
+  reversalJournalEntryId Int?      @map("reversal_journal_entry_id")
+  postedBy               String?   @map("posted_by")
+  postedAt               DateTime? @map("posted_at")
+  reversedBy             String?   @map("reversed_by")
+  reversedAt             DateTime? @map("reversed_at")
+  snapshotJson           Json      @map("snapshot_json")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
 
-  group             ConsolidationGroup                 @relation(fields: [groupId], references: [id])
-  approvals         ConsolidationEliminationApproval[]
-  postings          ConsolidationEliminationPosting[]
-
-  @@unique([tenantId, groupId, periodKey, postingReference])
-  @@index([tenantId, groupId, periodKey])
+  @@index([tenantId, groupId])
+  @@index([status])
   @@map("consolidation_elimination_requests")
 }
 
-model ConsolidationEliminationApproval {
-  id         String   @id @default(cuid())
-  tenantId   String   @map("tenant_id")
-  requestId  String   @map("request_id")
-  actorId    String   @map("actor_id")
-  actorRole  String   @map("actor_role") // CFO | MASTER_ADMIN | SUPER_ADMIN
-  decision   String   @map("decision")   // APPROVED | REJECTED
-  reason     String?  @db.Text
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  request    ConsolidationEliminationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId, requestId])
-  @@map("consolidation_elimination_approvals")
-}
-
-model ConsolidationEliminationSnapshot {
-  id        String   @id @default(cuid())
-  tenantId  String   @map("tenant_id")
-  requestId String   @unique @map("request_id")
-  payload   Json     @db.JsonB // Stores the full dryRunProposedEntries array
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("consolidation_elimination_snapshots")
-}
-
 model ConsolidationEliminationPosting {
-  id              String   @id @default(cuid())
-  tenantId        String   @map("tenant_id")
-  requestId       String   @map("request_id")
-  journalEntryId  Int      @map("journal_entry_id")
-  reversalEntryId Int?     @map("reversal_entry_id")
-  status          String   @default("SUCCESS") // SUCCESS | REVERSED | FAILED
-  errorMessage    String?  @map("error_message")
-  postedAt        DateTime @default(now()) @map("posted_at")
-
-  request         ConsolidationEliminationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id              Int       @id @default(autoincrement())
+  tenantId        String    @map("tenant_id")
+  requestId       String    @map("request_id")
+  journalEntryId  Int       @map("journal_entry_id")
+  reversalEntryId Int?      @map("reversal_entry_id")
+  status          String    @default("SUCCESS")
+  postedAt        DateTime  @map("posted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   @@index([tenantId, requestId])
   @@map("consolidation_elimination_postings")
+}
+
+model SalesQuotation {
+  id                 Int                  @id @default(autoincrement())
+  tenantId           String               @default("default") @map("tenant_id")
+  quotationNo        String               @map("quotation_no")
+  customerId         Int?                 @map("customer_id")
+  contactName        String?              @map("contact_name")
+  contactEmail       String?              @map("contact_email")
+  contactPhone       String?              @map("contact_phone")
+  quotationDate      DateTime             @default(now()) @map("quotation_date")
+  validUntil         DateTime?            @map("valid_until")
+  status             String               @default("DRAFT") // DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED, CONVERTED, CANCELLED
+  currency           String               @default("SAR")
+  subtotal           Decimal              @default(0) @db.Decimal(20, 4)
+  discountTotal      Decimal              @default(0) @db.Decimal(20, 4)
+  taxTotal           Decimal              @default(0) @db.Decimal(20, 4)
+  total              Decimal              @default(0) @db.Decimal(20, 4)
+  terms              String?              @db.Text
+  notes              String?              @db.Text
+  createdById        Int?                 @map("created_by_id")
+  acceptedAt         DateTime?            @map("accepted_at")
+  rejectedAt         DateTime?            @map("rejected_at")
+  convertedAt        DateTime?            @map("converted_at")
+  convertedInvoiceId Int?                 @unique @map("converted_invoice_id")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+
+  customer         Customer?            @relation(fields: [customerId], references: [id])
+  createdBy        User?                @relation(fields: [createdById], references: [id])
+  convertedInvoice SalesInvoice?        @relation(fields: [convertedInvoiceId], references: [id])
+  lines            SalesQuotationLine[]
+
+  @@unique([tenantId, quotationNo])
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([status])
+  @@index([quotationDate])
+  @@index([validUntil])
+  @@index([convertedInvoiceId])
+  @@map("sales_quotations")
+}
+
+model SalesQuotationLine {
+  id             Int            @id @default(autoincrement())
+  tenantId       String         @default("default") @map("tenant_id")
+  quotationId    Int            @map("quotation_id")
+  productId      Int?           @map("product_id")
+  description    String?        @db.Text
+  quantity       Decimal        @default(1) @db.Decimal(20, 4)
+  unitPrice      Decimal        @default(0) @db.Decimal(20, 4) @map("unit_price")
+  discountRate   Decimal        @default(0) @db.Decimal(20, 4) @map("discount_rate")
+  discountAmount Decimal        @default(0) @db.Decimal(20, 4) @map("discount_amount")
+  taxRate        Decimal        @default(15) @db.Decimal(20, 4) @map("tax_rate")
+  taxAmount      Decimal        @default(0) @db.Decimal(20, 4) @map("tax_amount")
+  lineTotal      Decimal        @default(0) @db.Decimal(20, 4) @map("line_total")
+  sortOrder      Int            @default(0) @map("sort_order")
+
+  quotation SalesQuotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  product   Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([quotationId, sortOrder])
+  @@map("sales_quotation_lines")
 }
 

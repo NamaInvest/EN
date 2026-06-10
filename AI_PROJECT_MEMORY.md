@@ -56,6 +56,110 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 
 ## 🚀 Completed Modernization Phases
 
+### Phase INVOICE-REGISTER-01 — Invoice Register & History Module Integration & Verification (2026-06-10)
+* **Status**: `COMPLETED_AND_VERIFIED`
+* **Scope**: Fully implemented an ERP-grade Invoice Register / History module. Created GET API endpoint `/api/sales/invoice-register` supporting multi-tenant isolation, quick status presets, advanced range filtering (date, value, branch, cashier), server-side pagination, sorting, and aggregated financial sums. Styled and created the main page at `/sales/invoice-register` using responsive glassmorphism designs. Integrated authorization logic with fallback matching for `sales.invoice_register.*` permissions. Verified Next.js production compilation and Jest unit tests covering security isolation and financial aggregates.
+* **Files Modified & Added**:
+  - `src/app/api/sales/invoice-register/route.ts` [NEW]
+  - `src/app/(dashboard)/sales/invoice-register/page.tsx` [NEW]
+  - `src/app/(dashboard)/sales/history/page.tsx` [MODIFY]
+  - `src/components/Sidebar.tsx` [MODIFY]
+  - `src/lib/auth.ts` [MODIFY]
+  - `src/__tests__/invoice-register.test.ts` [NEW]
+* **Tests**:
+  - Jest Unit Tests: 5 passed, 5 total (`src/__tests__/invoice-register.test.ts`) ✅
+  - Next.js Production Build: PASS ✅
+  - TypeScript compilation check (`tsc --noEmit`): 0 errors ✅
+  - Prisma validation check (`prisma validate`): PASS ✅
+
+### Phase SALES-QUOTATIONS-01 — Sales Quotations / Estimates Integration & Verification (2026-06-10)
+* **Status**: `COMPLETED_AND_VERIFIED`
+* **Scope**: Fully added a comprehensive, multi-tenant Sales Quotations / Estimates module. Implemented database models, API endpoints, status state transitions, print templates, and atomic, idempotent 1-click conversion from accepted quotes to draft Sales Invoices. Executed final preflight checks, added direct resulting invoice links, verified tenant isolation and server calculation security, and hardened unit tests to cover status validations and duplicate conversion prevention.
+* **Files Modified & Added**:
+  - `prisma/schema.prisma`
+  - `prisma/migrations/20260610000000_add_sales_quotations/migration.sql`
+  - `tsconfig.json`
+  - `middleware.ts`
+  - `src/components/Sidebar.tsx`
+  - `src/hooks/useUserPermissions.ts`
+  - `src/lib/auth.ts`
+  - `src/app/(dashboard)/price-quotes/page.tsx`
+  - `src/app/(dashboard)/settings/roles/page.tsx`
+  - `src/app/(dashboard)/sales/quotations/page.tsx`
+  - `src/app/(dashboard)/sales/quotations/new/page.tsx`
+  - `src/app/(dashboard)/sales/quotations/[id]/page.tsx` (Added direct invoice hyperlink in success alert)
+  - `src/app/(dashboard)/sales/quotations/[id]/edit/page.tsx`
+  - `src/app/api/sales/quotations/route.ts`
+  - `src/app/api/sales/quotations/[id]/route.ts`
+  - `src/app/api/sales/quotations/[id]/send/route.ts`
+  - `src/app/api/sales/quotations/[id]/accept/route.ts`
+  - `src/app/api/sales/quotations/[id]/reject/route.ts`
+  - `src/app/api/sales/quotations/[id]/cancel/route.ts`
+  - `src/app/api/sales/quotations/[id]/convert-to-invoice/route.ts`
+  - `src/__tests__/sales-quotation.test.ts` (Added 6 status and duplication prevention tests)
+  - `src/__tests__/api/sales-quotation.test.ts` (Synchronized test suite additions)
+* **Tests**:
+  - Jest Unit Tests: 9 passed, 9 total (`src/__tests__/sales-quotation.test.ts`) ✅
+  - Next.js Production Build: PASS ✅
+  - TypeScript compilation check (`tsc --noEmit`): 0 errors ✅
+  - Prisma validation check (`prisma validate`): PASS ✅
+
+### Phase FULL-SYSTEM-BROWSER-E2E-01 — Full System Browser Scenario Recording & Verification (2026-06-09)
+* **Status**: `COMPLETED_AND_VERIFIED`
+* **Scope**: Performed a complete browser tour, recording, and validation checklist check for all 28 core subsystems of Nama Invest ERP (Sales, POS, PR/PO, GRN, 3WM matching, WMS, Accounting/GL, HR, Payroll, Settings, ZATCA, Roles, SIEM/Security). Verified layout buttons, filtering, forms, CSV/PDF exports, and Arabic RTL alignment.
+* **Files Modified**: None (Docs-only read-only system verification).
+* **Tests**:
+  - Jest test suite: 1209 passed ✅
+  - Prisma validation check: PASS ✅
+* **Browser E2E Tour & Verification**:
+  - Navigated and verified layout stability, login persistence, and tenant isolation on the `https://muskbreath.namainvist.com` tenant subdomain.
+  - Recorded a full E2E system tour video as WebP: [full_system_e2e_tour_1781034028719.webp](file:///C:/Users/ice/.gemini/antigravity-ide/brain/6181057c-4ee8-4fd3-abae-ff2f7181c0e6/full_system_e2e_tour_1781034028719.webp).
+  - Captured screenshots for main dashboard screens confirming loading skeleton layers, error boundaries, empty table formats, and proper translation/RTL styles.
+
+### Phase ACCOUNTING-DEEP-AUDIT-01 — Module Deep Audit for Accounting & Purchase-to-Pay Accounting Connectivity (2026-06-09)
+* **Status**: `COMPLETED_AND_VERIFIED`
+* **Scope**: Verified the complete purchase-to-pay (P2P) accounting ledger entries, subledger auto-journal rules (SLA), trial balance trees, period lock validations, tenant isolation, and RBAC across the P2P transaction cycle (PR → PO → GRN → Supplier Invoice / 3WM → Inventory → Accounting Reports).
+* **Files Modified**: None (Read-only verification; all components are secure and functional).
+* **Tests**:
+  - Procurement integration tests (grn, three-way-match, gr-ir-clearing) ran on remote server: PASS ✅
+  - Next.js Production Build: PASS ✅
+  - Prisma validation check: PASS ✅
+* **Browser E2E Verification**:
+  - Navigated and verified pages for Purchase Orders, GRNs, 3WM matching dashboard, Stock Movements, Accounting Dashboard, Journals, and Trial Balance trees on `https://muskbreath.namainvist.com`.
+  - All pages load successfully with status code HTTP 200, correct tenant isolation, and without any 404, 500, or unexpected logout errors.
+
+### Phase INVENTORY-STOCK-EFFECT-01 — Inventory Stock Effect Visibility Review (2026-06-09)
+* **Status**: `VERIFIED_AND_FIXED`
+* **Scope**: Verified the PR → PO → GRN → Supplier Invoice / 3WM flow. Identified and resolved a gap in `src/app/api/purchases/grn/route.ts` where GRN posting was not updating the `ProductStock` model (per-warehouse stock balance table), causing mismatch in WMS views. Installed a safe, minimal fix.
+* **Files Modified**:
+  - `src/app/api/purchases/grn/route.ts`
+* **Tests**:
+  - Next.js Production Build: PASS ✅
+  - Prisma validation check: PASS ✅
+* **Production Deployment & Verification**:
+  - Backup created: `/root/deploy_backups/inventory-stock-effect-backup` on Hetzner VPS.
+  - Deployed file `route.ts` to `namainvist.com`, `n1.namainvist.com`, and `n11.namainvist.com`.
+  - Rebuilt Next.js and reloaded PM2 processes (`main-site`, `n1-main`, `saas-app`).
+  - Browser E2E: Inspected pages for Purchase Orders, GRNs, WMS, and Stock Movements. Verified all loaded successfully (HTTP 200) without 404, 500, or logout.
+
+### Phase REMAINING-AUTOPILOT-01 — Supplier Invoice & Three-Way Match UAT & Deploy (2026-06-09)
+* **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
+* **Commit**: `4bb619564c3ef2d6ca20f09cb23fa1b9925b7bc6`
+* **Scope**: Fix a critical double-declaration block-scoped syntax bug in the resolve match API route, harden the endpoint with tenant isolation context checks, and execute full local and browser E2E verification.
+* **Files Modified**:
+  - `src/app/api/purchases/matching/[id]/resolve/route.ts`
+* **Tests**:
+  - Jest test suite: 1257 passed ✅
+  - TypeScript compilation check: 0 errors ✅
+  - Prisma validation check: 0 errors ✅
+* **Production Deployment & Verification**:
+  - Backup created: `/root/deploy_backups/remaining-autopilot-3wm-20260609-192909` on Hetzner VPS.
+  - Deployed file `route.ts` to `namainvist.com`, `n1.namainvist.com`, and `n11.namainvist.com`. Verified SHA256 character-for-character parity.
+  - Completed production builds successfully and reloaded PM2 processes (`main-site`, `n1-main`, `saas-app`).
+  - Curl smoke tests verifying 200 OK for UI pages and 401 Unauthorized for protected APIs (no 500 regressions).
+  - Browser E2E: Tested on production via subdomain `https://muskbreath.namainvist.com`, verified login, matching dashboard filters, manual invoice creation on `/ap/capture` matching PO #3, and verified resolution panel operations with no 500 errors. Screenshot and WebP recordings saved.
+  - Security recommendation: Change password or disable the test user account (`admin` / `admin7773`) to maintain high credential hygiene.
+
 ### Phase WORKER-HARDEN-01 — Reconciliation Worker Safety Fix (2026-05-29)
 * **Status**: `PRODUCTION_DEPLOYED_AND_VERIFIED`
 * **Commit**: `1cc63c6edc1fa310cb5d5b0606f21112c5a268b6` (`1cc63c6e`)
@@ -858,19 +962,3 @@ After ANY implementation task, you must automatically update THIS FILE (`/AI_PRO
 * Local Verification: TypeScript compilation PASS, Prisma validation PASS, Vitest DB Safety checks PASS, Secret Scan PASS.
 * Production Deployment & Verification: Deferred. No production code changes made; docs only.
 * Next Recommended Phase: WAITING_FOR_ADMIN_ACTION (Admin needs to set environment variables on terminal to unlock database smoke tests).
-
-### Phase: Purchase Orders Production Deploy (2026-06-09)
-* Status: `PRODUCTION_DEPLOYED_AND_VERIFIED`
-* Commit: `ec832617b1b04267b346fa8c04273697e97fd72e`
-* Scope: Deployed the stable purchase orders page list actions and table fix to resolve production Next.js build errors.
-* Files Modified & Deployed:
-  - `src/app/(dashboard)/purchase-orders/page.tsx`
-* Database / Prisma Schema: Unchanged.
-* Local Verification: TypeScript compilation PASS, Prisma validation PASS.
-* Production Deployment & Verification:
-  - Deployed to Hetzner VPS targets (`namainvist.com`, `n1.namainvist.com`, and `n11.namainvist.com`) at `/www/wwwroot/...`.
-  - Built successfully on production, reloaded PM2 apps (`main-site`, `n1-main`, `saas-app`), and verified they are online.
-  - Performed Smoke Tests on public/protected paths (all passed, 200 OK for UI routes, 401 for protected APIs).
-  - Monitored PM2 logs (clean, no TypeErrors or Prisma schema errors).
-* Next Recommended Phase: Proceed with next business gap closure or stabilization targets.
-

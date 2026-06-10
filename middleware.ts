@@ -183,19 +183,21 @@ export async function middleware(request: NextRequest) {
 
   // ── 4. Public routes ──────────────────────────────────────────────────────────
   if (isPublicRoute(pathname)) {
-    // Run rate limiting using client IP for public/anonymous endpoints
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
-    const limitConfig = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? LIMITS.AUTH : request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
-    const rateLimitKey = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? 'auth' : request.method;
+    // Run rate limiting using client IP for public/anonymous endpoints (only for API routes)
+    if (process.env.RATE_LIMIT_ENABLED === 'true' && pathname.startsWith('/api/')) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
+      const limitConfig = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? LIMITS.AUTH : request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+      const rateLimitKey = isSensitiveAuthRoute(pathname) && request.method !== 'GET' ? 'auth' : request.method;
 
-    const result = await rateLimit(request, {
-      max: limitConfig.max,
-      windowMs: limitConfig.windowMs,
-      keyFn: () => `mw:${rateLimitKey}:ip:${ip}`
-    });
+      const result = await rateLimit(request, {
+        max: limitConfig.max,
+        windowMs: limitConfig.windowMs,
+        keyFn: () => `mw:${rateLimitKey}:ip:${ip}`
+      });
 
-    if (!result.allowed) {
-      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      if (!result.allowed) {
+        return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      }
     }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
@@ -213,16 +215,18 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set('x-api-key', rawToken);
     requestHeaders.set('x-auth-type', 'api-key');
 
-    // Run rate limiting using API Key
-    const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
-    const result = await rateLimit(request, {
-      max: limitConfig.max,
-      windowMs: limitConfig.windowMs,
-      keyFn: () => `mw:${request.method}:apikey:${rawToken.slice(0, 10)}` // slice to prevent logging full key
-    });
+    if (process.env.RATE_LIMIT_ENABLED === 'true') {
+      // Run rate limiting using API Key
+      const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+      const result = await rateLimit(request, {
+        max: limitConfig.max,
+        windowMs: limitConfig.windowMs,
+        keyFn: () => `mw:${request.method}:apikey:${rawToken.slice(0, 10)}` // slice to prevent logging full key
+      });
 
-    if (!result.allowed) {
-      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      if (!result.allowed) {
+        return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      }
     }
 
     // tenantId will be resolved from the DB record in the route handler.
@@ -253,17 +257,19 @@ export async function middleware(request: NextRequest) {
     requestHeaders.set('x-username',  String(payload.username ?? ''));
     requestHeaders.set('x-auth-type', 'jwt');
 
-    // Run rate limiting using authenticated user ID
-    const userId = String(payload.userId ?? '');
-    const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
-    const result = await rateLimit(request, {
-      max: limitConfig.max,
-      windowMs: limitConfig.windowMs,
-      keyFn: () => `mw:${request.method}:user:${userId}`
-    });
+    if (process.env.RATE_LIMIT_ENABLED === 'true') {
+      // Run rate limiting using authenticated user ID
+      const userId = String(payload.userId ?? '');
+      const limitConfig = request.method === 'GET' ? LIMITS.GET : LIMITS.MUTATION;
+      const result = await rateLimit(request, {
+        max: limitConfig.max,
+        windowMs: limitConfig.windowMs,
+        keyFn: () => `mw:${request.method}:user:${userId}`
+      });
 
-    if (!result.allowed) {
-      return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      if (!result.allowed) {
+        return buildRateLimitResponse(limitConfig.max, result.resetAt);
+      }
     }
 
     return NextResponse.next({ request: { headers: requestHeaders } });

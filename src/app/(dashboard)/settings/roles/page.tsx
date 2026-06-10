@@ -13,7 +13,7 @@ const MODULES_GROUPED = [
  },
  {
  category: 'المبيعات ونقاط البيع',
- keys: ['sales', 'sales_orders', 'sales_returns', 'sales_routes', 'sales_targets', 'price_quotes', 'pos', 'restaurant_pos', 'customers']
+ keys: ['sales', 'sales_orders', 'sales_returns', 'sales_routes', 'sales_targets', 'price_quotes', 'sales.quotation.view', 'sales.quotation.create', 'sales.quotation.update', 'sales.quotation.send', 'sales.quotation.accept', 'sales.quotation.reject', 'sales.quotation.convert_to_invoice', 'sales.quotation.cancel', 'pos', 'restaurant_pos', 'customers']
  },
  {
  category: 'المشتريات والتوريد',
@@ -63,7 +63,15 @@ const MODULE_NAMES: Record<string, string> = {
  'restaurant_pos': 'نقاط بيع المطاعم',
  'shifts': 'الورديات',
  'sales': 'المبيعات',
- 'price_quotes': 'عروض الأسعار',
+ 'price_quotes': 'عروض الأسعار (القديمة)',
+ 'sales.quotation.view': 'صلاحية عرض عروض الأسعار',
+ 'sales.quotation.create': 'صلاحية إنشاء عروض الأسعار',
+ 'sales.quotation.update': 'صلاحية تعديل عروض الأسعار',
+ 'sales.quotation.send': 'صلاحية إرسال عروض الأسعار',
+ 'sales.quotation.accept': 'صلاحية قبول عروض الأسعار',
+ 'sales.quotation.reject': 'صلاحية رفض عروض الأسعار',
+ 'sales.quotation.convert_to_invoice': 'صلاحية تحويل عروض الأسعار لفواتير',
+ 'sales.quotation.cancel': 'صلاحية إلغاء عروض الأسعار',
  'sales_orders': 'أوامر البيع',
  'sales_returns': 'مرتجعات المبيعات',
  'sales_routes': 'خطوط السير والمناديب',
